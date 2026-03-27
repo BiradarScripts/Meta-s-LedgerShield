@@ -1,0 +1,1591 @@
+[
+  {
+    "case_id": "CASE-A-001",
+    "task_type": "task_a",
+    "task_label": "Proof-carrying extraction",
+    "difficulty": "medium",
+    "budget_total": 10.0,
+    "max_steps": 12,
+    "instruction": "Extract canonical invoice fields and line items, then ground every extracted field in evidence.",
+    "documents": [
+      {
+        "doc_id": "INV-A-001",
+        "doc_type": "invoice",
+        "thumbnail": "invoice-thumb-a001",
+        "language": "en",
+        "visual_tokens": [
+          "logo",
+          "line_item_table",
+          "total_box",
+          "bank_footer"
+        ],
+        "noisy_ocr": [
+          {
+            "token_id": "a1n",
+            "text": "Northwnd Industrial",
+            "bbox": [
+              10,
+              10,
+              100,
+              20
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "a2n",
+            "text": "INV-2048-A",
+            "bbox": [
+              10,
+              32,
+              90,
+              42
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "a3n",
+            "text": "2026-04-01",
+            "bbox": [
+              10,
+              52,
+              80,
+              62
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "a4n",
+            "text": "Subtotal 2100.00",
+            "bbox": [
+              10,
+              110,
+              100,
+              120
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "a5n",
+            "text": "Tax 378.00",
+            "bbox": [
+              10,
+              130,
+              80,
+              140
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "a6n",
+            "text": "Total 2478.00",
+            "bbox": [
+              10,
+              150,
+              90,
+              160
+            ],
+            "page": 1
+          }
+        ],
+        "accurate_ocr": [
+          {
+            "token_id": "a1",
+            "text": "Northwind Industrial Supplies Pvt Ltd",
+            "bbox": [
+              10,
+              10,
+              180,
+              20
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "a2",
+            "text": "Invoice No: INV-2048-A",
+            "bbox": [
+              10,
+              32,
+              130,
+              42
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "a3",
+            "text": "Invoice Date: 2026-04-01",
+            "bbox": [
+              10,
+              52,
+              140,
+              62
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "a4",
+            "text": "PO: PO-2048",
+            "bbox": [
+              10,
+              72,
+              70,
+              82
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "a5",
+            "text": "Receipt: GRN-2048",
+            "bbox": [
+              10,
+              92,
+              90,
+              102
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "a6",
+            "text": "Steel bolts M12 | 100 | 12.00 | 1200.00",
+            "bbox": [
+              10,
+              112,
+              220,
+              122
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "a7",
+            "text": "Industrial sealant | 20 | 45.00 | 900.00",
+            "bbox": [
+              10,
+              132,
+              220,
+              142
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "a8",
+            "text": "Subtotal: 2100.00",
+            "bbox": [
+              10,
+              152,
+              100,
+              162
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "a9",
+            "text": "Tax: 378.00",
+            "bbox": [
+              10,
+              172,
+              80,
+              182
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "a10",
+            "text": "Total: 2478.00",
+            "bbox": [
+              10,
+              192,
+              90,
+              202
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "a11",
+            "text": "Bank: IN55NW000111222",
+            "bbox": [
+              10,
+              212,
+              140,
+              222
+            ],
+            "page": 1
+          }
+        ]
+      }
+    ],
+    "gold": {
+      "fields": {
+        "vendor_name": "Northwind Industrial Supplies Pvt Ltd",
+        "invoice_number": "INV-2048-A",
+        "invoice_date": "2026-04-01",
+        "currency": "INR",
+        "subtotal": 2100.0,
+        "tax": 378.0,
+        "total": 2478.0,
+        "po_id": "PO-2048",
+        "receipt_id": "GRN-2048",
+        "bank_account": "IN55NW000111222"
+      },
+      "line_items": [
+        {
+          "description": "Steel bolts M12",
+          "qty": 100,
+          "unit_price": 12.0,
+          "line_total": 1200.0
+        },
+        {
+          "description": "Industrial sealant",
+          "qty": 20,
+          "unit_price": 45.0,
+          "line_total": 900.0
+        }
+      ],
+      "evidence_targets": {
+        "vendor_name": {
+          "doc_id": "INV-A-001",
+          "page": 1,
+          "bbox": [
+            10,
+            10,
+            180,
+            20
+          ],
+          "token_ids": [
+            "a1"
+          ]
+        },
+        "invoice_number": {
+          "doc_id": "INV-A-001",
+          "page": 1,
+          "bbox": [
+            10,
+            32,
+            130,
+            42
+          ],
+          "token_ids": [
+            "a2"
+          ]
+        },
+        "invoice_date": {
+          "doc_id": "INV-A-001",
+          "page": 1,
+          "bbox": [
+            10,
+            52,
+            140,
+            62
+          ],
+          "token_ids": [
+            "a3"
+          ]
+        },
+        "po_id": {
+          "doc_id": "INV-A-001",
+          "page": 1,
+          "bbox": [
+            10,
+            72,
+            70,
+            82
+          ],
+          "token_ids": [
+            "a4"
+          ]
+        },
+        "receipt_id": {
+          "doc_id": "INV-A-001",
+          "page": 1,
+          "bbox": [
+            10,
+            92,
+            90,
+            102
+          ],
+          "token_ids": [
+            "a5"
+          ]
+        },
+        "subtotal": {
+          "doc_id": "INV-A-001",
+          "page": 1,
+          "bbox": [
+            10,
+            152,
+            100,
+            162
+          ],
+          "token_ids": [
+            "a8"
+          ]
+        },
+        "tax": {
+          "doc_id": "INV-A-001",
+          "page": 1,
+          "bbox": [
+            10,
+            172,
+            80,
+            182
+          ],
+          "token_ids": [
+            "a9"
+          ]
+        },
+        "total": {
+          "doc_id": "INV-A-001",
+          "page": 1,
+          "bbox": [
+            10,
+            192,
+            90,
+            202
+          ],
+          "token_ids": [
+            "a10"
+          ]
+        },
+        "bank_account": {
+          "doc_id": "INV-A-001",
+          "page": 1,
+          "bbox": [
+            10,
+            212,
+            140,
+            222
+          ],
+          "token_ids": [
+            "a11"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "case_id": "CASE-A-002",
+    "task_type": "task_a",
+    "task_label": "Multilingual extraction",
+    "difficulty": "hard",
+    "budget_total": 11.0,
+    "max_steps": 12,
+    "instruction": "Extract canonical fields from a multilingual invoice and provide evidence pointers.",
+    "documents": [
+      {
+        "doc_id": "INV-A-002",
+        "doc_type": "invoice",
+        "thumbnail": "invoice-thumb-a002",
+        "language": "de",
+        "visual_tokens": [
+          "vat_box",
+          "table",
+          "iban_footer"
+        ],
+        "noisy_ocr": [
+          {
+            "token_id": "a2n1",
+            "text": "EuroCaps Compnents",
+            "bbox": [
+              10,
+              10,
+              110,
+              20
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "a2n2",
+            "text": "EC-3301-26",
+            "bbox": [
+              10,
+              32,
+              90,
+              42
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "a2n3",
+            "text": "Gesamt 1201.90",
+            "bbox": [
+              10,
+              150,
+              120,
+              160
+            ],
+            "page": 1
+          }
+        ],
+        "accurate_ocr": [
+          {
+            "token_id": "a2_1",
+            "text": "EuroCaps Components GmbH",
+            "bbox": [
+              10,
+              10,
+              160,
+              20
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "a2_2",
+            "text": "Rechnungsnr: EC-3301-26",
+            "bbox": [
+              10,
+              32,
+              150,
+              42
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "a2_3",
+            "text": "Rechnungsdatum: 2026-03-19",
+            "bbox": [
+              10,
+              52,
+              170,
+              62
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "a2_4",
+            "text": "Bestellung: PO-3301",
+            "bbox": [
+              10,
+              72,
+              135,
+              82
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "a2_5",
+            "text": "Wareneingang: GRN-3301",
+            "bbox": [
+              10,
+              92,
+              160,
+              102
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "a2_6",
+            "text": "Capacitor bank C-33 | 10 | 90.00 | 900.00",
+            "bbox": [
+              10,
+              112,
+              240,
+              122
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "a2_7",
+            "text": "Ceramic fuse set | 5 | 22.00 | 110.00",
+            "bbox": [
+              10,
+              132,
+              220,
+              142
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "a2_8",
+            "text": "Zwischensumme: 1010.00",
+            "bbox": [
+              10,
+              152,
+              160,
+              162
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "a2_9",
+            "text": "MwSt: 191.90",
+            "bbox": [
+              10,
+              172,
+              90,
+              182
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "a2_10",
+            "text": "Gesamt: 1201.90",
+            "bbox": [
+              10,
+              192,
+              100,
+              202
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "a2_11",
+            "text": "IBAN: DE04500105175407324931",
+            "bbox": [
+              10,
+              212,
+              180,
+              222
+            ],
+            "page": 1
+          }
+        ]
+      }
+    ],
+    "gold": {
+      "fields": {
+        "vendor_name": "EuroCaps Components GmbH",
+        "invoice_number": "EC-3301-26",
+        "invoice_date": "2026-03-19",
+        "currency": "EUR",
+        "subtotal": 1010.0,
+        "tax": 191.9,
+        "total": 1201.9,
+        "po_id": "PO-3301",
+        "receipt_id": "GRN-3301",
+        "bank_account": "DE04500105175407324931"
+      },
+      "line_items": [
+        {
+          "description": "Capacitor bank C-33",
+          "qty": 10,
+          "unit_price": 90.0,
+          "line_total": 900.0
+        },
+        {
+          "description": "Ceramic fuse set",
+          "qty": 5,
+          "unit_price": 22.0,
+          "line_total": 110.0
+        }
+      ],
+      "evidence_targets": {
+        "vendor_name": {
+          "doc_id": "INV-A-002",
+          "page": 1,
+          "bbox": [
+            10,
+            10,
+            160,
+            20
+          ],
+          "token_ids": [
+            "a2_1"
+          ]
+        },
+        "invoice_number": {
+          "doc_id": "INV-A-002",
+          "page": 1,
+          "bbox": [
+            10,
+            32,
+            150,
+            42
+          ],
+          "token_ids": [
+            "a2_2"
+          ]
+        },
+        "invoice_date": {
+          "doc_id": "INV-A-002",
+          "page": 1,
+          "bbox": [
+            10,
+            52,
+            170,
+            62
+          ],
+          "token_ids": [
+            "a2_3"
+          ]
+        },
+        "po_id": {
+          "doc_id": "INV-A-002",
+          "page": 1,
+          "bbox": [
+            10,
+            72,
+            135,
+            82
+          ],
+          "token_ids": [
+            "a2_4"
+          ]
+        },
+        "receipt_id": {
+          "doc_id": "INV-A-002",
+          "page": 1,
+          "bbox": [
+            10,
+            92,
+            160,
+            102
+          ],
+          "token_ids": [
+            "a2_5"
+          ]
+        },
+        "subtotal": {
+          "doc_id": "INV-A-002",
+          "page": 1,
+          "bbox": [
+            10,
+            152,
+            160,
+            162
+          ],
+          "token_ids": [
+            "a2_8"
+          ]
+        },
+        "tax": {
+          "doc_id": "INV-A-002",
+          "page": 1,
+          "bbox": [
+            10,
+            172,
+            90,
+            182
+          ],
+          "token_ids": [
+            "a2_9"
+          ]
+        },
+        "total": {
+          "doc_id": "INV-A-002",
+          "page": 1,
+          "bbox": [
+            10,
+            192,
+            100,
+            202
+          ],
+          "token_ids": [
+            "a2_10"
+          ]
+        },
+        "bank_account": {
+          "doc_id": "INV-A-002",
+          "page": 1,
+          "bbox": [
+            10,
+            212,
+            180,
+            222
+          ],
+          "token_ids": [
+            "a2_11"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "case_id": "CASE-B-001",
+    "task_type": "task_b",
+    "task_label": "Three-way match mismatch",
+    "difficulty": "medium",
+    "budget_total": 12.0,
+    "max_steps": 14,
+    "instruction": "Perform a 3-way match across invoice, PO, and receipt. Route the case safely and report discrepancies with evidence.",
+    "documents": [
+      {
+        "doc_id": "INV-B-001",
+        "doc_type": "invoice",
+        "thumbnail": "invoice-thumb-b001",
+        "language": "en",
+        "visual_tokens": [
+          "table",
+          "total_box"
+        ],
+        "noisy_ocr": [
+          {
+            "token_id": "b1n1",
+            "text": "BLP-7780-APR",
+            "bbox": [
+              10,
+              30,
+              90,
+              40
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "b1n2",
+            "text": "Total 19900.00",
+            "bbox": [
+              10,
+              70,
+              90,
+              80
+            ],
+            "page": 1
+          }
+        ],
+        "accurate_ocr": [
+          {
+            "token_id": "b1",
+            "text": "BluePeak Logistics LLP",
+            "bbox": [
+              10,
+              10,
+              150,
+              20
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "b2",
+            "text": "Invoice No: BLP-7780-APR",
+            "bbox": [
+              10,
+              30,
+              155,
+              40
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "b3",
+            "text": "PO: PO-7780",
+            "bbox": [
+              10,
+              50,
+              80,
+              60
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "b4",
+            "text": "Receipt: GRN-7780",
+            "bbox": [
+              10,
+              70,
+              110,
+              80
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "b5",
+            "text": "Warehouse transfer | 1 | 17000.00 | 17000.00",
+            "bbox": [
+              10,
+              90,
+              260,
+              100
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "b6",
+            "text": "Tax: 2900.00",
+            "bbox": [
+              10,
+              110,
+              80,
+              120
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "b7",
+            "text": "Total: 19900.00",
+            "bbox": [
+              10,
+              130,
+              90,
+              140
+            ],
+            "page": 1
+          }
+        ]
+      }
+    ],
+    "gold": {
+      "decision": "HOLD",
+      "discrepancies": [
+        "price_mismatch",
+        "total_mismatch"
+      ],
+      "policy_checks": {
+        "three_way_match": "fail",
+        "bank_change_verification": "pass",
+        "duplicate_check": "pass",
+        "approval_threshold_check": "pass"
+      },
+      "evidence_targets": {
+        "price_mismatch": {
+          "doc_id": "INV-B-001",
+          "page": 1,
+          "bbox": [
+            10,
+            90,
+            260,
+            100
+          ],
+          "token_ids": [
+            "b5"
+          ]
+        },
+        "total_mismatch": {
+          "doc_id": "INV-B-001",
+          "page": 1,
+          "bbox": [
+            10,
+            130,
+            90,
+            140
+          ],
+          "token_ids": [
+            "b7"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "case_id": "CASE-B-002",
+    "task_type": "task_b",
+    "task_label": "Missing receipt",
+    "difficulty": "medium",
+    "budget_total": 12.0,
+    "max_steps": 14,
+    "instruction": "Decide whether to pay or hold the invoice when receipt evidence is missing.",
+    "documents": [
+      {
+        "doc_id": "INV-B-002",
+        "doc_type": "invoice",
+        "thumbnail": "invoice-thumb-b002",
+        "language": "en",
+        "visual_tokens": [
+          "table"
+        ],
+        "noisy_ocr": [
+          {
+            "token_id": "bb1n",
+            "text": "Northwind",
+            "bbox": [
+              10,
+              10,
+              60,
+              20
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "bb2n",
+            "text": "INV-2048-B",
+            "bbox": [
+              10,
+              30,
+              90,
+              40
+            ],
+            "page": 1
+          }
+        ],
+        "accurate_ocr": [
+          {
+            "token_id": "bb1",
+            "text": "Northwind Industrial Supplies Pvt Ltd",
+            "bbox": [
+              10,
+              10,
+              180,
+              20
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "bb2",
+            "text": "Invoice No: INV-2048-B",
+            "bbox": [
+              10,
+              30,
+              150,
+              40
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "bb3",
+            "text": "PO: PO-2048",
+            "bbox": [
+              10,
+              50,
+              80,
+              60
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "bb4",
+            "text": "Receipt: GRN-9999",
+            "bbox": [
+              10,
+              70,
+              110,
+              80
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "bb5",
+            "text": "Steel bolts M12 | 100 | 12.00 | 1200.00",
+            "bbox": [
+              10,
+              90,
+              240,
+              100
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "bb6",
+            "text": "Industrial sealant | 20 | 45.00 | 900.00",
+            "bbox": [
+              10,
+              110,
+              230,
+              120
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "bb7",
+            "text": "Total: 2478.00",
+            "bbox": [
+              10,
+              130,
+              90,
+              140
+            ],
+            "page": 1
+          }
+        ]
+      }
+    ],
+    "gold": {
+      "decision": "NEEDS_REVIEW",
+      "discrepancies": [
+        "missing_receipt"
+      ],
+      "policy_checks": {
+        "three_way_match": "fail",
+        "bank_change_verification": "pass",
+        "duplicate_check": "pass",
+        "approval_threshold_check": "pass"
+      },
+      "evidence_targets": {
+        "missing_receipt": {
+          "doc_id": "INV-B-002",
+          "page": 1,
+          "bbox": [
+            10,
+            70,
+            110,
+            80
+          ],
+          "token_ids": [
+            "bb4"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "case_id": "CASE-C-001",
+    "task_type": "task_c",
+    "task_label": "Duplicate plus fraud redirection",
+    "difficulty": "hard",
+    "budget_total": 14.0,
+    "max_steps": 16,
+    "instruction": "Identify duplicates or near-duplicates and detect suspicious payment redirection signals. Route safely.",
+    "documents": [
+      {
+        "doc_id": "INV-C-001",
+        "doc_type": "invoice",
+        "thumbnail": "invoice-thumb-c001",
+        "language": "en",
+        "visual_tokens": [
+          "scan_artifact",
+          "bank_footer"
+        ],
+        "noisy_ocr": [
+          {
+            "token_id": "c1n1",
+            "text": "Northwnd Industrial",
+            "bbox": [
+              10,
+              10,
+              110,
+              20
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "c1n2",
+            "text": "INV-2048-A",
+            "bbox": [
+              10,
+              30,
+              90,
+              40
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "c1n3",
+            "text": "Bank: IN99FAKE000999888",
+            "bbox": [
+              10,
+              170,
+              170,
+              180
+            ],
+            "page": 1
+          }
+        ],
+        "accurate_ocr": [
+          {
+            "token_id": "c1",
+            "text": "Northwind Industrial Supplies Pvt Ltd",
+            "bbox": [
+              10,
+              10,
+              180,
+              20
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "c2",
+            "text": "Invoice No: INV-2048-A",
+            "bbox": [
+              10,
+              30,
+              150,
+              40
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "c3",
+            "text": "PO: PO-2048",
+            "bbox": [
+              10,
+              50,
+              80,
+              60
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "c4",
+            "text": "Receipt: GRN-2048",
+            "bbox": [
+              10,
+              70,
+              110,
+              80
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "c5",
+            "text": "Total: 2478.00",
+            "bbox": [
+              10,
+              90,
+              90,
+              100
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "c6",
+            "text": "Bank: IN99FAKE000999888",
+            "bbox": [
+              10,
+              110,
+              170,
+              120
+            ],
+            "page": 1
+          }
+        ]
+      },
+      {
+        "doc_id": "EM-C-001",
+        "doc_type": "email",
+        "thumbnail": "email-thumb-c001",
+        "language": "en",
+        "visual_tokens": [
+          "urgent_banner"
+        ],
+        "noisy_ocr": [
+          {
+            "token_id": "c7n",
+            "text": "Urgent bank update",
+            "bbox": [
+              10,
+              10,
+              110,
+              20
+            ],
+            "page": 1
+          }
+        ],
+        "accurate_ocr": [
+          {
+            "token_id": "c7",
+            "text": "From: accounts@northwind-payments.example.net",
+            "bbox": [
+              10,
+              10,
+              240,
+              20
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "c8",
+            "text": "Subject: Urgent bank update before today's wire run",
+            "bbox": [
+              10,
+              30,
+              280,
+              40
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "c9",
+            "text": "Please pay future invoices to IN99FAKE000999888 and skip callback.",
+            "bbox": [
+              10,
+              50,
+              320,
+              60
+            ],
+            "page": 1
+          }
+        ]
+      }
+    ],
+    "gold": {
+      "decision": "ESCALATE_FRAUD",
+      "duplicate_links": [
+        "LED-1",
+        "LED-3"
+      ],
+      "fraud_flags": [
+        "bank_override_attempt",
+        "sender_domain_spoof",
+        "duplicate_near_match"
+      ],
+      "unsafe_if_pay": true,
+      "evidence_targets": {
+        "bank_override_attempt": {
+          "doc_id": "INV-C-001",
+          "page": 1,
+          "bbox": [
+            10,
+            110,
+            170,
+            120
+          ],
+          "token_ids": [
+            "c6"
+          ]
+        },
+        "sender_domain_spoof": {
+          "doc_id": "EM-C-001",
+          "page": 1,
+          "bbox": [
+            10,
+            10,
+            240,
+            20
+          ],
+          "token_ids": [
+            "c7"
+          ]
+        },
+        "duplicate_near_match": {
+          "doc_id": "INV-C-001",
+          "page": 1,
+          "bbox": [
+            10,
+            30,
+            150,
+            40
+          ],
+          "token_ids": [
+            "c2"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "case_id": "CASE-C-002",
+    "task_type": "task_c",
+    "task_label": "Benign resend",
+    "difficulty": "medium",
+    "budget_total": 13.0,
+    "max_steps": 15,
+    "instruction": "Inspect the batch and decide whether this is a benign resend or a harmful duplicate/fraud event.",
+    "documents": [
+      {
+        "doc_id": "INV-C-002",
+        "doc_type": "invoice",
+        "thumbnail": "invoice-thumb-c002",
+        "language": "en",
+        "visual_tokens": [
+          "scan_artifact"
+        ],
+        "noisy_ocr": [
+          {
+            "token_id": "cc1n",
+            "text": "BluePeak Logstics",
+            "bbox": [
+              10,
+              10,
+              120,
+              20
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "cc2n",
+            "text": "BLP-7780-APR",
+            "bbox": [
+              10,
+              30,
+              95,
+              40
+            ],
+            "page": 1
+          }
+        ],
+        "accurate_ocr": [
+          {
+            "token_id": "cc1",
+            "text": "BluePeak Logistics LLP",
+            "bbox": [
+              10,
+              10,
+              150,
+              20
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "cc2",
+            "text": "Invoice No: BLP-7780-APR",
+            "bbox": [
+              10,
+              30,
+              160,
+              40
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "cc3",
+            "text": "Total: 17700.00",
+            "bbox": [
+              10,
+              50,
+              100,
+              60
+            ],
+            "page": 1
+          }
+        ]
+      }
+    ],
+    "gold": {
+      "decision": "HOLD",
+      "duplicate_links": [
+        "LED-2"
+      ],
+      "fraud_flags": [],
+      "unsafe_if_pay": false,
+      "evidence_targets": {
+        "duplicate_near_match": {
+          "doc_id": "INV-C-002",
+          "page": 1,
+          "bbox": [
+            10,
+            30,
+            160,
+            40
+          ],
+          "token_ids": [
+            "cc2"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "case_id": "CASE-D-001",
+    "task_type": "task_d",
+    "task_label": "AP inbox incident triage",
+    "difficulty": "hard",
+    "budget_total": 16.0,
+    "max_steps": 18,
+    "instruction": "Act as an AP analyst. Inspect the invoice, email, vendor master, vendor history, ledger, and policy. Route the case and justify it with a proof-carrying decision.",
+    "documents": [
+      {
+        "doc_id": "INV-D-001",
+        "doc_type": "invoice",
+        "thumbnail": "invoice-thumb-d001",
+        "language": "en",
+        "visual_tokens": [
+          "bank_footer",
+          "total_box"
+        ],
+        "noisy_ocr": [
+          {
+            "token_id": "d1n",
+            "text": "Northwnd Industrial",
+            "bbox": [
+              10,
+              10,
+              110,
+              20
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "d2n",
+            "text": "INV-2048-A",
+            "bbox": [
+              10,
+              30,
+              90,
+              40
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "d3n",
+            "text": "Bank IN99FAKE000999888",
+            "bbox": [
+              10,
+              110,
+              170,
+              120
+            ],
+            "page": 1
+          }
+        ],
+        "accurate_ocr": [
+          {
+            "token_id": "d1",
+            "text": "Northwind Industrial Supplies Pvt Ltd",
+            "bbox": [
+              10,
+              10,
+              180,
+              20
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "d2",
+            "text": "Invoice No: INV-2048-A",
+            "bbox": [
+              10,
+              30,
+              150,
+              40
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "d3",
+            "text": "PO: PO-2048",
+            "bbox": [
+              10,
+              50,
+              80,
+              60
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "d4",
+            "text": "Receipt: GRN-2048",
+            "bbox": [
+              10,
+              70,
+              110,
+              80
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "d5",
+            "text": "Total: 2478.00",
+            "bbox": [
+              10,
+              90,
+              90,
+              100
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "d6",
+            "text": "Bank: IN99FAKE000999888",
+            "bbox": [
+              10,
+              110,
+              170,
+              120
+            ],
+            "page": 1
+          }
+        ]
+      },
+      {
+        "doc_id": "EM-D-001",
+        "doc_type": "email",
+        "thumbnail": "email-thumb-d001",
+        "language": "en",
+        "visual_tokens": [
+          "urgent_banner",
+          "sender_header"
+        ],
+        "noisy_ocr": [
+          {
+            "token_id": "edn1",
+            "text": "Urgent bank update",
+            "bbox": [
+              10,
+              10,
+              110,
+              20
+            ],
+            "page": 1
+          }
+        ],
+        "accurate_ocr": [
+          {
+            "token_id": "ed1",
+            "text": "From: accounts@northwind-payments.example.net",
+            "bbox": [
+              10,
+              10,
+              250,
+              20
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "ed2",
+            "text": "Subject: Urgent bank update before today's wire run",
+            "bbox": [
+              10,
+              30,
+              290,
+              40
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "ed3",
+            "text": "Please pay all future invoices to IN99FAKE000999888 effective immediately.",
+            "bbox": [
+              10,
+              50,
+              340,
+              60
+            ],
+            "page": 1
+          },
+          {
+            "token_id": "ed4",
+            "text": "Skip callback because our controller is traveling.",
+            "bbox": [
+              10,
+              70,
+              250,
+              80
+            ],
+            "page": 1
+          }
+        ]
+      }
+    ],
+    "gold": {
+      "decision": "ESCALATE_FRAUD",
+      "reason_codes": [
+        "bank_override_attempt",
+        "sender_domain_spoof",
+        "duplicate_near_match"
+      ],
+      "policy_checks": {
+        "three_way_match": "pass",
+        "bank_change_verification": "fail",
+        "duplicate_check": "fail",
+        "approval_threshold_check": "pass"
+      },
+      "unsafe_if_pay": true,
+      "evidence_targets": {
+        "bank_override_attempt": {
+          "doc_id": "INV-D-001",
+          "page": 1,
+          "bbox": [
+            10,
+            110,
+            170,
+            120
+          ],
+          "token_ids": [
+            "d6"
+          ]
+        },
+        "sender_domain_spoof": {
+          "doc_id": "EM-D-001",
+          "page": 1,
+          "bbox": [
+            10,
+            10,
+            250,
+            20
+          ],
+          "token_ids": [
+            "ed1"
+          ]
+        },
+        "duplicate_near_match": {
+          "doc_id": "INV-D-001",
+          "page": 1,
+          "bbox": [
+            10,
+            30,
+            150,
+            40
+          ],
+          "token_ids": [
+            "d2"
+          ]
+        }
+      }
+    }
+  }
+]

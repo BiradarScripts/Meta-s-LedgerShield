@@ -1,0 +1,22 @@
+[
+  {
+    "vendor_key": "northwind-industrial",
+    "change_id": "VH-001",
+    "change_type": "bank_account_change_request",
+    "requested_at": "2026-03-24T09:00:00Z",
+    "status": "pending_callback_verification",
+    "old_value": "IN55NW000111222",
+    "new_value": "IN99FAKE000999888",
+    "requested_by": "accounts@northwind-payments.example.net"
+  },
+  {
+    "vendor_key": "bluepeak-logistics",
+    "change_id": "VH-002",
+    "change_type": "tax_id_refresh",
+    "requested_at": "2026-02-10T11:00:00Z",
+    "status": "approved",
+    "old_value": "GSTIN-BP-1182",
+    "new_value": "GSTIN-BP-1182",
+    "requested_by": "apops@bluepeak.example.com"
+  }
+]

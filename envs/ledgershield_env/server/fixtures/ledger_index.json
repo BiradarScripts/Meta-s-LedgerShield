@@ -1,0 +1,34 @@
+[
+  {
+    "record_id": "LED-1",
+    "vendor_name": "Northwind Industrial Supplies Pvt Ltd",
+    "invoice_number": "INV-2048-A",
+    "fingerprint": "northwind-bolts-2478",
+    "amount": 2478.0,
+    "po_id": "PO-2048"
+  },
+  {
+    "record_id": "LED-2",
+    "vendor_name": "BluePeak Logistics LLP",
+    "invoice_number": "BLP-7780-APR",
+    "fingerprint": "bluepeak-transfer-17700",
+    "amount": 17700.0,
+    "po_id": "PO-7780"
+  },
+  {
+    "record_id": "LED-3",
+    "vendor_name": "Northwind Industrial Supplies Pvt Ltd",
+    "invoice_number": "INV-2048-A-RESEND",
+    "fingerprint": "northwind-bolts-2478-scan",
+    "amount": 2478.0,
+    "po_id": "PO-2048"
+  },
+  {
+    "record_id": "LED-4",
+    "vendor_name": "EuroCaps Components GmbH",
+    "invoice_number": "EC-3301-26",
+    "fingerprint": "eurocaps-capacitor-1201.9",
+    "amount": 1201.9,
+    "po_id": "PO-3301"
+  }
+]

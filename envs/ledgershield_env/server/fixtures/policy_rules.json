@@ -1,0 +1,20 @@
+[
+  {
+    "rule_id": "three-way-match",
+    "title": "Three-way match required",
+    "description": "Invoice, PO, and receipt must align before payment.",
+    "failure_route": "HOLD"
+  },
+  {
+    "rule_id": "bank-change-verification",
+    "title": "Bank changes require callback verification",
+    "description": "Any payment destination change must be independently verified using approved vendor contact channels.",
+    "failure_route": "ESCALATE_FRAUD"
+  },
+  {
+    "rule_id": "duplicate-check",
+    "title": "Duplicate invoice screening",
+    "description": "Potential duplicates must be stopped or routed to manual review before payment.",
+    "failure_route": "HOLD"
+  }
+]
