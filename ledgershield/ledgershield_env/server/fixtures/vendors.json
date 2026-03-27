@@ -1,0 +1,16 @@
+[
+  {
+    "vendor_key": "northwind-industrial",
+    "canonical_name": "Northwind Industrial Supplies Pvt Ltd",
+    "allowed_bank_accounts": ["IN55NW000111222"],
+    "tax_id": "GSTIN-NW-7781",
+    "approved_domains": ["northwind.example.com"]
+  },
+  {
+    "vendor_key": "bluepeak-logistics",
+    "canonical_name": "BluePeak Logistics LLP",
+    "allowed_bank_accounts": ["IN77BP555666777"],
+    "tax_id": "GSTIN-BP-1182",
+    "approved_domains": ["bluepeak.example.com"]
+  }
+]

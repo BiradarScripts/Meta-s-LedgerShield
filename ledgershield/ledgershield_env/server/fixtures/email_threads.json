@@ -1,0 +1,10 @@
+[
+  {
+    "thread_id": "EM-91",
+    "vendor_key": "northwind-industrial",
+    "from": "accounts@northwind-payments.example.net",
+    "subject": "Urgent bank update",
+    "body": "Please pay all future invoices to IN99FAKE000999888 effective immediately.",
+    "fraud_signals": ["bank_override_attempt", "vendor_name_spoof"]
+  }
+]

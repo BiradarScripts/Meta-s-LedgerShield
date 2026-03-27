@@ -1,0 +1,16 @@
+[
+  {
+    "record_id": "LED-1",
+    "vendor_name": "Northwind Industrial Supplies Pvt Ltd",
+    "invoice_number": "INV-2048-A",
+    "fingerprint": "northwind-bolts-2478",
+    "amount": 2478.0
+  },
+  {
+    "record_id": "LED-2",
+    "vendor_name": "BluePeak Logistics LLP",
+    "invoice_number": "BLP-7780-APR",
+    "fingerprint": "bluepeak-transfer-17700",
+    "amount": 17700.0
+  }
+]
