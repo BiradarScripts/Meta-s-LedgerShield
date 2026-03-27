@@ -39,6 +39,23 @@ TOOL_COSTS = {
     "submit_decision": 0.0,
 }
 
+ALLOWED_ACTIONS = {
+    "zoom",
+    "get_doc_crop",
+    "ocr",
+    "lookup_vendor",
+    "lookup_vendor_history",
+    "lookup_policy",
+    "lookup_po",
+    "lookup_receipt",
+    "search_ledger",
+    "inspect_email_thread",
+    "compare_bank_account",
+    "submit_decision",
+}
+
+ALLOWED_DECISIONS = {"PAY", "HOLD", "NEEDS_REVIEW", "ESCALATE_FRAUD"}
+
 
 class LedgerShieldEnvironment(Environment):
     def __init__(self) -> None:
@@ -81,7 +98,11 @@ class LedgerShieldEnvironment(Environment):
             )
         return docs
 
-    def _observation(self, tool_result: dict[str, Any] | None = None, messages: list[str] | None = None) -> LedgerShieldObservation:
+    def _observation(
+        self,
+        tool_result: dict[str, Any] | None = None,
+        messages: list[str] | None = None,
+    ) -> LedgerShieldObservation:
         assert self.current_case is not None
         return LedgerShieldObservation(
             case_id=self._state.case_id,
@@ -127,7 +148,7 @@ class LedgerShieldEnvironment(Environment):
         self._last_reward = 0.0
         self._last_done = False
         self._last_info = {"case_id": self._state.case_id}
-        return self._observation(messages=["LedgerShield case loaded."])
+        return self._observation(messages=[f"Loaded case {self._state.case_id}"])
 
     def _apply_cost(self, tool_name: str, payload: dict[str, Any]) -> float:
         if tool_name == "ocr":
@@ -158,51 +179,138 @@ class LedgerShieldEnvironment(Environment):
             return compare_bank_account_tool(self.db["vendors"], payload)
         return {"error": f"unknown action_type: {tool_name}"}
 
+    def _normalize_tool_result(self, tool_name: str, raw: dict[str, Any], cost: float) -> tuple[dict[str, Any], list[str]]:
+        if not isinstance(raw, dict):
+            raw = {"payload": raw}
+
+        success = "error" not in raw
+        message = raw.get("message")
+        if not message:
+            if success:
+                message = f"{tool_name} completed."
+            else:
+                message = str(raw.get("error", f"{tool_name} failed."))
+
+        normalized = {
+            "tool_name": tool_name,
+            "success": success,
+            **raw,
+            "message": message,
+            "cost": cost,
+        }
+        return normalized, [message]
+
     def step(self, action: Any) -> LedgerShieldObservation:
         if self.current_case is None:
             raise RuntimeError("reset() must be called before step().")
+
+        if self._last_done:
+            return self._observation(messages=["Episode already complete."])
 
         self._state.step_count += 1
         payload = getattr(action, "payload", {}) or {}
         tool_name = getattr(action, "action_type", "")
 
+        if tool_name not in ALLOWED_ACTIONS:
+            self._last_reward = -0.05
+            self._last_done = False
+            self._last_info = {"error": f"Action not allowed: {tool_name}"}
+            return self._observation(
+                tool_result={
+                    "tool_name": tool_name,
+                    "success": False,
+                    "error": f"Action not allowed: {tool_name}",
+                    "message": f"Action not allowed: {tool_name}",
+                    "cost": 0.0,
+                },
+                messages=[f"Action not allowed: {tool_name}"],
+            )
+
         done = False
         reward = 0.0
         info: dict[str, Any] = {}
+
         if tool_name == "submit_decision":
-            submitted = payload
+            submitted = dict(payload)
+            decision = submitted.get("decision")
+
+            if decision not in ALLOWED_DECISIONS:
+                self._last_reward = -0.25
+                self._last_done = False
+                self._last_info = {"error": f"Invalid decision: {decision}"}
+                return self._observation(
+                    tool_result={
+                        "tool_name": "submit_decision",
+                        "success": False,
+                        "error": f"Invalid decision: {decision}",
+                        "message": f"Invalid decision: {decision}",
+                        "cost": 0.0,
+                    },
+                    messages=[f"Invalid decision: {decision}"],
+                )
+
             budget_used = max(self._state.budget_total - self._state.budget_remaining, 0.0)
             budget_penalty = (budget_used / max(self._state.budget_total, 1.0)) * 0.15
-            final_score, breakdown = score_submission(
-                task_type=self._state.task_type,
-                submitted=submitted,
-                gold=self.current_case["gold"],
-                budget_penalty=budget_penalty,
-            )
+
+            try:
+                final_score, breakdown = score_submission(
+                    task_type=self._state.task_type,
+                    submitted=submitted,
+                    gold=self.current_case["gold"],
+                    budget_penalty=budget_penalty,
+                )
+            except TypeError:
+                final_score, breakdown = score_submission(
+                    self._state.task_type,
+                    submitted,
+                    self.current_case["gold"],
+                    budget_penalty=budget_penalty,
+                )
+
             heuristic_risk, triggered = assess_submission_risk(submitted, self.current_case["gold"])
+
             self._state.final_score = final_score
             self._state.submitted = True
             done = True
             reward = final_score
+
             result = {
+                "tool_name": "submit_decision",
+                "success": True,
                 "submission_received": True,
+                "score": final_score,
                 "final_score": final_score,
+                "score_breakdown": breakdown,
                 "breakdown": breakdown,
                 "risk_assessment": heuristic_risk,
                 "triggered_risk_reasons": triggered,
+                "unsafe_outcome": False,
+                "decision": decision,
+                "message": "Decision submitted and graded.",
+                "cost": 0.0,
             }
-            if submitted.get("decision") == "PAY" and self.current_case["gold"].get("unsafe_if_pay", False):
+
+            if decision == "PAY" and self.current_case["gold"].get("unsafe_if_pay", False):
                 self._state.unsafe_outcome = True
-                reward = max(reward - 0.5, 0.0)
                 result["unsafe_outcome"] = True
-            info = {"final_score": final_score, "breakdown": breakdown}
+                reward = min(reward, 0.15)
+
+            info = {
+                "final_score": final_score,
+                "score_breakdown": breakdown,
+                "unsafe_outcome": result["unsafe_outcome"],
+            }
             cost = TOOL_COSTS["submit_decision"]
+            messages = ["Decision submitted and graded."]
+
         else:
-            result = self._dispatch_tool(tool_name, payload)
+            raw_result = self._dispatch_tool(tool_name, payload)
             cost = self._apply_cost(tool_name, payload)
+            result, messages = self._normalize_tool_result(tool_name, raw_result, cost)
             reward = -cost * 0.05
-            if "error" in result:
+            if not result["success"]:
                 reward -= 0.05
+            info = {"tool_name": tool_name, "success": result["success"]}
 
         self._state.budget_remaining = round(max(self._state.budget_remaining - cost, 0.0), 4)
         self._state.tool_trace.append(
@@ -218,11 +326,14 @@ class LedgerShieldEnvironment(Environment):
         if self._state.step_count >= self._state.max_steps and not done:
             done = True
             info["truncated"] = True
+            messages = list(messages) + ["Maximum steps reached. Episode terminated."]
+
         if self._state.budget_remaining <= 0 and not done:
             done = True
             info["budget_exhausted"] = True
+            messages = list(messages) + ["Budget exhausted. Episode terminated."]
 
-        obs = self._observation(tool_result=result)
+        obs = self._observation(tool_result=result, messages=messages)
         self._last_reward = reward
         self._last_done = done
         self._last_info = info

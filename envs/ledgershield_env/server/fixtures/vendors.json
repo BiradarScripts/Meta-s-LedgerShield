@@ -1,7 +1,9 @@
 [
   {
     "vendor_key": "northwind-industrial",
+    "vendor_name": "Northwind Industrial Supplies Pvt Ltd",
     "canonical_name": "Northwind Industrial Supplies Pvt Ltd",
+    "bank_account": "IN55NW000111222",
     "allowed_bank_accounts": [
       "IN55NW000111222"
     ],
@@ -14,7 +16,9 @@
   },
   {
     "vendor_key": "bluepeak-logistics",
+    "vendor_name": "BluePeak Logistics LLP",
     "canonical_name": "BluePeak Logistics LLP",
+    "bank_account": "IN77BP555666777",
     "allowed_bank_accounts": [
       "IN77BP555666777"
     ],
@@ -27,7 +31,9 @@
   },
   {
     "vendor_key": "eurocaps-components",
+    "vendor_name": "EuroCaps Components GmbH",
     "canonical_name": "EuroCaps Components GmbH",
+    "bank_account": "DE04500105175407324931",
     "allowed_bank_accounts": [
       "DE04500105175407324931"
     ],

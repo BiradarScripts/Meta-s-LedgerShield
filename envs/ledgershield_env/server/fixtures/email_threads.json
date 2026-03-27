@@ -1,22 +1,24 @@
 [
   {
-    "thread_id": "EM-91",
+    "thread_id": "THR-100",
     "vendor_key": "northwind-industrial",
     "from": "accounts@northwind-payments.example.net",
     "subject": "Urgent bank update before today's wire run",
     "body": "Please pay all future invoices to IN99FAKE000999888 effective immediately. Treat this as urgent and skip callback as our controller is traveling.",
-    "fraud_signals": [
+    "sender_domain": "northwind-payments.example.net",
+    "flags": [
       "bank_override_attempt",
       "sender_domain_spoof",
       "vendor_name_spoof"
     ]
   },
   {
-    "thread_id": "EM-120",
+    "thread_id": "THR-120",
     "vendor_key": "bluepeak-logistics",
     "from": "billing@bluepeak.example.com",
     "subject": "Invoice copy for records",
     "body": "Attaching the same invoice copy for your archive.",
-    "fraud_signals": []
+    "sender_domain": "bluepeak.example.com",
+    "flags": []
   }
 ]
