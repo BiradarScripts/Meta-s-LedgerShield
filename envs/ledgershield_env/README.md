@@ -1,274 +1,112 @@
 ---
-title: Start Environment Server
-emoji: 🥁
-colorFrom: red
-colorTo: blue
+title: LedgerShield OpenEnv
+emoji: 🛡️
+colorFrom: blue
+colorTo: green
 sdk: docker
 pinned: false
 app_port: 8000
 base_path: /web
 tags:
   - openenv
+  - accounts-payable
+  - audit
+  - fraud-detection
 ---
 
-# Start Environment
+# LedgerShield
 
-A simple test environment that echoes back messages. Perfect for testing the env APIs as well as demonstrating environment usage patterns.
+A state-of-the-art multimodal accounts payable audit OpenEnv environment. AI agents learn to audit invoices, detect fraud, and make payment decisions through the standard `step()` / `reset()` / `state()` API.
+
+## Environment Overview
+
+LedgerShield simulates a real-world accounts payable audit workflow where agents must:
+
+- **Extract** invoice fields and line items from documents
+- **Detect** discrepancies between purchase orders, receipts, and invoices
+- **Identify** potential fraud indicators and duplicate payments
+- **Apply** policy rules to determine correct payment decisions
 
 ## Quick Start
 
-The simplest way to use the Start environment is through the `StartEnv` class:
-
 ```python
-from start import StartAction, StartEnv
+from envs.ledgershield_env import LedgerShieldEnv, LedgerShieldAction
 
-try:
-    # Create environment from Docker image
-    startenv = StartEnv.from_docker_image("start-env:latest")
-
-    # Reset
-    result = startenv.reset()
-    print(f"Reset: {result.observation.echoed_message}")
-
-    # Send multiple messages
-    messages = ["Hello, World!", "Testing echo", "Final message"]
-
-    for msg in messages:
-        result = startenv.step(StartAction(message=msg))
-        print(f"Sent: '{msg}'")
-        print(f"  → Echoed: '{result.observation.echoed_message}'")
-        print(f"  → Length: {result.observation.message_length}")
-        print(f"  → Reward: {result.reward}")
-
-finally:
-    # Always clean up
-    startenv.close()
+with LedgerShieldEnv(base_url="http://localhost:8000") as env:
+    result = env.reset()
+    print(f"Case: {result.observation.case_id}")
+    print(f"Task: {result.observation.task_type}")
+    
+    result = env.step(LedgerShieldAction(
+        action_type="lookup_vendor",
+        payload={"vendor_key": "northwind-industrial"}
+    ))
 ```
 
-That's it! The `StartEnv.from_docker_image()` method handles:
-- Starting the Docker container
-- Waiting for the server to be ready
-- Connecting to the environment
-- Container cleanup when you call `close()`
+## Task Types
 
-## Building the Docker Image
+| Task | Description | Difficulty |
+|------|-------------|------------|
+| **task_a** | Invoice field extraction with evidence | Easy → Medium |
+| **task_b** | Discrepancy detection and policy compliance | Medium |
+| **task_c** | Fraud/duplicate detection | Medium → Hard |
+| **task_d** | Full policy compliance review with counterfactual | Hard |
 
-Before using the environment, you need to build the Docker image:
+## Available Actions
+
+| Action | Description | Cost |
+|--------|-------------|------|
+| `lookup_vendor` | Get vendor master data | 0.20 |
+| `lookup_vendor_history` | Get vendor bank account changes | 0.25 |
+| `lookup_policy` | Get policy rules | 0.15 |
+| `lookup_po` | Get purchase order records | 0.20 |
+| `lookup_receipt` | Get goods receipt records | 0.20 |
+| `search_ledger` | Search for duplicate invoices | 0.35 |
+| `inspect_email_thread` | Check for email fraud signals | 0.25 |
+| `compare_bank_account` | Verify bank account matches | 0.15 |
+| `ocr` | Extract text from documents | 0.45-1.10 |
+| `zoom` | Get document crop with visual tokens | 0.20 |
+| `get_doc_crop` | Get specific document region | 0.20 |
+| `submit_decision` | Submit final payment decision | 0.0 |
+
+## Decision Types
+
+- `PAY` — Approve for payment
+- `HOLD` — Hold for manual review
+- `NEEDS_REVIEW` — Escalate for additional review
+- `ESCALATE_FRAUD` — Escalate to fraud team
+
+## Building Docker Image
 
 ```bash
-# From project root
-docker build -t start-env:latest -f server/Dockerfile .
+docker build -t ledgershield:latest -f server/Dockerfile .
 ```
 
 ## Deploying to Hugging Face Spaces
 
-You can easily deploy your OpenEnv environment to Hugging Face Spaces using the `openenv push` command:
-
 ```bash
-# From the environment directory (where openenv.yaml is located)
 openenv push
-
-# Or specify options
-openenv push --namespace my-org --private
 ```
-
-The `openenv push` command will:
-1. Validate that the directory is an OpenEnv environment (checks for `openenv.yaml`)
-2. Prepare a custom build for Hugging Face Docker space (enables web interface)
-3. Upload to Hugging Face (ensuring you're logged in)
-
-### Prerequisites
-
-- Authenticate with Hugging Face: The command will prompt for login if not already authenticated
-
-### Options
-
-- `--directory`, `-d`: Directory containing the OpenEnv environment (defaults to current directory)
-- `--repo-id`, `-r`: Repository ID in format 'username/repo-name' (defaults to 'username/env-name' from openenv.yaml)
-- `--base-image`, `-b`: Base Docker image to use (overrides Dockerfile FROM)
-- `--private`: Deploy the space as private (default: public)
-
-### Examples
-
-```bash
-# Push to your personal namespace (defaults to username/env-name from openenv.yaml)
-openenv push
-
-# Push to a specific repository
-openenv push --repo-id my-org/my-env
-
-# Push with a custom base image
-openenv push --base-image ghcr.io/meta-pytorch/openenv-base:latest
-
-# Push as a private space
-openenv push --private
-
-# Combine options
-openenv push --repo-id my-org/my-env --base-image custom-base:latest --private
-```
-
-After deployment, your space will be available at:
-`https://huggingface.co/spaces/<repo-id>`
-
-The deployed space includes:
-- **Web Interface** at `/web` - Interactive UI for exploring the environment
-- **API Documentation** at `/docs` - Full OpenAPI/Swagger interface
-- **Health Check** at `/health` - Container health monitoring
-- **WebSocket** at `/ws` - Persistent session endpoint for low-latency interactions
 
 ## Environment Details
 
-### Action
-**StartAction**: Contains a single field
-- `message` (str) - The message to echo back
+### Observation Space
 
-### Observation
-**StartObservation**: Contains the echo response and metadata
-- `echoed_message` (str) - The message echoed back
-- `message_length` (int) - Length of the message
-- `reward` (float) - Reward based on message length (length × 0.1)
-- `done` (bool) - Always False for echo environment
-- `metadata` (dict) - Additional info like step count
+- `case_id`: Unique case identifier
+- `task_type`: One of task_a, task_b, task_c, task_d
+- `instruction`: Natural language task description
+- `visible_documents`: List of available documents
+- `budget_remaining`: Remaining tool budget
+- `step_count`: Current step number
+- `last_tool_result`: Result from previous action
 
-### Reward
-The reward is calculated as: `message_length × 0.1`
-- "Hi" → reward: 0.2
-- "Hello, World!" → reward: 1.3
-- Empty message → reward: 0.0
+### Reward Function
 
-## Advanced Usage
+Rewards are based on:
+- Field extraction accuracy (task_a)
+- Discrepancy detection (task_b)
+- Fraud/duplicate identification (task_c)
+- Policy compliance (task_d)
+- Budget efficiency penalty
 
-### Connecting to an Existing Server
-
-If you already have a Start environment server running, you can connect directly:
-
-```python
-from start import StartEnv
-
-# Connect to existing server
-startenv = StartEnv(base_url="<ENV_HTTP_URL_HERE>")
-
-# Use as normal
-result = startenv.reset()
-result = startenv.step(StartAction(message="Hello!"))
-```
-
-Note: When connecting to an existing server, `startenv.close()` will NOT stop the server.
-
-### Using the Context Manager
-
-The client supports context manager usage for automatic connection management:
-
-```python
-from start import StartAction, StartEnv
-
-# Connect with context manager (auto-connects and closes)
-with StartEnv(base_url="http://localhost:8000") as env:
-    result = env.reset()
-    print(f"Reset: {result.observation.echoed_message}")
-    # Multiple steps with low latency
-    for msg in ["Hello", "World", "!"]:
-        result = env.step(StartAction(message=msg))
-        print(f"Echoed: {result.observation.echoed_message}")
-```
-
-The client uses WebSocket connections for:
-- **Lower latency**: No HTTP connection overhead per request
-- **Persistent session**: Server maintains your environment state
-- **Efficient for episodes**: Better for many sequential steps
-
-### Concurrent WebSocket Sessions
-
-The server supports multiple concurrent WebSocket connections. To enable this,
-modify `server/app.py` to use factory mode:
-
-```python
-# In server/app.py - use factory mode for concurrent sessions
-app = create_app(
-    StartEnvironment,  # Pass class, not instance
-    StartAction,
-    StartObservation,
-    max_concurrent_envs=4,  # Allow 4 concurrent sessions
-)
-```
-
-Then multiple clients can connect simultaneously:
-
-```python
-from start import StartAction, StartEnv
-from concurrent.futures import ThreadPoolExecutor
-
-def run_episode(client_id: int):
-    with StartEnv(base_url="http://localhost:8000") as env:
-        result = env.reset()
-        for i in range(10):
-            result = env.step(StartAction(message=f"Client {client_id}, step {i}"))
-        return client_id, result.observation.message_length
-
-# Run 4 episodes concurrently
-with ThreadPoolExecutor(max_workers=4) as executor:
-    results = list(executor.map(run_episode, range(4)))
-```
-
-## Development & Testing
-
-### Direct Environment Testing
-
-Test the environment logic directly without starting the HTTP server:
-
-```bash
-# From the server directory
-python3 server/start_environment.py
-```
-
-This verifies that:
-- Environment resets correctly
-- Step executes actions properly
-- State tracking works
-- Rewards are calculated correctly
-
-### Running Locally
-
-Run the server locally for development:
-
-```bash
-uvicorn server.app:app --reload
-```
-
-## Project Structure
-
-```
-Meta-s-LedgerShield/
-├── envs/
-│   └── ledgershield_env/
-│       ├── __init__.py
-│       ├── client.py
-│       ├── models.py
-│       ├── openenv_compat.py
-│       ├── README.md
-│       └── server/
-│           ├── __init__.py
-│           ├── app.py
-│           ├── environment.py
-│           ├── grading.py
-│           ├── data_loader.py
-│           ├── schema.py
-│           ├── risk_rules.py
-│           ├── tools.py
-│           ├── requirements.txt
-│           ├── Dockerfile
-│           └── fixtures/
-│               ├── cases.json
-│               ├── vendors.json
-│               ├── vendor_history.json
-│               ├── po_records.json
-│               ├── receipts.json
-│               ├── ledger_index.json
-│               ├── email_threads.json
-│               └── policy_rules.json
-├── tests/
-│   ├── test_ledgershield_env.py
-│   └── test_api_smoke.py
-├── pyproject.toml
-└── README.md
-```
+Final scores range from 0.0 to 1.0 with partial credit for progress.
