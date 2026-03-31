@@ -33,7 +33,6 @@ ALLOWED_TOOLS = [
     "lookup_policy", "lookup_po", "lookup_receipt", "search_ledger",
     "inspect_email_thread", "compare_bank_account", "submit_decision"
 ]
-
 DECISIONS = ["PAY", "HOLD", "NEEDS_REVIEW", "ESCALATE_FRAUD"]
 
 

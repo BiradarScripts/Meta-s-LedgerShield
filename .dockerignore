@@ -1,0 +1,14 @@
+.git
+.gitignore
+.venv
+venv
+__pycache__
+.pytest_cache
+.mypy_cache
+.DS_Store
+*.pyc
+*.pyo
+*.pyd
+tests
+README.md
+validate-submission.sh
