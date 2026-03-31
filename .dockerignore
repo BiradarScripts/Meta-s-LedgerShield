@@ -9,6 +9,6 @@ __pycache__
 *.pyc
 *.pyo
 *.pyd
-tests
 README.md
-validate-submission.sh
+tests
+envs
