@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# validate-submission.sh — LedgerShield Submission Validator
+# validate-submission.sh — OpenEnv Submission Validator
 #
 # Checks that your HF Space is live, Docker image builds, and openenv validate passes.
 #
@@ -10,11 +10,19 @@
 #   - curl (usually pre-installed)
 #
 # Run:
-#   ./validate-submission.sh <ping_url> [repo_dir]
+#   curl -fsSL https://raw.githubusercontent.com/<owner>/<repo>/main/scripts/validate-submission.sh | bash -s -- <ping_url> [repo_dir]
+#
+#   Or download and run locally:
+#     chmod +x validate-submission.sh
+#     ./validate-submission.sh <ping_url> [repo_dir]
 #
 # Arguments:
 #   ping_url   Your HuggingFace Space URL (e.g. https://your-space.hf.space)
 #   repo_dir   Path to your repo (default: current directory)
+#
+# Examples:
+#   ./validate-submission.sh https://my-team.hf.space
+#   ./validate-submission.sh https://my-team.hf.space ./my-repo
 #
 
 set -uo pipefail
@@ -77,69 +85,67 @@ PING_URL="${PING_URL%/}"
 export PING_URL
 PASS=0
 
-log() { printf "  %s\n" "$*"; }
-pass() { printf "${GREEN}✓${NC} %s\n" "$*"; ((PASS++)); }
-fail() { printf "${RED}✗${NC} %s\n" "$*"; }
-warn() { printf "${YELLOW}!${NC} %s\n" "$*"; }
+log()  { printf "[%s] %b\n" "$(date -u +%H:%M:%S)" "$*"; }
+pass() { log "${GREEN}PASSED${NC} -- $1"; PASS=$((PASS + 1)); }
+fail() { log "${RED}FAILED${NC} -- $1"; }
+hint() { printf "  ${YELLOW}Hint:${NC} %b\n" "$1"; }
 stop_at() {
-  printf "\n${RED}========================================${NC}\n"
-  printf "${RED}  Stopped at: %s${NC}\n" "$1"
-  printf "${RED}========================================${NC}\n\n"
+  printf "\n"
+  printf "${RED}${BOLD}Validation stopped at %s.${NC} Fix the above before continuing.\n" "$1"
   exit 1
 }
 
+printf "\n"
 printf "${BOLD}========================================${NC}\n"
-printf "${BOLD}  LedgerShield Submission Validator${NC}\n"
-printf "${BOLD}========================================${NC}\n\n"
+printf "${BOLD}  OpenEnv Submission Validator${NC}\n"
+printf "${BOLD}========================================${NC}\n"
+log "Repo:     $REPO_DIR"
+log "Ping URL: $PING_URL"
+printf "\n"
 
-printf "${BOLD}Step 1/3: Checking HF Space (${PING_URL})${NC}\n"
-log "Pinging ${PING_URL}..."
+log "${BOLD}Step 1/3: Pinging HF Space${NC} ($PING_URL/reset) ..."
 
-HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "${PING_URL}" 2>/dev/null || echo "000")
+CURL_OUTPUT=$(portable_mktemp "validate-curl")
+CLEANUP_FILES+=("$CURL_OUTPUT")
+HTTP_CODE=$(curl -s -o "$CURL_OUTPUT" -w "%{http_code}" -X POST \
+  -H "Content-Type: application/json" -d '{}' \
+  "$PING_URL/reset" --max-time 30 2>"$CURL_OUTPUT" || printf "000")
 
 if [ "$HTTP_CODE" = "200" ]; then
-  pass "HF Space is live (HTTP 200)"
-  
-  log "Checking /reset endpoint..."
-  RESET_RESP=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 -X POST "${PING_URL}/reset" -H "Content-Type: application/json" -d '{"seed":42}' 2>/dev/null || echo "000")
-  
-  if [ "$RESET_RESP" = "200" ]; then
-    pass "reset() endpoint responds correctly"
-  else
-    warn "reset() endpoint returned ${RESET_RESP} (may still be OK if space is stateless)"
-  fi
+  pass "HF Space is live and responds to /reset"
+elif [ "$HTTP_CODE" = "000" ]; then
+  fail "HF Space not reachable (connection failed or timed out)"
+  hint "Check your network connection and that the Space is running."
+  hint "Try: curl -s -o /dev/null -w '%%{http_code}' -X POST $PING_URL/reset"
+  stop_at "Step 1"
 else
-  fail "HF Space returned HTTP ${HTTP_CODE}"
-  if [ "$HTTP_CODE" = "000" ]; then
-    warn "Could not connect - is the space URL correct?"
-  fi
+  fail "HF Space /reset returned HTTP $HTTP_CODE (expected 200)"
+  hint "Make sure your Space is running and the URL is correct."
+  hint "Try opening $PING_URL in your browser first."
   stop_at "Step 1"
 fi
 
-printf "\n${BOLD}Step 2/3: Running docker build${NC}\n"
+log "${BOLD}Step 2/3: Running docker build${NC} ..."
 
 if ! command -v docker &>/dev/null; then
-  warn "docker command not found"
-  warn "Install Docker: https://docs.docker.com/get-docker/"
+  fail "docker command not found"
+  hint "Install Docker: https://docs.docker.com/get-docker/"
   stop_at "Step 2"
 fi
 
-if [ -f "$REPO_DIR/envs/ledgershield_env/server/Dockerfile" ]; then
-  DOCKERFILE="$REPO_DIR/envs/ledgershield_env/server/Dockerfile"
-  DOCKER_CONTEXT="$REPO_DIR/envs/ledgershield_env/server"
-elif [ -f "$REPO_DIR/Dockerfile" ]; then
-  DOCKERFILE="$REPO_DIR/Dockerfile"
+if [ -f "$REPO_DIR/Dockerfile" ]; then
   DOCKER_CONTEXT="$REPO_DIR"
+elif [ -f "$REPO_DIR/server/Dockerfile" ]; then
+  DOCKER_CONTEXT="$REPO_DIR/server"
 else
-  fail "No Dockerfile found"
+  fail "No Dockerfile found in repo root or server/ directory"
   stop_at "Step 2"
 fi
 
-log "Found Dockerfile at $DOCKERFILE"
-log "Building Docker image (timeout: ${DOCKER_BUILD_TIMEOUT}s)..."
+log "  Found Dockerfile in $DOCKER_CONTEXT"
 
 BUILD_OK=false
-BUILD_OUTPUT=$(run_with_timeout "$DOCKER_BUILD_TIMEOUT" docker build "$DOCKER_CONTEXT" -f "$DOCKERFILE" 2>&1) && BUILD_OK=true
+BUILD_OUTPUT=$(run_with_timeout "$DOCKER_BUILD_TIMEOUT" docker build "$DOCKER_CONTEXT" 2>&1) && BUILD_OK=true
 
 if [ "$BUILD_OK" = true ]; then
   pass "Docker build succeeded"
@@ -149,24 +155,24 @@ else
   stop_at "Step 2"
 fi
 
-printf "\n${BOLD}Step 3/3: Running openenv validate${NC}\n"
+log "${BOLD}Step 3/3: Running openenv validate${NC} ..."
 
 if ! command -v openenv &>/dev/null; then
-  warn "openenv command not found"
-  warn "Install it: pip install openenv-core"
-  log "Skipping openenv validation (can run manually with: pip install openenv-core && openenv validate)"
-else
-  VALIDATE_OK=false
-  VALIDATE_OUTPUT=$(cd "$REPO_DIR/envs/ledgershield_env" && openenv validate 2>&1) && VALIDATE_OK=true
+  fail "openenv command not found"
+  hint "Install it: pip install openenv-core"
+  stop_at "Step 3"
+fi
 
-  if [ "$VALIDATE_OK" = true ]; then
-    pass "openenv validate passed"
-    [ -n "$VALIDATE_OUTPUT" ] && log "  $VALIDATE_OUTPUT"
-  else
-    fail "openenv validate failed"
-    printf "%s\n" "$VALIDATE_OUTPUT"
-    stop_at "Step 3"
-  fi
+VALIDATE_OK=false
+VALIDATE_OUTPUT=$(cd "$REPO_DIR" && openenv validate 2>&1) && VALIDATE_OK=true
+
+if [ "$VALIDATE_OK" = true ]; then
+  pass "openenv validate passed"
+  [ -n "$VALIDATE_OUTPUT" ] && log "  $VALIDATE_OUTPUT"
+else
+  fail "openenv validate failed"
+  printf "%s\n" "$VALIDATE_OUTPUT"
+  stop_at "Step 3"
 fi
 
 printf "\n"
