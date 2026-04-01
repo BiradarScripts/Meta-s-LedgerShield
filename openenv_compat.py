@@ -8,7 +8,7 @@ try:  # pragma: no cover - exercised only when openenv-core is installed
     from openenv.core.env_server import Action, Environment, Observation, State, create_fastapi_app
 except Exception:  # pragma: no cover - local fallback
     import httpx
-    from fastapi import FastAPI
+    from fastapi import Body, FastAPI
     from pydantic import BaseModel
 
     @dataclass
@@ -27,8 +27,10 @@ except Exception:  # pragma: no cover - local fallback
     class Environment:
         pass
 
+    ObsT_co = TypeVar("ObsT_co")
+
     @dataclass
-    class StepResult(Generic[TypeVar("ObsT")]):
+    class StepResult(Generic[ObsT_co]):
         observation: Any
         reward: float = 0.0
         done: bool = False
@@ -120,8 +122,10 @@ except Exception:  # pragma: no cover - local fallback
             return {"status": "ok"}
 
         @app.post("/reset")
-        def reset(request: _ResetRequest) -> dict[str, Any]:
-            obs = env.reset(seed=request.seed, case_id=request.case_id)
+        def reset(request: _ResetRequest | None = Body(default=None)) -> dict[str, Any]:
+            seed = request.seed if request is not None else None
+            case_id = request.case_id if request is not None else None
+            obs = env.reset(seed=seed, case_id=case_id)
             return env.result_payload(obs)
 
         @app.post("/step")
