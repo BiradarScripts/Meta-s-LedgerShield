@@ -22,6 +22,28 @@
     "total": 2478.0
   },
   {
+    "po_id": "PO-2049",
+    "vendor_key": "northwind-industrial",
+    "currency": "INR",
+    "line_items": [
+      {
+        "description": "Steel bolts M12",
+        "qty": 100,
+        "unit_price": 12.0,
+        "line_total": 1200.0
+      },
+      {
+        "description": "Industrial sealant",
+        "qty": 20,
+        "unit_price": 45.0,
+        "line_total": 900.0
+      }
+    ],
+    "subtotal": 2100.0,
+    "tax": 378.0,
+    "total": 2478.0
+  },
+  {
     "po_id": "PO-7780",
     "vendor_key": "bluepeak-logistics",
     "currency": "INR",

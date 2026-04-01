@@ -1,13 +1,48 @@
 from __future__ import annotations
 
+"""
+Environment tests for LedgerShield.
+
+Run:
+    python -m pytest tests/test_ledgershield_env.py -q
+"""
+
 from models import LedgerShieldAction
 from server.environment import LedgerShieldEnvironment
 from server.grading import score_submission
+from server.outcome_simulator import simulate_outcome
+
+
+def _task_d_trajectory() -> list[dict]:
+    return [
+        {"action_type": "inspect_email_thread", "payload": {"thread_id": "THR-100"}, "success": True},
+        {"action_type": "lookup_vendor_history", "payload": {"vendor_key": "northwind-industrial"}, "success": True},
+        {"action_type": "lookup_policy", "payload": {}, "success": True},
+        {
+            "action_type": "compare_bank_account",
+            "payload": {
+                "vendor_key": "northwind-industrial",
+                "proposed_bank_account": "IN99FAKE000999888",
+            },
+            "success": True,
+        },
+        {"action_type": "request_callback_verification", "payload": {}, "success": True},
+        {"action_type": "route_to_security", "payload": {}, "success": True},
+        {"action_type": "freeze_vendor_profile", "payload": {}, "success": True},
+    ]
+
+
+def _task_a_trajectory() -> list[dict]:
+    return [
+        {"action_type": "ocr", "payload": {"doc_id": "INV-A-001", "mode": "accurate"}, "success": True},
+        {"action_type": "zoom", "payload": {"doc_id": "INV-A-001", "bbox": [0, 0, 200, 260]}, "success": True},
+    ]
 
 
 def test_reset_loads_specific_case():
     env = LedgerShieldEnvironment()
     obs = env.reset(case_id="CASE-A-001")
+
     assert obs.case_id == "CASE-A-001"
     assert obs.task_type == "task_a"
     assert obs.instruction
@@ -18,6 +53,7 @@ def test_reset_loads_specific_case():
 def test_reset_random_case_works():
     env = LedgerShieldEnvironment()
     obs = env.reset(seed=42)
+
     assert obs.case_id.startswith("CASE-")
     assert obs.task_type in {"task_a", "task_b", "task_c", "task_d"}
 
@@ -34,6 +70,7 @@ def test_state_does_not_leak_gold():
 def test_allowed_actions_exist_in_observation():
     env = LedgerShieldEnvironment()
     obs = env.reset(case_id="CASE-D-001")
+
     expected = {
         "zoom",
         "get_doc_crop",
@@ -46,6 +83,15 @@ def test_allowed_actions_exist_in_observation():
         "search_ledger",
         "inspect_email_thread",
         "compare_bank_account",
+        "request_callback_verification",
+        "freeze_vendor_profile",
+        "request_bank_change_approval_chain",
+        "request_po_reconciliation",
+        "request_additional_receipt_evidence",
+        "route_to_procurement",
+        "route_to_security",
+        "flag_duplicate_cluster_review",
+        "create_human_handoff",
         "submit_decision",
     }
     assert set(obs.allowed_actions) == expected
@@ -54,12 +100,14 @@ def test_allowed_actions_exist_in_observation():
 def test_ocr_tool_returns_tokens():
     env = LedgerShieldEnvironment()
     env.reset(case_id="CASE-A-001")
+
     obs = env.step(
         LedgerShieldAction(
             action_type="ocr",
             payload={"doc_id": "INV-A-001", "mode": "accurate"},
         )
     )
+
     assert obs.last_tool_result["tool_name"] == "ocr"
     assert obs.last_tool_result["success"] is True
     assert len(obs.last_tool_result["tokens"]) > 0
@@ -68,12 +116,14 @@ def test_ocr_tool_returns_tokens():
 def test_get_doc_crop_tool_returns_crop_context():
     env = LedgerShieldEnvironment()
     env.reset(case_id="CASE-D-001")
+
     obs = env.step(
         LedgerShieldAction(
             action_type="get_doc_crop",
             payload={"doc_id": "INV-D-001", "page": 1, "bbox": [10, 100, 180, 125]},
         )
     )
+
     assert obs.last_tool_result["tool_name"] == "get_doc_crop"
     assert obs.last_tool_result["success"] is True
     assert obs.last_tool_result["doc_id"] == "INV-D-001"
@@ -82,12 +132,14 @@ def test_get_doc_crop_tool_returns_crop_context():
 def test_lookup_vendor_returns_master_data():
     env = LedgerShieldEnvironment()
     env.reset(case_id="CASE-D-001")
+
     obs = env.step(
         LedgerShieldAction(
             action_type="lookup_vendor",
             payload={"vendor_key": "northwind-industrial"},
         )
     )
+
     vendor = obs.last_tool_result["vendor"]
     assert vendor["vendor_key"] == "northwind-industrial"
     assert "bank_account" in vendor
@@ -96,12 +148,14 @@ def test_lookup_vendor_returns_master_data():
 def test_lookup_vendor_history_returns_history():
     env = LedgerShieldEnvironment()
     env.reset(case_id="CASE-D-001")
+
     obs = env.step(
         LedgerShieldAction(
             action_type="lookup_vendor_history",
             payload={"vendor_key": "northwind-industrial"},
         )
     )
+
     history = obs.last_tool_result["history"]
     assert len(history) >= 1
     assert history[0]["change_type"] == "bank_account_change_request"
@@ -110,12 +164,14 @@ def test_lookup_vendor_history_returns_history():
 def test_lookup_po_returns_po():
     env = LedgerShieldEnvironment()
     env.reset(case_id="CASE-D-001")
+
     obs = env.step(
         LedgerShieldAction(
             action_type="lookup_po",
             payload={"po_id": "PO-2048"},
         )
     )
+
     po = obs.last_tool_result["po"]
     assert po["po_id"] == "PO-2048"
     assert po["vendor_key"] == "northwind-industrial"
@@ -124,12 +180,14 @@ def test_lookup_po_returns_po():
 def test_lookup_receipt_returns_receipt():
     env = LedgerShieldEnvironment()
     env.reset(case_id="CASE-D-001")
+
     obs = env.step(
         LedgerShieldAction(
             action_type="lookup_receipt",
             payload={"receipt_id": "GRN-2048"},
         )
     )
+
     receipt = obs.last_tool_result["receipt"]
     assert receipt["receipt_id"] == "GRN-2048"
 
@@ -137,6 +195,7 @@ def test_lookup_receipt_returns_receipt():
 def test_search_ledger_finds_duplicate_candidate():
     env = LedgerShieldEnvironment()
     env.reset(case_id="CASE-D-001")
+
     obs = env.step(
         LedgerShieldAction(
             action_type="search_ledger",
@@ -147,6 +206,7 @@ def test_search_ledger_finds_duplicate_candidate():
             },
         )
     )
+
     assert obs.last_tool_result["count"] >= 1
     hits = obs.last_tool_result["hits"]
     assert any(hit["ledger_id"] == "LED-131" for hit in hits)
@@ -155,20 +215,23 @@ def test_search_ledger_finds_duplicate_candidate():
 def test_inspect_email_thread_returns_flags():
     env = LedgerShieldEnvironment()
     env.reset(case_id="CASE-D-001")
+
     obs = env.step(
         LedgerShieldAction(
             action_type="inspect_email_thread",
             payload={"thread_id": "THR-100"},
         )
     )
+
     thread = obs.last_tool_result["thread"]
     assert thread["thread_id"] == "THR-100"
-    assert "sender_domain_spoof" in thread["flags"]
+    assert "sender_domain_spoof" in thread.get("derived_flags", []) or "sender_domain_spoof" in thread.get("flags", [])
 
 
 def test_compare_bank_account_detects_mismatch():
     env = LedgerShieldEnvironment()
     env.reset(case_id="CASE-D-001")
+
     obs = env.step(
         LedgerShieldAction(
             action_type="compare_bank_account",
@@ -178,18 +241,37 @@ def test_compare_bank_account_detects_mismatch():
             },
         )
     )
+
     assert obs.last_tool_result["matched"] is False
+
+
+def test_intervention_reveals_callback_artifact():
+    env = LedgerShieldEnvironment()
+    env.reset(case_id="CASE-D-001")
+
+    obs = env.step(
+        LedgerShieldAction(
+            action_type="request_callback_verification",
+            payload={},
+        )
+    )
+
+    assert obs.last_tool_result["success"] is True
+    assert obs.last_tool_result["artifact"]["artifact_id"] == "callback_verification_result"
+    assert len(obs.revealed_artifacts) >= 1
 
 
 def test_invalid_action_is_rejected():
     env = LedgerShieldEnvironment()
     env.reset(case_id="CASE-A-001")
+
     obs = env.step(
         LedgerShieldAction(
             action_type="not_a_real_action",  # type: ignore[arg-type]
             payload={},
         )
     )
+
     assert "not allowed" in obs.messages[0].lower()
 
 
@@ -197,12 +279,14 @@ def test_budget_decreases_after_tool_use():
     env = LedgerShieldEnvironment()
     obs1 = env.reset(case_id="CASE-A-001")
     before = obs1.budget_remaining
+
     obs2 = env.step(
         LedgerShieldAction(
             action_type="ocr",
             payload={"doc_id": "INV-A-001", "mode": "accurate"},
         )
     )
+
     after = obs2.budget_remaining
     assert after < before
 
@@ -210,12 +294,14 @@ def test_budget_decreases_after_tool_use():
 def test_submit_invalid_decision_fails():
     env = LedgerShieldEnvironment()
     env.reset(case_id="CASE-A-001")
+
     obs = env.step(
         LedgerShieldAction(
             action_type="submit_decision",
-            payload={"decision": "APPROVE_NOW"},  # invalid
+            payload={"decision": "APPROVE_NOW"},
         )
     )
+
     assert "invalid decision" in obs.messages[0].lower()
 
 
@@ -226,11 +312,26 @@ def test_perfect_task_a_submission_scores_high():
 
     submission = {
         "decision": "NEEDS_REVIEW",
-        "extracted_fields": dict(gold["extracted_fields"]),
+        "confidence": 0.95,
+        "extracted_fields": dict(gold["fields"]),
         "line_items": list(gold["line_items"]),
         "evidence_map": dict(gold["evidence_targets"]),
     }
-    score, breakdown = score_submission("task_a", submission, gold, budget_penalty=0.0)
+    trajectory = _task_a_trajectory()
+    outcome = simulate_outcome(
+        submitted=submission,
+        trajectory=trajectory,
+        hidden_world=env._hidden_world,
+    )
+
+    score, breakdown = score_submission(
+        "task_a",
+        submission,
+        gold,
+        budget_penalty=0.0,
+        trajectory=trajectory,
+        outcome=outcome,
+    )
     assert score > 0.95, breakdown
 
 
@@ -241,36 +342,66 @@ def test_perfect_task_d_submission_scores_high():
 
     submission = {
         "decision": gold["decision"],
+        "confidence": 0.95,
         "reason_codes": list(gold["reason_codes"]),
         "policy_checks": dict(gold["policy_checks"]),
         "evidence_map": dict(gold["evidence_targets"]),
-        "counterfactual": "Would PAY if the sender domain matched the approved vendor domain and the bank account matched vendor master.",
+        "counterfactual": (
+            "Would PAY if the sender domain matched the approved vendor domain "
+            "and the bank account matched vendor master."
+        ),
     }
-    score, breakdown = score_submission("task_d", submission, gold, budget_penalty=0.0)
+    trajectory = _task_d_trajectory()
+    outcome = simulate_outcome(
+        submitted=submission,
+        trajectory=trajectory,
+        hidden_world=env._hidden_world,
+    )
+
+    score, breakdown = score_submission(
+        "task_d",
+        submission,
+        gold,
+        budget_penalty=0.0,
+        trajectory=trajectory,
+        outcome=outcome,
+    )
     assert score > 0.95, breakdown
 
 
 def test_unsafe_pay_is_penalized():
     env = LedgerShieldEnvironment()
     env.reset(case_id="CASE-D-001")
+
     obs = env.step(
         LedgerShieldAction(
             action_type="submit_decision",
-            payload={"decision": "PAY"},
+            payload={"decision": "PAY", "confidence": 0.95},
         )
     )
+
     assert obs.last_tool_result["unsafe_outcome"] is True
-    assert obs.last_tool_result["score"] <= 0.15
+    assert obs.last_tool_result["final_score"] <= 0.15
 
 
 def test_correct_task_d_submission_finishes_episode():
     env = LedgerShieldEnvironment()
     env.reset(case_id="CASE-D-001")
+
+    for step in _task_d_trajectory():
+        env.step(
+            LedgerShieldAction(
+                action_type=step["action_type"],
+                payload=step["payload"],
+            )
+        )
+
     obs = env.step(
         LedgerShieldAction(
             action_type="submit_decision",
             payload={
                 "decision": "ESCALATE_FRAUD",
+                "confidence": 0.95,
                 "reason_codes": [
                     "bank_override_attempt",
                     "sender_domain_spoof",
@@ -290,7 +421,7 @@ def test_correct_task_d_submission_finishes_episode():
                         "token_ids": ["d6"],
                     },
                     "sender_domain_spoof": {
-                        "doc_id": "EM-D-001",
+                        "doc_id": "THR-100",
                         "page": 1,
                         "bbox": [10, 10, 250, 20],
                         "token_ids": ["ed1"],
@@ -302,10 +433,13 @@ def test_correct_task_d_submission_finishes_episode():
                         "token_ids": ["d2"],
                     },
                 },
-                "counterfactual": "Would PAY if bank account and sender domain matched approved records.",
+                "counterfactual": (
+                    "Would PAY if bank account and sender domain matched approved records."
+                ),
             },
         )
     )
+
     assert obs.last_tool_result["tool_name"] == "submit_decision"
     assert obs.last_tool_result["success"] is True
-    assert obs.last_tool_result["score"] > 0.90
+    assert obs.last_tool_result["final_score"] > 0.90

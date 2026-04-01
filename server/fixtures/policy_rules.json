@@ -16,5 +16,11 @@
     "title": "Duplicate invoice screening",
     "description": "Potential duplicates must be stopped or routed to manual review before payment.",
     "failure_route": "HOLD"
+  },
+  {
+    "rule_id": "approval-threshold-check",
+    "title": "Approval threshold check",
+    "description": "Invoices at or above the approval threshold must complete the required approval chain before payment.",
+    "failure_route": "HOLD"
   }
 ]

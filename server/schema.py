@@ -15,6 +15,37 @@ FIELD_KEYS = [
     "bank_account",
 ]
 
+INVESTIGATION_ACTIONS = [
+    "zoom",
+    "get_doc_crop",
+    "ocr",
+    "lookup_vendor",
+    "lookup_vendor_history",
+    "lookup_policy",
+    "lookup_po",
+    "lookup_receipt",
+    "search_ledger",
+    "inspect_email_thread",
+    "compare_bank_account",
+]
+
+INTERVENTION_ACTIONS = [
+    "request_callback_verification",
+    "freeze_vendor_profile",
+    "request_bank_change_approval_chain",
+    "request_po_reconciliation",
+    "request_additional_receipt_evidence",
+    "route_to_procurement",
+    "route_to_security",
+    "flag_duplicate_cluster_review",
+    "create_human_handoff",
+]
+
+FINAL_ACTIONS = ["submit_decision"]
+
+ALLOWED_ACTIONS = INVESTIGATION_ACTIONS + INTERVENTION_ACTIONS + FINAL_ACTIONS
+ALLOWED_DECISIONS = ["PAY", "HOLD", "NEEDS_REVIEW", "ESCALATE_FRAUD"]
+
 DISCREPANCY_TYPES = [
     "price_mismatch",
     "quantity_mismatch",
@@ -24,6 +55,10 @@ DISCREPANCY_TYPES = [
     "total_mismatch",
     "tax_id_mismatch",
     "partial_receipt_only",
+    "missing_po",
+    "receipt_date_mismatch",
+    "bank_account_mismatch",
+    "vendor_master_mismatch",
 ]
 
 FRAUD_TYPES = [
@@ -32,6 +67,10 @@ FRAUD_TYPES = [
     "sender_domain_spoof",
     "duplicate_near_match",
     "approval_threshold_evasion",
+    "urgent_payment_pressure",
+    "callback_verification_failed",
+    "vendor_account_takeover_suspected",
+    "policy_bypass_attempt",
 ]
 
 POLICY_CHECK_KEYS = [
@@ -39,12 +78,25 @@ POLICY_CHECK_KEYS = [
     "bank_change_verification",
     "duplicate_check",
     "approval_threshold_check",
+    "human_review_required",
+    "callback_required",
+]
+
+OUTCOME_TYPES = [
+    "safe_payment_cleared",
+    "unsafe_payment_released",
+    "fraud_prevented",
+    "manual_review_created",
+    "false_positive_operational_delay",
+    "policy_breach",
 ]
 
 ALL_REASON_CODES = sorted(set(DISCREPANCY_TYPES + FRAUD_TYPES))
 
 
 def normalize_text(value: Any) -> str:
+    if value is None:
+        return ""
     return " ".join(str(value).strip().lower().split())
 
 
@@ -56,7 +108,13 @@ def normalize_id(value: Any) -> str:
 def safe_float(value: Any) -> float:
     try:
         if isinstance(value, str):
-            cleaned = value.replace(",", "").replace("₹", "").replace("$", "").strip()
+            cleaned = (
+                value.replace(",", "")
+                .replace("₹", "")
+                .replace("$", "")
+                .replace("€", "")
+                .strip()
+            )
             return float(cleaned)
         return float(value)
     except Exception:
@@ -65,6 +123,21 @@ def safe_float(value: Any) -> float:
 
 def numeric_match(a: Any, b: Any, tolerance: float = 0.01) -> bool:
     return abs(safe_float(a) - safe_float(b)) <= tolerance
+
+
+def fuzzy_numeric_similarity(a: Any, b: Any) -> float:
+    a_num = safe_float(a)
+    b_num = safe_float(b)
+    denom = max(abs(a_num), abs(b_num), 1.0)
+    diff = abs(a_num - b_num) / denom
+    return max(0.0, 1.0 - diff)
+
+
+def prefix_domain(value: Any) -> str:
+    text = normalize_text(value)
+    if "@" in text:
+        return text.split("@", 1)[-1]
+    return text
 
 
 def bbox_iou(box_a: list[float] | None, box_b: list[float] | None) -> float:
@@ -93,3 +166,29 @@ def token_overlap(pred_token_ids: list[str] | None, gold_token_ids: list[str] | 
     if not pred or not gold:
         return 0.0
     return len(pred & gold) / len(gold)
+
+
+def list_unique_normalized(values: list[Any]) -> list[str]:
+    seen: set[str] = set()
+    output: list[str] = []
+    for value in values:
+        norm = normalize_text(value)
+        if not norm or norm in seen:
+            continue
+        seen.add(norm)
+        output.append(norm)
+    return output
+
+
+def canonical_reason_codes(values: list[Any]) -> list[str]:
+    normalized = list_unique_normalized(values)
+    allowed = {normalize_text(x) for x in ALL_REASON_CODES}
+    return [value for value in normalized if value in allowed]
+
+
+def is_intervention_action(action_type: str) -> bool:
+    return normalize_text(action_type) in {normalize_text(x) for x in INTERVENTION_ACTIONS}
+
+
+def is_investigation_action(action_type: str) -> bool:
+    return normalize_text(action_type) in {normalize_text(x) for x in INVESTIGATION_ACTIONS}

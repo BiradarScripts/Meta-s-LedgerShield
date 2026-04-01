@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field, is_dataclass
 from typing import Any, Generic, Optional, TypeVar
 
-try:  # pragma: no cover - exercised only when openenv-core is installed
+try:  # pragma: no cover - used when openenv-core is installed
     from openenv.core import EnvClient, StepResult
     from openenv.core.env_server import Action, Environment, Observation, State, create_fastapi_app
 except Exception:  # pragma: no cover - local fallback
@@ -25,6 +25,7 @@ except Exception:  # pragma: no cover - local fallback
         step_count: int = 0
 
     class Environment:
+        """Fallback Environment base class."""
         pass
 
     ObsT_co = TypeVar("ObsT_co")
@@ -42,9 +43,8 @@ except Exception:  # pragma: no cover - local fallback
 
     class EnvClient(Generic[ActT, ObsT, StateT]):
         """
-        Minimal fallback client compatible with the subset of the OpenEnv API used
-        in this starter package. It supports sync usage against a local FastAPI
-        server or a remote HTTP endpoint.
+        Minimal fallback client compatible with the subset of the OpenEnv API
+        used by this package.
         """
 
         def __init__(self, base_url: str):
@@ -92,7 +92,11 @@ except Exception:  # pragma: no cover - local fallback
             return self._parse_state(response.json())
 
         @classmethod
-        def from_docker_image(cls, image_name: str, base_url: str = "http://localhost:8000"):
+        def from_docker_image(
+            cls,
+            image_name: str,
+            base_url: str = "http://localhost:8000",
+        ):
             del image_name
             return cls(base_url=base_url)
 
@@ -109,13 +113,22 @@ except Exception:  # pragma: no cover - local fallback
         seed: int | None = None
         case_id: str | None = None
 
+    def _serialize(value: Any) -> Any:
+        if is_dataclass(value):
+            return asdict(value)
+        return value
+
     def create_fastapi_app(env: Any, action_cls: Any, observation_cls: Any) -> FastAPI:
         del observation_cls
-        app = FastAPI(title="LedgerShield OpenEnv", version="0.2.0")
+
+        app = FastAPI(title="LedgerShield OpenEnv", version="0.3.0")
 
         @app.get("/")
-        def root():
-            return {"status": "ok"}
+        def root() -> dict[str, Any]:
+            return {
+                "status": "ok",
+                "service": "LedgerShield OpenEnv",
+            }
 
         @app.get("/health")
         def health() -> dict[str, Any]:
@@ -126,19 +139,38 @@ except Exception:  # pragma: no cover - local fallback
             seed = request.seed if request is not None else None
             case_id = request.case_id if request is not None else None
             obs = env.reset(seed=seed, case_id=case_id)
-            return env.result_payload(obs)
+
+            if hasattr(env, "result_payload"):
+                return env.result_payload(obs)
+
+            return {
+                "observation": _serialize(obs),
+                "reward": 0.0,
+                "done": False,
+                "info": {},
+            }
 
         @app.post("/step")
         def step(request: dict[str, Any]) -> dict[str, Any]:
             action = action_cls(**request)
             obs = env.step(action)
-            return env.result_payload(obs)
+
+            if hasattr(env, "result_payload"):
+                return env.result_payload(obs)
+
+            return {
+                "observation": _serialize(obs),
+                "reward": 0.0,
+                "done": False,
+                "info": {},
+            }
 
         @app.get("/state")
         def state() -> dict[str, Any]:
-            if is_dataclass(env.state):
-                return asdict(env.state)
-            return env.state
+            current_state = env.state
+            if is_dataclass(current_state):
+                return asdict(current_state)
+            return current_state
 
         return app
 

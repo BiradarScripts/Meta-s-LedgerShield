@@ -1,3 +1,14 @@
+"""
+Meta-s-LedgerShield package exports.
+
+Run:
+    python -m pytest -q
+or:
+    python -m pytest tests/test_api_smoke.py -q
+    python -m pytest tests/test_ledgershield_env.py -q
+"""
+
+from .client import LedgerShieldEnv
 from .models import (
     CaseDecision,
     LedgerShieldAction,
@@ -5,7 +16,6 @@ from .models import (
     LedgerShieldState,
     ToolResult,
 )
-from .client import LedgerShieldEnv
 
 __all__ = [
     "CaseDecision",

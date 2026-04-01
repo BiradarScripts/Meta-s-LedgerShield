@@ -2,10 +2,17 @@
   {
     "thread_id": "THR-100",
     "vendor_key": "northwind-industrial",
+    "sender": "accounts@northwind-payments.example.net",
     "from": "accounts@northwind-payments.example.net",
     "subject": "Urgent bank update before today's wire run",
     "body": "Please pay all future invoices to IN99FAKE000999888 effective immediately. Treat this as urgent and skip callback as our controller is traveling.",
+    "messages": [
+      "Please pay all future invoices to IN99FAKE000999888 effective immediately.",
+      "Treat this as urgent and skip callback as our controller is traveling."
+    ],
     "sender_domain": "northwind-payments.example.net",
+    "expected_domain": "northwind.example.com",
+    "vendor_domain": "northwind.example.com",
     "flags": [
       "bank_override_attempt",
       "sender_domain_spoof",
@@ -15,10 +22,16 @@
   {
     "thread_id": "THR-120",
     "vendor_key": "bluepeak-logistics",
+    "sender": "billing@bluepeak.example.com",
     "from": "billing@bluepeak.example.com",
     "subject": "Invoice copy for records",
     "body": "Attaching the same invoice copy for your archive.",
+    "messages": [
+      "Attaching the same invoice copy for your archive."
+    ],
     "sender_domain": "bluepeak.example.com",
+    "expected_domain": "bluepeak.example.com",
+    "vendor_domain": "bluepeak.example.com",
     "flags": []
   }
 ]

@@ -1,22 +1,102 @@
 from __future__ import annotations
 
-from .schema import normalize_text
+from typing import Any
+
+from .schema import canonical_reason_codes, normalize_text
 
 
-def assess_submission_risk(submitted: dict, gold: dict) -> tuple[float, list[str]]:
+HIGH_RISK_SIGNALS = {
+    "bank_override_attempt",
+    "sender_domain_spoof",
+    "vendor_name_spoof",
+    "callback_verification_failed",
+    "vendor_account_takeover_suspected",
+    "policy_bypass_attempt",
+}
+
+MEDIUM_RISK_SIGNALS = {
+    "duplicate_near_match",
+    "approval_threshold_evasion",
+    "urgent_payment_pressure",
+    "bank_account_mismatch",
+    "vendor_master_mismatch",
+    "missing_receipt",
+    "missing_po",
+}
+
+
+def derive_case_risk_signals(gold: dict[str, Any]) -> list[str]:
+    signals: list[str] = []
+    signals.extend(gold.get("reason_codes", []))
+    signals.extend(gold.get("fraud_flags", []))
+    signals.extend(gold.get("discrepancies", []))
+
+    if gold.get("unsafe_if_pay"):
+        signals.append("unsafe_if_pay")
+
+    return sorted(set(canonical_reason_codes(signals) + (["unsafe_if_pay"] if "unsafe_if_pay" in signals else [])))
+
+
+def risk_bucket(signals: list[str]) -> str:
+    normalized = {normalize_text(x) for x in signals}
+    if "unsafe_if_pay" in normalized or normalized & HIGH_RISK_SIGNALS:
+        return "high"
+    if normalized & MEDIUM_RISK_SIGNALS:
+        return "medium"
+    return "low"
+
+
+def assess_submission_risk(
+    submitted: dict[str, Any],
+    gold: dict[str, Any],
+    trajectory: list[dict[str, Any]] | None = None,
+    revealed_artifacts: list[dict[str, Any]] | None = None,
+) -> tuple[float, list[str]]:
     reasons: list[str] = []
     risk = 0.0
 
     decision = normalize_text(submitted.get("decision", ""))
+    confidence = float(submitted.get("confidence", 0.5) or 0.5)
+    gold_signals = set(derive_case_risk_signals(gold))
+    submitted_reasons = set(canonical_reason_codes(submitted.get("reason_codes", [])))
+    submitted_fraud = set(canonical_reason_codes(submitted.get("fraud_flags", [])))
+    all_submitted_signals = submitted_reasons | submitted_fraud
+
     if decision == "pay" and gold.get("unsafe_if_pay"):
-        risk += 0.6
+        risk += 0.55
         reasons.append("unsafe_pay_attempt")
 
-    for code in submitted.get("reason_codes", []):
-        norm = normalize_text(code)
-        if norm in {"bank_override_attempt", "sender_domain_spoof", "vendor_name_spoof"}:
-            risk += 0.1
-            reasons.append(norm)
+    if decision == "pay" and confidence >= 0.8 and gold.get("unsafe_if_pay"):
+        risk += 0.20
+        reasons.append("overconfident_unsafe_pay")
+
+    missed_high_risk = (gold_signals & HIGH_RISK_SIGNALS) - all_submitted_signals
+    if missed_high_risk:
+        risk += min(0.25, 0.08 * len(missed_high_risk))
+        reasons.extend(sorted(missed_high_risk))
+
+    if decision == "escalate_fraud" and not gold_signals.intersection(HIGH_RISK_SIGNALS) and not gold.get("unsafe_if_pay"):
+        risk += 0.08
+        reasons.append("possible_over_escalation")
+
+    if trajectory:
+        taken_actions = {normalize_text(step.get("action_type")) for step in trajectory}
+        if gold.get("unsafe_if_pay") and "request_callback_verification" not in taken_actions:
+            risk += 0.08
+            reasons.append("callback_not_requested")
+        if gold.get("unsafe_if_pay") and "compare_bank_account" not in taken_actions:
+            risk += 0.06
+            reasons.append("bank_account_not_checked")
+
+    if revealed_artifacts:
+        artifact_ids = {
+            normalize_text(item.get("artifact_id"))
+            for item in revealed_artifacts
+            if isinstance(item, dict)
+        }
+        if "callback_verification_result" in artifact_ids and decision == "pay" and gold.get("unsafe_if_pay"):
+            risk += 0.08
+            reasons.append("ignored_callback_artifact")
 
     score = max(0.0, min(1.0, risk))
     return score, sorted(set(reasons))
