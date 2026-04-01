@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from envs.ledgershield_env.models import LedgerShieldAction
-from envs.ledgershield_env.server.environment import LedgerShieldEnvironment
-from envs.ledgershield_env.server.grading import score_submission
+from models import LedgerShieldAction
+from server.environment import LedgerShieldEnvironment
+from server.grading import score_submission
 
 
 def test_reset_loads_specific_case():

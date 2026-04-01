@@ -16,10 +16,9 @@ import json
 from typing import Dict, List, Tuple
 from dataclasses import dataclass
 
-from envs.ledgershield_env.server.environment import LedgerShieldEnvironment
-from envs.ledgershield_env.server.grading import score_submission
-from envs.ledgershield_env import LedgerShieldAction
-
+from server.environment import LedgerShieldEnvironment
+from server.grading import score_submission
+from models import LedgerShieldAction
 
 @dataclass
 class AgentStrategy:

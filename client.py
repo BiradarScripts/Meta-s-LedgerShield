@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from .models import LedgerShieldAction, LedgerShieldObservation, LedgerShieldState
-from .openenv_compat import EnvClient, StepResult
+from models import LedgerShieldAction, LedgerShieldObservation, LedgerShieldState
+from openenv_compat import EnvClient, StepResult
 
 
 class LedgerShieldEnv(EnvClient[LedgerShieldAction, LedgerShieldObservation, LedgerShieldState]):

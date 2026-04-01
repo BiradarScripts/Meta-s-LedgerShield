@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
-from .openenv_compat import Action, Observation, State
+from openenv_compat import Action, Observation, State
 
 ActionType = Literal[
     "zoom",

@@ -5,8 +5,8 @@ import random
 import uuid
 from typing import Any
 
-from ..models import LedgerShieldObservation, LedgerShieldState
-from ..openenv_compat import Environment
+from models import LedgerShieldObservation, LedgerShieldState
+from openenv_compat import Environment
 from .data_loader import load_all
 from .grading import score_submission
 from .risk_rules import assess_submission_risk

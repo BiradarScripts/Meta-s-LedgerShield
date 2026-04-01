@@ -111,6 +111,10 @@ except Exception:  # pragma: no cover - local fallback
         del observation_cls
         app = FastAPI(title="LedgerShield OpenEnv", version="0.2.0")
 
+        @app.get("/")
+        def root():
+            return {"status": "ok"}
+
         @app.get("/health")
         def health() -> dict[str, Any]:
             return {"status": "ok"}

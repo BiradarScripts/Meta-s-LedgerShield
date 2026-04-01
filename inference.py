@@ -9,7 +9,7 @@ Key improvements:
 3. Task-specific submission formats
 4. Smart decision logic based on research
 """
-
+# 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
 import os
 import json
 import re
@@ -17,11 +17,11 @@ from typing import Optional, Any
 
 from openai import OpenAI
 
-from envs.ledgershield_env import LedgerShieldEnv, LedgerShieldAction
+from ledgershield_env import LedgerShieldEnv, LedgerShieldAction
 
 
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
-MODEL_NAME = os.getenv("MODEL_NAME", "openai/gpt-4.1")
+MODEL_NAME = os.getenv("MODEL_NAME")
 HF_TOKEN = os.getenv("HF_TOKEN", os.getenv("API_KEY", ""))
 
 MAX_STEPS = 8

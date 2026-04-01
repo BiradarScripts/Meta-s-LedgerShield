@@ -1,3 +1,15 @@
+---
+title: LedgerShield
+emoji: 🛡️
+colorFrom: blue
+colorTo: purple
+sdk: docker
+app_port: 8000
+pinned: false
+---
+
+
+
 # LedgerShield - Hackathon Winning Solution
 
 ## Meta OpenEnv Hackathon - Accounts Payable Audit AI Agent

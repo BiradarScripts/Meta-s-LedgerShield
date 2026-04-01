@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi.testclient import TestClient
 
-from envs.ledgershield_env.server.app import app
+from server.app import app
 
 
 client = TestClient(app)
