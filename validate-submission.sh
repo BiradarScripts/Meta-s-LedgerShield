@@ -184,13 +184,15 @@ fi
 
 IMAGE_TAG="ledgershield-validate:$(date +%s)"
 BUILD_OK=false
-BUILD_OUTPUT="$(run_with_timeout "$DOCKER_BUILD_TIMEOUT" docker build -t "$IMAGE_TAG" "$REPO_DIR" 2>&1)" && BUILD_OK=true
+BUILD_LOG="$(portable_mktemp "docker-build")"
+CLEANUP_FILES+=("$BUILD_LOG")
+run_with_timeout "$DOCKER_BUILD_TIMEOUT" docker build -t "$IMAGE_TAG" "$REPO_DIR" >"$BUILD_LOG" 2>&1 && BUILD_OK=true
 
 if [ "$BUILD_OK" = true ]; then
   pass "Docker build succeeded"
 else
   fail "Docker build failed (timeout=${DOCKER_BUILD_TIMEOUT}s)"
-  printf "%s\n" "$BUILD_OUTPUT" | tail -20
+  tail -20 "$BUILD_LOG"
   stop_at "Step 2"
 fi
 
@@ -269,7 +271,7 @@ lines = [line.rstrip("\n") for line in path.read_text(encoding="utf-8").splitlin
 
 start_re = re.compile(r"^\[START\] task=\S+ env=\S+ model=\S+$")
 step_re = re.compile(r"^\[STEP\] step=\d+ action=.+ reward=-?\d+\.\d{2} done=(true|false) error=.+$")
-end_re = re.compile(r"^\[END\] success=(true|false) steps=\d+ score=\d+\.\d{2} rewards=.*$")
+end_re = re.compile(r"^\[END\] success=(true|false) steps=\d+ rewards=.*$")
 
 if not lines:
     raise SystemExit("inference.py produced no stdout")
@@ -302,12 +304,15 @@ for line in lines:
             raise SystemExit("encountered [END] before [START]")
         if not end_re.match(line):
             raise SystemExit(f"invalid [END] line: {line}")
-        match = re.search(r"score=(\d+\.\d{2})", line)
-        if not match:
-            raise SystemExit(f"missing score in [END] line: {line}")
-        score = float(match.group(1))
-        if not (0.0 <= score <= 1.0):
-            raise SystemExit(f"score out of bounds: {score}")
+        rewards_match = re.search(r"rewards=(.*)$", line)
+        if not rewards_match:
+            raise SystemExit(f"missing rewards in [END] line: {line}")
+        reward_tokens = [token for token in rewards_match.group(1).split(",") if token]
+        if not reward_tokens:
+            raise SystemExit(f"expected at least one reward in [END] line: {line}")
+        for token in reward_tokens:
+            if not re.fullmatch(r"-?\d+\.\d{2}", token):
+                raise SystemExit(f"invalid reward token in [END] line: {token}")
         current_started = False
         end_count += 1
         continue

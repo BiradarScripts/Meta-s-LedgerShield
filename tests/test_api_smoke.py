@@ -98,6 +98,8 @@ def test_step_ocr_endpoint():
     assert last["tool_name"] == "ocr"
     assert last["success"] is True
     assert len(last["tokens"]) > 0
+    assert "reward_model" in data["info"]
+    assert data["info"]["reward_model"]["terminal"] is False
     assert data["done"] is False
 
 
@@ -160,6 +162,7 @@ def test_submit_decision_endpoint():
     assert result["success"] is True
     assert result["decision"] == "ESCALATE_FRAUD"
     assert result["final_score"] > 0.90
+    assert data["info"]["reward_model"]["terminal"] is True
 
 
 def test_clean_duplicate_screening_case_returns_no_hits():

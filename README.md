@@ -268,6 +268,19 @@ The final decision is constrained to:
 - `NEEDS_REVIEW`
 - `ESCALATE_FRAUD`
 
+### Reward model
+
+LedgerShield returns the standard scalar OpenEnv `reward` on every step, and also emits a typed structured reward payload through `info["reward_model"]` and `last_tool_result["reward_model"]`.
+
+The reward schema is defined in [models.py](./models.py) as `LedgerShieldReward` and includes:
+
+| Field | Type | Meaning |
+|---|---:|---|
+| `value` | `float` | Scalar reward applied for the step |
+| `terminal` | `bool` | Whether this reward came from a terminal transition |
+| `components` | `dict[str, float]` | Reward decomposition such as cost penalty, novel-signal bonus, or final score |
+| `metadata` | `dict[str, Any]` | Context such as action type, intervention flags, or terminal reason |
+
 ### Investigation actions
 
 These actions gather evidence and update the trajectory:
@@ -618,6 +631,8 @@ export HF_TOKEN="<your_token>"
 export ENV_URL="http://127.0.0.1:8000"
 ```
 
+`HF_TOKEN` is the hackathon-required credential. For local compatibility, [inference.py](./inference.py) also accepts `OPENAI_API_KEY`.
+
 ### Run the server
 
 ```bash
@@ -650,7 +665,7 @@ Example:
 [START] task=CASE-D-001 env=ledgershield model=openai/gpt-4.1-mini
 [STEP] step=1 action=ocr({"doc_id":"INV-D-001","mode":"accurate"}) reward=-0.06 done=false error=null
 [STEP] step=2 action=inspect_email_thread({"thread_id":"THR-100"}) reward=0.05 done=false error=null
-[END] success=true steps=11 score=0.99 rewards=-0.06,-0.06,0.05,0.01,-0.01,0.01,-0.02,0.03,-0.01,-0.01,0.99
+[END] success=true steps=11 rewards=-0.06,-0.06,0.05,0.01,-0.01,0.01,-0.02,0.03,-0.01,-0.01,0.99
 ```
 
 ## Verified Baseline Results
@@ -810,7 +825,7 @@ The README intentionally mirrors the Meta OpenEnv hackathon checklist.
 | Hackathon requirement | Where LedgerShield satisfies it |
 |---|---|
 | Real-world task, not a toy | Enterprise AP/payment-integrity control environment with multimodal records and operational interventions |
-| OpenEnv spec compliance | Typed models in [models.py](./models.py), `step()/reset()/state()` in [server/environment.py](./server/environment.py), runtime metadata in [openenv.yaml](./openenv.yaml) |
+| OpenEnv spec compliance | Typed models in [models.py](./models.py) including `LedgerShieldAction`, `LedgerShieldObservation`, `LedgerShieldState`, and `LedgerShieldReward`, plus `step()/reset()/state()` in [server/environment.py](./server/environment.py), and runtime metadata in [openenv.yaml](./openenv.yaml) |
 | Minimum 3 tasks with graders | 4 task families across 9 benchmark cases, graded in [server/grading.py](./server/grading.py) |
 | Meaningful reward function | Dense step rewards, novel-signal bonuses, intervention shaping, budget pressure, and terminal score |
 | Baseline inference script | Root [inference.py](./inference.py), OpenAI client, required env vars, structured stdout logs |

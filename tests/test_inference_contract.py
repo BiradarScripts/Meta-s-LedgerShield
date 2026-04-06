@@ -17,13 +17,13 @@ def test_log_helpers_emit_required_stdout_format():
             done=False,
             error=None,
         )
-        inference.log_end(success=True, steps=3, score=0.99, rewards=[0.0, -0.01, 0.99])
+        inference.log_end(success=True, steps=3, rewards=[0.0, -0.01, 0.99])
 
     lines = buffer.getvalue().splitlines()
     assert lines == [
         "[START] task=CASE-X-001 env=ledgershield model=openai/gpt-4.1-mini",
         "[STEP] step=3 action=lookup_policy({}) reward=0.00 done=false error=null",
-        "[END] success=true steps=3 score=0.99 rewards=0.00,-0.01,0.99",
+        "[END] success=true steps=3 rewards=0.00,-0.01,0.99",
     ]
 
 

@@ -32,9 +32,11 @@ with warnings.catch_warnings():
 
 API_BASE_URL = os.getenv("API_BASE_URL") or "https://router.huggingface.co/v1"
 MODEL_NAME = os.getenv("MODEL_NAME") or "openai/gpt-4.1-mini"
+HF_TOKEN = os.getenv("HF_TOKEN")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 API_KEY = (
-    os.getenv("HF_TOKEN")
-    or os.getenv("OPENAI_API_KEY")
+    HF_TOKEN
+    or OPENAI_API_KEY
     or os.getenv("API_KEY")
 )
 ENV_URL = os.getenv("ENV_URL") or "http://localhost:8000"
@@ -120,13 +122,12 @@ def log_step(step: int, action: str, reward: float, done: bool, error: Optional[
     )
 
 
-def log_end(success: bool, steps: int, score: float, rewards: list[float]) -> None:
+def log_end(success: bool, steps: int, rewards: list[float]) -> None:
     rewards_str = ",".join(f"{reward:.2f}" for reward in rewards)
     print(
         "[END] "
         f"success={str(success).lower()} "
         f"steps={steps} "
-        f"score={score:.2f} "
         f"rewards={rewards_str}",
         flush=True,
     )
@@ -822,7 +823,7 @@ def run_episode(
             env.close()
         except Exception as exc:  # noqa: BLE001
             trace(f"[DEBUG] env.close failed for {case_id}: {exc}")
-        log_end(success=success, steps=steps_taken, score=final_score, rewards=rewards)
+        log_end(success=success, steps=steps_taken, rewards=rewards)
 
 
 def build_openai_client() -> Optional[OpenAI]:

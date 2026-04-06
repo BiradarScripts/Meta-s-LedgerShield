@@ -4,12 +4,13 @@ from dataclasses import dataclass, field
 from typing import Any, Literal
 
 from openenv_compat import Action, Observation, State
+from pydantic import BaseModel, Field
 
 InvestigationActionType = Literal[
     "zoom",
     "get_doc_crop",
     "ocr",
-    "lookup_vendor",
+    "lookup_vendor", 
     "lookup_vendor_history",
     "lookup_policy",
     "lookup_po",
@@ -57,6 +58,13 @@ ActionType = Literal[
 
 DecisionType = Literal["PAY", "HOLD", "NEEDS_REVIEW", "ESCALATE_FRAUD"]
 TaskType = Literal["task_a", "task_b", "task_c", "task_d"]
+
+
+class LedgerShieldReward(BaseModel):
+    value: float
+    terminal: bool = False
+    components: dict[str, float] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 @dataclass

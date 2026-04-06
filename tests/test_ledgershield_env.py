@@ -147,6 +147,8 @@ def test_ocr_tool_returns_tokens():
     assert obs.last_tool_result["tool_name"] == "ocr"
     assert obs.last_tool_result["success"] is True
     assert len(obs.last_tool_result["tokens"]) > 0
+    assert obs.last_tool_result["reward_model"]["terminal"] is False
+    assert "cost_penalty" in obs.last_tool_result["reward_model"]["components"]
 
 
 def test_get_doc_crop_tool_returns_crop_context():
@@ -179,6 +181,38 @@ def test_lookup_vendor_returns_master_data():
     vendor = obs.last_tool_result["vendor"]
     assert vendor["vendor_key"] == "northwind-industrial"
     assert "bank_account" in vendor
+
+
+def test_submit_decision_emits_typed_reward_payload():
+    env = LedgerShieldEnvironment()
+    env.reset(case_id="CASE-D-002")
+
+    obs = env.step(
+        LedgerShieldAction(
+            action_type="submit_decision",
+            payload={
+                "decision": "PAY",
+                "confidence": 0.88,
+                "reason_codes": [],
+                "policy_checks": {
+                    "three_way_match": "pass",
+                    "bank_change_verification": "pass",
+                    "duplicate_check": "pass",
+                    "approval_threshold_check": "pass",
+                },
+                "evidence_map": {},
+                "counterfactual": (
+                    "Would HOLD if the sender domain changed, the bank account mismatched "
+                    "vendor master, or a duplicate cluster appeared in ledger history."
+                ),
+            },
+        )
+    )
+
+    reward_model = obs.last_tool_result["reward_model"]
+    assert reward_model["terminal"] is True
+    assert 0.0 <= reward_model["value"] <= 1.0
+    assert "final_score" in reward_model["components"]
 
 
 def test_lookup_vendor_history_returns_history():

@@ -5,7 +5,7 @@ import random
 import uuid
 from typing import Any
 
-from models import LedgerShieldObservation, LedgerShieldState
+from models import LedgerShieldObservation, LedgerShieldReward, LedgerShieldState
 from openenv_compat import Environment
 
 from .data_loader import load_all
@@ -151,6 +151,21 @@ class LedgerShieldEnvironment(Environment):
             },
         )
 
+    def _reward_payload(
+        self,
+        *,
+        value: float,
+        terminal: bool,
+        components: dict[str, float] | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        return LedgerShieldReward(
+            value=round(float(value), 4),
+            terminal=terminal,
+            components={key: round(float(val), 4) for key, val in (components or {}).items()},
+            metadata=metadata or {},
+        ).model_dump()
+
     def reset(self, seed: int | None = None, case_id: str | None = None) -> LedgerShieldObservation:
         self.current_case = self._select_case(seed=seed, case_id=case_id)
         self._hidden_world = build_hidden_world(self.current_case)
@@ -270,6 +285,8 @@ class LedgerShieldEnvironment(Environment):
         done = False
         reward = 0.0
         info: dict[str, Any] = {}
+        reward_components: dict[str, float] = {}
+        reward_metadata: dict[str, Any] = {"action_type": action_type}
 
         if action_type == "submit_decision":
             submitted = dict(payload)
@@ -346,6 +363,13 @@ class LedgerShieldEnvironment(Environment):
                 "unsafe_outcome": self._state.unsafe_outcome,
                 "outcome": outcome,
             }
+            reward_components = {"final_score": final_score}
+            reward_metadata.update(
+                {
+                    "unsafe_outcome": self._state.unsafe_outcome,
+                    "budget_penalty": round(budget_penalty, 4),
+                }
+            )
             cost = 0.0
             messages = ["Decision submitted and graded."]
 
@@ -361,28 +385,56 @@ class LedgerShieldEnvironment(Environment):
             if revealed_new_signals > 0:
                 result["novel_signal_count"] = max(result.get("novel_signal_count", 0), revealed_new_signals)
 
-            reward = -cost * 0.03 + (0.04 if result.get("novel_signal_count", 0) > 0 else 0.0)
+            cost_penalty = -cost * 0.03
+            novel_signal_bonus = 0.04 if result.get("novel_signal_count", 0) > 0 else 0.0
+            reward = cost_penalty + novel_signal_bonus
             info = {
                 "tool_name": action_type,
                 "success": result["success"],
                 "intervention": True,
             }
+            reward_components = {
+                "cost_penalty": cost_penalty,
+                "novel_signal_bonus": novel_signal_bonus,
+            }
+            reward_metadata.update(
+                {
+                    "intervention": True,
+                    "novel_signal_count": int(result.get("novel_signal_count", 0) or 0),
+                }
+            )
 
         else:
             raw_result = self._dispatch_tool(action_type, payload)
             cost = self._apply_cost(action_type, payload)
             result, messages = self._normalize_tool_result(action_type, raw_result, cost)
 
-            reward = -cost * 0.05
+            cost_penalty = -cost * 0.05
+            novel_signal_bonus = 0.0
+            failure_penalty = 0.0
+            reward = cost_penalty
             if result.get("novel_signal_count", 0) > 0:
-                reward += min(0.06, 0.02 * result["novel_signal_count"])
+                novel_signal_bonus = min(0.06, 0.02 * result["novel_signal_count"])
+                reward += novel_signal_bonus
             if not result["success"]:
-                reward -= 0.05
+                failure_penalty = -0.05
+                reward += failure_penalty
 
             info = {
                 "tool_name": action_type,
                 "success": result["success"],
             }
+            reward_components = {
+                "cost_penalty": cost_penalty,
+                "novel_signal_bonus": novel_signal_bonus,
+                "failure_penalty": failure_penalty,
+            }
+            reward_metadata.update(
+                {
+                    "novel_signal_count": int(result.get("novel_signal_count", 0) or 0),
+                    "success": bool(result.get("success", False)),
+                }
+            )
 
         self._state.budget_remaining = round(max(self._state.budget_remaining - cost, 0.0), 4)
 
@@ -419,6 +471,18 @@ class LedgerShieldEnvironment(Environment):
             self._state.terminal_reason = "budget_exhausted"
             info["budget_exhausted"] = True
             messages = list(messages) + ["Budget exhausted. Episode terminated."]
+
+        if done and self._state.terminal_reason:
+            reward_metadata["terminal_reason"] = self._state.terminal_reason
+
+        reward_model = self._reward_payload(
+            value=reward,
+            terminal=done,
+            components=reward_components,
+            metadata=reward_metadata,
+        )
+        result["reward_model"] = reward_model
+        info["reward_model"] = reward_model
 
         obs = self._observation(tool_result=result, messages=messages)
         self._last_reward = reward

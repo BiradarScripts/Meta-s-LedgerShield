@@ -10,6 +10,7 @@ from models import (
     CaseDecision,
     LedgerShieldAction,
     LedgerShieldObservation,
+    LedgerShieldReward,
     LedgerShieldState,
     ToolResult,
 )
@@ -18,6 +19,7 @@ __all__ = [
     "CaseDecision",
     "LedgerShieldAction",
     "LedgerShieldObservation",
+    "LedgerShieldReward",
     "LedgerShieldState",
     "ToolResult",
     "LedgerShieldEnv",
