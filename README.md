@@ -52,6 +52,18 @@ This is not a static document benchmark and not a toy fraud classifier. It is an
 - adversarial case generation is built in through reusable attack patterns
 - scoring combines task success with process quality and enterprise safety semantics
 
+## Documentation Checklist
+
+This README explicitly includes every documentation item called out in the hackathon requirements:
+
+- **Environment overview and motivation**: see [Problem Framing](#problem-framing), [Environment Overview](#environment-overview), and [Why This Is Not A Toy](#why-this-is-not-a-toy).
+- **Definitions of action and observation spaces**: see [Observation, Action, and State Spaces](#observation-action-and-state-spaces).
+- **Task descriptions with expected difficulty levels**: see [Task Suite](#task-suite), including the per-case difficulty table and task-by-task descriptions.
+- **Setup and usage instructions**: see [Quick Start](#quick-start), [OpenEnv API Contract](#openenv-api-contract), and [Docker and Hugging Face Space Deployment](#docker-and-hugging-face-space-deployment).
+- **Baseline performance scores**: see [Verified Baseline Results](#verified-baseline-results).
+
+For judge convenience, the same checklist is mirrored again in [Meta Hackathon Requirement Coverage](#meta-hackathon-requirement-coverage) and [Submission Checklist](#submission-checklist).
+
 ## Why This Wins
 
 LedgerShield is designed to score well on all three hackathon review layers at once:
@@ -575,7 +587,7 @@ The environment metadata is defined in [openenv.yaml](./openenv.yaml):
 
 ```yaml
 spec_version: 1
-name: start
+name: ledgershield
 type: space
 runtime: fastapi
 app: server.app:app
@@ -814,7 +826,7 @@ This section is written to mirror the hackathon's pre-submission gate as closely
 - [x] Not a toy/game: multimodal financial investigation with operational interventions
 - [x] Full OpenEnv interface: typed models plus `reset()`, `step()`, and `state()`
 - [x] `openenv.yaml` present in project root
-- [x] Minimum three graded tasks: LedgerShield provides four task families across six curated benchmark cases
+- [x] Minimum three graded tasks: LedgerShield provides four task families across nine curated benchmark cases
 - [x] Scores and rewards bounded in `[0.0, 1.0]` at task completion
 - [x] Meaningful reward shaping with partial progress signals and unsafe-action penalties
 - [x] Root `inference.py` using the OpenAI client and required env vars
