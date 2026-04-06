@@ -1,0 +1,12 @@
+# Runtime dependencies for LedgerShield.
+# Derived from pyproject.toml and pinned using uv.lock.
+
+fastapi==0.135.2
+huggingface-hub==1.8.0
+httpx==0.28.1
+openai==2.30.0
+openenv-core==0.2.3
+pydantic==2.12.5
+PyYAML==6.0.3
+requests==2.33.1
+uvicorn==0.42.0

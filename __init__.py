@@ -8,14 +8,24 @@ or:
     python -m pytest tests/test_ledgershield_env.py -q
 """
 
-from .client import LedgerShieldEnv
-from .models import (
-    CaseDecision,
-    LedgerShieldAction,
-    LedgerShieldObservation,
-    LedgerShieldState,
-    ToolResult,
-)
+try:
+    from .client import LedgerShieldEnv
+    from .models import (
+        CaseDecision,
+        LedgerShieldAction,
+        LedgerShieldObservation,
+        LedgerShieldState,
+        ToolResult,
+    )
+except ImportError:
+    from client import LedgerShieldEnv
+    from models import (
+        CaseDecision,
+        LedgerShieldAction,
+        LedgerShieldObservation,
+        LedgerShieldState,
+        ToolResult,
+    )
 
 __all__ = [
     "CaseDecision",
