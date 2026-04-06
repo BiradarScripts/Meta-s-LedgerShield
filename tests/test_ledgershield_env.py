@@ -105,6 +105,17 @@ def test_state_does_not_leak_gold():
     assert not hasattr(env.state, "gold_summary")
 
 
+def test_public_state_and_risk_snapshot_hide_hidden_state():
+    env = LedgerShieldEnvironment()
+    obs = env.reset(case_id="CASE-D-001")
+    public_state = env.public_state()
+
+    assert "hidden_risk_signals" not in public_state
+    assert "latent_risk_bucket" not in obs.risk_snapshot
+    assert "decision_readiness" not in obs.risk_snapshot
+    assert "difficulty" not in obs.case_metadata
+
+
 def test_allowed_actions_exist_in_observation():
     env = LedgerShieldEnvironment()
     obs = env.reset(case_id="CASE-D-001")
@@ -316,6 +327,7 @@ def test_inspect_email_thread_returns_flags():
     thread = obs.last_tool_result["thread"]
     assert thread["thread_id"] == "THR-100"
     assert "sender_domain_spoof" in thread.get("derived_flags", []) or "sender_domain_spoof" in thread.get("flags", [])
+    assert "policy_bypass_attempt" in thread.get("derived_flags", []) or "policy_bypass_attempt" in thread.get("flags", [])
 
 
 def test_compare_bank_account_detects_mismatch():
@@ -671,6 +683,7 @@ def test_correct_task_d_submission_finishes_episode():
                 "reason_codes": [
                     "bank_override_attempt",
                     "sender_domain_spoof",
+                    "policy_bypass_attempt",
                     "duplicate_near_match",
                 ],
                 "policy_checks": {
@@ -692,6 +705,12 @@ def test_correct_task_d_submission_finishes_episode():
                         "bbox": [10, 10, 250, 20],
                         "token_ids": ["ed1"],
                     },
+                    "policy_bypass_attempt": {
+                        "doc_id": "THR-100",
+                        "page": 1,
+                        "bbox": [10, 70, 250, 80],
+                        "token_ids": ["ed4"],
+                    },
                     "duplicate_near_match": {
                         "doc_id": "INV-D-001",
                         "page": 1,
@@ -701,6 +720,82 @@ def test_correct_task_d_submission_finishes_episode():
                 },
                 "counterfactual": (
                     "Would PAY if bank account and sender domain matched approved records."
+                ),
+            },
+        )
+    )
+
+    assert obs.last_tool_result["tool_name"] == "submit_decision"
+    assert obs.last_tool_result["success"] is True
+    assert obs.last_tool_result["final_score"] > 0.90
+
+
+def test_workflow_override_task_d_case_scores_high():
+    env = LedgerShieldEnvironment()
+    env.reset(case_id="CASE-D-004")
+
+    for step in [
+        {"action_type": "inspect_email_thread", "payload": {"thread_id": "THR-150"}},
+        {"action_type": "lookup_vendor_history", "payload": {"vendor_key": "northwind-industrial"}},
+        {"action_type": "lookup_policy", "payload": {}},
+        {
+            "action_type": "compare_bank_account",
+            "payload": {
+                "vendor_key": "northwind-industrial",
+                "proposed_bank_account": "IN66OVERRIDE123450000",
+            },
+        },
+        {"action_type": "request_callback_verification", "payload": {}},
+        {"action_type": "route_to_security", "payload": {}},
+        {"action_type": "freeze_vendor_profile", "payload": {}},
+    ]:
+        env.step(
+            LedgerShieldAction(
+                action_type=step["action_type"],
+                payload=step["payload"],
+            )
+        )
+
+    obs = env.step(
+        LedgerShieldAction(
+            action_type="submit_decision",
+            payload={
+                "decision": "ESCALATE_FRAUD",
+                "confidence": 0.96,
+                "reason_codes": [
+                    "bank_override_attempt",
+                    "sender_domain_spoof",
+                    "policy_bypass_attempt",
+                ],
+                "policy_checks": {
+                    "three_way_match": "pass",
+                    "bank_change_verification": "fail",
+                    "duplicate_check": "pass",
+                    "approval_threshold_check": "pass",
+                },
+                "evidence_map": {
+                    "bank_override_attempt": {
+                        "doc_id": "INV-D-004",
+                        "page": 1,
+                        "bbox": [10, 110, 190, 120],
+                        "token_ids": ["d56"],
+                    },
+                    "sender_domain_spoof": {
+                        "doc_id": "THR-150",
+                        "page": 1,
+                        "bbox": [10, 10, 285, 20],
+                        "token_ids": ["ed51"],
+                    },
+                    "policy_bypass_attempt": {
+                        "doc_id": "THR-150",
+                        "page": 1,
+                        "bbox": [10, 70, 430, 80],
+                        "token_ids": ["ed54"],
+                    },
+                },
+                "counterfactual": (
+                    "Would PAY if the sender domain matched approved records and the request "
+                    "did not attempt to bypass verification controls."
                 ),
             },
         )

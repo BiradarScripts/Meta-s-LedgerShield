@@ -237,6 +237,21 @@ def inspect_email_thread_tool(email_threads: list[dict[str, Any]], payload: dict
         if "bank" in body and ("change" in body or "update" in body or "override" in body) and not explicit_no_change:
             signals.append("bank_override_attempt")
 
+        bypass_phrases = {
+            "skip callback",
+            "do not call",
+            "don't call",
+            "ignore standard workflow",
+            "override policy",
+            "bypass policy",
+            "do not verify",
+            "treat this email as the source of truth",
+            "portal is offline",
+            "avoid reapproval",
+        }
+        if any(phrase in body for phrase in bypass_phrases):
+            signals.append("policy_bypass_attempt")
+
         thread["derived_flags"] = sorted(set(normalize_text(x) for x in signals if x))
         return {
             "thread": thread,

@@ -33,6 +33,7 @@ from .world_state import (
     decision_readiness,
     investigation_status,
     pending_events_public,
+    public_state_snapshot,
     public_revealed_artifacts,
     risk_snapshot,
     state_potential,
@@ -83,6 +84,9 @@ class LedgerShieldEnvironment(Environment):
     @property
     def state(self) -> LedgerShieldState:
         return self._state
+
+    def public_state(self) -> dict[str, Any]:
+        return public_state_snapshot(self._state, self._hidden_world)
 
     def _select_case(self, seed: int | None = None, case_id: str | None = None) -> dict[str, Any]:
         if case_id:
@@ -155,7 +159,6 @@ class LedgerShieldEnvironment(Environment):
             allowed_actions=list(ALLOWED_ACTIONS),
             available_interventions=list(INTERVENTION_ACTIONS),
             case_metadata={
-                "difficulty": self.current_case.get("difficulty", "medium"),
                 "task_label": self.current_case.get("task_label", ""),
                 "benchmark_split": self.current_case.get("benchmark_split", "benchmark"),
             },
@@ -344,7 +347,7 @@ class LedgerShieldEnvironment(Environment):
                 final_state=system_state_snapshot(self._state, self._hidden_world),
             )
 
-            system_state = system_state_snapshot(self._state, self._hidden_world)
+            internal_system_state = system_state_snapshot(self._state, self._hidden_world)
 
             final_score, breakdown = score_submission(
                 task_type=self._state.task_type,
@@ -354,7 +357,7 @@ class LedgerShieldEnvironment(Environment):
                 trajectory=self._state.trajectory,
                 outcome=outcome,
                 investigation_summary=self._investigation_summary(),
-                final_state=system_state,
+                final_state=internal_system_state,
             )
 
             heuristic_risk, triggered = assess_submission_risk(
@@ -371,6 +374,8 @@ class LedgerShieldEnvironment(Environment):
             self._state.terminal_reason = "decision_submitted"
             self._state.portfolio_metrics = dict(outcome.get("portfolio_metrics", {}))
 
+            public_system_state = public_state_snapshot(self._state, self._hidden_world)
+
             done = True
             reward = final_score
 
@@ -385,7 +390,7 @@ class LedgerShieldEnvironment(Environment):
                 "unsafe_outcome": self._state.unsafe_outcome,
                 "decision": decision,
                 "outcome": outcome,
-                "system_state": system_state,
+                "system_state": public_system_state,
                 "message": "Decision submitted and graded.",
                 "cost": 0.0,
             }
@@ -395,7 +400,7 @@ class LedgerShieldEnvironment(Environment):
                 "score_breakdown": breakdown,
                 "unsafe_outcome": self._state.unsafe_outcome,
                 "outcome": outcome,
-                "system_state": system_state,
+                "system_state": public_system_state,
             }
             reward_components = {"final_score": final_score}
             reward_metadata.update(
@@ -519,7 +524,6 @@ class LedgerShieldEnvironment(Environment):
         reward += shaping_delta
         reward = max(-1.0, min(1.0, reward))
         reward_components["potential_delta"] = round(shaping_delta, 4)
-        reward_components["decision_readiness"] = round(potential_after, 4)
 
         if done and self._state.terminal_reason:
             reward_metadata["terminal_reason"] = self._state.terminal_reason

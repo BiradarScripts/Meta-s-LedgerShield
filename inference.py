@@ -57,6 +57,7 @@ DEFAULT_CASES = [
     "CASE-D-001",
     "CASE-D-002",
     "CASE-D-003",
+    "CASE-D-004",
 ]
 
 VENDOR_KEY_BY_NAME = {
@@ -231,6 +232,17 @@ def parse_email_tokens(tokens: list[dict[str, Any]], doc_id: str) -> dict[str, A
             evidence["subject_header"] = token_ref(token, doc_id)
         elif "approval threshold" in lower or "split the request" in lower or "split invoice" in lower:
             evidence["approval_threshold_evasion"] = token_ref(token, doc_id)
+        elif (
+            "skip callback" in lower
+            or "do not call" in lower
+            or "don't call" in lower
+            or "override policy" in lower
+            or "bypass policy" in lower
+            or "do not verify" in lower
+            or "source of truth" in lower
+            or "avoid reapproval" in lower
+        ):
+            evidence["policy_bypass_attempt"] = token_ref(token, doc_id)
     return evidence
 
 
@@ -452,6 +464,15 @@ def build_task_d_submission(collected: dict[str, Any], model_assessment: dict[st
         if threshold_evidence:
             evidence_map["approval_threshold_evasion"] = threshold_evidence
         reason_codes.append("approval_threshold_evasion")
+    if ("policy_bypass_attempt" in email_flags or "policy_bypass_attempt" in email_evidence):
+        bypass_evidence = (
+            email_evidence.get("policy_bypass_attempt")
+            or email_evidence.get("subject_header")
+            or email_evidence.get("from_header")
+        )
+        if bypass_evidence:
+            evidence_map["policy_bypass_attempt"] = bypass_evidence
+        reason_codes.append("policy_bypass_attempt")
 
     if not suspicious:
         return {
@@ -468,7 +489,9 @@ def build_task_d_submission(collected: dict[str, Any], model_assessment: dict[st
 
     checks = policy_check_payload(
         three_way_match="pass",
-        bank_change_verification="fail" if bank_mismatch or "sender_domain_spoof" in reason_codes else "pass",
+        bank_change_verification="fail"
+        if bank_mismatch or "sender_domain_spoof" in reason_codes or "policy_bypass_attempt" in reason_codes
+        else "pass",
         duplicate_check="fail" if duplicate_detected else "pass",
     )
     if "approval_threshold_evasion" in reason_codes:

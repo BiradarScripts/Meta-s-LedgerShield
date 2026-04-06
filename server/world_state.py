@@ -28,11 +28,16 @@ def _required_actions(case: dict[str, Any], hidden_signals: list[str]) -> list[s
     }.get(task_type, [])
 
     hidden = {normalize_text(signal) for signal in hidden_signals}
-    if hidden & {"bank_override_attempt", "callback_verification_failed", "vendor_account_takeover_suspected"}:
+    if hidden & {
+        "bank_override_attempt",
+        "callback_verification_failed",
+        "vendor_account_takeover_suspected",
+        "policy_bypass_attempt",
+    }:
         required.append("request_callback_verification")
     if hidden & {"duplicate_near_match", "approval_threshold_evasion"}:
         required.append("flag_duplicate_cluster_review")
-    if hidden & {"sender_domain_spoof", "vendor_name_spoof"}:
+    if hidden & {"sender_domain_spoof", "vendor_name_spoof", "policy_bypass_attempt"}:
         required.append("route_to_security")
 
     seen: set[str] = set()
@@ -354,15 +359,13 @@ def risk_snapshot(
     hidden_world: dict[str, Any],
 ) -> dict[str, Any]:
     observed = sorted(set(state.observed_risk_signals))
-    hidden_bucket = risk_bucket(hidden_world.get("hidden_risk_signals", []))
     observed_bucket = risk_bucket(observed)
     return {
         "observed_risk_bucket": observed_bucket,
-        "latent_risk_bucket": hidden_bucket,
         "observed_signals": observed,
         "observed_signal_count": len(observed),
         "pending_event_count": len(pending_events_public(hidden_world)),
-        "decision_readiness": round(decision_readiness(state, hidden_world), 4),
+        "revealed_artifact_count": len(state.revealed_artifact_ids),
     }
 
 
@@ -444,4 +447,34 @@ def system_state_snapshot(
         "portfolio_context": deepcopy(hidden_world.get("campaign_context", {})),
         "observed_risk_signals": [normalize_text(value) for value in state.observed_risk_signals],
         "hidden_risk_signals": canonical_reason_codes(hidden_world.get("hidden_risk_signals", [])),
+    }
+
+
+def public_state_snapshot(
+    state: LedgerShieldState,
+    hidden_world: dict[str, Any],
+) -> dict[str, Any]:
+    pending = pending_events_public(hidden_world)
+    return {
+        "episode_id": state.episode_id,
+        "case_id": state.case_id,
+        "task_type": state.task_type,
+        "budget_total": round(state.budget_total, 4),
+        "budget_remaining": round(state.budget_remaining, 4),
+        "max_steps": state.max_steps,
+        "step_count": state.step_count,
+        "case_clock": state.case_clock,
+        "submitted": state.submitted,
+        "final_score": round(state.final_score, 4),
+        "unsafe_outcome": state.unsafe_outcome,
+        "visible_doc_ids": list(state.visible_doc_ids),
+        "revealed_artifact_ids": list(state.revealed_artifact_ids),
+        "trajectory": deepcopy(state.trajectory),
+        "interventions_taken": deepcopy(state.interventions_taken),
+        "observed_risk_signals": [normalize_text(value) for value in state.observed_risk_signals],
+        "handoff_packet": deepcopy(state.handoff_packet),
+        "pending_events": pending,
+        "pending_event_count": len(pending),
+        "portfolio_context": deepcopy(hidden_world.get("campaign_context", {})),
+        "terminal_reason": state.terminal_reason,
     }

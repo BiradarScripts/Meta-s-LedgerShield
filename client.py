@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import fields
 from typing import Any
 
 from models import LedgerShieldAction, LedgerShieldObservation, LedgerShieldState
@@ -29,4 +30,6 @@ class LedgerShieldEnv(EnvClient[LedgerShieldAction, LedgerShieldObservation, Led
         )
 
     def _parse_state(self, payload: dict[str, Any]) -> LedgerShieldState:
-        return LedgerShieldState(**payload)
+        allowed = {field.name for field in fields(LedgerShieldState)}
+        filtered = {key: value for key, value in payload.items() if key in allowed}
+        return LedgerShieldState(**filtered)

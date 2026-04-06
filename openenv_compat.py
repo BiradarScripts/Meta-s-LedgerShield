@@ -167,6 +167,8 @@ except Exception:  # pragma: no cover - local fallback
 
         @app.get("/state")
         def state() -> dict[str, Any]:
+            if hasattr(env, "public_state"):
+                return _serialize(env.public_state())
             current_state = env.state
             if is_dataclass(current_state):
                 return asdict(current_state)

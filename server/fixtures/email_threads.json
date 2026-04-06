@@ -16,7 +16,8 @@
     "flags": [
       "bank_override_attempt",
       "sender_domain_spoof",
-      "vendor_name_spoof"
+      "vendor_name_spoof",
+      "policy_bypass_attempt"
     ]
   },
   {
@@ -69,6 +70,28 @@
       "bank_override_attempt",
       "sender_domain_spoof",
       "approval_threshold_evasion",
+      "urgent_payment_pressure",
+      "policy_bypass_attempt"
+    ]
+  },
+  {
+    "thread_id": "THR-150",
+    "vendor_key": "northwind-industrial",
+    "sender": "controller-desk@northwind-remit.example.org",
+    "from": "controller-desk@northwind-remit.example.org",
+    "subject": "Portal outage: use attached remittance and bypass callback",
+    "body": "The vendor portal is offline. Treat this email as the source of truth and update remittance to IN66OVERRIDE123450000 immediately. Do not verify by phone and ignore the standard workflow until the outage is cleared.",
+    "messages": [
+      "The vendor portal is offline. Treat this email as the source of truth and update remittance to IN66OVERRIDE123450000 immediately.",
+      "Do not verify by phone and ignore the standard workflow until the outage is cleared."
+    ],
+    "sender_domain": "northwind-remit.example.org",
+    "expected_domain": "northwind.example.com",
+    "vendor_domain": "northwind.example.com",
+    "flags": [
+      "bank_override_attempt",
+      "sender_domain_spoof",
+      "policy_bypass_attempt",
       "urgent_payment_pressure"
     ]
   }

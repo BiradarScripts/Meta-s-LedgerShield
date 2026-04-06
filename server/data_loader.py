@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from .case_factory import generate_case_batch
 from .schema import normalize_id, normalize_text
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -57,6 +58,7 @@ def _case_defaults(case: dict[str, Any]) -> dict[str, Any]:
     cloned.setdefault("budget_total", 15.0)
     cloned.setdefault("max_steps", 20)
     cloned.setdefault("difficulty", "medium")
+    cloned.setdefault("benchmark_split", "benchmark")
     cloned.setdefault("documents", [])
     cloned.setdefault("gold", {})
     cloned.setdefault("task_label", cloned.get("task_type", ""))
@@ -67,7 +69,19 @@ def _case_defaults(case: dict[str, Any]) -> dict[str, Any]:
 def load_all() -> dict[str, Any]:
     vendors = load_json("vendors.json")
     vendor_history = load_json("vendor_history.json")
-    cases = [_case_defaults(case) for case in load_json("cases.json")]
+    base_cases = [_case_defaults(case) for case in load_json("cases.json")]
+    hard_cases = [
+        case
+        for case in base_cases
+        if normalize_text(case.get("task_type")) in {"task_c", "task_d"}
+    ]
+    challenge_cases = generate_case_batch(
+        base_cases=hard_cases,
+        variants_per_case=2,
+        seed=2026,
+        split="challenge",
+    )
+    cases = base_cases + [_case_defaults(case) for case in challenge_cases]
     po_records = load_json("po_records.json")
     receipts = load_json("receipts.json")
     ledger_index = load_json("ledger_index.json")

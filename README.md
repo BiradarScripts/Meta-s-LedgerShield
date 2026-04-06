@@ -253,7 +253,7 @@ The public observation returned by the environment is defined in [models.py](./m
 | `budget_remaining` | `float` | Remaining investigation budget |
 | `step_count` | `int` | Number of executed steps |
 | `max_steps` | `int` | Episode limit |
-| `risk_snapshot` | `dict` | Coarse risk telemetry from current state |
+| `risk_snapshot` | `dict` | Observed-only risk telemetry from current state, with no hidden risk bucket leakage |
 | `investigation_status` | `dict` | Tool count, interventions, artifact count, budget used |
 | `last_tool_result` | `dict` | Result of the most recent tool or intervention |
 | `allowed_actions` | `list[str]` | Full action vocabulary for the episode |
@@ -334,11 +334,13 @@ The hidden state, defined in [models.py](./models.py) and managed by [server/wor
 - unsafe outcome flag
 - terminal reason
 
+This hidden state remains internal to the environment and is not exposed through the public observation or `GET /state`, which keeps the benchmark genuinely partially observable.
+
 This is what makes LedgerShield a **true environment** rather than a stateless evaluator.
 
 ## Task Suite
 
-LedgerShield ships with **4 task families** and **10 curated benchmark cases** spanning adversarial, benign, and linked-case campaign flows.
+LedgerShield ships with **4 task families**, **11 curated benchmark cases**, and **12 deterministic challenge variants** for a total runtime suite of **23 cases** spanning adversarial, benign, linked-case campaign, and workflow-override flows.
 
 | Case ID | Task | Difficulty | Budget | Max Steps | Visible Docs |
 |---|---|---|---:|---:|---|
@@ -352,6 +354,7 @@ LedgerShield ships with **4 task families** and **10 curated benchmark cases** s
 | `CASE-D-001` | Task D | hard | `16.0` | `18` | invoice, email thread |
 | `CASE-D-002` | Task D | hard | `16.0` | `18` | invoice, email thread |
 | `CASE-D-003` | Task D | hard | `18.0` | `20` | 2 invoices, email thread |
+| `CASE-D-004` | Task D | hard | `17.0` | `18` | invoice, email thread |
 
 ### Task A: Proof-carrying field extraction
 
@@ -401,6 +404,8 @@ and then submit a **proof-carrying fraud escalation** with correct evidence, pol
 The suite now also includes a benign AP inbox case so judges can see that the environment measures **restraint and calibration**, not only aggressive fraud blocking.
 
 It now also includes a **campaign-level linked-invoice case** where the agent must reason across multiple invoices in one episode, detect threshold evasion, and prevent a coordinated payment-release attack.
+
+It also now includes a **workflow-override incident case** where the attacker explicitly tells the analyst to bypass portal and callback controls, making malicious instruction handling part of the benchmark rather than an afterthought.
 
 ## Grading Design
 
@@ -512,6 +517,7 @@ LedgerShield is not limited to a fixed benchmark. It includes a reusable adversa
 | `vendor_takeover_attack` | high | sender spoof + account takeover semantics |
 | `urgency_spoof_attack` | medium | urgent payment pressure + spoofed communication |
 | `approval_threshold_evasion_attack` | medium | threshold-avoidance semantics |
+| `workflow_override_attack` | high | instructions to bypass callback, portal, or approval controls |
 | `fake_receipt_attack` | medium | incomplete or manipulated receipt behavior |
 
 ### Variant generation loop
@@ -686,7 +692,7 @@ Example:
 
 ## Verified Baseline Results
 
-Verified locally on the current 10-case benchmark suite:
+Verified locally on the current 11-case benchmark suite:
 
 | Case | Task | Difficulty | Verified score |
 |---|---|---|---:|
@@ -698,9 +704,10 @@ Verified locally on the current 10-case benchmark suite:
 | `CASE-C-001` | Task C | hard | `0.992` |
 | `CASE-C-002` | Task C | medium | `0.969` |
 | `CASE-D-001` | Task D | hard | `0.970` |
-| `CASE-D-002` | Task D | hard | `0.960` |
-| `CASE-D-003` | Task D | hard | `0.960` |
-| **Average** | **All tasks** | — | **`0.976`** |
+| `CASE-D-002` | Task D | hard | `0.966` |
+| `CASE-D-003` | Task D | hard | `0.965` |
+| `CASE-D-004` | Task D | hard | `0.972` |
+| **Average** | **All tasks** | — | **`0.971`** |
 
 These scores were produced on the current benchmark fixtures using the root [inference.py](./inference.py).
 
@@ -806,7 +813,7 @@ The hackathon page specifies that submissions should comfortably run within a mo
 - server runtime is CPU-friendly and fixture-backed
 - no GPU is required for the environment server
 - benchmark cases are small enough for fast local iteration
-- the verified nine-case baseline run completes well under the hackathon's 20-minute limit on a standard local machine
+- the verified eleven-case baseline run completes well under the hackathon's 20-minute limit on a standard local machine
 - the environment and baseline are suitable for a `2 vCPU / 8 GB RAM` execution envelope
 
 ## Validation
@@ -843,7 +850,7 @@ The README intentionally mirrors the Meta OpenEnv hackathon checklist.
 |---|---|
 | Real-world task, not a toy | Enterprise AP/payment-integrity control environment with multimodal records and operational interventions |
 | OpenEnv spec compliance | Typed models in [models.py](./models.py) including `LedgerShieldAction`, `LedgerShieldObservation`, `LedgerShieldState`, and `LedgerShieldReward`, plus `step()/reset()/state()` in [server/environment.py](./server/environment.py), and runtime metadata in [openenv.yaml](./openenv.yaml) |
-| Minimum 3 tasks with graders | 4 task families across 10 benchmark cases, graded in [server/grading.py](./server/grading.py) |
+| Minimum 3 tasks with graders | 4 task families across 11 benchmark cases plus deterministic challenge variants, graded in [server/grading.py](./server/grading.py) |
 | Meaningful reward function | Dense step rewards, novel-signal bonuses, intervention shaping, budget pressure, and terminal score |
 | Baseline inference script | Root [inference.py](./inference.py), OpenAI client, required env vars, structured stdout logs |
 | Docker + HF Space deployability | [Dockerfile](./Dockerfile), FastAPI app, Space metadata at top of this README |
@@ -858,7 +865,7 @@ This section is written to mirror the hackathon's pre-submission gate as closely
 - [x] Not a toy/game: multimodal financial investigation with operational interventions
 - [x] Full OpenEnv interface: typed models plus `reset()`, `step()`, and `state()`
 - [x] `openenv.yaml` present in project root
-- [x] Minimum three graded tasks: LedgerShield provides four task families across ten curated benchmark cases
+- [x] Minimum three graded tasks: LedgerShield provides four task families across eleven curated benchmark cases plus deterministic challenge variants
 - [x] Scores and rewards bounded in `[0.0, 1.0]` at task completion
 - [x] Meaningful reward shaping with partial progress signals and unsafe-action penalties
 - [x] Root `inference.py` using the OpenAI client and required env vars
@@ -873,13 +880,13 @@ This section is written to mirror the hackathon's pre-submission gate as closely
 
 LedgerShield is designed to be robust under benchmark and training use:
 
-- **No gold leakage** is checked in tests.
+- **No gold or hidden-risk leakage** is checked in tests for public observation and public state.
 - **Unsafe release behavior** is heavily penalized.
 - **Repeated actions** reduce efficiency score.
 - **Missing callback verification** raises risk on unsafe cases.
 - **Over-escalation** is penalized on low-risk cases.
 - **Deterministic fixtures and grading** support reproducible evaluation.
-- **Variant generation** reduces overfitting to a tiny static case set.
+- **Challenge and holdout generation** reduce overfitting to a tiny static case set.
 
 ## Why LedgerShield Matters
 

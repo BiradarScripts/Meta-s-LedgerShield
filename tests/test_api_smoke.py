@@ -77,7 +77,9 @@ def test_state_endpoint():
     data = response.json()
     assert data["case_id"] == "CASE-D-001"
     assert "gold" not in str(data).lower()
-    assert "hidden_risk_signals" in data
+    assert "hidden_risk_signals" not in data
+    assert "observed_risk_signals" in data
+    assert "pending_events" in data
 
 
 def test_step_ocr_endpoint():
@@ -117,6 +119,7 @@ def test_submit_decision_endpoint():
                 "reason_codes": [
                     "bank_override_attempt",
                     "sender_domain_spoof",
+                    "policy_bypass_attempt",
                     "duplicate_near_match",
                 ],
                 "policy_checks": {
@@ -137,6 +140,12 @@ def test_submit_decision_endpoint():
                         "page": 1,
                         "bbox": [10, 10, 250, 20],
                         "token_ids": ["ed1"],
+                    },
+                    "policy_bypass_attempt": {
+                        "doc_id": "THR-100",
+                        "page": 1,
+                        "bbox": [10, 70, 250, 80],
+                        "token_ids": ["ed4"],
                     },
                     "duplicate_near_match": {
                         "doc_id": "INV-D-001",
