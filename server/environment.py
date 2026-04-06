@@ -28,10 +28,15 @@ from .tools import (
 )
 from .transition_engine import handle_intervention, normalized_result_with_signals
 from .world_state import (
+    advance_pending_events,
     build_hidden_world,
+    decision_readiness,
     investigation_status,
+    pending_events_public,
     public_revealed_artifacts,
     risk_snapshot,
+    state_potential,
+    system_state_snapshot,
 )
 
 TOOL_COSTS = {
@@ -58,6 +63,9 @@ TOOL_COSTS = {
     "create_human_handoff": 0.20,
     "submit_decision": 0.0,
 }
+
+SHAPING_GAMMA = 0.98
+SHAPING_SCALE = 0.18
 
 
 class LedgerShieldEnvironment(Environment):
@@ -134,6 +142,7 @@ class LedgerShieldEnvironment(Environment):
             instruction=self.current_case["instruction"],
             visible_documents=self._visible_document_catalog(),
             revealed_artifacts=public_revealed_artifacts(self._state, self._hidden_world),
+            pending_events=pending_events_public(self._hidden_world),
             budget_remaining=round(self._state.budget_remaining, 3),
             budget_total=round(self._state.budget_total, 3),
             step_count=self._state.step_count,
@@ -148,7 +157,9 @@ class LedgerShieldEnvironment(Environment):
             case_metadata={
                 "difficulty": self.current_case.get("difficulty", "medium"),
                 "task_label": self.current_case.get("task_label", ""),
+                "benchmark_split": self.current_case.get("benchmark_split", "benchmark"),
             },
+            portfolio_context=dict(self._hidden_world.get("campaign_context", {})),
         )
 
     def _reward_payload(
@@ -180,6 +191,7 @@ class LedgerShieldEnvironment(Environment):
             visible_doc_ids=self._initial_visible_doc_ids(),
             difficulty=self.current_case.get("difficulty", "medium"),
             hidden_risk_signals=list(self._hidden_world.get("hidden_risk_signals", [])),
+            portfolio_metrics=dict(self._hidden_world.get("campaign_context", {})),
         )
 
         self._last_reward = 0.0
@@ -266,11 +278,18 @@ class LedgerShieldEnvironment(Environment):
 
         self._state.step_count += 1
         self._state.case_clock += 1
+        potential_before = state_potential(self._state, self._hidden_world)
 
         if action_type not in ALLOWED_ACTIONS:
             self._last_reward = -0.05
             self._last_done = False
-            self._last_info = {"error": f"Action not allowed: {action_type}"}
+            reward_model = self._reward_payload(
+                value=-0.05,
+                terminal=False,
+                components={"failure_penalty": -0.05},
+                metadata={"action_type": action_type, "error": "action_not_allowed"},
+            )
+            self._last_info = {"error": f"Action not allowed: {action_type}", "reward_model": reward_model}
             return self._observation(
                 tool_result={
                     "tool_name": action_type,
@@ -278,6 +297,7 @@ class LedgerShieldEnvironment(Environment):
                     "error": f"Action not allowed: {action_type}",
                     "message": f"Action not allowed: {action_type}",
                     "cost": 0.0,
+                    "reward_model": reward_model,
                 },
                 messages=[f"Action not allowed: {action_type}"],
             )
@@ -295,7 +315,13 @@ class LedgerShieldEnvironment(Environment):
             if decision not in ALLOWED_DECISIONS:
                 self._last_reward = -0.25
                 self._last_done = False
-                self._last_info = {"error": f"Invalid decision: {decision}"}
+                reward_model = self._reward_payload(
+                    value=-0.25,
+                    terminal=False,
+                    components={"failure_penalty": -0.25},
+                    metadata={"action_type": action_type, "error": "invalid_decision"},
+                )
+                self._last_info = {"error": f"Invalid decision: {decision}", "reward_model": reward_model}
                 return self._observation(
                     tool_result={
                         "tool_name": "submit_decision",
@@ -303,6 +329,7 @@ class LedgerShieldEnvironment(Environment):
                         "error": f"Invalid decision: {decision}",
                         "message": f"Invalid decision: {decision}",
                         "cost": 0.0,
+                        "reward_model": reward_model,
                     },
                     messages=[f"Invalid decision: {decision}"],
                 )
@@ -314,7 +341,10 @@ class LedgerShieldEnvironment(Environment):
                 submitted=submitted,
                 trajectory=self._state.trajectory,
                 hidden_world=self._hidden_world,
+                final_state=system_state_snapshot(self._state, self._hidden_world),
             )
+
+            system_state = system_state_snapshot(self._state, self._hidden_world)
 
             final_score, breakdown = score_submission(
                 task_type=self._state.task_type,
@@ -324,6 +354,7 @@ class LedgerShieldEnvironment(Environment):
                 trajectory=self._state.trajectory,
                 outcome=outcome,
                 investigation_summary=self._investigation_summary(),
+                final_state=system_state,
             )
 
             heuristic_risk, triggered = assess_submission_risk(
@@ -338,6 +369,7 @@ class LedgerShieldEnvironment(Environment):
             self._state.final_outcome = outcome
             self._state.unsafe_outcome = bool(outcome.get("unsafe_payment"))
             self._state.terminal_reason = "decision_submitted"
+            self._state.portfolio_metrics = dict(outcome.get("portfolio_metrics", {}))
 
             done = True
             reward = final_score
@@ -353,6 +385,7 @@ class LedgerShieldEnvironment(Environment):
                 "unsafe_outcome": self._state.unsafe_outcome,
                 "decision": decision,
                 "outcome": outcome,
+                "system_state": system_state,
                 "message": "Decision submitted and graded.",
                 "cost": 0.0,
             }
@@ -362,6 +395,7 @@ class LedgerShieldEnvironment(Environment):
                 "score_breakdown": breakdown,
                 "unsafe_outcome": self._state.unsafe_outcome,
                 "outcome": outcome,
+                "system_state": system_state,
             }
             reward_components = {"final_score": final_score}
             reward_metadata.update(
@@ -438,6 +472,13 @@ class LedgerShieldEnvironment(Environment):
 
         self._state.budget_remaining = round(max(self._state.budget_remaining - cost, 0.0), 4)
 
+        ready_artifacts, async_messages, async_signals = advance_pending_events(self._state, self._hidden_world)
+        if ready_artifacts:
+            result["async_artifacts"] = ready_artifacts
+            result["revealed_artifact_ids"] = [artifact.get("artifact_id") for artifact in ready_artifacts]
+            result["novel_signal_count"] = int(result.get("novel_signal_count", 0) or 0) + async_signals
+            messages = list(messages) + async_messages
+
         trajectory_entry = {
             "step": self._state.step_count,
             "case_clock": self._state.case_clock,
@@ -472,6 +513,14 @@ class LedgerShieldEnvironment(Environment):
             info["budget_exhausted"] = True
             messages = list(messages) + ["Budget exhausted. Episode terminated."]
 
+        self._state.decision_readiness = round(decision_readiness(self._state, self._hidden_world), 4)
+        potential_after = state_potential(self._state, self._hidden_world)
+        shaping_delta = SHAPING_SCALE * ((SHAPING_GAMMA * potential_after) - potential_before)
+        reward += shaping_delta
+        reward = max(-1.0, min(1.0, reward))
+        reward_components["potential_delta"] = round(shaping_delta, 4)
+        reward_components["decision_readiness"] = round(potential_after, 4)
+
         if done and self._state.terminal_reason:
             reward_metadata["terminal_reason"] = self._state.terminal_reason
 
@@ -483,6 +532,8 @@ class LedgerShieldEnvironment(Environment):
         )
         result["reward_model"] = reward_model
         info["reward_model"] = reward_model
+        if ready_artifacts:
+            info["async_artifacts"] = ready_artifacts
 
         obs = self._observation(tool_result=result, messages=messages)
         self._last_reward = reward

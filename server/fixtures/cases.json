@@ -531,5 +531,106 @@
       "unsafe_if_pay": false,
       "evidence_targets": {}
     }
+  },
+  {
+    "case_id": "CASE-D-003",
+    "task_type": "task_d",
+    "task_label": "Campaign-level AP fraud triage",
+    "difficulty": "hard",
+    "benchmark_split": "benchmark",
+    "budget_total": 18.0,
+    "max_steps": 20,
+    "instruction": "Act as an AP analyst. Investigate linked invoices INV-D-003A and INV-D-003B plus email thread THR-140. Determine whether this is a coordinated payment-campaign attack using threshold evasion, duplicate replay, and remittance override pressure.",
+    "campaign_context": {
+      "linked_invoice_count": 2,
+      "at_risk_amount": 3984.0,
+      "manual_review_capacity": 1,
+      "business_criticality": "high",
+      "queue_pressure": "campaign"
+    },
+    "initial_visible_doc_ids": ["INV-D-003A", "INV-D-003B", "THR-140"],
+    "documents": [
+      {
+        "doc_id": "INV-D-003A",
+        "doc_type": "invoice",
+        "thumbnail": "invoice-thumb-d003a",
+        "page_count": 1,
+        "language": "en",
+        "visual_tokens": ["vendor_header", "invoice_number", "bank_footer", "threshold_box"],
+        "noisy_ocr": [
+          { "token_id": "d31n", "text": "Northwnd Industrial", "bbox": [10, 10, 120, 20], "page": 1 },
+          { "token_id": "d32n", "text": "INV-2050-A", "bbox": [10, 30, 100, 40], "page": 1 }
+        ],
+        "accurate_ocr": [
+          { "token_id": "d31", "text": "Northwind Industrial Supplies Pvt Ltd", "bbox": [10, 10, 185, 20], "page": 1 },
+          { "token_id": "d32", "text": "Invoice No: INV-2050-A", "bbox": [10, 30, 160, 40], "page": 1 },
+          { "token_id": "d33", "text": "PO: PO-2050", "bbox": [10, 50, 85, 60], "page": 1 },
+          { "token_id": "d34", "text": "Receipt: GRN-2050", "bbox": [10, 70, 115, 80], "page": 1 },
+          { "token_id": "d35", "text": "Total: 1999.00", "bbox": [10, 90, 100, 100], "page": 1 },
+          { "token_id": "d36", "text": "Bank: IN99FAKE000999888", "bbox": [10, 110, 175, 120], "page": 1 }
+        ]
+      },
+      {
+        "doc_id": "INV-D-003B",
+        "doc_type": "invoice",
+        "thumbnail": "invoice-thumb-d003b",
+        "page_count": 1,
+        "language": "en",
+        "visual_tokens": ["vendor_header", "invoice_number", "bank_footer", "threshold_box"],
+        "noisy_ocr": [
+          { "token_id": "d41n", "text": "Northwnd Industrial", "bbox": [10, 10, 120, 20], "page": 1 },
+          { "token_id": "d42n", "text": "INV-2050-B", "bbox": [10, 30, 100, 40], "page": 1 }
+        ],
+        "accurate_ocr": [
+          { "token_id": "d41", "text": "Northwind Industrial Supplies Pvt Ltd", "bbox": [10, 10, 185, 20], "page": 1 },
+          { "token_id": "d42", "text": "Invoice No: INV-2050-B", "bbox": [10, 30, 160, 40], "page": 1 },
+          { "token_id": "d43", "text": "PO: PO-2051", "bbox": [10, 50, 85, 60], "page": 1 },
+          { "token_id": "d44", "text": "Receipt: GRN-2051", "bbox": [10, 70, 115, 80], "page": 1 },
+          { "token_id": "d45", "text": "Total: 1985.00", "bbox": [10, 90, 100, 100], "page": 1 },
+          { "token_id": "d46", "text": "Bank: IN99FAKE000999888", "bbox": [10, 110, 175, 120], "page": 1 }
+        ]
+      },
+      {
+        "doc_id": "THR-140",
+        "doc_type": "email",
+        "thumbnail": "email-thumb-d003",
+        "page_count": 1,
+        "language": "en",
+        "visual_tokens": ["urgent_banner", "sender_header", "body_text"],
+        "noisy_ocr": [
+          { "token_id": "ed31n", "text": "Urgent linked invoice batch", "bbox": [10, 10, 140, 20], "page": 1 }
+        ],
+        "accurate_ocr": [
+          { "token_id": "ed31", "text": "From: settlements@northwind-remit.example.net", "bbox": [10, 10, 265, 20], "page": 1 },
+          { "token_id": "ed32", "text": "Subject: Urgent remittance change and split invoice release for today's batch", "bbox": [10, 30, 395, 40], "page": 1 },
+          { "token_id": "ed33", "text": "Please update remittance to IN99FAKE000999888 and release both linked invoices today.", "bbox": [10, 50, 390, 60], "page": 1 },
+          { "token_id": "ed34", "text": "We intentionally split the request under the approval threshold to avoid reapproval delays.", "bbox": [10, 70, 415, 80], "page": 1 },
+          { "token_id": "ed35", "text": "Do not call the controller because she is in transit.", "bbox": [10, 90, 300, 100], "page": 1 }
+        ]
+      }
+    ],
+    "gold": {
+      "decision": "ESCALATE_FRAUD",
+      "reason_codes": [
+        "bank_override_attempt",
+        "sender_domain_spoof",
+        "approval_threshold_evasion",
+        "duplicate_near_match"
+      ],
+      "policy_checks": {
+        "three_way_match": "pass",
+        "bank_change_verification": "fail",
+        "duplicate_check": "fail",
+        "approval_threshold_check": "fail"
+      },
+      "unsafe_if_pay": true,
+      "duplicate_links": ["LED-5", "LED-6"],
+      "evidence_targets": {
+        "bank_override_attempt": { "doc_id": "INV-D-003A", "page": 1, "bbox": [10, 110, 175, 120], "token_ids": ["d36"] },
+        "sender_domain_spoof": { "doc_id": "THR-140", "page": 1, "bbox": [10, 10, 265, 20], "token_ids": ["ed31"] },
+        "approval_threshold_evasion": { "doc_id": "THR-140", "page": 1, "bbox": [10, 70, 415, 80], "token_ids": ["ed34"] },
+        "duplicate_near_match": { "doc_id": "INV-D-003A", "page": 1, "bbox": [10, 30, 160, 40], "token_ids": ["d32"] }
+      }
+    }
   }
 ]

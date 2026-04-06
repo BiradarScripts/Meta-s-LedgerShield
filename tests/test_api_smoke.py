@@ -245,3 +245,16 @@ def test_clean_task_d_pay_submission_endpoint():
     assert data["done"] is True
     assert result["decision"] == "PAY"
     assert result["final_score"] > 0.85
+
+
+def test_campaign_task_d_reset_exposes_portfolio_context():
+    response = client.post("/reset", json={"case_id": "CASE-D-003"})
+    assert response.status_code == 200
+
+    data = response.json()
+    observation = data["observation"]
+    invoice_docs = [doc for doc in observation["visible_documents"] if doc["doc_type"] == "invoice"]
+
+    assert len(invoice_docs) == 2
+    assert observation["portfolio_context"]["linked_invoice_count"] == 2
+    assert observation["portfolio_context"]["queue_pressure"] == "campaign"

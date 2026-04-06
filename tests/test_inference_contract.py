@@ -38,5 +38,6 @@ def test_default_cases_cover_clean_and_adversarial_paths():
         "CASE-C-002",
         "CASE-D-002",
         "CASE-D-001",
+        "CASE-D-003",
     }
     assert expected.issubset(set(inference.DEFAULT_CASES))

@@ -46,5 +46,29 @@
     "po_id": "PO-3301",
     "payment_status": "paid",
     "payment_date": "2026-03-21"
+  },
+  {
+    "ledger_id": "LED-5",
+    "vendor_key": "northwind-industrial",
+    "vendor_name": "Northwind Industrial Supplies Pvt Ltd",
+    "invoice_number": "INV-2050-A-APR",
+    "fingerprint": "northwind-fasteners-1999",
+    "currency": "INR",
+    "amount": 1999.0,
+    "po_id": "PO-2050",
+    "payment_status": "paid",
+    "payment_date": "2026-03-27"
+  },
+  {
+    "ledger_id": "LED-6",
+    "vendor_key": "northwind-industrial",
+    "vendor_name": "Northwind Industrial Supplies Pvt Ltd",
+    "invoice_number": "INV-2050-B-APR",
+    "fingerprint": "northwind-seal-kit-1985",
+    "currency": "INR",
+    "amount": 1985.0,
+    "po_id": "PO-2051",
+    "payment_status": "paid",
+    "payment_date": "2026-03-28"
   }
 ]

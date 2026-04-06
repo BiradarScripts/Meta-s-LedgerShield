@@ -46,5 +46,25 @@
         "qty": 1
       }
     ]
+  },
+  {
+    "receipt_id": "GRN-2050",
+    "po_id": "PO-2050",
+    "received_line_items": [
+      {
+        "description": "Fastener kit F-77",
+        "qty": 1
+      }
+    ]
+  },
+  {
+    "receipt_id": "GRN-2051",
+    "po_id": "PO-2051",
+    "received_line_items": [
+      {
+        "description": "Sealant control pack",
+        "qty": 1
+      }
+    ]
   }
 ]

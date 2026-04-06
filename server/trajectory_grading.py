@@ -133,3 +133,52 @@ def downstream_outcome_score(outcome: dict[str, Any] | None) -> float:
     if not outcome:
         return 0.5
     return float(max(0.0, min(1.0, outcome.get("score", 0.5))))
+
+
+def resolution_state_score(
+    submitted: dict[str, Any],
+    final_state: dict[str, Any] | None,
+    gold: dict[str, Any],
+    outcome: dict[str, Any] | None,
+) -> float:
+    if not final_state:
+        return 0.0
+
+    actions = {normalize_text(action) for action in final_state.get("successful_actions", [])}
+    revealed = {normalize_text(value) for value in final_state.get("revealed_artifact_ids", [])}
+    required_actions = {normalize_text(value) for value in final_state.get("required_actions", [])}
+    required_artifacts = {normalize_text(value) for value in final_state.get("required_artifacts", [])}
+    decision = normalize_text(submitted.get("decision"))
+    risky = bool(gold.get("unsafe_if_pay"))
+    readiness = float(final_state.get("decision_readiness", 0.0) or 0.0)
+    pending_events = int(final_state.get("pending_event_count", 0) or 0)
+
+    action_cov = 1.0 if not required_actions else len(required_actions & actions) / max(len(required_actions), 1)
+    artifact_cov = 1.0 if not required_artifacts else len(required_artifacts & revealed) / max(len(required_artifacts), 1)
+
+    handoff_packet = final_state.get("handoff_packet", {}) or {}
+    handoff_quality = 0.0
+    if handoff_packet:
+        handoff_fields = [
+            normalize_text(handoff_packet.get("summary")),
+            normalize_text(handoff_packet.get("recommended_next_step")),
+            normalize_text(str(handoff_packet.get("observed_risk_signals", []))),
+        ]
+        handoff_quality = sum(bool(field) for field in handoff_fields) / len(handoff_fields)
+
+    score = 0.20 + 0.25 * action_cov + 0.20 * artifact_cov + 0.15 * readiness + 0.10 * handoff_quality
+
+    if risky and decision in {"hold", "needs_review", "escalate_fraud"}:
+        score += 0.08
+    if risky and pending_events > 0 and decision == "pay":
+        score -= 0.20
+    if not risky and decision == "pay":
+        score += 0.08
+    if not risky and {"route_to_security", "freeze_vendor_profile"} & actions:
+        score -= 0.15
+    if outcome and normalize_text(outcome.get("outcome_type")) == "fraud_prevented":
+        score += 0.05
+    if outcome and normalize_text(outcome.get("outcome_type")) == "safe_payment_cleared":
+        score += 0.05
+
+    return max(0.0, min(1.0, score))

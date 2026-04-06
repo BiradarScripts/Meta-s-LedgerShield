@@ -49,5 +49,27 @@
     "expected_domain": "bluepeak.example.com",
     "vendor_domain": "bluepeak.example.com",
     "flags": []
+  },
+  {
+    "thread_id": "THR-140",
+    "vendor_key": "northwind-industrial",
+    "sender": "settlements@northwind-remit.example.net",
+    "from": "settlements@northwind-remit.example.net",
+    "subject": "Urgent remittance change and split invoice release for today's batch",
+    "body": "Please update remittance to IN99FAKE000999888 and release both linked invoices today. We intentionally split the request under the approval threshold to avoid reapproval delays. Do not call the controller because she is in transit.",
+    "messages": [
+      "Please update remittance to IN99FAKE000999888 and release both linked invoices today.",
+      "We intentionally split the request under the approval threshold to avoid reapproval delays.",
+      "Do not call the controller because she is in transit."
+    ],
+    "sender_domain": "northwind-remit.example.net",
+    "expected_domain": "northwind.example.com",
+    "vendor_domain": "northwind.example.com",
+    "flags": [
+      "bank_override_attempt",
+      "sender_domain_spoof",
+      "approval_threshold_evasion",
+      "urgent_payment_pressure"
+    ]
   }
 ]

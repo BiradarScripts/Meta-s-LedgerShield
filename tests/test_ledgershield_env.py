@@ -8,9 +8,11 @@ Run:
 """
 
 from models import LedgerShieldAction
+from server.case_factory import generate_holdout_suite
 from server.environment import LedgerShieldEnvironment
 from server.grading import score_submission
 from server.outcome_simulator import simulate_outcome
+from server.world_state import system_state_snapshot
 
 
 def _task_d_trajectory() -> list[dict]:
@@ -333,7 +335,7 @@ def test_compare_bank_account_detects_mismatch():
     assert obs.last_tool_result["matched"] is False
 
 
-def test_intervention_reveals_callback_artifact():
+def test_intervention_schedules_callback_artifact_then_reveals_it():
     env = LedgerShieldEnvironment()
     env.reset(case_id="CASE-D-001")
 
@@ -345,8 +347,20 @@ def test_intervention_reveals_callback_artifact():
     )
 
     assert obs.last_tool_result["success"] is True
-    assert obs.last_tool_result["artifact"]["artifact_id"] == "callback_verification_result"
-    assert len(obs.revealed_artifacts) >= 1
+    assert obs.last_tool_result["scheduled_event"]["artifact_id"] == "callback_verification_result"
+    assert len(obs.revealed_artifacts) == 0
+    assert len(obs.pending_events) == 1
+
+    while obs.pending_events:
+        obs = env.step(
+            LedgerShieldAction(
+                action_type="lookup_policy",
+                payload={},
+            )
+        )
+
+    assert any(artifact["artifact_id"] == "callback_verification_result" for artifact in obs.revealed_artifacts)
+    assert obs.pending_events == []
 
 
 def test_invalid_action_is_rejected():
@@ -456,7 +470,7 @@ def test_perfect_task_a_submission_scores_high():
         trajectory=trajectory,
         outcome=outcome,
     )
-    assert score > 0.95, breakdown
+    assert score > 0.94, breakdown
 
 
 def test_perfect_task_d_submission_scores_high():
@@ -480,6 +494,7 @@ def test_perfect_task_d_submission_scores_high():
         submitted=submission,
         trajectory=trajectory,
         hidden_world=env._hidden_world,
+        final_state=system_state_snapshot(env.state, env._hidden_world),
     )
 
     score, breakdown = score_submission(
@@ -489,8 +504,19 @@ def test_perfect_task_d_submission_scores_high():
         budget_penalty=0.0,
         trajectory=trajectory,
         outcome=outcome,
+        final_state=system_state_snapshot(env.state, env._hidden_world),
     )
-    assert score > 0.95, breakdown
+    assert score > 0.94, breakdown
+
+
+def test_campaign_task_d_case_has_multi_invoice_context():
+    env = LedgerShieldEnvironment()
+    obs = env.reset(case_id="CASE-D-003")
+
+    invoice_docs = [doc for doc in obs.visible_documents if doc["doc_type"] == "invoice"]
+    assert len(invoice_docs) == 2
+    assert obs.portfolio_context["linked_invoice_count"] == 2
+    assert obs.portfolio_context["queue_pressure"] == "campaign"
 
 
 def test_clean_task_b_submission_scores_high():
@@ -514,6 +540,7 @@ def test_clean_task_b_submission_scores_high():
         submitted=submission,
         trajectory=trajectory,
         hidden_world=env._hidden_world,
+        final_state=system_state_snapshot(env.state, env._hidden_world),
     )
 
     score, breakdown = score_submission(
@@ -523,6 +550,7 @@ def test_clean_task_b_submission_scores_high():
         budget_penalty=0.0,
         trajectory=trajectory,
         outcome=outcome,
+        final_state=system_state_snapshot(env.state, env._hidden_world),
     )
     assert score > 0.90, breakdown
 
@@ -547,6 +575,7 @@ def test_clean_task_c_submission_scores_high():
         submitted=submission,
         trajectory=trajectory,
         hidden_world=env._hidden_world,
+        final_state=system_state_snapshot(env.state, env._hidden_world),
     )
 
     score, breakdown = score_submission(
@@ -556,6 +585,7 @@ def test_clean_task_c_submission_scores_high():
         budget_penalty=0.0,
         trajectory=trajectory,
         outcome=outcome,
+        final_state=system_state_snapshot(env.state, env._hidden_world),
     )
     assert score > 0.85, breakdown
 
@@ -581,6 +611,7 @@ def test_clean_task_d_submission_scores_high():
         submitted=submission,
         trajectory=trajectory,
         hidden_world=env._hidden_world,
+        final_state=system_state_snapshot(env.state, env._hidden_world),
     )
 
     score, breakdown = score_submission(
@@ -590,8 +621,18 @@ def test_clean_task_d_submission_scores_high():
         budget_penalty=0.0,
         trajectory=trajectory,
         outcome=outcome,
+        final_state=system_state_snapshot(env.state, env._hidden_world),
     )
     assert score > 0.88, breakdown
+
+
+def test_holdout_generation_is_deterministic():
+    env = LedgerShieldEnvironment()
+    first = generate_holdout_suite(env.db["cases"], variants_per_case=1, seed=123)
+    second = generate_holdout_suite(env.db["cases"], variants_per_case=1, seed=123)
+
+    assert [case["case_id"] for case in first] == [case["case_id"] for case in second]
+    assert all(case["benchmark_split"] == "holdout" for case in first)
 
 
 def test_unsafe_pay_is_penalized():

@@ -249,6 +249,7 @@ The public observation returned by the environment is defined in [models.py](./m
 | `instruction` | `str` | Judge-visible task objective |
 | `visible_documents` | `list[dict]` | Documents the agent can currently inspect |
 | `revealed_artifacts` | `list[dict]` | Artifacts unlocked through interventions |
+| `pending_events` | `list[dict]` | Delayed intervention results that will resolve in future steps |
 | `budget_remaining` | `float` | Remaining investigation budget |
 | `step_count` | `int` | Number of executed steps |
 | `max_steps` | `int` | Episode limit |
@@ -258,6 +259,7 @@ The public observation returned by the environment is defined in [models.py](./m
 | `allowed_actions` | `list[str]` | Full action vocabulary for the episode |
 | `available_interventions` | `list[str]` | Intervention actions available to the agent |
 | `case_metadata` | `dict` | Difficulty and task label |
+| `portfolio_context` | `dict` | Campaign/linked-case context such as at-risk amount and queue pressure |
 
 ### Final decision space
 
@@ -322,9 +324,12 @@ The hidden state, defined in [models.py](./models.py) and managed by [server/wor
 - hidden risk signals
 - observed risk signals
 - visible and revealed artifact ids
+- pending intervention events
 - tool trace
 - trajectory
 - interventions taken
+- decision readiness
+- portfolio metrics
 - final outcome
 - unsafe outcome flag
 - terminal reason
@@ -333,7 +338,7 @@ This is what makes LedgerShield a **true environment** rather than a stateless e
 
 ## Task Suite
 
-LedgerShield ships with **4 task families** and **9 curated benchmark cases** spanning both adversarial and clean counterexample flows.
+LedgerShield ships with **4 task families** and **10 curated benchmark cases** spanning adversarial, benign, and linked-case campaign flows.
 
 | Case ID | Task | Difficulty | Budget | Max Steps | Visible Docs |
 |---|---|---|---:|---:|---|
@@ -346,6 +351,7 @@ LedgerShield ships with **4 task families** and **9 curated benchmark cases** sp
 | `CASE-C-002` | Task C | medium | `13.0` | `16` | invoice |
 | `CASE-D-001` | Task D | hard | `16.0` | `18` | invoice, email thread |
 | `CASE-D-002` | Task D | hard | `16.0` | `18` | invoice, email thread |
+| `CASE-D-003` | Task D | hard | `18.0` | `20` | 2 invoices, email thread |
 
 ### Task A: Proof-carrying field extraction
 
@@ -394,6 +400,8 @@ and then submit a **proof-carrying fraud escalation** with correct evidence, pol
 
 The suite now also includes a benign AP inbox case so judges can see that the environment measures **restraint and calibration**, not only aggressive fraud blocking.
 
+It now also includes a **campaign-level linked-invoice case** where the agent must reason across multiple invoices in one episode, detect threshold evasion, and prevent a coordinated payment-release attack.
+
 ## Grading Design
 
 LedgerShield uses **task-specific graders** plus **trajectory-level grading**.
@@ -403,9 +411,9 @@ LedgerShield uses **task-specific graders** plus **trajectory-level grading**.
 | Task | Score composition |
 |---|---|
 | Task A | `0.38 fields + 0.25 lines + 0.20 evidence + 0.08 investigation + 0.04 calibration + 0.05 efficiency` |
-| Task B | `0.28 decision + 0.18 discrepancies + 0.18 policy + 0.16 evidence + 0.08 investigation + 0.05 intervention + 0.03 calibration + 0.04 efficiency` |
-| Task C | `0.18 decision + 0.18 duplicates + 0.24 fraud + 0.12 evidence + 0.08 investigation + 0.07 intervention + 0.05 calibration + 0.03 efficiency + 0.05 outcome` |
-| Task D | `0.18 decision + 0.17 reasons + 0.14 policy + 0.13 evidence + 0.06 counterfactual + 0.09 investigation + 0.08 intervention + 0.05 calibration + 0.03 efficiency + 0.07 outcome` |
+| Task B | `0.26 decision + 0.17 discrepancies + 0.16 policy + 0.14 evidence + 0.08 investigation + 0.06 intervention + 0.04 resolution_state + 0.05 calibration + 0.04 efficiency` |
+| Task C | `0.16 decision + 0.17 duplicates + 0.22 fraud + 0.11 evidence + 0.08 investigation + 0.07 intervention + 0.04 resolution_state + 0.05 calibration + 0.03 efficiency + 0.07 outcome` |
+| Task D | `0.17 decision + 0.16 reasons + 0.13 policy + 0.12 evidence + 0.06 counterfactual + 0.09 investigation + 0.08 intervention + 0.05 resolution_state + 0.05 calibration + 0.03 efficiency + 0.06 outcome` |
 
 ### Unsafe action penalties
 
@@ -418,13 +426,14 @@ Additional penalties are applied for unsafe release behavior:
 
 The environment provides non-binary reward signals during the episode:
 
-- investigation action reward: `-0.05 * tool_cost`
+- base investigation reward: `-0.05 * tool_cost`
 - novel signal discovery bonus on investigation: up to `+0.06`
 - failed investigation penalty: `-0.05`
 - intervention reward: `-0.03 * tool_cost + 0.04` if new signal revealed
+- potential-based shaping term: `0.18 * (0.98 * Phi(s') - Phi(s))`
 - terminal reward: final task score in `[0,1]`
 
-This creates a trajectory with dense feedback, not a one-shot end score.
+The shaping potential is computed from stateful readiness signals such as risk-signal coverage, required action coverage, required artifact coverage, pending-event resolution, and handoff readiness. This gives dense feedback **without collapsing the environment into a sparse final-label checker**.
 
 ### Downstream outcome simulation
 
@@ -458,6 +467,7 @@ One of the most important design choices is the separation between:
 - what is latent in the case
 - what is visible at reset
 - what becomes revealed after the right intervention
+- what resolves only after a seeded delay
 
 ```mermaid
 flowchart LR
@@ -467,10 +477,12 @@ flowchart LR
     B --> E["Artifact templates"]
 
     F["Investigation actions"] --> G["Observed risk signals"]
-    H["Intervention actions"] --> I["Reveal artifact"]
-    I --> J["Public artifact list"]
-    J --> K["Updated observation"]
-    G --> K
+    H["Intervention actions"] --> I["Schedule artifact event"]
+    I --> J["Pending event queue"]
+    J --> K["Artifact resolves after seeded delay"]
+    K --> L["Public artifact list"]
+    L --> M["Updated observation"]
+    G --> M
 ```
 
 Artifacts currently supported include:
@@ -481,6 +493,8 @@ Artifacts currently supported include:
 - receipt reconciliation report
 - duplicate cluster report
 - human handoff packet
+
+Interventions that generate artifacts now resolve through a **delayed event queue**, which means trajectory timing matters. A callback or duplicate review can be requested now and become available only after later steps.
 
 ## Adversarial Case Generation
 
@@ -512,6 +526,8 @@ flowchart TD
 ```
 
 This makes the project useful not only as a hackathon benchmark, but as a **training and post-training environment** where agents must generalize across replayable enterprise attack patterns.
+
+The same generator stack also supports a deterministic **holdout split** of adversarial variants, used in local validation to check that the environment remains stable and reproducible on generated cases rather than only hand-authored fixtures.
 
 ## File and Module Map
 
@@ -670,7 +686,7 @@ Example:
 
 ## Verified Baseline Results
 
-Verified locally on the current 9-case benchmark suite:
+Verified locally on the current 10-case benchmark suite:
 
 | Case | Task | Difficulty | Verified score |
 |---|---|---|---:|
@@ -681,9 +697,10 @@ Verified locally on the current 9-case benchmark suite:
 | `CASE-B-003` | Task B | easy | `0.978` |
 | `CASE-C-001` | Task C | hard | `0.992` |
 | `CASE-C-002` | Task C | medium | `0.969` |
-| `CASE-D-001` | Task D | hard | `0.983` |
-| `CASE-D-002` | Task D | hard | `0.970` |
-| **Average** | **All tasks** | — | **`0.981`** |
+| `CASE-D-001` | Task D | hard | `0.970` |
+| `CASE-D-002` | Task D | hard | `0.960` |
+| `CASE-D-003` | Task D | hard | `0.960` |
+| **Average** | **All tasks** | — | **`0.976`** |
 
 These scores were produced on the current benchmark fixtures using the root [inference.py](./inference.py).
 
@@ -826,7 +843,7 @@ The README intentionally mirrors the Meta OpenEnv hackathon checklist.
 |---|---|
 | Real-world task, not a toy | Enterprise AP/payment-integrity control environment with multimodal records and operational interventions |
 | OpenEnv spec compliance | Typed models in [models.py](./models.py) including `LedgerShieldAction`, `LedgerShieldObservation`, `LedgerShieldState`, and `LedgerShieldReward`, plus `step()/reset()/state()` in [server/environment.py](./server/environment.py), and runtime metadata in [openenv.yaml](./openenv.yaml) |
-| Minimum 3 tasks with graders | 4 task families across 9 benchmark cases, graded in [server/grading.py](./server/grading.py) |
+| Minimum 3 tasks with graders | 4 task families across 10 benchmark cases, graded in [server/grading.py](./server/grading.py) |
 | Meaningful reward function | Dense step rewards, novel-signal bonuses, intervention shaping, budget pressure, and terminal score |
 | Baseline inference script | Root [inference.py](./inference.py), OpenAI client, required env vars, structured stdout logs |
 | Docker + HF Space deployability | [Dockerfile](./Dockerfile), FastAPI app, Space metadata at top of this README |
@@ -841,7 +858,7 @@ This section is written to mirror the hackathon's pre-submission gate as closely
 - [x] Not a toy/game: multimodal financial investigation with operational interventions
 - [x] Full OpenEnv interface: typed models plus `reset()`, `step()`, and `state()`
 - [x] `openenv.yaml` present in project root
-- [x] Minimum three graded tasks: LedgerShield provides four task families across nine curated benchmark cases
+- [x] Minimum three graded tasks: LedgerShield provides four task families across ten curated benchmark cases
 - [x] Scores and rewards bounded in `[0.0, 1.0]` at task completion
 - [x] Meaningful reward shaping with partial progress signals and unsafe-action penalties
 - [x] Root `inference.py` using the OpenAI client and required env vars

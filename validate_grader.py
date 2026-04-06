@@ -31,6 +31,7 @@ sys.path.insert(0, ".")
 from client import LedgerShieldEnv
 from models import LedgerShieldAction
 from server.app import app
+from server.case_factory import generate_holdout_suite
 from server.environment import LedgerShieldEnvironment
 
 
@@ -508,6 +509,36 @@ class ComprehensiveValidator:
         except Exception as exc:
             return TestResult("Exploit Resistance", False, f"Exception: {exc}")
 
+    def test_generated_holdouts(self) -> TestResult:
+        print("\n" + "=" * 60)
+        print("TEST 9: GENERATED HOLDOUTS")
+        print("=" * 60)
+
+        try:
+            env = self._new_env()
+            holdouts = generate_holdout_suite(env.db.get("cases", []), variants_per_case=1, seed=123)
+            if not holdouts:
+                return TestResult("Generated Holdouts", False, "No holdout cases generated", 0.0)
+
+            first = holdouts[0]
+            second = generate_holdout_suite(env.db.get("cases", []), variants_per_case=1, seed=123)[0]
+            if first["case_id"] != second["case_id"]:
+                return TestResult("Generated Holdouts", False, "Holdout generation is not deterministic", 0.0)
+
+            env.db["cases"].append(first)
+            env.db["cases_by_id"][first["case_id"]] = first
+            obs = env.reset(case_id=first["case_id"])
+            doc_id = self._sample_doc_id(obs)
+            if doc_id:
+                env.step(LedgerShieldAction(action_type="ocr", payload={"doc_id": doc_id, "mode": "fast"}))
+
+            print(f"  ✓ Generated deterministic holdout case: {first['case_id']}")
+            print(f"  ✓ Holdout split: {first.get('benchmark_split')}")
+            return TestResult("Generated Holdouts", True, "Deterministic generated holdout cases are runnable", 1.0)
+
+        except Exception as exc:
+            return TestResult("Generated Holdouts", False, f"Exception: {exc}")
+
     def run_all(self) -> bool:
         tests = [
             self.test_api_health,
@@ -518,6 +549,7 @@ class ComprehensiveValidator:
             self.test_benchmark_episodes,
             self.test_determinism,
             self.test_exploit_resistance,
+            self.test_generated_holdouts,
         ]
 
         for test in tests:

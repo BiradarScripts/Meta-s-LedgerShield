@@ -112,6 +112,7 @@ class LedgerShieldObservation(Observation):
     instruction: str = ""
     visible_documents: list[dict[str, Any]] = field(default_factory=list)
     revealed_artifacts: list[dict[str, Any]] = field(default_factory=list)
+    pending_events: list[dict[str, Any]] = field(default_factory=list)
     budget_remaining: float = 0.0
     budget_total: float = 0.0
     step_count: int = 0
@@ -124,6 +125,7 @@ class LedgerShieldObservation(Observation):
     allowed_actions: list[str] = field(default_factory=list)
     available_interventions: list[str] = field(default_factory=list)
     case_metadata: dict[str, Any] = field(default_factory=dict)
+    portfolio_context: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -148,5 +150,8 @@ class LedgerShieldState(State):
     hidden_risk_signals: list[str] = field(default_factory=list)
     final_outcome: dict[str, Any] = field(default_factory=dict)
     handoff_packet: dict[str, Any] = field(default_factory=dict)
+    pending_event_ids: list[str] = field(default_factory=list)
+    portfolio_metrics: dict[str, Any] = field(default_factory=dict)
+    decision_readiness: float = 0.0
     difficulty: str = "medium"
     terminal_reason: str = ""

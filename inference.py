@@ -41,7 +41,7 @@ API_KEY = (
 )
 ENV_URL = os.getenv("ENV_URL") or "http://localhost:8000"
 BENCHMARK = "ledgershield"
-MAX_STEPS = 12
+MAX_STEPS = 20
 TEMPERATURE = 0.0
 MAX_TOKENS = 180
 SUCCESS_SCORE_THRESHOLD = 0.60
@@ -56,6 +56,7 @@ DEFAULT_CASES = [
     "CASE-C-002",
     "CASE-D-001",
     "CASE-D-002",
+    "CASE-D-003",
 ]
 
 VENDOR_KEY_BY_NAME = {
@@ -223,8 +224,13 @@ def parse_email_tokens(tokens: list[dict[str, Any]], doc_id: str) -> dict[str, A
     evidence: dict[str, Any] = {}
     for token in tokens:
         text = str(token.get("text", "")).strip()
-        if text.lower().startswith("from:"):
+        lower = text.lower()
+        if lower.startswith("from:"):
             evidence["from_header"] = token_ref(token, doc_id)
+        elif lower.startswith("subject:"):
+            evidence["subject_header"] = token_ref(token, doc_id)
+        elif "approval threshold" in lower or "split the request" in lower or "split invoice" in lower:
+            evidence["approval_threshold_evasion"] = token_ref(token, doc_id)
     return evidence
 
 
@@ -389,33 +395,63 @@ def build_task_c_submission(collected: dict[str, Any]) -> dict[str, Any]:
 
 
 def build_task_d_submission(collected: dict[str, Any], model_assessment: dict[str, Any]) -> dict[str, Any]:
-    invoice_evidence = collected["invoice_evidence"]
+    invoice_records = collected.get("invoice_records", []) or []
+    primary_record = invoice_records[0] if invoice_records else {
+        "fields": collected.get("invoice_fields", {}),
+        "evidence": collected.get("invoice_evidence", {}),
+    }
+    invoice_evidence = primary_record.get("evidence", {})
     email_evidence = collected.get("email_evidence", {})
     email_thread = collected.get("email_thread") or {}
     ledger_search = collected.get("ledger_search") or {}
-    bank_compare = collected.get("bank_compare") or {}
+    bank_compares = collected.get("bank_compares") or ([collected.get("bank_compare")] if collected.get("bank_compare") else [])
     vendor_history = collected.get("vendor_history", []) or []
     email_flags = {normalize_text(flag) for flag in email_thread.get("derived_flags", []) or email_thread.get("flags", []) or []}
-    duplicate_detected = bool(collected.get("ledger_hits")) or int(ledger_search.get("exact_duplicate_count", 0) or 0) > 0
-    bank_mismatch = bool(bank_compare) and not bool(bank_compare.get("matched"))
+    ledger_hits = collected.get("ledger_hits", []) or []
+    duplicate_detected = bool(ledger_hits) or int(ledger_search.get("exact_duplicate_count", 0) or 0) > 0
+    bank_mismatch = any(compare and not bool(compare.get("matched")) for compare in bank_compares)
+    invoice_totals = [safe_float(record.get("fields", {}).get("total")) for record in invoice_records]
+    threshold_split = (
+        len(invoice_totals) >= 2
+        and sum(invoice_totals) >= 3000.0
+        and all(0.0 < total < 2000.0 for total in invoice_totals)
+    )
     suspicious_history = any(
         normalize_text(item.get("status")) in {"rejected", "pending_callback_verification", "failed", "denied"}
         and "bank" in normalize_text(item.get("change_type") or item.get("event_type"))
         for item in vendor_history
     )
-    suspicious = duplicate_detected or bank_mismatch or bool(email_flags) or suspicious_history
+    suspicious = duplicate_detected or bank_mismatch or bool(email_flags) or suspicious_history or threshold_split
 
     evidence_map: dict[str, Any] = {}
     reason_codes: list[str] = []
-    if bank_mismatch and "bank_account" in invoice_evidence:
-        evidence_map["bank_override_attempt"] = invoice_evidence["bank_account"]
+    bank_evidence = None
+    duplicate_evidence = None
+    for record in invoice_records:
+        evidence = record.get("evidence", {})
+        if bank_evidence is None and "bank_account" in evidence:
+            bank_evidence = evidence["bank_account"]
+        if duplicate_evidence is None and "invoice_number" in evidence:
+            duplicate_evidence = evidence["invoice_number"]
+
+    if bank_mismatch and bank_evidence:
+        evidence_map["bank_override_attempt"] = bank_evidence
         reason_codes.append("bank_override_attempt")
-    if duplicate_detected and "invoice_number" in invoice_evidence:
-        evidence_map["duplicate_near_match"] = invoice_evidence["invoice_number"]
+    if duplicate_detected and duplicate_evidence:
+        evidence_map["duplicate_near_match"] = duplicate_evidence
         reason_codes.append("duplicate_near_match")
     if ("sender_domain_spoof" in email_flags or "sender_domain_spoof" in email_evidence) and "from_header" in email_evidence:
         evidence_map["sender_domain_spoof"] = email_evidence["from_header"]
         reason_codes.append("sender_domain_spoof")
+    if "approval_threshold_evasion" in email_flags or threshold_split:
+        threshold_evidence = (
+            email_evidence.get("approval_threshold_evasion")
+            or email_evidence.get("subject_header")
+            or duplicate_evidence
+        )
+        if threshold_evidence:
+            evidence_map["approval_threshold_evasion"] = threshold_evidence
+        reason_codes.append("approval_threshold_evasion")
 
     if not suspicious:
         return {
@@ -432,9 +468,11 @@ def build_task_d_submission(collected: dict[str, Any], model_assessment: dict[st
 
     checks = policy_check_payload(
         three_way_match="pass",
-        bank_change_verification="fail",
-        duplicate_check="fail",
+        bank_change_verification="fail" if bank_mismatch or "sender_domain_spoof" in reason_codes else "pass",
+        duplicate_check="fail" if duplicate_detected else "pass",
     )
+    if "approval_threshold_evasion" in reason_codes:
+        checks["approval_threshold_check"] = "fail"
 
     return {
         "decision": "ESCALATE_FRAUD",
@@ -497,13 +535,22 @@ def capture_invoice_data(collected: dict[str, Any], tool_result: dict[str, Any])
     doc_id = str(tool_result.get("doc_id", ""))
     tokens = list(tool_result.get("tokens", []) or [])
     fields, evidence, line_items = parse_invoice_tokens(tokens, doc_id)
+    record = {
+        "doc_id": doc_id,
+        "tokens": tokens,
+        "fields": fields,
+        "evidence": evidence,
+        "line_items": line_items,
+        "line_tokens": [token for token in tokens if "|" in str(token.get("text", ""))],
+    }
+    collected.setdefault("invoice_records", []).append(record)
 
     collected["invoice_doc_id"] = doc_id
     collected["invoice_tokens"] = tokens
     collected["invoice_fields"] = fields
     collected["invoice_evidence"] = evidence
     collected["invoice_line_items"] = line_items
-    collected["invoice_line_tokens"] = [token for token in tokens if "|" in str(token.get("text", ""))]
+    collected["invoice_line_tokens"] = record["line_tokens"]
 
 
 def capture_email_data(collected: dict[str, Any], tool_result: dict[str, Any]) -> None:
@@ -541,43 +588,50 @@ def run_episode(
             "invoice_evidence": {},
             "invoice_line_items": [],
             "invoice_line_tokens": [],
+            "invoice_records": [],
             "email_doc_id": "",
             "email_tokens": [],
             "email_evidence": {},
             "po": None,
             "receipt": None,
             "ledger_hits": [],
+            "ledger_queries": {},
             "ledger_search": {},
             "vendor_history": [],
             "email_thread": None,
             "bank_compare": None,
+            "bank_compares": [],
         }
 
-        invoice_doc_id = ""
+        invoice_doc_ids: list[str] = []
         email_doc_id = ""
         for doc in observation.visible_documents:
             doc_type = normalize_text(doc.get("doc_type"))
-            if doc_type == "invoice" and not invoice_doc_id:
-                invoice_doc_id = str(doc.get("doc_id"))
+            if doc_type == "invoice":
+                invoice_doc_ids.append(str(doc.get("doc_id")))
             if doc_type == "email" and not email_doc_id:
                 email_doc_id = str(doc.get("doc_id"))
 
-        if not invoice_doc_id:
+        if not invoice_doc_ids:
             raise RuntimeError(f"No visible invoice document for {case_id}")
 
-        ocr_invoice_result, step_no = perform_step(
-            env,
-            step_no,
-            rewards,
-            LedgerShieldAction(
-                action_type="ocr",
-                payload={"doc_id": invoice_doc_id, "mode": "accurate"},
-            ),
-        )
-        steps_taken = step_no - 1
-        capture_invoice_data(collected, ocr_invoice_result.observation.last_tool_result)
+        for invoice_doc_id in invoice_doc_ids:
+            ocr_invoice_result, step_no = perform_step(
+                env,
+                step_no,
+                rewards,
+                LedgerShieldAction(
+                    action_type="ocr",
+                    payload={"doc_id": invoice_doc_id, "mode": "accurate"},
+                ),
+            )
+            steps_taken = step_no - 1
+            capture_invoice_data(collected, ocr_invoice_result.observation.last_tool_result)
+            if task_type != "task_d":
+                break
 
         if task_type == "task_a":
+            invoice_doc_id = invoice_doc_ids[0]
             zoom_result, step_no = perform_step(
                 env,
                 step_no,
@@ -648,30 +702,44 @@ def run_episode(
                 ),
             ]
         else:
-            action_plan = [
-                LedgerShieldAction(
-                    action_type="ocr",
-                    payload={"doc_id": email_doc_id, "mode": "accurate"},
-                ),
-                LedgerShieldAction(action_type="inspect_email_thread", payload={"thread_id": email_doc_id}),
-                LedgerShieldAction(action_type="lookup_vendor_history", payload={"vendor_key": vendor_key}),
-                LedgerShieldAction(action_type="lookup_policy", payload={}),
-                LedgerShieldAction(
-                    action_type="compare_bank_account",
-                    payload={
-                        "vendor_key": vendor_key,
-                        "proposed_bank_account": proposed_bank_account,
-                    },
-                ),
-                LedgerShieldAction(
-                    action_type="search_ledger",
-                    payload={
-                        "vendor_key": vendor_key,
-                        "invoice_number": invoice_number,
-                        "amount": invoice_total,
-                    },
-                ),
-            ]
+            action_plan = []
+            if email_doc_id:
+                action_plan.extend(
+                    [
+                        LedgerShieldAction(
+                            action_type="ocr",
+                            payload={"doc_id": email_doc_id, "mode": "accurate"},
+                        ),
+                        LedgerShieldAction(action_type="inspect_email_thread", payload={"thread_id": email_doc_id}),
+                    ]
+                )
+            action_plan.extend(
+                [
+                    LedgerShieldAction(action_type="lookup_vendor_history", payload={"vendor_key": vendor_key}),
+                    LedgerShieldAction(action_type="lookup_policy", payload={}),
+                ]
+            )
+            for record in collected.get("invoice_records", []) or []:
+                record_fields = record.get("fields", {})
+                action_plan.append(
+                    LedgerShieldAction(
+                        action_type="compare_bank_account",
+                        payload={
+                            "vendor_key": vendor_key,
+                            "proposed_bank_account": str(record_fields.get("bank_account", "")).strip(),
+                        },
+                    )
+                )
+                action_plan.append(
+                    LedgerShieldAction(
+                        action_type="search_ledger",
+                        payload={
+                            "vendor_key": vendor_key,
+                            "invoice_number": str(record_fields.get("invoice_number", "")).strip(),
+                            "amount": safe_float(record_fields.get("total")),
+                        },
+                    )
+                )
 
         for action in action_plan:
             if step_no > MAX_STEPS:
@@ -686,7 +754,15 @@ def run_episode(
             elif tool_name == "lookup_receipt" and tool.get("success"):
                 collected["receipt"] = tool.get("receipt")
             elif tool_name == "search_ledger" and tool.get("success"):
-                collected["ledger_hits"] = list(tool.get("hits", []) or [])
+                hits = list(tool.get("hits", []) or [])
+                existing_ids = {row.get("ledger_id") for row in collected["ledger_hits"]}
+                for hit in hits:
+                    if hit.get("ledger_id") not in existing_ids:
+                        collected["ledger_hits"].append(hit)
+                        existing_ids.add(hit.get("ledger_id"))
+                invoice_key = normalize_text(action.payload.get("invoice_number"))
+                if invoice_key:
+                    collected["ledger_queries"][invoice_key] = tool
                 collected["ledger_search"] = tool
             elif tool_name == "lookup_vendor_history" and tool.get("success"):
                 collected["vendor_history"] = list(tool.get("history", []) or [])
@@ -694,6 +770,7 @@ def run_episode(
                 collected["email_thread"] = tool.get("thread") or {}
             elif tool_name == "compare_bank_account" and tool.get("success"):
                 collected["bank_compare"] = tool
+                collected["bank_compares"].append(tool)
             elif tool_name == "lookup_policy" and tool.get("success"):
                 collected["policies"] = list(tool.get("policies", []) or [])
             elif tool_name == "ocr" and tool.get("success") and tool.get("doc_id") == email_doc_id:

@@ -16,6 +16,7 @@ from .trajectory_grading import (
     efficiency_score,
     intervention_score,
     investigation_score,
+    resolution_state_score,
 )
 
 
@@ -155,12 +156,14 @@ def score_submission(
     trajectory: list[dict[str, Any]] | None = None,
     outcome: dict[str, Any] | None = None,
     investigation_summary: dict[str, Any] | None = None,
+    final_state: dict[str, Any] | None = None,
 ) -> tuple[float, dict[str, float]]:
     s_investigation = investigation_score(task_type, trajectory, gold)
     s_intervention = intervention_score(submitted, trajectory, gold, outcome)
     s_calibration = calibration_score(submitted, gold)
     s_efficiency = efficiency_score(budget_penalty, trajectory)
     s_outcome = downstream_outcome_score(outcome)
+    s_resolution = resolution_state_score(submitted, final_state, gold, outcome)
 
     if task_type == "task_a":
         s_fields = field_score(submitted.get("extracted_fields", {}), gold.get("fields", {}))
@@ -189,13 +192,14 @@ def score_submission(
         s_policy = policy_score(submitted.get("policy_checks", {}), gold.get("policy_checks", {}))
         s_evidence = evidence_score(submitted.get("evidence_map", {}), gold.get("evidence_targets", {}))
         raw = (
-            0.28 * s_decision
-            + 0.18 * s_disc
-            + 0.18 * s_policy
-            + 0.16 * s_evidence
+            0.26 * s_decision
+            + 0.17 * s_disc
+            + 0.16 * s_policy
+            + 0.14 * s_evidence
             + 0.08 * s_investigation
-            + 0.05 * s_intervention
-            + 0.03 * s_calibration
+            + 0.06 * s_intervention
+            + 0.04 * s_resolution
+            + 0.05 * s_calibration
             + 0.04 * s_efficiency
         )
         return max(0.0, min(1.0, raw)), {
@@ -205,6 +209,7 @@ def score_submission(
             "evidence_score": round(s_evidence, 4),
             "investigation_score": round(s_investigation, 4),
             "intervention_score": round(s_intervention, 4),
+            "resolution_state_score": round(s_resolution, 4),
             "calibration_score": round(s_calibration, 4),
             "efficiency_score": round(s_efficiency, 4),
         }
@@ -215,15 +220,16 @@ def score_submission(
         s_fraud = fraud_score(submitted.get("fraud_flags", []), gold.get("fraud_flags", []))
         s_evidence = evidence_score(submitted.get("evidence_map", {}), gold.get("evidence_targets", {}))
         raw = (
-            0.18 * s_decision
-            + 0.18 * s_dupes
-            + 0.24 * s_fraud
-            + 0.12 * s_evidence
+            0.16 * s_decision
+            + 0.17 * s_dupes
+            + 0.22 * s_fraud
+            + 0.11 * s_evidence
             + 0.08 * s_investigation
             + 0.07 * s_intervention
+            + 0.04 * s_resolution
             + 0.05 * s_calibration
             + 0.03 * s_efficiency
-            + 0.05 * s_outcome
+            + 0.07 * s_outcome
         )
         if normalize_text(submitted.get("decision", "")) == "pay" and gold.get("unsafe_if_pay", False):
             raw -= 0.55
@@ -234,6 +240,7 @@ def score_submission(
             "evidence_score": round(s_evidence, 4),
             "investigation_score": round(s_investigation, 4),
             "intervention_score": round(s_intervention, 4),
+            "resolution_state_score": round(s_resolution, 4),
             "calibration_score": round(s_calibration, 4),
             "efficiency_score": round(s_efficiency, 4),
             "outcome_score": round(s_outcome, 4),
@@ -249,16 +256,17 @@ def score_submission(
         s_evidence = evidence_score(submitted.get("evidence_map", {}), gold.get("evidence_targets", {}))
         s_counter = counterfactual_score(submitted.get("counterfactual", ""))
         raw = (
-            0.18 * s_decision
-            + 0.17 * s_reasons
-            + 0.14 * s_policy
-            + 0.13 * s_evidence
+            0.17 * s_decision
+            + 0.16 * s_reasons
+            + 0.13 * s_policy
+            + 0.12 * s_evidence
             + 0.06 * s_counter
             + 0.09 * s_investigation
             + 0.08 * s_intervention
+            + 0.05 * s_resolution
             + 0.05 * s_calibration
             + 0.03 * s_efficiency
-            + 0.07 * s_outcome
+            + 0.06 * s_outcome
         )
         if normalize_text(submitted.get("decision", "")) == "pay" and gold.get("unsafe_if_pay", False):
             raw -= 0.65
@@ -270,6 +278,7 @@ def score_submission(
             "counterfactual_score": round(s_counter, 4),
             "investigation_score": round(s_investigation, 4),
             "intervention_score": round(s_intervention, 4),
+            "resolution_state_score": round(s_resolution, 4),
             "calibration_score": round(s_calibration, 4),
             "efficiency_score": round(s_efficiency, 4),
             "outcome_score": round(s_outcome, 4),

@@ -33,6 +33,7 @@ def generate_case_variant(
     attack_names: list[str] | None = None,
     seed: int | None = None,
     variant_index: int = 0,
+    split: str = "generated",
 ) -> dict[str, Any]:
     rng = random.Random(seed)
     case = _ensure_defaults(base_case)
@@ -47,6 +48,7 @@ def generate_case_variant(
         case = apply_attack_to_case(case, attack_name, seed=(seed or 0) + idx + 1)
 
     case["case_id"] = _derived_variant_id(case, f"variant-{variant_index}")
+    case["benchmark_split"] = split
     case["generator_metadata"] = {
         **case.get("generator_metadata", {}),
         "variant_index": variant_index,
@@ -70,6 +72,7 @@ def generate_case_batch(
     base_cases: list[dict[str, Any]],
     variants_per_case: int = 3,
     seed: int = 42,
+    split: str = "generated",
 ) -> list[dict[str, Any]]:
     rng = random.Random(seed)
     generated: list[dict[str, Any]] = []
@@ -82,6 +85,7 @@ def generate_case_batch(
                 attack_names=None,
                 seed=variant_seed,
                 variant_index=variant_index,
+                split=split,
             )
             generated_case["generator_metadata"]["batch_case_index"] = case_idx
             generated.append(generated_case)
@@ -95,5 +99,27 @@ def augment_case_library(
     seed: int = 42,
 ) -> list[dict[str, Any]]:
     original = [_ensure_defaults(case) for case in base_cases]
-    generated = generate_case_batch(base_cases=base_cases, variants_per_case=variants_per_case, seed=seed)
+    generated = generate_case_batch(base_cases=base_cases, variants_per_case=variants_per_case, seed=seed, split="generated")
     return original + generated
+
+
+def generate_holdout_suite(
+    base_cases: list[dict[str, Any]],
+    variants_per_case: int = 1,
+    seed: int = 31415,
+) -> list[dict[str, Any]]:
+    hard_cases = [
+        case
+        for case in base_cases
+        if normalize_text(case.get("task_type")) in {"task_c", "task_d"}
+    ] or list(base_cases)
+    holdouts = generate_case_batch(
+        base_cases=hard_cases,
+        variants_per_case=variants_per_case,
+        seed=seed,
+        split="holdout",
+    )
+    for index, case in enumerate(holdouts):
+        case["case_id"] = _derived_variant_id(case, f"holdout-{index}")
+        case.setdefault("generator_metadata", {})["holdout_seed"] = seed
+    return holdouts

@@ -96,5 +96,37 @@
     "subtotal": 7500.0,
     "tax": 1350.0,
     "total": 8850.0
+  },
+  {
+    "po_id": "PO-2050",
+    "vendor_key": "northwind-industrial",
+    "currency": "INR",
+    "line_items": [
+      {
+        "description": "Fastener kit F-77",
+        "qty": 1,
+        "unit_price": 1694.07,
+        "line_total": 1694.07
+      }
+    ],
+    "subtotal": 1694.07,
+    "tax": 304.93,
+    "total": 1999.0
+  },
+  {
+    "po_id": "PO-2051",
+    "vendor_key": "northwind-industrial",
+    "currency": "INR",
+    "line_items": [
+      {
+        "description": "Sealant control pack",
+        "qty": 1,
+        "unit_price": 1682.2,
+        "line_total": 1682.2
+      }
+    ],
+    "subtotal": 1682.2,
+    "tax": 302.8,
+    "total": 1985.0
   }
 ]

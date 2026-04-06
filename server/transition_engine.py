@@ -5,7 +5,7 @@ from typing import Any
 from models import LedgerShieldState
 
 from .schema import normalize_text
-from .world_state import register_observed_signals, reveal_artifact
+from .world_state import register_observed_signals, reveal_artifact, schedule_artifact_event
 
 
 def update_from_tool_result(
@@ -52,6 +52,7 @@ def handle_intervention(
     artifact_id = None
     message = ""
     status = "completed"
+    event = None
 
     if action_type == "request_callback_verification":
         artifact_id = "callback_verification_result"
@@ -82,26 +83,38 @@ def handle_intervention(
 
     artifact = None
     if artifact_id:
-        artifact = reveal_artifact(state, hidden_world, artifact_id)
+        delay = int(hidden_world.get("intervention_latencies", {}).get(action_type, 1) or 1)
+        event = schedule_artifact_event(
+            state=state,
+            hidden_world=hidden_world,
+            artifact_id=artifact_id,
+            source_action=action_type,
+            delay_steps=delay,
+        )
+        status = "pending"
+        message = f"{message} Artifact scheduled for case clock {event['ready_at_clock']}."
 
     hidden_world.setdefault("intervention_status", {})[action_type] = {
         "status": status,
         "case_clock": state.case_clock,
+        "artifact_id": artifact_id,
+        "ready_at_clock": event.get("ready_at_clock") if event else None,
     }
 
-    event = {
+    intervention_event = {
         "action_type": action_type,
         "status": status,
         "payload": payload,
         "artifact_id": artifact_id,
     }
-    state.interventions_taken.append(event)
+    state.interventions_taken.append(intervention_event)
 
     result = {
         "tool_name": action_type,
         "success": True,
         "intervention": True,
         "artifact": artifact,
+        "scheduled_event": event,
         "message": message,
     }
     return result, [message]
