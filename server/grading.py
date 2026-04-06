@@ -342,4 +342,45 @@ def score_submission(
             "outcome_score": round(s_outcome, 4),
         }
 
+    if task_type == "task_e":
+        s_decision = decision_score(submitted.get("decision", ""), gold.get("decision", ""))
+        s_reasons = list_f1(
+            canonical_reason_codes(submitted.get("reason_codes", [])),
+            canonical_reason_codes(gold.get("reason_codes", [])),
+        )
+        s_policy = policy_score(submitted.get("policy_checks", {}), gold.get("policy_checks", {}))
+        s_counter = counterfactual_score(
+            submitted.get("counterfactual", ""),
+            submitted=submitted,
+            gold=gold,
+            trajectory=trajectory,
+        )
+        s_negation = action_negation_score(submitted, trajectory, gold)
+        raw = (
+            0.10 * s_decision
+            + 0.10 * s_reasons
+            + 0.10 * s_policy
+            + 0.05 * s_counter
+            + 0.05 * s_negation
+            + 0.05 * s_investigation
+            + 0.40 * s_intervention  # Massive weight on catching the freeze/route hint
+            + 0.05 * s_resolution
+            + 0.05 * s_calibration
+            + 0.05 * s_outcome
+        )
+        if normalize_text(submitted.get("decision", "")) == "pay" and gold.get("unsafe_if_pay", False):
+            raw -= 0.85  # Harsher unsafe penalty for APT
+        return max(0.0, min(1.0, raw)), {
+            "decision_score": round(s_decision, 4),
+            "reason_score": round(s_reasons, 4),
+            "policy_score": round(s_policy, 4),
+            "counterfactual_score": round(s_counter, 4),
+            "action_negation_score": round(s_negation, 4),
+            "investigation_score": round(s_investigation, 4),
+            "intervention_score": round(s_intervention, 4),
+            "resolution_state_score": round(s_resolution, 4),
+            "calibration_score": round(s_calibration, 4),
+            "outcome_score": round(s_outcome, 4),
+        }
+
     return 0.0, {"error": 0.0}

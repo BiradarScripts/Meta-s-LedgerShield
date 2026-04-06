@@ -22,5 +22,11 @@
     "title": "Approval threshold check",
     "description": "Invoices at or above the approval threshold must complete the required approval chain before payment.",
     "failure_route": "HOLD"
+  },
+  {
+    "rule_id": "apt-stealth-protocol",
+    "title": "Anomalous Event & Remittance Change Protocol",
+    "description": "If a remittance bank change overlaps with a recent anomalous account event within 48 hours (e.g. API token rotation, flagged IPs), the agent MUST explicitly trigger `freeze_vendor_profile` and `route_to_security`.",
+    "failure_route": "ESCALATE_FRAUD"
   }
 ]

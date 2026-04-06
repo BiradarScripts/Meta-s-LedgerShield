@@ -544,6 +544,32 @@ def build_task_d_submission(collected: dict[str, Any], model_assessment: dict[st
         "notes": str(model_assessment.get("notes", "")),
     }
 
+def build_task_e_submission(collected: dict[str, Any], model_assessment: dict[str, Any]) -> dict[str, Any]:
+    # Baseline acts naive here: it notices the bank override but misses the token rotation APT trap.
+    evidence_map: dict[str, Any] = {}
+    invoice_records = collected.get("invoice_records", []) or []
+    primary_record = invoice_records[0] if invoice_records else {"evidence_map": {}}
+    if "bank_account" in primary_record["evidence_map"]:
+        evidence_map["bank_override_attempt"] = primary_record["evidence_map"]["bank_account"]
+
+    # Deliberately fails to map the vendor_account_takeover_suspected from the email, 
+    # to serve as a strict baseline for SOTA models to beat.
+    reason_codes = ["bank_override_attempt"]
+    checks = policy_check_payload(
+        three_way_match="pass",
+        bank_change_verification="fail",
+        duplicate_check="pass",
+    )
+
+    return {
+        "decision": "ESCALATE_FRAUD",
+        "confidence": 0.85,
+        "reason_codes": sorted(set(reason_codes)),
+        "policy_checks": checks,
+        "evidence_map": evidence_map,
+        "counterfactual": make_counterfactual("task_e", model_assessment),
+        "notes": str(model_assessment.get("notes", "")),
+    }
 
 def build_final_submission(task_type: str, collected: dict[str, Any], model_assessment: dict[str, Any]) -> dict[str, Any]:
     if task_type == "task_a":
@@ -563,6 +589,9 @@ def build_final_submission(task_type: str, collected: dict[str, Any], model_asse
 
     if task_type == "task_d":
         return build_task_d_submission(collected, model_assessment)
+
+    if task_type == "task_e":
+        return build_task_e_submission(collected, model_assessment)
 
     return {"decision": "NEEDS_REVIEW", "confidence": 0.50}
 

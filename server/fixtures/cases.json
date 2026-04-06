@@ -706,5 +706,69 @@
         "policy_bypass_attempt": { "doc_id": "THR-150", "page": 1, "bbox": [10, 70, 430, 80], "token_ids": ["ed54"] }
       }
     }
+  },
+  {
+    "case_id": "CASE-E-001",
+    "task_type": "task_e",
+    "task_label": "Advanced Persistent Threat (APT) Incident",
+    "difficulty": "insane",
+    "budget_total": 20.0,
+    "max_steps": 25,
+    "instruction": "Act as an AP analyst. Investigate the global-tech-solutions invoice, email THR-500, verify vendor history, and consult policy to determine the precise set of interventions needed.",
+    "initial_visible_doc_ids": ["INV-E-001", "THR-500"],
+    "documents": [
+      {
+        "doc_id": "INV-E-001",
+        "doc_type": "invoice",
+        "thumbnail": "invoice-thumb-e001",
+        "page_count": 1,
+        "language": "en",
+        "visual_tokens": ["vendor_header", "invoice_number", "bank_footer"],
+        "noisy_ocr": [
+          { "token_id": "e1n", "text": "Global Tech", "bbox": [10, 10, 120, 20], "page": 1 }
+        ],
+        "accurate_ocr": [
+          { "token_id": "e1", "text": "Global Tech Solutions Inc.", "bbox": [10, 10, 190, 20], "page": 1 },
+          { "token_id": "e2", "text": "Invoice No: INV-APR-990", "bbox": [10, 30, 165, 40], "page": 1 },
+          { "token_id": "e3", "text": "Total: 15400.00", "bbox": [10, 50, 90, 60], "page": 1 },
+          { "token_id": "e4", "text": "Bank: IN99APT000444555", "bbox": [10, 70, 190, 80], "page": 1 }
+        ]
+      },
+      {
+        "doc_id": "THR-500",
+        "doc_type": "email",
+        "thumbnail": "email-thumb-e001",
+        "page_count": 1,
+        "language": "en",
+        "visual_tokens": ["sender_header", "body_text"],
+        "noisy_ocr": [
+          { "token_id": "ete1n", "text": "Scheduled Payment Run - Bank Update", "bbox": [10, 10, 130, 20], "page": 1 }
+        ],
+        "accurate_ocr": [
+          { "token_id": "ete1", "text": "From: billing@global-tech.example.com", "bbox": [10, 10, 250, 20], "page": 1 },
+          { "token_id": "ete2", "text": "Subject: Scheduled Payment Run - Bank Update", "bbox": [10, 30, 300, 40], "page": 1 },
+          { "token_id": "ete3", "text": "Hi team, please note we have migrated our primary receiving account to IN99APT000444555.", "bbox": [10, 50, 400, 60], "page": 1 },
+          { "token_id": "ete4", "text": "Our technical team just rotated our API keys so the vendor portal might not reflect this yet. Thanks.", "bbox": [10, 70, 430, 80], "page": 1 }
+        ]
+      }
+    ],
+    "gold": {
+      "decision": "ESCALATE_FRAUD",
+      "reason_codes": [
+        "bank_override_attempt",
+        "vendor_account_takeover_suspected"
+      ],
+      "policy_checks": {
+        "three_way_match": "pass",
+        "bank_change_verification": "fail",
+        "duplicate_check": "pass",
+        "approval_threshold_check": "pass"
+      },
+      "unsafe_if_pay": true,
+      "evidence_targets": {
+        "bank_override_attempt": { "doc_id": "INV-E-001", "page": 1, "bbox": [10, 70, 190, 80], "token_ids": ["e4"] },
+        "vendor_account_takeover_suspected": { "doc_id": "THR-500", "page": 1, "bbox": [10, 70, 430, 80], "token_ids": ["ete4"] }
+      }
+    }
   }
 ]

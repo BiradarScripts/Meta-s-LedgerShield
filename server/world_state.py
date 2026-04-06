@@ -25,6 +25,7 @@ def _required_actions(case: dict[str, Any], hidden_signals: list[str]) -> list[s
         "task_b": ["lookup_policy", "lookup_po", "lookup_receipt"],
         "task_c": ["search_ledger", "compare_bank_account"],
         "task_d": ["inspect_email_thread", "lookup_vendor_history", "lookup_policy", "compare_bank_account", "search_ledger"],
+        "task_e": ["inspect_email_thread", "lookup_vendor_history", "lookup_policy", "compare_bank_account"],
     }.get(task_type, [])
 
     hidden = {normalize_text(signal) for signal in hidden_signals}

@@ -39,6 +39,7 @@ def investigation_score(
         "task_b": {"lookup_po", "lookup_receipt", "lookup_policy"},
         "task_c": {"search_ledger", "compare_bank_account"},
         "task_d": {"inspect_email_thread", "lookup_vendor_history", "lookup_policy", "compare_bank_account"},
+        "task_e": {"inspect_email_thread", "lookup_vendor_history", "lookup_policy", "compare_bank_account"},
     }
     required = required_by_task.get(task_type, set())
     if gold.get("unsafe_if_pay"):
@@ -81,6 +82,16 @@ def intervention_score(
     taken_interventions = actions & intervention_actions
 
     score = 0.35
+    task_type = normalize_text(gold.get("task_type", ""))
+
+    if task_type == "task_e":
+        score = 0.0
+        if "freeze_vendor_profile" in actions:
+            score += 0.50
+        if "route_to_security" in actions:
+            score += 0.50
+        return score
+
     if risky and "request_callback_verification" in actions:
         score += 0.20
     if risky and "route_to_security" in actions and decision == "escalate_fraud":

@@ -141,5 +141,24 @@
       "temporal_contradiction",
       "policy_bypass_attempt"
     ]
+  },
+  {
+    "thread_id": "THR-500",
+    "vendor_key": "global-tech-solutions",
+    "sender": "billing@global-tech.example.com",
+    "from": "billing@global-tech.example.com",
+    "subject": "Scheduled Payment Run - Bank Update",
+    "body": "Hi team, please note we have migrated our primary receiving account to IN99APT000444555. Please route all pending schedules, including the April invoice, to this new account. Our technical team just rotated our API keys so the vendor portal might not reflect this yet. Thanks.",
+    "messages": [
+      "Hi team, please note we have migrated our primary receiving account to IN99APT000444555.",
+      "Please route all pending schedules, including the April invoice, to this new account.",
+      "Our technical team just rotated our API keys so the vendor portal might not reflect this yet. Thanks."
+    ],
+    "sender_domain": "global-tech.example.com",
+    "expected_domain": "global-tech.example.com",
+    "vendor_domain": "global-tech.example.com",
+    "flags": [
+      "bank_override_attempt"
+    ]
   }
 ]

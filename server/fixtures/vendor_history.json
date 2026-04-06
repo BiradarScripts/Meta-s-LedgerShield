@@ -28,5 +28,15 @@
     "old_value": "GSTIN-BP-1182",
     "new_value": "GSTIN-BP-1182",
     "requested_by": "apops@bluepeak.example.com"
+  },
+  {
+    "vendor_key": "global-tech-solutions",
+    "change_id": "VH-003",
+    "change_type": "api_token_rotation",
+    "requested_at": "2026-04-05T02:14:00Z",
+    "status": "completed",
+    "old_value": "token_prefix_881",
+    "new_value": "token_prefix_992",
+    "requested_by": "unknown_ip_192.168.1.100"
   }
 ]
