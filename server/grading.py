@@ -158,8 +158,9 @@ def counterfactual_score(
     score = 0.0
 
     # Axis 1: structural validity (0.30) — conditional language present
-    conditional_markers = {"would", "if", "had", "were", "unless", "provided", "assuming"}
-    has_conditional = bool(set(tokens) & conditional_markers)
+    import re
+    conditional_pattern = r"\b(would|will|if|had|were|unless|provided|assuming|otherwise|should|could)\b"
+    has_conditional = bool(re.search(conditional_pattern, text))
     score += 0.30 * float(has_conditional)
 
     # Axis 2: causal grounding (0.40) — references evidence types
@@ -167,17 +168,20 @@ def counterfactual_score(
         "bank", "account", "domain", "sender", "duplicate", "ledger",
         "vendor", "receipt", "po", "policy", "callback", "threshold",
         "email", "invoice", "mismatch", "spoof", "override", "bypass",
+        "verification", "payment", "fraud", "risk", "history", "record"
     }
-    grounding_hits = len(set(tokens) & evidence_keywords)
+    # Count occurrences by substring rather than exact token match (to handle punctuation/plurals)
+    grounding_hits = sum(1 for kw in evidence_keywords if kw in text)
     grounding_score = min(1.0, grounding_hits / 3)
     score += 0.40 * grounding_score
 
     # Axis 3: negation coherence (0.30) — mentions alternative decisions
     decision = normalize_text(submitted.get("decision", ""))
-    alternative_decisions = {"pay", "hold", "needs_review", "escalate_fraud", "escalate", "review"}
-    mentioned = set(tokens) & alternative_decisions
-    different_mentioned = bool(mentioned - {decision})
-    actual_mentioned = decision in mentioned
+    alternative_decisions = ["pay", "hold", "review", "escalate", "reject", "block", "freeze"]
+    # Check if they mention an alternative decision
+    mentioned = [alt for alt in alternative_decisions if alt in text]
+    different_mentioned = any(alt for alt in mentioned if alt != decision)
+    actual_mentioned = decision in text
     score += 0.30 * float(different_mentioned or actual_mentioned)
 
     return max(0.0, min(1.0, score))
