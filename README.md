@@ -52,6 +52,29 @@ This is not a static document benchmark and not a toy fraud classifier. It is an
 - adversarial case generation is built in through reusable attack patterns
 - scoring combines task success with process quality and enterprise safety semantics
 
+## Why This Wins
+
+LedgerShield is designed to score well on all three hackathon review layers at once:
+
+- **Automated validation**: typed models, OpenEnv endpoints, Docker runtime, `openenv.yaml`, root `inference.py`, reproducible scores, and validator-friendly resource usage.
+- **Agentic evaluation**: partial observability, meaningful action choices, interventions, hidden state, and dense reward signals make rollout quality matter.
+- **Human review**: the environment models a real enterprise control problem that people actually care about: stopping unsafe payments without paralyzing operations.
+
+### In one sentence
+
+Most document benchmarks ask, "can the model read this?"  
+LedgerShield asks, "can the agent safely operate an enterprise payment-control workflow under uncertainty, with tools, budget limits, policy constraints, and adversarial pressure?"
+
+### What makes LedgerShield judge-visible in under a minute
+
+| Judge question | LedgerShield answer |
+|---|---|
+| Is it real-world? | Yes. It models AP/payment-integrity operations, not a toy game or synthetic QA loop. |
+| Is it stateful? | Yes. The case contains hidden state, revealed artifacts, risk telemetry, intervention status, and downstream consequences. |
+| Does trajectory matter? | Yes. Investigation quality, intervention choice, efficiency, and calibration all affect reward. |
+| Can agents overfit to one static answer key? | Less easily. Cases support adversarial perturbations and replayable attack variants. |
+| Is the benchmark enterprise-meaningful? | Yes. It encodes fraud prevention, duplicate detection, policy compliance, operational continuity, and safe escalation. |
+
 ## Problem Framing
 
 Modern enterprise payment operations are full of **partial information, conflicting records, spoofed communications, duplicates, policy constraints, and business-risk tradeoffs**. Real analysts do not simply classify a document. They:
@@ -64,6 +87,18 @@ Modern enterprise payment operations are full of **partial information, conflict
 6. justify the final decision with evidence
 
 LedgerShield models that loop directly.
+
+## Benchmark Positioning
+
+LedgerShield is intentionally built to sit beyond the usual benchmark categories.
+
+| Benchmark style | What it usually tests | Typical weakness | LedgerShield difference |
+|---|---|---|---|
+| Static OCR / extraction benchmark | Can the model read fields from a document? | No state, no safety semantics, no decision pressure | Extraction is only one subproblem and must be evidence-backed |
+| Fraud classification benchmark | Can the model assign a fraud label? | Final-answer only, no process quality, no interventions | The agent must investigate, intervene, and justify the decision |
+| Document QA benchmark | Can the model answer questions about files? | No operational consequences | LedgerShield simulates what happens if the decision is wrong |
+| Workflow simulator | Can the agent follow a workflow? | Often lacks adversarial realism or multimodal financial evidence | LedgerShield combines workflow, evidence, policy, fraud, and outcomes |
+| LedgerShield | Can an agent safely operate an enterprise payment-control loop? | N/A | Partial observability, interventions, proof-carrying decisions, and downstream enterprise outcomes |
 
 ## Environment Overview
 
@@ -94,6 +129,44 @@ LedgerShield is designed around a real enterprise control problem:
 - **Multimodal evidence**: invoices, email threads, vendor master, vendor history, PO records, receipts, and ledger search.
 - **Statefulness**: interventions modify the investigative state and reveal new artifacts.
 - **Outcome semantics**: the environment models what happens because of the decision, not only whether the agent's JSON matched a key.
+
+## Enterprise Threat Model
+
+LedgerShield is grounded in the kinds of failure modes that actually create losses or operational incidents in accounts payable.
+
+```mermaid
+flowchart TD
+    A["Incoming payment case"] --> B["Invoice document"]
+    A --> C["AP inbox email thread"]
+    A --> D["Vendor master"]
+    A --> E["Vendor history"]
+    A --> F["PO and receipt records"]
+    A --> G["Ledger history"]
+    B --> H["Bank mismatch risk"]
+    C --> I["Spoofed sender / urgency pressure"]
+    D --> H
+    E --> J["Prior rejected bank change"]
+    F --> K["Three-way match failure"]
+    G --> L["Exact / near duplicate risk"]
+    H --> M["Risk snapshot"]
+    I --> M
+    J --> M
+    K --> M
+    L --> M
+    M --> N["Agent investigation + interventions"]
+    N --> O["PAY / HOLD / NEEDS_REVIEW / ESCALATE_FRAUD"]
+    O --> P["Outcome simulator"]
+    P --> Q["Safe payment, fraud prevented, review created, policy breach, unsafe release"]
+```
+
+### The environment explicitly models
+
+- spoofed payment-change requests
+- vendor-account takeover signals
+- duplicate and near-duplicate invoice behavior
+- missing or manipulated receipt evidence
+- approval threshold evasion
+- unsafe release versus false-positive delay tradeoffs
 
 ## Core Environment Loop
 
@@ -722,6 +795,25 @@ The README intentionally mirrors the Meta OpenEnv hackathon checklist.
 | Docker + HF Space deployability | [Dockerfile](./Dockerfile), FastAPI app, Space metadata at top of this README |
 | README with action/observation/setup/baseline | This document |
 | Runs under validator constraints | CPU-friendly server, deterministic fixtures, local validation via `openenv validate` and `pytest` |
+
+## Submission Checklist
+
+This section is written to mirror the hackathon's pre-submission gate as closely as possible.
+
+- [x] Real-world task: enterprise AP/payment-integrity control operations
+- [x] Not a toy/game: multimodal financial investigation with operational interventions
+- [x] Full OpenEnv interface: typed models plus `reset()`, `step()`, and `state()`
+- [x] `openenv.yaml` present in project root
+- [x] Minimum three graded tasks: LedgerShield provides four task families across six curated benchmark cases
+- [x] Scores and rewards bounded in `[0.0, 1.0]` at task completion
+- [x] Meaningful reward shaping with partial progress signals and unsafe-action penalties
+- [x] Root `inference.py` using the OpenAI client and required env vars
+- [x] Structured inference stdout with `[START]`, `[STEP]`, and `[END]`
+- [x] Dockerized deployment with a working [Dockerfile](./Dockerfile)
+- [x] Hugging Face Space-ready README frontmatter with `openenv` tag
+- [x] Baseline scores documented in this README
+- [x] Validation entrypoints documented: `openenv validate`, `pytest`, grader validation, and pre-submission script
+- [x] Resource envelope aligned to the hackathon constraint of modest CPU and memory
 
 ## Safety, Determinism, and Exploit Resistance
 
