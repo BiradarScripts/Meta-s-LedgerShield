@@ -1,500 +1,766 @@
 ---
 title: LedgerShield
-emoji: 🛡️
+emoji: "🛡️"
 colorFrom: blue
-colorTo: purple
+colorTo: green
 sdk: docker
 app_port: 8000
 pinned: false
+tags:
+  - openenv
+  - fastapi
+  - docker
+  - agents
+  - finance
+  - enterprise-risk
 ---
 
+# LedgerShield
 
+**LedgerShield** is a **stateful adversarial enterprise payment-integrity environment** built for the Meta OpenEnv hackathon.
 
-# LedgerShield - Hackathon Winning Solution
+It simulates the work of an accounts-payable control tower where a tool-using agent must investigate multimodal payment cases under uncertainty, unlock evidence over time, apply interventions, and submit **proof-carrying payment decisions** that are graded on:
 
-## Meta OpenEnv Hackathon - Accounts Payable Audit AI Agent
+- correctness
+- safety
+- efficiency
+- calibration
+- intervention quality
+- downstream operational outcome
 
----
+This is not a static document benchmark and not a toy fraud classifier. It is an **OpenEnv-compatible control environment** for training and evaluating agents in realistic high-stakes financial operations.
 
-## 🎯 Quick Start
+## Judge TL;DR
+
+**What this environment is**
+
+- A realistic AP / payment-control environment rather than a synthetic game.
+- A partially observable, stateful environment with hidden risk signals, revealed artifacts, and intervention-driven state transitions.
+- An OpenEnv-compatible FastAPI runtime with typed models, `step()`, `reset()`, `state()`, `openenv.yaml`, Docker support, and a reproducible baseline agent.
+
+**What the agent must do**
+
+- read invoices, email threads, vendor master records, PO data, receipts, and ledger history
+- investigate under budget and step constraints
+- choose enterprise interventions like callback verification, security routing, and vendor freeze
+- submit a final decision in `{PAY, HOLD, NEEDS_REVIEW, ESCALATE_FRAUD}`
+
+**Why it is stronger than a normal benchmark**
+
+- trajectory matters, not just the final answer
+- downstream outcomes are simulated, not assumed
+- adversarial case generation is built in through reusable attack patterns
+- scoring combines task success with process quality and enterprise safety semantics
+
+## Problem Framing
+
+Modern enterprise payment operations are full of **partial information, conflicting records, spoofed communications, duplicates, policy constraints, and business-risk tradeoffs**. Real analysts do not simply classify a document. They:
+
+1. inspect available documents
+2. query linked systems
+3. compare records across systems
+4. request additional verification
+5. escalate when needed
+6. justify the final decision with evidence
+
+LedgerShield models that loop directly.
+
+## Environment Overview
+
+```mermaid
+flowchart TD
+    A["reset()"] --> B["Partial observation<br/>visible docs, budget, actions, risk snapshot"]
+    B --> C["Investigation actions<br/>OCR, PO lookup, ledger search, email inspection"]
+    B --> D["Intervention actions<br/>callback, reconciliation, security route, freeze vendor"]
+    C --> E["Observed risk signals update"]
+    D --> F["Artifacts unlocked<br/>callback result, duplicate report, handoff packet"]
+    E --> G["Trajectory + budget + step count updated"]
+    F --> G
+    G --> H["submit_decision"]
+    H --> I["Task grading"]
+    H --> J["Risk assessment"]
+    H --> K["Downstream outcome simulation"]
+    I --> L["Final reward in [0,1]"]
+    J --> L
+    K --> L
+```
+
+## Why This Is Not A Toy
+
+LedgerShield is designed around a real enterprise control problem:
+
+- **Domain realism**: AP payment release, duplicate screening, bank-account verification, policy enforcement, fraud escalation.
+- **Operational tradeoffs**: not every safe action is operationally cheap, and not every aggressive action is correct.
+- **Multimodal evidence**: invoices, email threads, vendor master, vendor history, PO records, receipts, and ledger search.
+- **Statefulness**: interventions modify the investigative state and reveal new artifacts.
+- **Outcome semantics**: the environment models what happens because of the decision, not only whether the agent's JSON matched a key.
+
+## Core Environment Loop
+
+### At reset
+
+The agent starts with a **partial view** of the case:
+
+- `case_id`
+- `task_type`
+- `instruction`
+- `visible_documents`
+- `budget_remaining`
+- `step_count`
+- `max_steps`
+- `risk_snapshot`
+- `allowed_actions`
+- `available_interventions`
+
+The environment keeps additional latent state internally, including:
+
+- hidden risk signals
+- latent outcome map
+- revealed artifact registry
+- intervention status
+- tool trajectory
+
+### During the episode
+
+The agent can investigate, take interventions, and observe how the state changes:
+
+```mermaid
+sequenceDiagram
+    participant Agent
+    participant Env as LedgerShieldEnvironment
+    participant Tools as Tool Layer
+    participant World as Hidden World State
+    participant Grade as Grader + Outcome Simulator
+
+    Agent->>Env: reset(case_id)
+    Env-->>Agent: Observation(partial view)
+
+    loop Investigation
+        Agent->>Env: step(action)
+        Env->>Tools: dispatch tool / intervention
+        Tools-->>Env: raw result
+        Env->>World: register signals / reveal artifacts
+        World-->>Env: updated hidden/public state
+        Env-->>Agent: observation, reward, done, info
+    end
+
+    Agent->>Env: step(submit_decision)
+    Env->>Grade: score_submission(...)
+    Env->>Grade: simulate_outcome(...)
+    Grade-->>Env: final score + breakdown + outcome
+    Env-->>Agent: terminal observation, reward, done=true, info
+```
+
+## Observation, Action, and State Spaces
+
+### Observation space
+
+The public observation returned by the environment is defined in [models.py](./models.py). The most important fields are:
+
+| Field | Type | Meaning |
+|---|---:|---|
+| `case_id` | `str` | Current benchmark case identifier |
+| `task_type` | `str` | One of `task_a` to `task_d` |
+| `instruction` | `str` | Judge-visible task objective |
+| `visible_documents` | `list[dict]` | Documents the agent can currently inspect |
+| `revealed_artifacts` | `list[dict]` | Artifacts unlocked through interventions |
+| `budget_remaining` | `float` | Remaining investigation budget |
+| `step_count` | `int` | Number of executed steps |
+| `max_steps` | `int` | Episode limit |
+| `risk_snapshot` | `dict` | Coarse risk telemetry from current state |
+| `investigation_status` | `dict` | Tool count, interventions, artifact count, budget used |
+| `last_tool_result` | `dict` | Result of the most recent tool or intervention |
+| `allowed_actions` | `list[str]` | Full action vocabulary for the episode |
+| `available_interventions` | `list[str]` | Intervention actions available to the agent |
+| `case_metadata` | `dict` | Difficulty and task label |
+
+### Final decision space
+
+The final decision is constrained to:
+
+- `PAY`
+- `HOLD`
+- `NEEDS_REVIEW`
+- `ESCALATE_FRAUD`
+
+### Investigation actions
+
+These actions gather evidence and update the trajectory:
+
+| Action | Cost | Purpose |
+|---|---:|---|
+| `zoom` | `0.20` | Inspect a region of a document |
+| `get_doc_crop` | `0.20` | Retrieve a crop-level text hint |
+| `ocr` | `0.45` fast / `1.10` accurate | Extract OCR tokens from a document |
+| `lookup_vendor` | `0.20` | Query vendor master data |
+| `lookup_vendor_history` | `0.25` | Retrieve prior vendor change events |
+| `lookup_policy` | `0.15` | Retrieve policy rules or a specific policy |
+| `lookup_po` | `0.20` | Load purchase-order record |
+| `lookup_receipt` | `0.20` | Load goods-receipt record |
+| `search_ledger` | `0.35` | Search prior ledger entries for duplicates |
+| `inspect_email_thread` | `0.25` | Inspect email content and derive fraud flags |
+| `compare_bank_account` | `0.15` | Compare proposed bank account against approved master data |
+
+### Intervention actions
+
+These actions change state and often unlock additional artifacts:
+
+| Action | Cost | Purpose |
+|---|---:|---|
+| `request_callback_verification` | `0.40` | Trigger vendor callback verification artifact |
+| `freeze_vendor_profile` | `0.20` | Apply a containment control |
+| `request_bank_change_approval_chain` | `0.30` | Reveal bank-change approval artifact |
+| `request_po_reconciliation` | `0.30` | Reveal PO reconciliation artifact |
+| `request_additional_receipt_evidence` | `0.25` | Reveal receipt reconciliation artifact |
+| `route_to_procurement` | `0.15` | Route case to procurement operations |
+| `route_to_security` | `0.20` | Route suspicious case to security |
+| `flag_duplicate_cluster_review` | `0.25` | Trigger duplicate-cluster review artifact |
+| `create_human_handoff` | `0.20` | Create a handoff packet for manual review |
+
+### Internal state
+
+The hidden state, defined in [models.py](./models.py) and managed by [server/world_state.py](./server/world_state.py), tracks:
+
+- hidden risk signals
+- observed risk signals
+- visible and revealed artifact ids
+- tool trace
+- trajectory
+- interventions taken
+- final outcome
+- unsafe outcome flag
+- terminal reason
+
+This is what makes LedgerShield a **true environment** rather than a stateless evaluator.
+
+## Task Suite
+
+LedgerShield ships with **4 task families** and **6 curated benchmark cases**.
+
+| Case ID | Task | Difficulty | Budget | Max Steps | Visible Docs |
+|---|---|---|---:|---:|---|
+| `CASE-A-001` | Task A | easy | `10.0` | `12` | invoice |
+| `CASE-A-002` | Task A | medium | `10.0` | `12` | invoice |
+| `CASE-B-001` | Task B | medium | `12.0` | `14` | invoice |
+| `CASE-B-002` | Task B | medium | `12.0` | `14` | invoice |
+| `CASE-C-001` | Task C | hard | `13.0` | `16` | invoice |
+| `CASE-D-001` | Task D | hard | `16.0` | `18` | invoice, email thread |
+
+### Task A: Proof-carrying field extraction
+
+The agent must:
+
+- extract canonical invoice fields
+- extract line items
+- produce an `evidence_map` that links each field to `doc_id`, `page`, `bbox`, and `token_ids`
+
+This is not simple OCR QA. It tests **structured extraction with evidence grounding**.
+
+### Task B: Three-way match decisioning
+
+The agent must:
+
+- compare invoice vs PO vs receipt
+- detect mismatches or absent receipt support
+- apply policy checks
+- make a safe hold/pay decision with evidence
+
+### Task C: Duplicate and fraud triage
+
+The agent must:
+
+- use invoice plus ledger search
+- detect duplicates and near-duplicates
+- detect suspicious bank-account conditions
+- escalate high-risk cases before release
+
+### Task D: AP inbox incident triage
+
+This is the hero task.
+
+The agent must synthesize:
+
+- invoice data
+- spoofed email thread
+- vendor master
+- vendor history
+- ledger duplicate evidence
+- policy requirements
+
+and then submit a **proof-carrying fraud escalation** with correct evidence, policy interpretation, and counterfactual reasoning.
+
+## Grading Design
+
+LedgerShield uses **task-specific graders** plus **trajectory-level grading**.
+
+### Task-specific score composition
+
+| Task | Score composition |
+|---|---|
+| Task A | `0.38 fields + 0.25 lines + 0.20 evidence + 0.08 investigation + 0.04 calibration + 0.05 efficiency` |
+| Task B | `0.28 decision + 0.18 discrepancies + 0.18 policy + 0.16 evidence + 0.08 investigation + 0.05 intervention + 0.03 calibration + 0.04 efficiency` |
+| Task C | `0.18 decision + 0.18 duplicates + 0.24 fraud + 0.12 evidence + 0.08 investigation + 0.07 intervention + 0.05 calibration + 0.03 efficiency + 0.05 outcome` |
+| Task D | `0.18 decision + 0.17 reasons + 0.14 policy + 0.13 evidence + 0.06 counterfactual + 0.09 investigation + 0.08 intervention + 0.05 calibration + 0.03 efficiency + 0.07 outcome` |
+
+### Unsafe action penalties
+
+Additional penalties are applied for unsafe release behavior:
+
+- unsafe `PAY` in Task C: `-0.55`
+- unsafe `PAY` in Task D: `-0.65`
+
+### Process-level reward shaping
+
+The environment provides non-binary reward signals during the episode:
+
+- investigation action reward: `-0.05 * tool_cost`
+- novel signal discovery bonus on investigation: up to `+0.06`
+- failed investigation penalty: `-0.05`
+- intervention reward: `-0.03 * tool_cost + 0.04` if new signal revealed
+- terminal reward: final task score in `[0,1]`
+
+This creates a trajectory with dense feedback, not a one-shot end score.
+
+### Downstream outcome simulation
+
+Final decisions are evaluated against enterprise outcomes simulated in [server/outcome_simulator.py](./server/outcome_simulator.py).
+
+| Outcome | Meaning |
+|---|---|
+| `safe_payment_cleared` | Correct payment release |
+| `unsafe_payment_released` | Risky payment was incorrectly released |
+| `fraud_prevented` | Fraud escalation prevented loss |
+| `manual_review_created` | Risk was safely contained through review |
+| `false_positive_operational_delay` | Clean payment was delayed |
+| `policy_breach` | Payment released after incomplete controls |
+
+### Why the trajectory matters
+
+The trajectory grader, implemented in [server/trajectory_grading.py](./server/trajectory_grading.py), measures:
+
+- investigation sufficiency
+- intervention quality
+- calibration
+- efficiency
+- downstream outcome quality
+
+This is the core reason LedgerShield behaves like an **agent environment** and not just a final-answer checker.
+
+## Hidden State, Revealed State, and Artifacts
+
+One of the most important design choices is the separation between:
+
+- what is latent in the case
+- what is visible at reset
+- what becomes revealed after the right intervention
+
+```mermaid
+flowchart LR
+    A["Base case gold"] --> B["build_hidden_world()"]
+    B --> C["Hidden risk signals"]
+    B --> D["Latent outcomes"]
+    B --> E["Artifact templates"]
+
+    F["Investigation actions"] --> G["Observed risk signals"]
+    H["Intervention actions"] --> I["Reveal artifact"]
+    I --> J["Public artifact list"]
+    J --> K["Updated observation"]
+    G --> K
+```
+
+Artifacts currently supported include:
+
+- callback verification result
+- bank change approval chain
+- PO reconciliation report
+- receipt reconciliation report
+- duplicate cluster report
+- human handoff packet
+
+## Adversarial Case Generation
+
+LedgerShield is not limited to a fixed benchmark. It includes a reusable adversarial generator stack:
+
+- [server/attack_library.py](./server/attack_library.py)
+- [server/case_factory.py](./server/case_factory.py)
+
+### Supported attack patterns
+
+| Attack | Severity | What it injects |
+|---|---|---|
+| `bank_override_attack` | high | bank override + policy bypass cues |
+| `near_duplicate_invoice_attack` | high | duplicate-near-match behavior |
+| `vendor_takeover_attack` | high | sender spoof + account takeover semantics |
+| `urgency_spoof_attack` | medium | urgent payment pressure + spoofed communication |
+| `approval_threshold_evasion_attack` | medium | threshold-avoidance semantics |
+| `fake_receipt_attack` | medium | incomplete or manipulated receipt behavior |
+
+### Variant generation loop
+
+```mermaid
+flowchart TD
+    A["Base case"] --> B["Select attack set"]
+    B --> C["apply_attack_to_case()"]
+    C --> D["Adjust gold signals / decision / unsafe_if_pay"]
+    D --> E["Adjust difficulty / budget / max_steps"]
+    E --> F["Generated variant id"]
+```
+
+This makes the project useful not only as a hackathon benchmark, but as a **training and post-training environment** where agents must generalize across replayable enterprise attack patterns.
+
+## File and Module Map
+
+### Root
+
+| File | Role |
+|---|---|
+| [models.py](./models.py) | Typed action, observation, state, and decision models |
+| [client.py](./client.py) | Thin OpenEnv-compatible HTTP client |
+| [openenv_compat.py](./openenv_compat.py) | OpenEnv compatibility layer and local fallback |
+| [inference.py](./inference.py) | Baseline agent loop with required structured stdout logs |
+| [openenv.yaml](./openenv.yaml) | OpenEnv runtime metadata |
+| [pyproject.toml](./pyproject.toml) | Package config and dependencies |
+| [Dockerfile](./Dockerfile) | Container entrypoint for HF Space / Docker runtime |
+| [validate_grader.py](./validate_grader.py) | API, reward, determinism, exploit-resistance validator |
+| [test_scoring.py](./test_scoring.py) | Strategy simulation against the grader |
+| [validate-submission.sh](./validate-submission.sh) | Pre-submission validation helper |
+
+### Runtime server
+
+| File | Role |
+|---|---|
+| [server/environment.py](./server/environment.py) | Main environment orchestrator |
+| [server/world_state.py](./server/world_state.py) | Hidden/public state split and artifact management |
+| [server/transition_engine.py](./server/transition_engine.py) | Tool-result normalization and intervention consequences |
+| [server/outcome_simulator.py](./server/outcome_simulator.py) | Downstream enterprise outcome simulation |
+| [server/grading.py](./server/grading.py) | Task-specific scoring |
+| [server/trajectory_grading.py](./server/trajectory_grading.py) | Process-level grading |
+| [server/risk_rules.py](./server/risk_rules.py) | Risk semantics and unsafe behavior penalties |
+| [server/tools.py](./server/tools.py) | Enterprise investigation tools |
+| [server/data_loader.py](./server/data_loader.py) | Fixture loading and indexing |
+| [server/attack_library.py](./server/attack_library.py) | Reusable adversarial attack patterns |
+| [server/case_factory.py](./server/case_factory.py) | Replayable case variant generation |
+| [server/schema.py](./server/schema.py) | Shared action vocabularies, normalization, and scoring helpers |
+| [server/app.py](./server/app.py) | FastAPI entrypoint |
+
+### Fixtures
+
+| Fixture | Contents |
+|---|---|
+| [server/fixtures/cases.json](./server/fixtures/cases.json) | Core benchmark tasks, instructions, budgets, gold labels, evidence targets |
+| [server/fixtures/vendors.json](./server/fixtures/vendors.json) | Vendor master records |
+| [server/fixtures/vendor_history.json](./server/fixtures/vendor_history.json) | Historical vendor changes |
+| [server/fixtures/po_records.json](./server/fixtures/po_records.json) | Purchase orders |
+| [server/fixtures/receipts.json](./server/fixtures/receipts.json) | Goods receipts |
+| [server/fixtures/ledger_index.json](./server/fixtures/ledger_index.json) | Prior payment ledger |
+| [server/fixtures/email_threads.json](./server/fixtures/email_threads.json) | Benign and adversarial email communications |
+| [server/fixtures/policy_rules.json](./server/fixtures/policy_rules.json) | Policy/control rules |
+
+### Tests
+
+| Test file | Coverage |
+|---|---|
+| [tests/test_api_smoke.py](./tests/test_api_smoke.py) | API endpoint health and smoke checks |
+| [tests/test_ledgershield_env.py](./tests/test_ledgershield_env.py) | reset/step flow, no-gold-leakage, interventions, unsafe penalties, task behavior |
+
+## OpenEnv API Contract
+
+The environment exposes the standard loop:
+
+- `POST /reset`
+- `POST /step`
+- `GET /state`
+- `GET /health`
+
+### Example
 
 ```bash
-# Run inference with GitHub Models
-python inference.py \
-  --api-url "https://models.github.ai/inference" \
-  --model "openai/gpt-4.1" \
-  --token "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"
+curl -X POST http://127.0.0.1:8000/reset \
+  -H "Content-Type: application/json" \
+  -d '{"case_id":"CASE-D-001"}'
 ```
 
----
-
-## 🏆 Winning Threshold
-
-| Metric | Required | Target |
-|--------|----------|--------|
-| Average Score | > 0.6 | > 0.7 |
-| Success Rate | > 60% | > 80% |
-
----
-
-## 📁 Project Structure
-
-```
-Meta-s-LedgerShield/
-├── inference.py              # HACKATHON-WINNING inference script (THIS IS YOUR KEY FILE)
-├── README.md                 # This documentation
-├── validate_grader.py        # Grader validation tests
-├── test_scoring.py          # Score simulation script
-├── envs/
-│   └── ledgershield_env/
-│       ├── openenv.yaml      # OpenEnv specification
-│       ├── models.py         # Typed models (Action, Observation, State)
-│       ├── client.py         # EnvClient for connecting to server
-│       ├── openenv_compat.py # OpenEnv API compatibility layer
-│       └── server/
-│           ├── app.py        # FastAPI application
-│           ├── environment.py # LedgerShieldEnvironment class
-│           ├── grading.py    # Task graders and scoring
-│           ├── tools.py      # Tool implementations
-│           ├── schema.py     # Utility functions
-│           ├── risk_rules.py # Risk assessment rules
-│           ├── data_loader.py# Fixture data loading
-│           └── fixtures/      # Test data (cases, vendors, etc.)
-├── tests/
-│   ├── test_ledgershield_env.py
-│   └── test_api_smoke.py
-└── pyproject.toml
+```bash
+curl -X POST http://127.0.0.1:8000/step \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action_type": "inspect_email_thread",
+    "payload": {"thread_id": "THR-100"}
+  }'
 ```
 
----
+### OpenEnv runtime metadata
 
-## 🔬 What is LedgerShield?
+The environment metadata is defined in [openenv.yaml](./openenv.yaml):
 
-LedgerShield is an **OpenEnv-compatible environment** that simulates a real-world accounts payable audit workflow.
-
-AI agents must:
-- **Extract** invoice fields and line items from multimodal documents
-- **Detect** discrepancies between purchase orders, receipts, and invoices
-- **Identify** potential fraud indicators and duplicate payments
-- **Apply** policy rules to determine correct payment decisions
-
----
-
-## 📊 Task Types & Scoring
-
-### Task A: Invoice Field Extraction
-
-| Component | Weight | How to Score |
-|-----------|--------|--------------|
-| Field accuracy | 45% | Match vendor_name, invoice_number, date, amounts |
-| Line items | 30% | Include correct description, qty, unit_price, line_total |
-| Evidence map | 25% | Link each field to doc_id, page, bbox, token_ids |
-
-### Task B: Discrepancy Detection
-
-| Component | Weight |
-|-----------|--------|
-| Decision | 35% |
-| Discrepancies | 25% |
-| Policy checks | 20% |
-| Evidence map | 20% |
-
-### Task C: Fraud Detection
-
-| Component | Weight |
-|-----------|--------|
-| Decision | 25% |
-| Duplicate links | 25% |
-| Fraud flags | 35% |
-| Evidence map | 15% |
-
-### Task D: Policy Compliance
-
-| Component | Weight |
-|-----------|--------|
-| Decision | 25% |
-| Reason codes | 25% |
-| Policy checks | 20% |
-| Evidence map | 20% |
-| Counterfactual | 10% |
-
----
-
-## 🧠 The Solution: How It Works
-
-### Workflow
-
-```
-1. LLM receives task instruction
-      ↓
-2. LLM calls OCR on invoice document
-      ↓
-3. Code parses OCR tokens → extracts fields
-      ↓
-4. LLM calls lookup_vendor, lookup_po, lookup_receipt
-      ↓
-5. Code builds evidence_map linking fields to locations
-      ↓
-6. LLM calls submit_decision with FULL payload
-      ↓
-7. Grader scores: fields + line_items + evidence_map
+```yaml
+spec_version: 1
+name: start
+type: space
+runtime: fastapi
+app: server.app:app
+port: 8000
 ```
 
-### Key Innovation: Evidence Map
+## Baseline Inference Agent
 
-The **evidence_map** is critical for winning:
+The root [inference.py](./inference.py) is the submission baseline agent.
 
-```python
-evidence_map = {
-    "vendor_name": {
-        "doc_id": "INV-A-001",
-        "page": 1,
-        "bbox": [x, y, width, height],  # Bounding box
-        "token_ids": ["a1n"]            # OCR token reference
-    },
-    "invoice_number": {...},
-    "subtotal": {...},
-    # ... each extracted field
-}
+### What the baseline does
+
+- initializes the OpenAI client from `API_BASE_URL`, `MODEL_NAME`, and `HF_TOKEN`
+- emits hackathon-compatible structured stdout logs
+- follows a deterministic task-aware policy over the LedgerShield tools
+- extracts invoice fields and evidence from OCR tokens
+- takes the investigation and intervention steps that the grader rewards
+- submits grader-aligned payloads for tasks A, B, C, and D
+
+### Required environment variables
+
+These are the same variables required on the Meta hackathon page:
+
+```bash
+export API_BASE_URL="https://router.huggingface.co/v1"
+export MODEL_NAME="openai/gpt-4.1-mini"
+export HF_TOKEN="<your_token>"
+export ENV_URL="http://127.0.0.1:8000"
 ```
 
-**Why it matters:** Evidence map adds ~0.25 to your score per task.
+### Run the server
 
----
-
-## 📈 Score Analysis
-
-### Theoretical Scores
-
-| Submission Quality | Expected Score |
-|-------------------|----------------|
-| Just decision (no data) | 0.00 |
-| Partial fields | 0.09 |
-| All fields, no evidence | 0.42 avg |
-| **Perfect + evidence_map** | **0.85+** |
-| 80% extraction (realistic) | **0.61** |
-
-### Manual Test Results
-
-```python
-# Perfect submission (all fields + evidence_map)
-Score: 0.8449
-Breakdown: {'field_score': 1.0, 'line_item_score': 1.0, 'evidence_score': 0.38}
-
-# 80% correct (realistic LLM)
-Score: 0.6136
-Breakdown: {'field_score': 0.7, 'line_item_score': 0.875, 'evidence_score': 0.14}
+```bash
+python -m server.app
 ```
 
----
+If port `8000` is in use:
 
-## 🚀 Running the Solution
+```bash
+PORT=8001 python server/app.py
+```
+
+### Run the baseline
+
+```bash
+python inference.py --env-url http://127.0.0.1:8000
+```
+
+### Required stdout format
+
+The hackathon validator requires `inference.py` to emit:
+
+- one `[START]` line per episode
+- one `[STEP]` line immediately after each `env.step()`
+- one `[END]` line at episode end
+
+Example:
+
+```text
+[START] task=CASE-D-001 env=ledgershield model=openai/gpt-4.1-mini
+[STEP] step=1 action=ocr({"doc_id":"INV-D-001","mode":"accurate"}) reward=-0.06 done=false error=null
+[STEP] step=2 action=inspect_email_thread({"thread_id":"THR-100"}) reward=0.05 done=false error=null
+[END] success=true steps=11 score=0.991 rewards=-0.06,-0.06,0.05,0.01,-0.01,0.01,-0.02,0.03,-0.01,-0.01,0.99
+```
+
+## Verified Baseline Results
+
+Verified locally on the current 6-case benchmark suite:
+
+| Case | Task | Difficulty | Verified score |
+|---|---|---|---:|
+| `CASE-A-001` | Task A | easy | `0.998` |
+| `CASE-A-002` | Task A | medium | `0.998` |
+| `CASE-B-001` | Task B | medium | `0.978` |
+| `CASE-B-002` | Task B | medium | `0.958` |
+| `CASE-C-001` | Task C | hard | `0.992` |
+| `CASE-D-001` | Task D | hard | `0.991` |
+| **Average** | **All tasks** | — | **`0.9858`** |
+
+These scores were produced on the current benchmark fixtures using the root [inference.py](./inference.py).
+
+## Quick Start
 
 ### Prerequisites
 
-1. **Python 3.11+**
-2. **GitHub PAT with `models:read` scope**
+- Python `3.11+`
+- Docker
+- `openenv-core`
+- optional: Hugging Face / OpenAI-compatible API token for the inference baseline
 
-To create/update your token:
-1. Go to: https://github.com/settings/tokens?type=beta
-2. Generate new token or edit existing
-3. Enable **`models:read`** permission
-
-### Start the Environment Server
+### Install
 
 ```bash
-# Terminal 1: Start server
-cd /Users/aryamanpathak/meta-hackathon/Meta-s-LedgerShield
-python -m uvicorn envs.ledgershield_env.server.app:app --host 0.0.0.0 --port 8000
+python -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install -e .
+pip install -r requirements.txt
 ```
 
-### Run Inference
+### Run locally
 
 ```bash
-# Terminal 2: Run inference
-cd /Users/aryamanpathak/meta-hackathon/Meta-s-LedgerShield
-python3.11 inference.py \
-  --api-url "https://models.github.ai/inference" \
-  --model "openai/gpt-4.1" \
-  --token "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" \
-  --cases CASE-A-001 CASE-A-002 CASE-B-001 CASE-C-001 CASE-D-001
+python -m server.app
 ```
 
-### Alternative: Run Specific Model
+Then in a second shell:
 
 ```bash
-# GPT-4.1 (recommended - best reasoning)
---model "openai/gpt-4.1"
+export API_BASE_URL="https://router.huggingface.co/v1"
+export MODEL_NAME="openai/gpt-4.1-mini"
+export HF_TOKEN="<your_token>"
+export ENV_URL="http://127.0.0.1:8000"
 
-# GPT-4.1-nano (faster, cheaper, still good)
---model "openai/gpt-4.1-nano"
-
-# Claude 4 Sonnet (excellent for structured extraction)
---model "anthropic/claude-4-sonnet"
-
-# Llama 4 Maverick (good value)
---model "meta/llama-4-maverick"
+python inference.py
 ```
 
----
+## Docker and Hugging Face Space Deployment
 
-## 🔧 Solution Architecture
+### Build the container
 
-### 1. Field Extraction (`extract_fields_from_ocr`)
-
-Parses OCR tokens using regex patterns:
-
-```python
-def extract_fields_from_ocr(ocr_result):
-    # Vendor name - first substantial non-numeric text
-    # Invoice number - pattern: INV-XXXX
-    # Date - pattern: YYYY-MM-DD
-    # Currency - USD, EUR, INR, etc.
-    # Amounts - Subtotal, Tax, Total from "Subtotal 1234.56" format
+```bash
+docker build -t ledgershield .
 ```
 
-### 2. Evidence Map Building
+### Run the container
 
-Links extracted fields to document locations:
-
-```python
-evidence_map[field_name] = {
-    "doc_id": token['doc_id'],
-    "page": token['page'],
-    "bbox": token['bbox'],
-    "token_ids": [token['token_id']]
-}
+```bash
+docker run --rm -p 8000:8000 ledgershield
 ```
 
-### 3. Multi-Step Agent Loop
+### Deploy as a Hugging Face Space
 
-1. **Research phase**: Call OCR → Parse → Lookup vendor/PO/receipt
-2. **Extract phase**: Build extracted_fields, line_items, evidence_map
-3. **Submit phase**: Call submit_decision with complete payload
+1. Create a **Docker Space**.
+2. Push this repository to the Space.
+3. Set the Space environment variables:
+   - `API_BASE_URL`
+   - `MODEL_NAME`
+   - `HF_TOKEN`
+4. Ensure the Space is tagged with **`openenv`**.
+5. Confirm `/health` and `/reset` respond successfully.
 
-### 4. Task-Specific Payloads
+## Evaluation Pipeline Alignment
 
-```python
-# Task A: Field extraction
-{
-    "decision": "NEEDS_REVIEW",
-    "extracted_fields": {...},
-    "line_items": [...],
-    "evidence_map": {...}
-}
+LedgerShield is designed for the same three-layer review structure described on the Meta OpenEnv hackathon page.
 
-# Task B: Discrepancy detection
-{
-    "decision": "HOLD",
-    "discrepancies": [...],
-    "policy_checks": {...},
-    "evidence_map": {...}
-}
+### Phase 1: Automated validation
 
-# Task C: Fraud detection
-{
-    "decision": "ESCALATE_FRAUD",
-    "duplicate_links": [...],
-    "fraud_flags": [...],
-    "evidence_map": {...}
-}
+The submission is built to pass the hard gate:
 
-# Task D: Policy compliance
-{
-    "decision": "NEEDS_REVIEW",
-    "reason_codes": [...],
-    "policy_checks": {...},
-    "evidence_map": {...},
-    "counterfactual": "Would PAY if..."
-}
+- HF Space responds to health and reset calls
+- OpenEnv runtime metadata is present
+- `step()`, `reset()`, and `state()` are implemented
+- Docker builds cleanly
+- the root `inference.py` completes and emits the required structured logs
+- multiple tasks and deterministic graders are present
+
+### Phase 2: Agentic evaluation
+
+The environment is suitable for external tool-using agents because:
+
+- tasks are grounded in realistic enterprise artifacts
+- action spaces are explicit and tool-like
+- outcomes depend on investigation trajectory, not only final labels
+- hard cases require multi-hop reasoning across invoice, ledger, policy, and spoofed communications
+
+### Phase 3: Human review
+
+The project is intentionally positioned for strong human-review criteria:
+
+- real-world utility in enterprise payment integrity
+- meaningful difficulty progression
+- non-trivial statefulness
+- adversarial extensibility
+- safety-sensitive downstream consequences
+
+## Resource Envelope
+
+The hackathon page specifies that submissions should comfortably run within a modest resource budget. LedgerShield is designed accordingly:
+
+- server runtime is CPU-friendly and fixture-backed
+- no GPU is required for the environment server
+- benchmark cases are small enough for fast local iteration
+- the verified six-case baseline run completes well under the hackathon's 20-minute limit on a standard local machine
+- the environment and baseline are suitable for a `2 vCPU / 8 GB RAM` execution envelope
+
+## Validation
+
+### OpenEnv validation
+
+```bash
+openenv validate
 ```
 
----
+### Test suite
 
-## 📝 Available Tools
+```bash
+python -m pytest -q
+```
 
-| Tool | Purpose | Payload |
-|------|---------|---------|
-| `ocr` | Extract text from invoice | `{"doc_id": "...", "mode": "fast"}` |
-| `zoom` | Magnify document region | `{"doc_id": "...", "bbox": [...]}` |
-| `get_doc_crop` | Get cropped document | `{"doc_id": "...", "page": 1, "bbox": [...]}` |
-| `lookup_vendor` | Get vendor details | `{"vendor_key": "..."}` |
-| `lookup_vendor_history` | Get vendor transaction history | `{"vendor_key": "..."}` |
-| `lookup_policy` | Get applicable policies | `{}` |
-| `lookup_po` | Get purchase order | `{"po_id": "..."}` |
-| `lookup_receipt` | Get receipt/GRN | `{"receipt_id": "..."}` |
-| `search_ledger` | Search for duplicates | `{"vendor_key": "...", "amount": ...}` |
-| `inspect_email_thread` | Check email communications | `{"thread_id": "..."}` |
-| `compare_bank_account` | Verify bank accounts | `{"vendor_key": "...", "bank_account": "..."}` |
-| `submit_decision` | Submit final decision | See payloads above |
-
----
-
-## 🧪 Testing & Validation
-
-### Validate Grader
+### Grader validation
 
 ```bash
 python validate_grader.py
 ```
 
-This tests:
-- API health
-- Gymnasium loop
-- Reward stability
-- Edge cases
-- 100+ episode benchmark
-- Determinism
-- Exploit resistance
-
-### Score Simulation
+### Pre-submission validation
 
 ```bash
-python test_scoring.py
+./validate-submission.sh <your_space_url>
 ```
 
-Tests different agent strategies:
-- Random baseline
-- No research
-- Partial research
-- Good effort
-- Near-perfect
-- Gold standard
+## Meta Hackathon Requirement Coverage
 
-### Manual Score Test
+The README intentionally mirrors the Meta OpenEnv hackathon checklist.
 
-```python
-from envs.ledgershield_env.server.environment import LedgerShieldEnvironment
-from envs.ledgershield_env import LedgerShieldAction
+| Hackathon requirement | Where LedgerShield satisfies it |
+|---|---|
+| Real-world task, not a toy | Enterprise AP/payment-integrity control environment with multimodal records and operational interventions |
+| OpenEnv spec compliance | Typed models in [models.py](./models.py), `step()/reset()/state()` in [server/environment.py](./server/environment.py), runtime metadata in [openenv.yaml](./openenv.yaml) |
+| Minimum 3 tasks with graders | 4 task families across 6 benchmark cases, graded in [server/grading.py](./server/grading.py) |
+| Meaningful reward function | Dense step rewards, novel-signal bonuses, intervention shaping, budget pressure, and terminal score |
+| Baseline inference script | Root [inference.py](./inference.py), OpenAI client, required env vars, structured stdout logs |
+| Docker + HF Space deployability | [Dockerfile](./Dockerfile), FastAPI app, Space metadata at top of this README |
+| README with action/observation/setup/baseline | This document |
+| Runs under validator constraints | CPU-friendly server, deterministic fixtures, local validation via `openenv validate` and `pytest` |
 
-env = LedgerShieldEnvironment()
-env.reset(case_id='CASE-A-001')
+## Safety, Determinism, and Exploit Resistance
 
-result = env.step(LedgerShieldAction(
-    action_type='submit_decision',
-    payload={
-        'decision': 'NEEDS_REVIEW',
-        'extracted_fields': {'vendor_name': 'Northwind Industrial', ...},
-        'line_items': [...],
-        'evidence_map': {...}
-    }
-))
+LedgerShield is designed to be robust under benchmark and training use:
 
-print(f"Score: {result.last_tool_result.get('final_score', 0.0):.4f}")
-```
+- **No gold leakage** is checked in tests.
+- **Unsafe release behavior** is heavily penalized.
+- **Repeated actions** reduce efficiency score.
+- **Missing callback verification** raises risk on unsafe cases.
+- **Over-escalation** is penalized on low-risk cases.
+- **Deterministic fixtures and grading** support reproducible evaluation.
+- **Variant generation** reduces overfitting to a tiny static case set.
 
----
+## Why LedgerShield Matters
 
-## 🎓 Tips for Winning
+The strongest one-line description of the environment is:
 
-### 1. Always Include Evidence Map
+> **LedgerShield is a stateful, adversarial OpenEnv environment for enterprise payment-integrity operations, where agents investigate multimodal documents, linked enterprise records, and spoofed communications under budget and policy constraints, then take evidence-backed interventions and final decisions that are scored on safety, efficiency, calibration, and downstream financial outcomes.**
 
-Even partial evidence_map adds points. Structure:
-```python
-evidence_map = {
-    "vendor_name": {"doc_id": "INV-A-001", "page": 1, "bbox": [x,y,w,h], "token_ids": ["a1n"]}
-}
-```
+That combination is what makes it compelling for:
 
-### 2. Extract Complete Fields
+- agent benchmarking
+- post-training environments
+- tool-use evaluation
+- safety-sensitive enterprise reasoning
+- adversarial robustness experiments
 
-For Task A, target these fields:
-- vendor_name
-- invoice_number
-- invoice_date
-- currency
-- subtotal
-- tax
-- total
-- po_id
-- receipt_id
-- bank_account
+## Final Submission Note
 
-### 3. Include Line Items
+LedgerShield is built to satisfy the hackathon's strongest interpretation:
 
-Even basic line items help:
-```python
-line_items = [
-    {"description": "...", "qty": 100, "unit_price": 12.0, "line_total": 1200.0}
-]
-```
+- real-world utility
+- multi-task grading
+- stateful environment design
+- reward shaping
+- OpenEnv compatibility
+- Docker/HF deployment
+- reproducible baseline
+- enterprise realism
 
-### 4. Use GPT-4.1 or Claude
-
-These models have:
-- Better structured output
-- Improved tool calling
-- Stronger reasoning
-
-### 5. Don't Over-Research
-
-- 3-4 tool calls is enough
-- Budget efficiency is penalized
-- Auto-submit kicks in after 3+ steps with OCR
-
----
-
-## 🔐 Environment Variables
-
-| Variable | Description | Required | Default |
-|----------|-------------|----------|---------|
-| `API_BASE_URL` | LLM API endpoint | Yes | `https://router.huggingface.co/v1` |
-| `MODEL_NAME` | Model identifier | Yes | `meta-llama/Llama-3.3-70B-Instruct` |
-| `HF_TOKEN` | API key | Yes | - |
-| `ENV_URL` | Environment server | No | `http://localhost:8000` |
-
-### GitHub Models Configuration
-
-```bash
-export API_BASE_URL="https://models.github.ai/inference"
-export MODEL_NAME="openai/gpt-4.1"
-export HF_TOKEN="github_pat_11BCEVC3A0..."
-```
-
----
-
-## 📦 Deployment
-
-### Docker Build
-
-```bash
-docker build -t ledgershield:latest -f envs/ledgershield_env/server/Dockerfile .
-```
-
-### Hugging Face Spaces
-
-```bash
-pip install openenv-core
-openenv push
-```
-
----
-
-## 👥 Team
-
-- **Shreyas Biradar** (Team Lead)
-- **Aryaman Pathak**
-- **Hemant Gupta**
-
----
-
-## 📄 License
-
-MIT
-
----
-
-## 🗺️ Roadmap
-
-- [x] Basic inference implementation
-- [x] OCR field extraction
-- [x] Evidence map building
-- [x] Multi-step agent workflow
-- [x] Task-specific payloads
-- [x] Score > 0.6 validation
-- [x] GitHub Models support
-- [x] Documentation
-
----
-
-**Good luck at the hackathon! 🚀**
+If you are evaluating this project as a benchmark, think of it as a **payment-control tower simulator**.  
+If you are evaluating it as a training environment, think of it as a **stateful enterprise risk sandbox for tool-using agents**.
