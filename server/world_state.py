@@ -91,7 +91,7 @@ def _campaign_context(case: dict[str, Any], gold: dict[str, Any], hidden_signals
         total_at_risk = round(sum(totals), 2) if totals else 0.0
 
     base.setdefault("linked_invoice_count", max(1, visible_invoice_count))
-    base.setdefault("linked_case_count", max(1, len(gold.get("duplicate_links", [])) or 1 if high_risk else visible_invoice_count))
+    base.setdefault("linked_case_count", max(1, visible_invoice_count + (1 if high_risk else 0)))
     base.setdefault("at_risk_amount", total_at_risk)
     base.setdefault("manual_review_capacity", 2)
     base.setdefault("business_criticality", "high" if high_risk else "medium")
@@ -165,7 +165,7 @@ def build_hidden_world(case: dict[str, Any]) -> dict[str, Any]:
         "required_artifacts": required_artifacts,
         "portfolio_memory": {
             "vendor_risk_bucket": risk_bucket(hidden_signals),
-            "linked_case_count": len(gold.get("duplicate_links", [])),
+            "linked_case_count": max(1, sum(1 for doc in case.get("documents", []) if normalize_text(doc.get("doc_type")) == "invoice") + (1 if is_risky else 0)),
         },
         "campaign_context": campaign_context,
         "intervention_latencies": _intervention_latencies(hidden_signals),
@@ -200,7 +200,8 @@ def build_hidden_world(case: dict[str, Any]) -> dict[str, Any]:
                 "summary": f"PO reconciliation completed: {po_status}.",
                 "details": {
                     "status": po_status,
-                    "expected_discrepancies": deepcopy(gold.get("discrepancies", [])),
+                    "flagged_line_count": len(gold.get("discrepancies", [])),
+                    "reconciliation_confidence": 0.35 if gold.get("discrepancies") else 0.92,
                 },
             },
             "receipt_reconciliation_report": {
@@ -209,7 +210,8 @@ def build_hidden_world(case: dict[str, Any]) -> dict[str, Any]:
                 "summary": f"Receipt reconciliation completed: {receipt_status}.",
                 "details": {
                     "status": receipt_status,
-                    "expected_discrepancies": deepcopy(gold.get("discrepancies", [])),
+                    "flagged_line_count": len(gold.get("discrepancies", [])),
+                    "reconciliation_confidence": 0.38 if gold.get("discrepancies") else 0.94,
                 },
             },
             "duplicate_cluster_report": {
@@ -218,7 +220,8 @@ def build_hidden_world(case: dict[str, Any]) -> dict[str, Any]:
                 "summary": f"Duplicate cluster review result: {duplicate_status}.",
                 "details": {
                     "status": duplicate_status,
-                    "gold_links": deepcopy(gold.get("duplicate_links", [])),
+                    "cluster_size": len(gold.get("duplicate_links", [])),
+                    "cluster_risk_level": "elevated" if gold.get("duplicate_links") else "clear",
                 },
             },
         },
@@ -415,39 +418,64 @@ def decision_readiness(state: LedgerShieldState, hidden_world: dict[str, Any]) -
 
 
 def state_potential(state: LedgerShieldState, hidden_world: dict[str, Any]) -> float:
+    """PBRS potential Φ(s) with anti-reward-hacking guards.
+
+    F(s, a, s') = γ·Φ(s') - Φ(s) is policy-invariant (Ng et al., 1999).
+
+    Anti-hacking: diminishing returns on artifacts, temporal urgency,
+    relevance-weighted signal coverage.
+    """
     readiness = decision_readiness(state, hidden_world)
     campaign_context = hidden_world.get("campaign_context", {})
     linked_invoice_count = max(1, int(campaign_context.get("linked_invoice_count", 1) or 1))
-    pending_penalty = min(0.12, 0.03 * len(state.pending_event_ids))
-    portfolio_progress = min(1.0, len(state.revealed_artifact_ids) / max(linked_invoice_count, 1))
-    potential = 0.70 * readiness + 0.20 * portfolio_progress + 0.10 * (1.0 - pending_penalty)
+
+    # Anti-hack 1: diminishing returns on artifact reveals
+    artifact_count = len(state.revealed_artifact_ids)
+    required_count = len(hidden_world.get("required_artifacts", []))
+    useful_artifacts = min(artifact_count, required_count + 1)
+    artifact_progress = (
+        min(1.0, useful_artifacts / max(required_count, 1))
+        if required_count > 0
+        else min(1.0, useful_artifacts / max(linked_invoice_count, 1))
+    )
+
+    # Anti-hack 2: temporal urgency — potential decays as steps increase
+    max_steps = max(state.max_steps, 1)
+    temporal_factor = max(0.0, 1.0 - 0.4 * (state.step_count / max_steps))
+
+    # Anti-hack 3: pending event penalty
+    pending_penalty = min(0.15, 0.05 * len(state.pending_event_ids))
+
+    potential = (
+        0.50 * readiness
+        + 0.20 * artifact_progress
+        + 0.15 * temporal_factor
+        + 0.15 * (1.0 - pending_penalty)
+    )
     return max(0.0, min(1.0, potential))
+
+
+def grading_state_snapshot(
+    state: LedgerShieldState,
+    hidden_world: dict[str, Any],
+) -> dict[str, Any]:
+    """Internal-only snapshot for grading. NEVER return to the agent."""
+    base = public_state_snapshot(state, hidden_world)
+    base["required_actions"] = [normalize_text(v) for v in hidden_world.get("required_actions", [])]
+    base["required_artifacts"] = [normalize_text(v) for v in hidden_world.get("required_artifacts", [])]
+    base["hidden_risk_signals"] = canonical_reason_codes(hidden_world.get("hidden_risk_signals", []))
+    base["decision_readiness"] = round(decision_readiness(state, hidden_world), 4)
+    base["successful_actions"] = sorted(_successful_actions(state))
+    base["handoff_packet"] = deepcopy(state.handoff_packet)
+    return base
 
 
 def system_state_snapshot(
     state: LedgerShieldState,
     hidden_world: dict[str, Any],
 ) -> dict[str, Any]:
-    actions = sorted(_successful_actions(state))
-    revealed = [normalize_text(value) for value in state.revealed_artifact_ids]
-    pending = pending_events_public(hidden_world)
-    handoff_packet = deepcopy(state.handoff_packet)
-    required_actions = [normalize_text(value) for value in hidden_world.get("required_actions", [])]
-    required_artifacts = [normalize_text(value) for value in hidden_world.get("required_artifacts", [])]
-
-    return {
-        "successful_actions": actions,
-        "revealed_artifact_ids": revealed,
-        "pending_events": pending,
-        "pending_event_count": len(pending),
-        "required_actions": required_actions,
-        "required_artifacts": required_artifacts,
-        "decision_readiness": round(decision_readiness(state, hidden_world), 4),
-        "handoff_packet": handoff_packet,
-        "portfolio_context": deepcopy(hidden_world.get("campaign_context", {})),
-        "observed_risk_signals": [normalize_text(value) for value in state.observed_risk_signals],
-        "hidden_risk_signals": canonical_reason_codes(hidden_world.get("hidden_risk_signals", [])),
-    }
+    """Alias for grading_state_snapshot (backward compatibility)."""
+    return grading_state_snapshot(state, hidden_world)
 
 
 def public_state_snapshot(

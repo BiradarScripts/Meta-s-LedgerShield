@@ -112,6 +112,24 @@ LedgerShield is intentionally built to sit beyond the usual benchmark categories
 | Workflow simulator | Can the agent follow a workflow? | Often lacks adversarial realism or multimodal financial evidence | LedgerShield combines workflow, evidence, policy, fraud, and outcomes |
 | LedgerShield | Can an agent safely operate an enterprise payment-control loop? | N/A | Partial observability, interventions, proof-carrying decisions, and downstream enterprise outcomes |
 
+### Research Gap Analysis
+
+LedgerShield is designed to fill specific gaps identified in recent benchmark surveys:
+
+| Gap (from ArXiv 2024-2025 surveys) | LedgerShield's answer |
+|---|---|
+| "No benchmark tests long-horizon financial operations" | Multi-step investigation episodes with budget constraints and trajectory grading |
+| "Static datasets miss adversarial realism" | 7 reusable attack patterns + deterministic variant generation |
+| "No safety semantics in existing agent benchmarks" | Unsafe release penalties, calibration scoring, outcome simulation |
+| "No benchmark requires cross-document temporal reasoning" | Multi-source evidence synthesis across invoices, emails, vendor history, and ledger records |
+| "Generalist benchmarks lack domain-specific rigor" | AP/payment-integrity domain with policy enforcement, three-way matching, and bank verification |
+
+#### Key References
+- **TAMAS (2025)**: Highlights the need for multi-step adversarial testing; LedgerShield's `authority_impersonation` and BEC scenarios simulate these long-horizon logic traps.
+- **AgentDojo (2024)**: Emphasizes multi-step adversarial interference; LedgerShield implements this via the `delayed_contradiction` attack.
+- **Process Reward Models (Lightman et al., 2023)**: LedgerShield scores the trajectory reasoning via `action_negation_score` to reward agents for understanding what they *chose not to do*.
+- **PBRS & Policy Invariance (Ng et al., 1999)**: Uses anti-hacked turn-level potential reward shaping (TIPS, 2024) to densify investigation rewards.
+
 ## Environment Overview
 
 ```mermaid

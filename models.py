@@ -147,7 +147,6 @@ class LedgerShieldState(State):
     trajectory: list[dict[str, Any]] = field(default_factory=list)
     interventions_taken: list[dict[str, Any]] = field(default_factory=list)
     observed_risk_signals: list[str] = field(default_factory=list)
-    hidden_risk_signals: list[str] = field(default_factory=list)
     final_outcome: dict[str, Any] = field(default_factory=dict)
     handoff_packet: dict[str, Any] = field(default_factory=dict)
     pending_event_ids: list[str] = field(default_factory=list)

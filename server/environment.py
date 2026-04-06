@@ -12,7 +12,7 @@ from .data_loader import load_all
 from .grading import score_submission
 from .outcome_simulator import simulate_outcome
 from .risk_rules import assess_submission_risk
-from .schema import ALLOWED_ACTIONS, ALLOWED_DECISIONS, INTERVENTION_ACTIONS
+from .schema import ALLOWED_ACTIONS, ALLOWED_DECISIONS, INTERVENTION_ACTIONS, normalize_text
 from .tools import (
     compare_bank_account_tool,
     get_doc_crop_tool,
@@ -193,7 +193,6 @@ class LedgerShieldEnvironment(Environment):
             max_steps=self.current_case.get("max_steps", 20),
             visible_doc_ids=self._initial_visible_doc_ids(),
             difficulty=self.current_case.get("difficulty", "medium"),
-            hidden_risk_signals=list(self._hidden_world.get("hidden_risk_signals", [])),
             portfolio_metrics=dict(self._hidden_world.get("campaign_context", {})),
         )
 
@@ -401,6 +400,29 @@ class LedgerShieldEnvironment(Environment):
                 "unsafe_outcome": self._state.unsafe_outcome,
                 "outcome": outcome,
                 "system_state": public_system_state,
+            }
+
+            # HER-inspired hindsight: identify which steps mattered (Andrychowicz et al., 2017)
+            required_set = {
+                normalize_text(a) for a in self._hidden_world.get("required_actions", [])
+            }
+            useful_steps = []
+            wasted_steps = []
+            for step in self._state.trajectory:
+                step_action = normalize_text(step.get("action_type", ""))
+                if step_action == "submit_decision":
+                    continue
+                if step_action in required_set:
+                    useful_steps.append(step.get("step", 0))
+                elif step.get("success", True):
+                    wasted_steps.append(step.get("step", 0))
+
+            info["hindsight"] = {
+                "useful_investigation_steps": useful_steps,
+                "wasted_investigation_steps": wasted_steps,
+                "investigation_efficiency": round(
+                    len(useful_steps) / max(len(useful_steps) + len(wasted_steps), 1), 4
+                ),
             }
             reward_components = {"final_score": final_score}
             reward_metadata.update(

@@ -11,6 +11,7 @@ from .schema import (
     token_overlap,
 )
 from .trajectory_grading import (
+    action_negation_score,
     calibration_score,
     downstream_outcome_score,
     efficiency_score,
@@ -131,10 +132,55 @@ def decision_score(pred: str, gold: str) -> float:
     return float(normalize_text(pred) == normalize_text(gold))
 
 
-def counterfactual_score(counterfactual: str) -> float:
-    text = normalize_text(counterfactual)
-    return 1.0 if len(text.split()) >= 6 else 0.0
+def counterfactual_score(
+    counterfactual: str,
+    submitted: dict[str, Any] | None = None,
+    gold: dict[str, Any] | None = None,
+    trajectory: list[dict[str, Any]] | None = None,
+) -> float:
+    """Grade counterfactual reasoning on 3 axes.
 
+    1. Structural validity — contains conditional language
+    2. Causal grounding — references observed evidence types
+    3. Negation coherence — proposes a different action than the submission
+
+    Based on: CLadder (Kıcıman et al., 2023) and
+    Process Reward Models (Lightman et al., 2023).
+    """
+    text = normalize_text(counterfactual)
+    tokens = text.split()
+
+    if len(tokens) < 6:
+        return 0.0
+
+    submitted = submitted or {}
+    gold = gold or {}
+    score = 0.0
+
+    # Axis 1: structural validity (0.30) — conditional language present
+    conditional_markers = {"would", "if", "had", "were", "unless", "provided", "assuming"}
+    has_conditional = bool(set(tokens) & conditional_markers)
+    score += 0.30 * float(has_conditional)
+
+    # Axis 2: causal grounding (0.40) — references evidence types
+    evidence_keywords = {
+        "bank", "account", "domain", "sender", "duplicate", "ledger",
+        "vendor", "receipt", "po", "policy", "callback", "threshold",
+        "email", "invoice", "mismatch", "spoof", "override", "bypass",
+    }
+    grounding_hits = len(set(tokens) & evidence_keywords)
+    grounding_score = min(1.0, grounding_hits / 3)
+    score += 0.40 * grounding_score
+
+    # Axis 3: negation coherence (0.30) — mentions alternative decisions
+    decision = normalize_text(submitted.get("decision", ""))
+    alternative_decisions = {"pay", "hold", "needs_review", "escalate_fraud", "escalate", "review"}
+    mentioned = set(tokens) & alternative_decisions
+    different_mentioned = bool(mentioned - {decision})
+    actual_mentioned = decision in mentioned
+    score += 0.30 * float(different_mentioned or actual_mentioned)
+
+    return max(0.0, min(1.0, score))
 
 def fraud_score(pred: list[str], gold: list[str]) -> float:
     base = list_f1(pred, gold)
@@ -254,19 +300,26 @@ def score_submission(
         )
         s_policy = policy_score(submitted.get("policy_checks", {}), gold.get("policy_checks", {}))
         s_evidence = evidence_score(submitted.get("evidence_map", {}), gold.get("evidence_targets", {}))
-        s_counter = counterfactual_score(submitted.get("counterfactual", ""))
+        s_counter = counterfactual_score(
+            submitted.get("counterfactual", ""),
+            submitted=submitted,
+            gold=gold,
+            trajectory=trajectory,
+        )
+        s_negation = action_negation_score(submitted, trajectory, gold)
         raw = (
-            0.17 * s_decision
-            + 0.16 * s_reasons
-            + 0.13 * s_policy
-            + 0.12 * s_evidence
-            + 0.06 * s_counter
-            + 0.09 * s_investigation
-            + 0.08 * s_intervention
+            0.16 * s_decision
+            + 0.15 * s_reasons
+            + 0.12 * s_policy
+            + 0.11 * s_evidence
+            + 0.08 * s_counter
+            + 0.05 * s_negation
+            + 0.08 * s_investigation
+            + 0.07 * s_intervention
             + 0.05 * s_resolution
             + 0.05 * s_calibration
             + 0.03 * s_efficiency
-            + 0.06 * s_outcome
+            + 0.05 * s_outcome
         )
         if normalize_text(submitted.get("decision", "")) == "pay" and gold.get("unsafe_if_pay", False):
             raw -= 0.65
@@ -276,6 +329,7 @@ def score_submission(
             "policy_score": round(s_policy, 4),
             "evidence_score": round(s_evidence, 4),
             "counterfactual_score": round(s_counter, 4),
+            "action_negation_score": round(s_negation, 4),
             "investigation_score": round(s_investigation, 4),
             "intervention_score": round(s_intervention, 4),
             "resolution_state_score": round(s_resolution, 4),

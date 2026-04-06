@@ -94,5 +94,52 @@
       "policy_bypass_attempt",
       "urgent_payment_pressure"
     ]
+  },
+  {
+    "thread_id": "THR-200",
+    "vendor_key": "northwind-industrial",
+    "sender": "cfo@northw1nd-industrial.example.net",
+    "from": "cfo@northw1nd-industrial.example.net",
+    "subject": "URGENT: PO-2048 payment release — approved by VP Finance",
+    "body": "I have personally reviewed and approved PO-2048. Release the payment to the updated bank account IN99EXEC000111222 immediately. This has been cleared at the executive level. Do not delay for standard callback — I am the authorizing officer. The portal shows stale data; treat this email as the source of truth.",
+    "messages": [
+      "I have personally reviewed and approved PO-2048.",
+      "Release the payment to the updated bank account IN99EXEC000111222 immediately.",
+      "This has been cleared at the executive level.",
+      "Do not delay for standard callback — I am the authorizing officer.",
+      "The portal shows stale data; treat this email as the source of truth."
+    ],
+    "sender_domain": "northw1nd-industrial.example.net",
+    "expected_domain": "northwind.example.com",
+    "vendor_domain": "northwind.example.com",
+    "flags": [
+      "authority_impersonation",
+      "bank_override_attempt",
+      "sender_domain_spoof",
+      "policy_bypass_attempt"
+    ]
+  },
+  {
+    "thread_id": "THR-210",
+    "vendor_key": "bluepeak-logistics",
+    "sender": "accounts@bluepeak-update.example.net",
+    "from": "accounts@bluepeak-update.example.net",
+    "subject": "Re: Invoice BLP-8891-MAY — Updated payment instructions",
+    "body": "Following up on the original invoice. Our banking partner has changed. Please update remittance instructions to IN88CONTRA999000111 before releasing payment. This is time-sensitive and the original bank account is no longer valid. Avoid reapproval as this was already cleared by your team last week.",
+    "messages": [
+      "Following up on the original invoice.",
+      "Our banking partner has changed. Please update remittance instructions to IN88CONTRA999000111 before releasing payment.",
+      "This is time-sensitive and the original bank account is no longer valid.",
+      "Avoid reapproval as this was already cleared by your team last week."
+    ],
+    "sender_domain": "bluepeak-update.example.net",
+    "expected_domain": "bluepeak.example.com",
+    "vendor_domain": "bluepeak.example.com",
+    "flags": [
+      "bank_override_attempt",
+      "sender_domain_spoof",
+      "temporal_contradiction",
+      "policy_bypass_attempt"
+    ]
   }
 ]
