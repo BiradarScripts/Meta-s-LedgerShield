@@ -66,6 +66,39 @@ VENDOR_KEY_BY_NAME = {
     "bluepeak logistics llp": "bluepeak-logistics",
 }
 
+API_CALLS_TOTAL = 0
+API_TOKENS_PROMPT = 0
+API_TOKENS_COMPLETION = 0
+API_TOKENS_TOTAL = 0
+
+def reset_api_tracking():
+    global API_CALLS_TOTAL, API_TOKENS_PROMPT, API_TOKENS_COMPLETION, API_TOKENS_TOTAL
+    API_CALLS_TOTAL = 0
+    API_TOKENS_PROMPT = 0
+    API_TOKENS_COMPLETION = 0
+    API_TOKENS_TOTAL = 0
+
+def track_api_usage(usage):
+    global API_CALLS_TOTAL, API_TOKENS_PROMPT, API_TOKENS_COMPLETION, API_TOKENS_TOTAL
+    if usage:
+        API_CALLS_TOTAL += 1
+        API_TOKENS_PROMPT += usage.prompt_tokens or 0
+        API_TOKENS_COMPLETION += usage.completion_tokens or 0
+        API_TOKENS_TOTAL += usage.total_tokens or 0
+
+def print_api_summary():
+    cost_estimate = API_TOKENS_TOTAL * 0.000005
+    print(f"\n{'='*60}")
+    print(f"API USAGE SUMMARY")
+    print(f"{'='*60}")
+    print(f"Model: {MODEL_NAME}")
+    print(f"Total API calls: {API_CALLS_TOTAL}")
+    print(f"Prompt tokens: {API_TOKENS_PROMPT:,}")
+    print(f"Completion tokens: {API_TOKENS_COMPLETION:,}")
+    print(f"Total tokens: {API_TOKENS_TOTAL:,}")
+    print(f"Estimated cost: ${cost_estimate:.4f}")
+    print(f"{'='*60}\n")
+
 
 def normalize_text(value: Any) -> str:
     if value is None:
@@ -300,13 +333,15 @@ def get_model_assessment(client: Optional[OpenAI], case_id: str, task_type: str,
                 {"role": "user", "content": user_prompt},
             ],
             temperature=TEMPERATURE,
-            max_tokens=MAX_TOKENS,
+            max_completion_tokens=MAX_TOKENS,
         )
     except Exception as exc:  # noqa: BLE001
         trace(f"[DEBUG] model assessment failed for {case_id}: {exc}")
         return {}
 
     content = response.choices[0].message.content or ""
+    track_api_usage(response.usage)
+    
     try:
         return json.loads(content)
     except json.JSONDecodeError:
@@ -976,7 +1011,9 @@ def main() -> None:
     MODEL_NAME = args.model
     API_KEY = args.token
 
+    reset_api_tracking()
     run_baseline_inference(env_url=args.env_url, cases=args.cases)
+    print_api_summary()
 
 
 if __name__ == "__main__":
