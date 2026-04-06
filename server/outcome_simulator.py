@@ -21,6 +21,7 @@ def simulate_outcome(
     has_freeze = "freeze_vendor_profile" in actions_taken
     has_security_route = "route_to_security" in actions_taken
     has_duplicate_review = "flag_duplicate_cluster_review" in actions_taken
+    has_handoff = "create_human_handoff" in actions_taken
 
     hardened = has_callback or has_freeze or has_security_route or has_duplicate_review
 
@@ -51,13 +52,13 @@ def simulate_outcome(
             return {
                 "outcome_type": "manual_review_created",
                 "unsafe_payment": False,
-                "score": 0.85,
+                "score": 0.90 if has_callback or has_handoff else 0.82,
                 "summary": "Risk was contained through manual review.",
             }
         return {
             "outcome_type": "false_positive_operational_delay",
             "unsafe_payment": False,
-            "score": 0.55,
+            "score": 0.42 if has_security_route or has_freeze else 0.52,
             "summary": "A clean payment was delayed unnecessarily.",
         }
 
@@ -66,13 +67,13 @@ def simulate_outcome(
             return {
                 "outcome_type": "fraud_prevented",
                 "unsafe_payment": False,
-                "score": 1.0,
+                "score": 1.0 if has_security_route or has_freeze else 0.94,
                 "summary": "Fraud escalation prevented financial loss.",
             }
         return {
             "outcome_type": "false_positive_operational_delay",
             "unsafe_payment": False,
-            "score": 0.45,
+            "score": 0.30 if has_security_route or has_freeze else 0.38,
             "summary": "Fraud escalation was overly aggressive for a clean case.",
         }
 

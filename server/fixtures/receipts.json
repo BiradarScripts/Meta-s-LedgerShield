@@ -36,5 +36,15 @@
         "qty": 5
       }
     ]
+  },
+  {
+    "receipt_id": "GRN-8891",
+    "po_id": "PO-8891",
+    "received_line_items": [
+      {
+        "description": "Warehouse transfer",
+        "qty": 1
+      }
+    ]
   }
 ]

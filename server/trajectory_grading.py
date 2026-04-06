@@ -67,16 +67,41 @@ def intervention_score(
     }
     decision = normalize_text(submitted.get("decision"))
     risky = bool(gold.get("unsafe_if_pay"))
+    intervention_actions = {
+        "request_callback_verification",
+        "freeze_vendor_profile",
+        "request_bank_change_approval_chain",
+        "request_po_reconciliation",
+        "request_additional_receipt_evidence",
+        "route_to_procurement",
+        "route_to_security",
+        "flag_duplicate_cluster_review",
+        "create_human_handoff",
+    }
+    taken_interventions = actions & intervention_actions
 
-    score = 0.4
+    score = 0.35
     if risky and "request_callback_verification" in actions:
-        score += 0.2
+        score += 0.20
     if risky and "route_to_security" in actions and decision == "escalate_fraud":
-        score += 0.2
+        score += 0.15
     if risky and "freeze_vendor_profile" in actions:
-        score += 0.1
-    if not risky and "route_to_security" in actions and decision == "escalate_fraud":
-        score -= 0.2
+        score += 0.10
+    if risky and "flag_duplicate_cluster_review" in actions:
+        score += 0.10
+    if risky and not taken_interventions:
+        score -= 0.15
+
+    if not risky and decision == "pay" and not taken_interventions:
+        score += 0.30
+    if not risky and "request_callback_verification" in actions:
+        score -= 0.08
+    if not risky and "route_to_security" in actions:
+        score -= 0.18
+    if not risky and "freeze_vendor_profile" in actions:
+        score -= 0.18
+    if not risky and "flag_duplicate_cluster_review" in actions:
+        score -= 0.10
     if outcome and outcome.get("unsafe_payment"):
         score -= 0.3
 
@@ -88,6 +113,7 @@ def efficiency_score(
     trajectory: list[dict[str, Any]] | None,
 ) -> float:
     repeat_penalty = 0.0
+    length_penalty = 0.0
     if trajectory:
         seen: dict[tuple[str, str], int] = {}
         for step in trajectory:
@@ -97,8 +123,10 @@ def efficiency_score(
             seen[key] = seen.get(key, 0) + 1
         repeats = sum(max(0, count - 1) for count in seen.values())
         repeat_penalty = min(0.25, repeats * 0.03)
+        if len(trajectory) > 8:
+            length_penalty = min(0.12, (len(trajectory) - 8) * 0.02)
 
-    return max(0.0, min(1.0, 1.0 - budget_penalty - repeat_penalty))
+    return max(0.0, min(1.0, 1.0 - budget_penalty - repeat_penalty - length_penalty))
 
 
 def downstream_outcome_score(outcome: dict[str, Any] | None) -> float:

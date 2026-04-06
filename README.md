@@ -308,7 +308,7 @@ This is what makes LedgerShield a **true environment** rather than a stateless e
 
 ## Task Suite
 
-LedgerShield ships with **4 task families** and **6 curated benchmark cases**.
+LedgerShield ships with **4 task families** and **9 curated benchmark cases** spanning both adversarial and clean counterexample flows.
 
 | Case ID | Task | Difficulty | Budget | Max Steps | Visible Docs |
 |---|---|---|---:|---:|---|
@@ -316,8 +316,11 @@ LedgerShield ships with **4 task families** and **6 curated benchmark cases**.
 | `CASE-A-002` | Task A | medium | `10.0` | `12` | invoice |
 | `CASE-B-001` | Task B | medium | `12.0` | `14` | invoice |
 | `CASE-B-002` | Task B | medium | `12.0` | `14` | invoice |
+| `CASE-B-003` | Task B | easy | `12.0` | `14` | invoice |
 | `CASE-C-001` | Task C | hard | `13.0` | `16` | invoice |
+| `CASE-C-002` | Task C | medium | `13.0` | `16` | invoice |
 | `CASE-D-001` | Task D | hard | `16.0` | `18` | invoice, email thread |
+| `CASE-D-002` | Task D | hard | `16.0` | `18` | invoice, email thread |
 
 ### Task A: Proof-carrying field extraction
 
@@ -335,6 +338,7 @@ The agent must:
 
 - compare invoice vs PO vs receipt
 - detect mismatches or absent receipt support
+- recognize clean three-way matches and release them safely
 - apply policy checks
 - make a safe hold/pay decision with evidence
 
@@ -345,6 +349,7 @@ The agent must:
 - use invoice plus ledger search
 - detect duplicates and near-duplicates
 - detect suspicious bank-account conditions
+- avoid false duplicate alarms on clean invoices from previously seen vendors
 - escalate high-risk cases before release
 
 ### Task D: AP inbox incident triage
@@ -361,6 +366,8 @@ The agent must synthesize:
 - policy requirements
 
 and then submit a **proof-carrying fraud escalation** with correct evidence, policy interpretation, and counterfactual reasoning.
+
+The suite now also includes a benign AP inbox case so judges can see that the environment measures **restraint and calibration**, not only aggressive fraud blocking.
 
 ## Grading Design
 
@@ -631,12 +638,12 @@ Example:
 [START] task=CASE-D-001 env=ledgershield model=openai/gpt-4.1-mini
 [STEP] step=1 action=ocr({"doc_id":"INV-D-001","mode":"accurate"}) reward=-0.06 done=false error=null
 [STEP] step=2 action=inspect_email_thread({"thread_id":"THR-100"}) reward=0.05 done=false error=null
-[END] success=true steps=11 score=0.991 rewards=-0.06,-0.06,0.05,0.01,-0.01,0.01,-0.02,0.03,-0.01,-0.01,0.99
+[END] success=true steps=11 score=0.99 rewards=-0.06,-0.06,0.05,0.01,-0.01,0.01,-0.02,0.03,-0.01,-0.01,0.99
 ```
 
 ## Verified Baseline Results
 
-Verified locally on the current 6-case benchmark suite:
+Verified locally on the current 9-case benchmark suite:
 
 | Case | Task | Difficulty | Verified score |
 |---|---|---|---:|
@@ -644,9 +651,12 @@ Verified locally on the current 6-case benchmark suite:
 | `CASE-A-002` | Task A | medium | `0.998` |
 | `CASE-B-001` | Task B | medium | `0.978` |
 | `CASE-B-002` | Task B | medium | `0.958` |
+| `CASE-B-003` | Task B | easy | `0.978` |
 | `CASE-C-001` | Task C | hard | `0.992` |
-| `CASE-D-001` | Task D | hard | `0.991` |
-| **Average** | **All tasks** | — | **`0.9858`** |
+| `CASE-C-002` | Task C | medium | `0.969` |
+| `CASE-D-001` | Task D | hard | `0.983` |
+| `CASE-D-002` | Task D | hard | `0.970` |
+| **Average** | **All tasks** | — | **`0.981`** |
 
 These scores were produced on the current benchmark fixtures using the root [inference.py](./inference.py).
 
@@ -752,7 +762,7 @@ The hackathon page specifies that submissions should comfortably run within a mo
 - server runtime is CPU-friendly and fixture-backed
 - no GPU is required for the environment server
 - benchmark cases are small enough for fast local iteration
-- the verified six-case baseline run completes well under the hackathon's 20-minute limit on a standard local machine
+- the verified nine-case baseline run completes well under the hackathon's 20-minute limit on a standard local machine
 - the environment and baseline are suitable for a `2 vCPU / 8 GB RAM` execution envelope
 
 ## Validation
@@ -789,7 +799,7 @@ The README intentionally mirrors the Meta OpenEnv hackathon checklist.
 |---|---|
 | Real-world task, not a toy | Enterprise AP/payment-integrity control environment with multimodal records and operational interventions |
 | OpenEnv spec compliance | Typed models in [models.py](./models.py), `step()/reset()/state()` in [server/environment.py](./server/environment.py), runtime metadata in [openenv.yaml](./openenv.yaml) |
-| Minimum 3 tasks with graders | 4 task families across 6 benchmark cases, graded in [server/grading.py](./server/grading.py) |
+| Minimum 3 tasks with graders | 4 task families across 9 benchmark cases, graded in [server/grading.py](./server/grading.py) |
 | Meaningful reward function | Dense step rewards, novel-signal bonuses, intervention shaping, budget pressure, and terminal score |
 | Baseline inference script | Root [inference.py](./inference.py), OpenAI client, required env vars, structured stdout logs |
 | Docker + HF Space deployability | [Dockerfile](./Dockerfile), FastAPI app, Space metadata at top of this README |

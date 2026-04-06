@@ -39,6 +39,31 @@ def _task_a_trajectory() -> list[dict]:
     ]
 
 
+def _task_d_safe_trajectory() -> list[dict]:
+    return [
+        {"action_type": "inspect_email_thread", "payload": {"thread_id": "THR-130"}, "success": True},
+        {"action_type": "lookup_vendor_history", "payload": {"vendor_key": "bluepeak-logistics"}, "success": True},
+        {"action_type": "lookup_policy", "payload": {}, "success": True},
+        {
+            "action_type": "compare_bank_account",
+            "payload": {
+                "vendor_key": "bluepeak-logistics",
+                "proposed_bank_account": "IN77BP555666777",
+            },
+            "success": True,
+        },
+        {
+            "action_type": "search_ledger",
+            "payload": {
+                "vendor_key": "bluepeak-logistics",
+                "invoice_number": "BLP-8891-MAY",
+                "amount": 8850.0,
+            },
+            "success": True,
+        },
+    ]
+
+
 def test_reset_loads_specific_case():
     env = LedgerShieldEnvironment()
     obs = env.reset(case_id="CASE-A-001")
@@ -56,6 +81,17 @@ def test_reset_random_case_works():
 
     assert obs.case_id.startswith("CASE-")
     assert obs.task_type in {"task_a", "task_b", "task_c", "task_d"}
+
+
+def test_seeded_reset_is_deterministic():
+    env_one = LedgerShieldEnvironment()
+    env_two = LedgerShieldEnvironment()
+
+    obs_one = env_one.reset(seed=1234)
+    obs_two = env_two.reset(seed=1234)
+
+    assert obs_one.case_id == obs_two.case_id
+    assert obs_one.task_type == obs_two.task_type
 
 
 def test_state_does_not_leak_gold():
@@ -212,6 +248,24 @@ def test_search_ledger_finds_duplicate_candidate():
     assert any(hit["ledger_id"] == "LED-131" for hit in hits)
 
 
+def test_search_ledger_does_not_flag_vendor_only_matches():
+    env = LedgerShieldEnvironment()
+    env.reset(case_id="CASE-C-002")
+
+    obs = env.step(
+        LedgerShieldAction(
+            action_type="search_ledger",
+            payload={
+                "vendor_key": "eurocaps-components",
+                "invoice_number": "EC-4402-26",
+                "amount": 845.0,
+            },
+        )
+    )
+
+    assert obs.last_tool_result["count"] == 0
+
+
 def test_inspect_email_thread_returns_flags():
     env = LedgerShieldEnvironment()
     env.reset(case_id="CASE-D-001")
@@ -291,6 +345,42 @@ def test_budget_decreases_after_tool_use():
     assert after < before
 
 
+def test_max_steps_terminates_episode():
+    env = LedgerShieldEnvironment()
+    env.reset(case_id="CASE-A-001")
+
+    obs = None
+    for _ in range(12):
+        obs = env.step(
+            LedgerShieldAction(
+                action_type="zoom",
+                payload={"doc_id": "INV-A-001", "bbox": [0, 0, 50, 50]},
+            )
+        )
+
+    assert obs is not None
+    assert "maximum steps reached" in " ".join(obs.messages).lower()
+
+
+def test_budget_exhaustion_terminates_episode():
+    env = LedgerShieldEnvironment()
+    env.reset(case_id="CASE-D-001")
+
+    obs = None
+    for _ in range(15):
+        obs = env.step(
+            LedgerShieldAction(
+                action_type="ocr",
+                payload={"doc_id": "INV-D-001", "mode": "accurate"},
+            )
+        )
+        if "budget exhausted" in " ".join(obs.messages).lower():
+            break
+
+    assert obs is not None
+    assert "budget exhausted" in " ".join(obs.messages).lower()
+
+
 def test_submit_invalid_decision_fails():
     env = LedgerShieldEnvironment()
     env.reset(case_id="CASE-A-001")
@@ -367,6 +457,107 @@ def test_perfect_task_d_submission_scores_high():
         outcome=outcome,
     )
     assert score > 0.95, breakdown
+
+
+def test_clean_task_b_submission_scores_high():
+    env = LedgerShieldEnvironment()
+    env.reset(case_id="CASE-B-003")
+    gold = env.current_case["gold"]
+
+    submission = {
+        "decision": "PAY",
+        "confidence": 0.89,
+        "discrepancies": [],
+        "policy_checks": dict(gold["policy_checks"]),
+        "evidence_map": {},
+    }
+    trajectory = [
+        {"action_type": "lookup_policy", "payload": {}, "success": True},
+        {"action_type": "lookup_po", "payload": {"po_id": "PO-3301"}, "success": True},
+        {"action_type": "lookup_receipt", "payload": {"receipt_id": "GRN-3301"}, "success": True},
+    ]
+    outcome = simulate_outcome(
+        submitted=submission,
+        trajectory=trajectory,
+        hidden_world=env._hidden_world,
+    )
+
+    score, breakdown = score_submission(
+        "task_b",
+        submission,
+        gold,
+        budget_penalty=0.0,
+        trajectory=trajectory,
+        outcome=outcome,
+    )
+    assert score > 0.90, breakdown
+
+
+def test_clean_task_c_submission_scores_high():
+    env = LedgerShieldEnvironment()
+    env.reset(case_id="CASE-C-002")
+    gold = env.current_case["gold"]
+
+    submission = {
+        "decision": "PAY",
+        "confidence": 0.87,
+        "duplicate_links": [],
+        "fraud_flags": [],
+        "evidence_map": {},
+    }
+    trajectory = [
+        {"action_type": "search_ledger", "payload": {}, "success": True},
+        {"action_type": "compare_bank_account", "payload": {}, "success": True},
+    ]
+    outcome = simulate_outcome(
+        submitted=submission,
+        trajectory=trajectory,
+        hidden_world=env._hidden_world,
+    )
+
+    score, breakdown = score_submission(
+        "task_c",
+        submission,
+        gold,
+        budget_penalty=0.0,
+        trajectory=trajectory,
+        outcome=outcome,
+    )
+    assert score > 0.85, breakdown
+
+
+def test_clean_task_d_submission_scores_high():
+    env = LedgerShieldEnvironment()
+    env.reset(case_id="CASE-D-002")
+    gold = env.current_case["gold"]
+
+    submission = {
+        "decision": "PAY",
+        "confidence": 0.88,
+        "reason_codes": [],
+        "policy_checks": dict(gold["policy_checks"]),
+        "evidence_map": {},
+        "counterfactual": (
+            "Would HOLD if the sender domain changed, the bank account mismatched "
+            "vendor master, or a duplicate cluster appeared in ledger history."
+        ),
+    }
+    trajectory = _task_d_safe_trajectory()
+    outcome = simulate_outcome(
+        submitted=submission,
+        trajectory=trajectory,
+        hidden_world=env._hidden_world,
+    )
+
+    score, breakdown = score_submission(
+        "task_d",
+        submission,
+        gold,
+        budget_penalty=0.0,
+        trajectory=trajectory,
+        outcome=outcome,
+    )
+    assert score > 0.88, breakdown
 
 
 def test_unsafe_pay_is_penalized():

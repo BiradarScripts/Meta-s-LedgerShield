@@ -80,5 +80,21 @@
     "subtotal": 1010.0,
     "tax": 191.9,
     "total": 1201.9
+  },
+  {
+    "po_id": "PO-8891",
+    "vendor_key": "bluepeak-logistics",
+    "currency": "INR",
+    "line_items": [
+      {
+        "description": "Warehouse transfer",
+        "qty": 1,
+        "unit_price": 7500.0,
+        "line_total": 7500.0
+      }
+    ],
+    "subtotal": 7500.0,
+    "tax": 1350.0,
+    "total": 8850.0
   }
 ]

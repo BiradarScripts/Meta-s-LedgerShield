@@ -10,6 +10,7 @@ dependencies = [
   "pydantic",
   "requests",
   "pyyaml",
+  "httpx",
   "huggingface_hub",
   "openai"
 ]

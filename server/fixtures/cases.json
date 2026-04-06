@@ -280,6 +280,55 @@
     }
   },
   {
+    "case_id": "CASE-B-003",
+    "task_type": "task_b",
+    "task_label": "Clean three-way match",
+    "difficulty": "easy",
+    "budget_total": 12.0,
+    "max_steps": 14,
+    "instruction": "Perform a 3-way match across invoice, PO, and receipt. Release payment only if the records reconcile cleanly and policy checks pass.",
+    "initial_visible_doc_ids": ["INV-B-003"],
+    "documents": [
+      {
+        "doc_id": "INV-B-003",
+        "doc_type": "invoice",
+        "thumbnail": "invoice-thumb-b003",
+        "page_count": 1,
+        "language": "en",
+        "visual_tokens": ["table", "total_box", "bank_footer"],
+        "noisy_ocr": [
+          { "token_id": "bc1n", "text": "EuroCaps Components", "bbox": [10, 10, 120, 20], "page": 1 },
+          { "token_id": "bc2n", "text": "EC-3301-27", "bbox": [10, 30, 90, 40], "page": 1 },
+          { "token_id": "bc3n", "text": "Total 1201.90", "bbox": [10, 50, 90, 60], "page": 1 }
+        ],
+        "accurate_ocr": [
+          { "token_id": "bc1", "text": "EuroCaps Components GmbH", "bbox": [10, 10, 160, 20], "page": 1 },
+          { "token_id": "bc2", "text": "Invoice No: EC-3301-27", "bbox": [10, 30, 150, 40], "page": 1 },
+          { "token_id": "bc3", "text": "PO: PO-3301", "bbox": [10, 50, 100, 60], "page": 1 },
+          { "token_id": "bc4", "text": "Receipt: GRN-3301", "bbox": [10, 70, 140, 80], "page": 1 },
+          { "token_id": "bc5", "text": "Capacitor bank C-33 | 10 | 90.00 | 900.00", "bbox": [10, 90, 240, 100], "page": 1 },
+          { "token_id": "bc6", "text": "Ceramic fuse set | 5 | 22.00 | 110.00", "bbox": [10, 110, 220, 120], "page": 1 },
+          { "token_id": "bc7", "text": "Subtotal: 1010.00", "bbox": [10, 130, 110, 140], "page": 1 },
+          { "token_id": "bc8", "text": "Tax: 191.90", "bbox": [10, 150, 90, 160], "page": 1 },
+          { "token_id": "bc9", "text": "Total: 1201.90", "bbox": [10, 170, 100, 180], "page": 1 },
+          { "token_id": "bc10", "text": "Bank: DE04500105175407324931", "bbox": [10, 190, 180, 200], "page": 1 }
+        ]
+      }
+    ],
+    "gold": {
+      "decision": "PAY",
+      "discrepancies": [],
+      "policy_checks": {
+        "three_way_match": "pass",
+        "bank_change_verification": "pass",
+        "duplicate_check": "pass",
+        "approval_threshold_check": "pass"
+      },
+      "unsafe_if_pay": false,
+      "evidence_targets": {}
+    }
+  },
+  {
     "case_id": "CASE-C-001",
     "task_type": "task_c",
     "task_label": "Duplicate payment triage",
@@ -317,6 +366,43 @@
         "bank_override_attempt": { "doc_id": "INV-C-001", "page": 1, "bbox": [10, 70, 170, 80], "token_ids": ["c4"] },
         "duplicate_near_match": { "doc_id": "INV-C-001", "page": 1, "bbox": [10, 30, 150, 40], "token_ids": ["c2"] }
       }
+    }
+  },
+  {
+    "case_id": "CASE-C-002",
+    "task_type": "task_c",
+    "task_label": "Clean payment triage",
+    "difficulty": "medium",
+    "budget_total": 13.0,
+    "max_steps": 16,
+    "instruction": "Use the ledger and vendor master to determine whether this payment is clean, duplicative, or suspicious.",
+    "initial_visible_doc_ids": ["INV-C-002"],
+    "documents": [
+      {
+        "doc_id": "INV-C-002",
+        "doc_type": "invoice",
+        "thumbnail": "invoice-thumb-c002",
+        "page_count": 1,
+        "language": "en",
+        "visual_tokens": ["vendor_header", "invoice_number", "bank_footer"],
+        "noisy_ocr": [
+          { "token_id": "c2n1", "text": "EuroCaps Components", "bbox": [10, 10, 120, 20], "page": 1 },
+          { "token_id": "c2n2", "text": "EC-4402-26", "bbox": [10, 30, 90, 40], "page": 1 }
+        ],
+        "accurate_ocr": [
+          { "token_id": "c21", "text": "EuroCaps Components GmbH", "bbox": [10, 10, 160, 20], "page": 1 },
+          { "token_id": "c22", "text": "Invoice No: EC-4402-26", "bbox": [10, 30, 150, 40], "page": 1 },
+          { "token_id": "c23", "text": "Total: 845.00", "bbox": [10, 50, 90, 60], "page": 1 },
+          { "token_id": "c24", "text": "Bank: DE04500105175407324931", "bbox": [10, 70, 180, 80], "page": 1 }
+        ]
+      }
+    ],
+    "gold": {
+      "decision": "PAY",
+      "duplicate_links": [],
+      "fraud_flags": [],
+      "unsafe_if_pay": false,
+      "evidence_targets": {}
     }
   },
   {
@@ -383,6 +469,67 @@
         "sender_domain_spoof": { "doc_id": "THR-100", "page": 1, "bbox": [10, 10, 250, 20], "token_ids": ["ed1"] },
         "duplicate_near_match": { "doc_id": "INV-D-001", "page": 1, "bbox": [10, 30, 150, 40], "token_ids": ["d2"] }
       }
+    }
+  },
+  {
+    "case_id": "CASE-D-002",
+    "task_type": "task_d",
+    "task_label": "Benign AP inbox triage",
+    "difficulty": "hard",
+    "budget_total": 16.0,
+    "max_steps": 18,
+    "instruction": "Act as an AP analyst. Inspect the invoice, email thread THR-130, vendor master, vendor history, ledger, and policy. Distinguish a clean inbox follow-up from a real payment incident.",
+    "initial_visible_doc_ids": ["INV-D-002", "THR-130"],
+    "documents": [
+      {
+        "doc_id": "INV-D-002",
+        "doc_type": "invoice",
+        "thumbnail": "invoice-thumb-d002",
+        "page_count": 1,
+        "language": "en",
+        "visual_tokens": ["bank_footer", "total_box"],
+        "noisy_ocr": [
+          { "token_id": "d2n1", "text": "BluePeak Logistics", "bbox": [10, 10, 110, 20], "page": 1 },
+          { "token_id": "d2n2", "text": "BLP-8891-MAY", "bbox": [10, 30, 100, 40], "page": 1 }
+        ],
+        "accurate_ocr": [
+          { "token_id": "d21", "text": "BluePeak Logistics LLP", "bbox": [10, 10, 150, 20], "page": 1 },
+          { "token_id": "d22", "text": "Invoice No: BLP-8891-MAY", "bbox": [10, 30, 170, 40], "page": 1 },
+          { "token_id": "d23", "text": "PO: PO-8891", "bbox": [10, 50, 80, 60], "page": 1 },
+          { "token_id": "d24", "text": "Receipt: GRN-8891", "bbox": [10, 70, 110, 80], "page": 1 },
+          { "token_id": "d25", "text": "Total: 8850.00", "bbox": [10, 90, 100, 100], "page": 1 },
+          { "token_id": "d26", "text": "Bank: IN77BP555666777", "bbox": [10, 110, 170, 120], "page": 1 }
+        ]
+      },
+      {
+        "doc_id": "THR-130",
+        "doc_type": "email",
+        "thumbnail": "email-thumb-d002",
+        "page_count": 1,
+        "language": "en",
+        "visual_tokens": ["sender_header", "body_text"],
+        "noisy_ocr": [
+          { "token_id": "ed2n1", "text": "Approved invoice copy", "bbox": [10, 10, 110, 20], "page": 1 }
+        ],
+        "accurate_ocr": [
+          { "token_id": "ed21", "text": "From: billing@bluepeak.example.com", "bbox": [10, 10, 220, 20], "page": 1 },
+          { "token_id": "ed22", "text": "Subject: Approved invoice copy for scheduled payment run", "bbox": [10, 30, 320, 40], "page": 1 },
+          { "token_id": "ed23", "text": "Attaching the signed invoice copy and receipt for your scheduled payment run.", "bbox": [10, 50, 360, 60], "page": 1 },
+          { "token_id": "ed24", "text": "No bank changes requested. Please use the approved remittance instructions already on file.", "bbox": [10, 70, 390, 80], "page": 1 }
+        ]
+      }
+    ],
+    "gold": {
+      "decision": "PAY",
+      "reason_codes": [],
+      "policy_checks": {
+        "three_way_match": "pass",
+        "bank_change_verification": "pass",
+        "duplicate_check": "pass",
+        "approval_threshold_check": "pass"
+      },
+      "unsafe_if_pay": false,
+      "evidence_targets": {}
     }
   }
 ]

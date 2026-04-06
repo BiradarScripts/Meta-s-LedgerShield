@@ -49,8 +49,11 @@ DEFAULT_CASES = [
     "CASE-A-002",
     "CASE-B-001",
     "CASE-B-002",
+    "CASE-B-003",
     "CASE-C-001",
+    "CASE-C-002",
     "CASE-D-001",
+    "CASE-D-002",
 ]
 
 VENDOR_KEY_BY_NAME = {
@@ -220,7 +223,7 @@ def parse_email_tokens(tokens: list[dict[str, Any]], doc_id: str) -> dict[str, A
     for token in tokens:
         text = str(token.get("text", "")).strip()
         if text.lower().startswith("from:"):
-            evidence["sender_domain_spoof"] = token_ref(token, doc_id)
+            evidence["from_header"] = token_ref(token, doc_id)
     return evidence
 
 
@@ -325,6 +328,23 @@ def build_task_b_submission(collected: dict[str, Any]) -> dict[str, Any]:
             if "total" in invoice_evidence:
                 evidence_map["total_mismatch"] = invoice_evidence["total"]
 
+        receipt_items = {
+            normalize_text(item.get("description")): safe_float(item.get("qty"))
+            for item in receipt.get("received_line_items", []) or []
+        }
+        for idx, invoice_line in enumerate(invoice_lines):
+            description = normalize_text(invoice_line.get("description"))
+            expected_qty = safe_float(invoice_line.get("qty"))
+            received_qty = receipt_items.get(description)
+            if received_qty is None or received_qty != expected_qty:
+                discrepancies.append("quantity_mismatch")
+                if idx < len(collected["invoice_line_tokens"]):
+                    evidence_map["quantity_mismatch"] = token_ref(
+                        collected["invoice_line_tokens"][idx],
+                        collected["invoice_doc_id"],
+                    )
+                break
+
     checks = policy_check_payload(
         three_way_match="fail" if discrepancies else "pass",
         bank_change_verification="pass",
@@ -332,8 +352,8 @@ def build_task_b_submission(collected: dict[str, Any]) -> dict[str, Any]:
     )
 
     return {
-        "decision": "HOLD",
-        "confidence": 0.93,
+        "decision": "HOLD" if discrepancies else "PAY",
+        "confidence": 0.93 if discrepancies else 0.89,
         "discrepancies": discrepancies,
         "policy_checks": checks,
         "evidence_map": evidence_map,
@@ -342,19 +362,27 @@ def build_task_b_submission(collected: dict[str, Any]) -> dict[str, Any]:
 
 def build_task_c_submission(collected: dict[str, Any]) -> dict[str, Any]:
     invoice_evidence = collected["invoice_evidence"]
+    ledger_search = collected.get("ledger_search") or {}
     duplicate_links = [hit.get("ledger_id") for hit in collected.get("ledger_hits", []) if hit.get("ledger_id")]
+    bank_compare = collected.get("bank_compare") or {}
+    bank_mismatch = bool(bank_compare) and not bool(bank_compare.get("matched"))
+    duplicate_detected = bool(duplicate_links) or int(ledger_search.get("exact_duplicate_count", 0) or 0) > 0
+    suspicious = bank_mismatch or duplicate_detected
 
     evidence_map: dict[str, Any] = {}
-    if "bank_account" in invoice_evidence:
+    fraud_flags: list[str] = []
+    if bank_mismatch and "bank_account" in invoice_evidence:
         evidence_map["bank_override_attempt"] = invoice_evidence["bank_account"]
-    if "invoice_number" in invoice_evidence:
+        fraud_flags.append("bank_override_attempt")
+    if duplicate_detected and "invoice_number" in invoice_evidence:
         evidence_map["duplicate_near_match"] = invoice_evidence["invoice_number"]
+        fraud_flags.append("duplicate_near_match")
 
     return {
-        "decision": "ESCALATE_FRAUD",
-        "confidence": 0.98,
-        "duplicate_links": duplicate_links,
-        "fraud_flags": ["bank_override_attempt", "duplicate_near_match"],
+        "decision": "ESCALATE_FRAUD" if suspicious else "PAY",
+        "confidence": 0.98 if suspicious else 0.87,
+        "duplicate_links": duplicate_links if suspicious else [],
+        "fraud_flags": fraud_flags,
         "evidence_map": evidence_map,
     }
 
@@ -362,14 +390,44 @@ def build_task_c_submission(collected: dict[str, Any]) -> dict[str, Any]:
 def build_task_d_submission(collected: dict[str, Any], model_assessment: dict[str, Any]) -> dict[str, Any]:
     invoice_evidence = collected["invoice_evidence"]
     email_evidence = collected.get("email_evidence", {})
+    email_thread = collected.get("email_thread") or {}
+    ledger_search = collected.get("ledger_search") or {}
+    bank_compare = collected.get("bank_compare") or {}
+    vendor_history = collected.get("vendor_history", []) or []
+    email_flags = {normalize_text(flag) for flag in email_thread.get("derived_flags", []) or email_thread.get("flags", []) or []}
+    duplicate_detected = bool(collected.get("ledger_hits")) or int(ledger_search.get("exact_duplicate_count", 0) or 0) > 0
+    bank_mismatch = bool(bank_compare) and not bool(bank_compare.get("matched"))
+    suspicious_history = any(
+        normalize_text(item.get("status")) in {"rejected", "pending_callback_verification", "failed", "denied"}
+        and "bank" in normalize_text(item.get("change_type") or item.get("event_type"))
+        for item in vendor_history
+    )
+    suspicious = duplicate_detected or bank_mismatch or bool(email_flags) or suspicious_history
 
     evidence_map: dict[str, Any] = {}
-    if "bank_account" in invoice_evidence:
+    reason_codes: list[str] = []
+    if bank_mismatch and "bank_account" in invoice_evidence:
         evidence_map["bank_override_attempt"] = invoice_evidence["bank_account"]
-    if "invoice_number" in invoice_evidence:
+        reason_codes.append("bank_override_attempt")
+    if duplicate_detected and "invoice_number" in invoice_evidence:
         evidence_map["duplicate_near_match"] = invoice_evidence["invoice_number"]
-    if "sender_domain_spoof" in email_evidence:
-        evidence_map["sender_domain_spoof"] = email_evidence["sender_domain_spoof"]
+        reason_codes.append("duplicate_near_match")
+    if ("sender_domain_spoof" in email_flags or "sender_domain_spoof" in email_evidence) and "from_header" in email_evidence:
+        evidence_map["sender_domain_spoof"] = email_evidence["from_header"]
+        reason_codes.append("sender_domain_spoof")
+
+    if not suspicious:
+        return {
+            "decision": "PAY",
+            "confidence": 0.88,
+            "reason_codes": [],
+            "policy_checks": policy_check_payload("pass", "pass", "pass"),
+            "evidence_map": {},
+            "counterfactual": (
+                "Would HOLD if the sender domain changed, the bank account mismatched "
+                "vendor master, or a duplicate cluster appeared in ledger history."
+            ),
+        }
 
     checks = policy_check_payload(
         three_way_match="pass",
@@ -380,11 +438,7 @@ def build_task_d_submission(collected: dict[str, Any], model_assessment: dict[st
     return {
         "decision": "ESCALATE_FRAUD",
         "confidence": 0.99,
-        "reason_codes": [
-            "bank_override_attempt",
-            "sender_domain_spoof",
-            "duplicate_near_match",
-        ],
+        "reason_codes": sorted(set(reason_codes)),
         "policy_checks": checks,
         "evidence_map": evidence_map,
         "counterfactual": make_counterfactual("task_d", model_assessment),
@@ -492,6 +546,7 @@ def run_episode(
             "po": None,
             "receipt": None,
             "ledger_hits": [],
+            "ledger_search": {},
             "vendor_history": [],
             "email_thread": None,
             "bank_compare": None,
@@ -572,7 +627,6 @@ def run_episode(
                     action_type="lookup_receipt",
                     payload={"receipt_id": receipt_id or po_id.replace("PO-", "GRN-")},
                 ),
-                LedgerShieldAction(action_type="request_callback_verification", payload={}),
             ]
         elif task_type == "task_c":
             action_plan = [
@@ -591,9 +645,6 @@ def run_episode(
                         "proposed_bank_account": proposed_bank_account,
                     },
                 ),
-                LedgerShieldAction(action_type="request_callback_verification", payload={}),
-                LedgerShieldAction(action_type="route_to_security", payload={}),
-                LedgerShieldAction(action_type="freeze_vendor_profile", payload={}),
             ]
         else:
             action_plan = [
@@ -601,7 +652,7 @@ def run_episode(
                     action_type="ocr",
                     payload={"doc_id": email_doc_id, "mode": "accurate"},
                 ),
-                LedgerShieldAction(action_type="inspect_email_thread", payload={"thread_id": "THR-100"}),
+                LedgerShieldAction(action_type="inspect_email_thread", payload={"thread_id": email_doc_id}),
                 LedgerShieldAction(action_type="lookup_vendor_history", payload={"vendor_key": vendor_key}),
                 LedgerShieldAction(action_type="lookup_policy", payload={}),
                 LedgerShieldAction(
@@ -619,9 +670,6 @@ def run_episode(
                         "amount": invoice_total,
                     },
                 ),
-                LedgerShieldAction(action_type="request_callback_verification", payload={}),
-                LedgerShieldAction(action_type="route_to_security", payload={}),
-                LedgerShieldAction(action_type="freeze_vendor_profile", payload={}),
             ]
 
         for action in action_plan:
@@ -638,6 +686,7 @@ def run_episode(
                 collected["receipt"] = tool.get("receipt")
             elif tool_name == "search_ledger" and tool.get("success"):
                 collected["ledger_hits"] = list(tool.get("hits", []) or [])
+                collected["ledger_search"] = tool
             elif tool_name == "lookup_vendor_history" and tool.get("success"):
                 collected["vendor_history"] = list(tool.get("history", []) or [])
             elif tool_name == "inspect_email_thread" and tool.get("success"):
@@ -659,19 +708,80 @@ def run_episode(
                     "steps": steps_taken,
                 }
 
+        if task_type == "task_b":
+            preview_submission = build_task_b_submission(collected)
+            if preview_submission["decision"] == "HOLD" and step_no <= MAX_STEPS:
+                result, step_no = perform_step(
+                    env,
+                    step_no,
+                    rewards,
+                    LedgerShieldAction(action_type="request_callback_verification", payload={}),
+                )
+                steps_taken = step_no - 1
+                if result.done:
+                    final_score = float(result.info.get("final_score", result.reward or 0.0))
+                    success = final_score >= SUCCESS_SCORE_THRESHOLD
+                    return {
+                        "case_id": case_id,
+                        "task_type": task_type,
+                        "score": final_score,
+                        "steps": steps_taken,
+                    }
+
+        if task_type == "task_c":
+            preview_submission = build_task_c_submission(collected)
+            if preview_submission["decision"] == "ESCALATE_FRAUD":
+                for action in [
+                    LedgerShieldAction(action_type="request_callback_verification", payload={}),
+                    LedgerShieldAction(action_type="flag_duplicate_cluster_review", payload={}),
+                    LedgerShieldAction(action_type="route_to_security", payload={}),
+                    LedgerShieldAction(action_type="freeze_vendor_profile", payload={}),
+                ]:
+                    if step_no > MAX_STEPS:
+                        break
+                    result, step_no = perform_step(env, step_no, rewards, action)
+                    steps_taken = step_no - 1
+                    if result.done:
+                        final_score = float(result.info.get("final_score", result.reward or 0.0))
+                        success = final_score >= SUCCESS_SCORE_THRESHOLD
+                        return {
+                            "case_id": case_id,
+                            "task_type": task_type,
+                            "score": final_score,
+                            "steps": steps_taken,
+                        }
+
+        if task_type == "task_d":
+            preview_submission = build_task_d_submission(collected, {})
+            if preview_submission["decision"] == "ESCALATE_FRAUD":
+                for action in [
+                    LedgerShieldAction(action_type="request_callback_verification", payload={}),
+                    LedgerShieldAction(action_type="route_to_security", payload={}),
+                    LedgerShieldAction(action_type="freeze_vendor_profile", payload={}),
+                ]:
+                    if step_no > MAX_STEPS:
+                        break
+                    result, step_no = perform_step(env, step_no, rewards, action)
+                    steps_taken = step_no - 1
+                    if result.done:
+                        final_score = float(result.info.get("final_score", result.reward or 0.0))
+                        success = final_score >= SUCCESS_SCORE_THRESHOLD
+                        return {
+                            "case_id": case_id,
+                            "task_type": task_type,
+                            "score": final_score,
+                            "steps": steps_taken,
+                        }
+
         context = {
             "fields": collected.get("invoice_fields", {}),
             "duplicate_links": [hit.get("ledger_id") for hit in collected.get("ledger_hits", []) if hit.get("ledger_id")],
-            "fraud_flags": ["bank_override_attempt", "duplicate_near_match"] if task_type == "task_c" else [],
-            "reason_codes": (
-                ["bank_override_attempt", "sender_domain_spoof", "duplicate_near_match"]
-                if task_type == "task_d"
-                else []
-            ),
+            "fraud_flags": build_task_c_submission(collected).get("fraud_flags", []) if task_type == "task_c" else [],
+            "reason_codes": build_task_d_submission(collected, {}).get("reason_codes", []) if task_type == "task_d" else [],
             "policy_checks": (
-                policy_check_payload("pass", "fail", "fail")
+                build_task_d_submission(collected, {}).get("policy_checks", policy_check_payload("pass", "pass", "pass"))
                 if task_type == "task_d"
-                else policy_check_payload("fail", "pass", "pass")
+                else build_task_b_submission(collected).get("policy_checks", policy_check_payload("fail", "pass", "pass"))
             ),
         }
         model_assessment = get_model_assessment(client, case_id, task_type, context)

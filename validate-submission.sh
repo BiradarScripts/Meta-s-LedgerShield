@@ -1,33 +1,19 @@
 #!/usr/bin/env bash
 #
-# validate-submission.sh — OpenEnv Submission Validator
+# validate-submission.sh — LedgerShield pre-submission validator
 #
-# Checks that your HF Space is live, Docker image builds, and openenv validate passes.
-#
-# Prerequisites:
-#   - Docker:       https://docs.docker.com/get-docker/
-#   - openenv-core: pip install openenv-core
-#   - curl (usually pre-installed)
-#
-# Run:
-#   curl -fsSL https://raw.githubusercontent.com/<owner>/<repo>/main/scripts/validate-submission.sh | bash -s -- <ping_url> [repo_dir]
-#
-#   Or download and run locally:
-#     chmod +x validate-submission.sh
-#     ./validate-submission.sh <ping_url> [repo_dir]
-#
-# Arguments:
-#   ping_url   Your HuggingFace Space URL (e.g. https://your-space.hf.space)
-#   repo_dir   Path to your repo (default: current directory)
-#
-# Examples:
-#   ./validate-submission.sh https://my-team.hf.space
-#   ./validate-submission.sh https://my-team.hf.space ./my-repo
-#
+# Validates the local repo and a deployed HF Space against the Meta OpenEnv
+# hackathon's most important hard gates:
+#   1. Space health + reset
+#   2. Docker build + local container run
+#   3. openenv validate
+#   4. inference.py completes and emits strict [START]/[STEP]/[END] logs
 
-set -uo pipefail
+set -euo pipefail
 
-DOCKER_BUILD_TIMEOUT=600
+DOCKER_BUILD_TIMEOUT=900
+LOCAL_PORT="${LOCAL_PORT:-18080}"
+
 if [ -t 1 ]; then
   RED='\033[0;31m'
   GREEN='\033[0;32m'
@@ -40,9 +26,9 @@ fi
 
 run_with_timeout() {
   local secs="$1"; shift
-  if command -v timeout &>/dev/null; then
+  if command -v timeout >/dev/null 2>&1; then
     timeout "$secs" "$@"
-  elif command -v gtimeout &>/dev/null; then
+  elif command -v gtimeout >/dev/null 2>&1; then
     gtimeout "$secs" "$@"
   else
     "$@" &
@@ -51,8 +37,8 @@ run_with_timeout() {
     local watcher=$!
     wait "$pid" 2>/dev/null
     local rc=$?
-    kill "$watcher" 2>/dev/null
-    wait "$watcher" 2>/dev/null
+    kill "$watcher" 2>/dev/null || true
+    wait "$watcher" 2>/dev/null || true
     return $rc
   fi
 }
@@ -62,18 +48,38 @@ portable_mktemp() {
   mktemp "${TMPDIR:-/tmp}/${prefix}-XXXXXX" 2>/dev/null || mktemp
 }
 
+PYTHON_BIN="${PYTHON_BIN:-}"
+if [ -z "$PYTHON_BIN" ]; then
+  if command -v python >/dev/null 2>&1; then
+    PYTHON_BIN=python
+  elif command -v python3 >/dev/null 2>&1; then
+    PYTHON_BIN=python3
+  else
+    echo "python/python3 not found"
+    exit 1
+  fi
+fi
+
 CLEANUP_FILES=()
-cleanup() { rm -f "${CLEANUP_FILES[@]+"${CLEANUP_FILES[@]}"}"; }
+IMAGE_TAG=""
+CONTAINER_NAME=""
+
+cleanup() {
+  if [ -n "${CONTAINER_NAME}" ]; then
+    docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
+  fi
+  rm -f "${CLEANUP_FILES[@]+"${CLEANUP_FILES[@]}"}" 2>/dev/null || true
+}
 trap cleanup EXIT
 
 PING_URL="${1:-}"
 REPO_DIR="${2:-.}"
 
 if [ -z "$PING_URL" ]; then
-  printf "Usage: %s <ping_url> [repo_dir]\n" "$0"
+  printf "Usage: %s <space_url> [repo_dir]\n" "$0"
   printf "\n"
-  printf "  ping_url   Your HuggingFace Space URL (e.g. https://your-space.hf.space)\n"
-  printf "  repo_dir   Path to your repo (default: current directory)\n"
+  printf "  space_url  Your Hugging Face Space URL (e.g. https://team-name.hf.space)\n"
+  printf "  repo_dir   Path to repo root (default: current directory)\n"
   exit 1
 fi
 
@@ -81,8 +87,8 @@ if ! REPO_DIR="$(cd "$REPO_DIR" 2>/dev/null && pwd)"; then
   printf "Error: directory '%s' not found\n" "${2:-.}"
   exit 1
 fi
+
 PING_URL="${PING_URL%/}"
-export PING_URL
 PASS=0
 
 log()  { printf "[%s] %b\n" "$(date -u +%H:%M:%S)" "$*"; }
@@ -95,57 +101,90 @@ stop_at() {
   exit 1
 }
 
-printf "\n"
-printf "${BOLD}========================================${NC}\n"
-printf "${BOLD}  OpenEnv Submission Validator${NC}\n"
-printf "${BOLD}========================================${NC}\n"
-log "Repo:     $REPO_DIR"
-log "Ping URL: $PING_URL"
-printf "\n"
+print_header() {
+  printf "\n"
+  printf "${BOLD}========================================${NC}\n"
+  printf "${BOLD}  LedgerShield Submission Validator${NC}\n"
+  printf "${BOLD}========================================${NC}\n"
+  log "Repo:     $REPO_DIR"
+  log "Space:    $PING_URL"
+  log "Python:   $PYTHON_BIN"
+  printf "\n"
+}
 
-log "${BOLD}Step 1/3: Pinging HF Space${NC} ($PING_URL/reset) ..."
+http_code() {
+  local method="$1"
+  local url="$2"
+  local body="${3:-}"
+  if [ -n "$body" ]; then
+    curl -s -o /dev/null -w "%{http_code}" -X "$method" \
+      -H "Content-Type: application/json" \
+      -d "$body" \
+      "$url" \
+      --max-time 30 || printf "000"
+  else
+    curl -s -o /dev/null -w "%{http_code}" -X "$method" \
+      "$url" \
+      --max-time 30 || printf "000"
+  fi
+}
 
-CURL_OUTPUT=$(portable_mktemp "validate-curl")
-CLEANUP_FILES+=("$CURL_OUTPUT")
-HTTP_CODE=$(curl -s -o "$CURL_OUTPUT" -w "%{http_code}" -X POST \
-  -H "Content-Type: application/json" -d '{}' \
-  "$PING_URL/reset" --max-time 30 2>"$CURL_OUTPUT" || printf "000")
+wait_for_http_200() {
+  local url="$1"
+  local method="${2:-GET}"
+  local body="${3:-}"
+  local tries="${4:-40}"
+  local pause="${5:-1}"
 
-if [ "$HTTP_CODE" = "200" ]; then
-  pass "HF Space is live and responds to /reset"
-elif [ "$HTTP_CODE" = "000" ]; then
-  fail "HF Space not reachable (connection failed or timed out)"
-  hint "Check your network connection and that the Space is running."
-  hint "Try: curl -s -o /dev/null -w '%%{http_code}' -X POST $PING_URL/reset"
-  stop_at "Step 1"
+  for _ in $(seq 1 "$tries"); do
+    local code
+    code="$(http_code "$method" "$url" "$body")"
+    if [ "$code" = "200" ]; then
+      return 0
+    fi
+    sleep "$pause"
+  done
+  return 1
+}
+
+print_header
+
+log "${BOLD}Step 1/4: Checking deployed HF Space${NC}"
+
+SPACE_HEALTH_CODE="$(http_code GET "$PING_URL/health")"
+if [ "$SPACE_HEALTH_CODE" = "200" ]; then
+  pass "HF Space responds to /health"
 else
-  fail "HF Space /reset returned HTTP $HTTP_CODE (expected 200)"
-  hint "Make sure your Space is running and the URL is correct."
-  hint "Try opening $PING_URL in your browser first."
+  fail "HF Space /health returned HTTP $SPACE_HEALTH_CODE"
+  hint "Make sure the Space is running and exposes the FastAPI app."
   stop_at "Step 1"
 fi
 
-log "${BOLD}Step 2/3: Running docker build${NC} ..."
+SPACE_RESET_CODE="$(http_code POST "$PING_URL/reset" '{}')"
+if [ "$SPACE_RESET_CODE" = "200" ]; then
+  pass "HF Space responds to /reset"
+else
+  fail "HF Space /reset returned HTTP $SPACE_RESET_CODE"
+  hint "The validator expects POST /reset to succeed with an empty JSON body."
+  stop_at "Step 1"
+fi
 
-if ! command -v docker &>/dev/null; then
+log "${BOLD}Step 2/4: Building and running Docker image${NC}"
+
+if ! command -v docker >/dev/null 2>&1; then
   fail "docker command not found"
-  hint "Install Docker: https://docs.docker.com/get-docker/"
+  hint "Install Docker Desktop or Docker Engine before running this validator."
   stop_at "Step 2"
 fi
 
-if [ -f "$REPO_DIR/Dockerfile" ]; then
-  DOCKER_CONTEXT="$REPO_DIR"
-elif [ -f "$REPO_DIR/server/Dockerfile" ]; then
-  DOCKER_CONTEXT="$REPO_DIR/server"
-else
-  fail "No Dockerfile found in repo root or server/ directory"
+if [ ! -f "$REPO_DIR/Dockerfile" ]; then
+  fail "No Dockerfile found in repo root"
   stop_at "Step 2"
 fi
 
-log "  Found Dockerfile in $DOCKER_CONTEXT"
-
+IMAGE_TAG="ledgershield-validate:$(date +%s)"
 BUILD_OK=false
-BUILD_OUTPUT=$(run_with_timeout "$DOCKER_BUILD_TIMEOUT" docker build "$DOCKER_CONTEXT" 2>&1) && BUILD_OK=true
+BUILD_OUTPUT="$(run_with_timeout "$DOCKER_BUILD_TIMEOUT" docker build -t "$IMAGE_TAG" "$REPO_DIR" 2>&1)" && BUILD_OK=true
 
 if [ "$BUILD_OK" = true ]; then
   pass "Docker build succeeded"
@@ -155,16 +194,40 @@ else
   stop_at "Step 2"
 fi
 
-log "${BOLD}Step 3/3: Running openenv validate${NC} ..."
+CONTAINER_NAME="ledgershield-validate-$RANDOM"
+docker run -d --rm \
+  --name "$CONTAINER_NAME" \
+  -p "127.0.0.1:${LOCAL_PORT}:8000" \
+  "$IMAGE_TAG" >/dev/null
 
-if ! command -v openenv &>/dev/null; then
+if wait_for_http_200 "http://127.0.0.1:${LOCAL_PORT}/health" GET "" 40 1; then
+  pass "Local Docker container responds to /health"
+else
+  fail "Local Docker container did not become healthy"
+  hint "Check the image entrypoint and ensure uvicorn starts on port 8000."
+  docker logs "$CONTAINER_NAME" | tail -50
+  stop_at "Step 2"
+fi
+
+LOCAL_RESET_CODE="$(http_code POST "http://127.0.0.1:${LOCAL_PORT}/reset" '{}')"
+if [ "$LOCAL_RESET_CODE" = "200" ]; then
+  pass "Local Docker container responds to /reset"
+else
+  fail "Local Docker container /reset returned HTTP $LOCAL_RESET_CODE"
+  docker logs "$CONTAINER_NAME" | tail -50
+  stop_at "Step 2"
+fi
+
+log "${BOLD}Step 3/4: Running openenv validate${NC}"
+
+if ! command -v openenv >/dev/null 2>&1; then
   fail "openenv command not found"
-  hint "Install it: pip install openenv-core"
+  hint "Install with: pip install openenv-core"
   stop_at "Step 3"
 fi
 
 VALIDATE_OK=false
-VALIDATE_OUTPUT=$(cd "$REPO_DIR" && openenv validate 2>&1) && VALIDATE_OK=true
+VALIDATE_OUTPUT="$(cd "$REPO_DIR" && openenv validate 2>&1)" && VALIDATE_OK=true
 
 if [ "$VALIDATE_OK" = true ]; then
   pass "openenv validate passed"
@@ -175,10 +238,104 @@ else
   stop_at "Step 3"
 fi
 
+log "${BOLD}Step 4/4: Running inference.py and validating stdout contract${NC}"
+
+if [ ! -f "$REPO_DIR/inference.py" ]; then
+  fail "inference.py not found in repo root"
+  stop_at "Step 4"
+fi
+
+INFERENCE_OUT="$(portable_mktemp "inference-out")"
+CLEANUP_FILES+=("$INFERENCE_OUT")
+
+(
+  cd "$REPO_DIR"
+  API_BASE_URL="${API_BASE_URL:-https://router.huggingface.co/v1}" \
+  MODEL_NAME="${MODEL_NAME:-openai/gpt-4.1-mini}" \
+  HF_TOKEN="${HF_TOKEN:-}" \
+  LEDGERSHIELD_DEBUG=0 \
+  "$PYTHON_BIN" inference.py --env-url "http://127.0.0.1:${LOCAL_PORT}"
+) >"$INFERENCE_OUT"
+
+if "$PYTHON_BIN" - "$INFERENCE_OUT" <<'PY'
+from __future__ import annotations
+
+import re
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+lines = [line.rstrip("\n") for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+start_re = re.compile(r"^\[START\] task=\S+ env=\S+ model=\S+$")
+step_re = re.compile(r"^\[STEP\] step=\d+ action=.+ reward=-?\d+\.\d{2} done=(true|false) error=.+$")
+end_re = re.compile(r"^\[END\] success=(true|false) steps=\d+ score=\d+\.\d{2} rewards=.*$")
+
+if not lines:
+    raise SystemExit("inference.py produced no stdout")
+
+episode_count = 0
+step_count = 0
+end_count = 0
+current_started = False
+
+for line in lines:
+    if line.startswith("[START]"):
+        if not start_re.match(line):
+            raise SystemExit(f"invalid [START] line: {line}")
+        if current_started:
+            raise SystemExit("encountered [START] before previous [END]")
+        current_started = True
+        episode_count += 1
+        continue
+
+    if line.startswith("[STEP]"):
+        if not current_started:
+            raise SystemExit("encountered [STEP] before [START]")
+        if not step_re.match(line):
+            raise SystemExit(f"invalid [STEP] line: {line}")
+        step_count += 1
+        continue
+
+    if line.startswith("[END]"):
+        if not current_started:
+            raise SystemExit("encountered [END] before [START]")
+        if not end_re.match(line):
+            raise SystemExit(f"invalid [END] line: {line}")
+        match = re.search(r"score=(\d+\.\d{2})", line)
+        if not match:
+            raise SystemExit(f"missing score in [END] line: {line}")
+        score = float(match.group(1))
+        if not (0.0 <= score <= 1.0):
+            raise SystemExit(f"score out of bounds: {score}")
+        current_started = False
+        end_count += 1
+        continue
+
+    raise SystemExit(f"unexpected stdout line: {line}")
+
+if current_started:
+    raise SystemExit("missing final [END] line")
+if episode_count == 0:
+    raise SystemExit("no episodes were executed")
+if episode_count != end_count:
+    raise SystemExit("mismatched [START]/[END] counts")
+if step_count < episode_count:
+    raise SystemExit("expected at least one [STEP] per episode")
+PY
+then
+  pass "inference.py completed and stdout matches the required contract"
+else
+  fail "inference.py output did not match the required [START]/[STEP]/[END] format"
+  printf "%s\n" "Captured stdout:"
+  sed -n '1,120p' "$INFERENCE_OUT"
+  stop_at "Step 4"
+fi
+
 printf "\n"
 printf "${BOLD}========================================${NC}\n"
-printf "${GREEN}${BOLD}  All 3/3 checks passed!${NC}\n"
-printf "${GREEN}${BOLD}  Your submission is ready to submit.${NC}\n"
+printf "${GREEN}${BOLD}  All 4/4 checks passed!${NC}\n"
+printf "${GREEN}${BOLD}  LedgerShield is submission-ready.${NC}\n"
 printf "${BOLD}========================================${NC}\n"
 printf "\n"
 

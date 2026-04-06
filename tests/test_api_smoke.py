@@ -160,3 +160,85 @@ def test_submit_decision_endpoint():
     assert result["success"] is True
     assert result["decision"] == "ESCALATE_FRAUD"
     assert result["final_score"] > 0.90
+
+
+def test_clean_duplicate_screening_case_returns_no_hits():
+    client.post("/reset", json={"case_id": "CASE-C-002"})
+
+    response = client.post(
+        "/step",
+        json={
+            "action_type": "search_ledger",
+            "payload": {
+                "vendor_key": "eurocaps-components",
+                "invoice_number": "EC-4402-26",
+                "amount": 845.0,
+            },
+        },
+    )
+    assert response.status_code == 200
+
+    data = response.json()
+    last = data["observation"]["last_tool_result"]
+    assert last["tool_name"] == "search_ledger"
+    assert last["count"] == 0
+
+
+def test_clean_task_d_pay_submission_endpoint():
+    client.post("/reset", json={"case_id": "CASE-D-002"})
+
+    steps = [
+        {"action_type": "ocr", "payload": {"doc_id": "THR-130", "mode": "accurate"}},
+        {"action_type": "inspect_email_thread", "payload": {"thread_id": "THR-130"}},
+        {"action_type": "lookup_vendor_history", "payload": {"vendor_key": "bluepeak-logistics"}},
+        {"action_type": "lookup_policy", "payload": {}},
+        {
+            "action_type": "compare_bank_account",
+            "payload": {
+                "vendor_key": "bluepeak-logistics",
+                "proposed_bank_account": "IN77BP555666777",
+            },
+        },
+        {
+            "action_type": "search_ledger",
+            "payload": {
+                "vendor_key": "bluepeak-logistics",
+                "invoice_number": "BLP-8891-MAY",
+                "amount": 8850.0,
+            },
+        },
+    ]
+
+    for step in steps:
+        response = client.post("/step", json=step)
+        assert response.status_code == 200, response.text
+
+    response = client.post(
+        "/step",
+        json={
+            "action_type": "submit_decision",
+            "payload": {
+                "decision": "PAY",
+                "confidence": 0.88,
+                "reason_codes": [],
+                "policy_checks": {
+                    "three_way_match": "pass",
+                    "bank_change_verification": "pass",
+                    "duplicate_check": "pass",
+                    "approval_threshold_check": "pass",
+                },
+                "evidence_map": {},
+                "counterfactual": (
+                    "Would HOLD if the sender domain changed, the bank account mismatched "
+                    "vendor master, or a duplicate cluster appeared in ledger history."
+                ),
+            },
+        },
+    )
+    assert response.status_code == 200
+
+    data = response.json()
+    result = data["observation"]["last_tool_result"]
+    assert data["done"] is True
+    assert result["decision"] == "PAY"
+    assert result["final_score"] > 0.85

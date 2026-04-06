@@ -76,8 +76,11 @@ def assess_submission_risk(
         reasons.extend(sorted(missed_high_risk))
 
     if decision == "escalate_fraud" and not gold_signals.intersection(HIGH_RISK_SIGNALS) and not gold.get("unsafe_if_pay"):
-        risk += 0.08
+        risk += 0.12
         reasons.append("possible_over_escalation")
+        if confidence >= 0.85:
+            risk += 0.08
+            reasons.append("overconfident_false_escalation")
 
     if trajectory:
         taken_actions = {normalize_text(step.get("action_type")) for step in trajectory}
@@ -87,6 +90,12 @@ def assess_submission_risk(
         if gold.get("unsafe_if_pay") and "compare_bank_account" not in taken_actions:
             risk += 0.06
             reasons.append("bank_account_not_checked")
+        if not gold.get("unsafe_if_pay") and "route_to_security" in taken_actions:
+            risk += 0.06
+            reasons.append("unnecessary_security_route")
+        if not gold.get("unsafe_if_pay") and "freeze_vendor_profile" in taken_actions:
+            risk += 0.06
+            reasons.append("unnecessary_vendor_freeze")
 
     if revealed_artifacts:
         artifact_ids = {

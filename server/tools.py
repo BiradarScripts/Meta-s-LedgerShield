@@ -151,27 +151,41 @@ def search_ledger_tool(ledger_index: list[dict[str, Any]], payload: dict[str, An
     hits: list[dict[str, Any]] = []
 
     for row in ledger_index:
-        score = 0.0
         row_vendor = normalize_text(row.get("vendor_key"))
         row_invoice = normalize_id(row.get("invoice_number"))
         row_amount = safe_float(row.get("amount"))
+        score = 0.0
+        invoice_signal = 0.0
+        amount_signal = 0.0
 
         if vendor_key:
             if row_vendor == vendor_key:
-                score += 0.45
+                score += 0.20
             else:
                 continue
 
         if query_invoice_id:
             if row_invoice == query_invoice_id:
-                score += 0.40
+                invoice_signal = 0.55
             elif row_invoice and (row_invoice in query_invoice_id or query_invoice_id in row_invoice):
-                score += 0.22
+                invoice_signal = 0.30
 
         if query_amount is not None:
-            score += 0.15 * fuzzy_numeric_similarity(row_amount, query_amount)
+            amount_similarity = fuzzy_numeric_similarity(row_amount, query_amount)
+            if amount_similarity >= 0.98:
+                amount_signal = 0.25
+            elif amount_similarity >= 0.92:
+                amount_signal = 0.18
+            elif amount_similarity >= 0.80:
+                amount_signal = 0.10
 
-        if score >= 0.25:
+        # Vendor match alone should never be enough to create a duplicate hit.
+        if invoice_signal == 0.0 and amount_signal == 0.0:
+            continue
+
+        score += invoice_signal + amount_signal
+
+        if score >= 0.45:
             enriched = deepcopy(row)
             enriched["match_score"] = round(score, 4)
             hits.append(enriched)
@@ -211,7 +225,16 @@ def inspect_email_thread_tool(email_threads: list[dict[str, Any]], payload: dict
         if expected_domain and from_domain and expected_domain != from_domain:
             signals.append("sender_domain_spoof")
 
-        if "bank" in body and ("change" in body or "update" in body or "override" in body):
+        explicit_no_change = any(
+            phrase in body
+            for phrase in {
+                "no bank change",
+                "no bank changes",
+                "no change to bank",
+                "approved remittance instructions already on file",
+            }
+        )
+        if "bank" in body and ("change" in body or "update" in body or "override" in body) and not explicit_no_change:
             signals.append("bank_override_attempt")
 
         thread["derived_flags"] = sorted(set(normalize_text(x) for x in signals if x))

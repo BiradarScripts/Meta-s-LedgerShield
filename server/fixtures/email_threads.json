@@ -33,5 +33,21 @@
     "expected_domain": "bluepeak.example.com",
     "vendor_domain": "bluepeak.example.com",
     "flags": []
+  },
+  {
+    "thread_id": "THR-130",
+    "vendor_key": "bluepeak-logistics",
+    "sender": "billing@bluepeak.example.com",
+    "from": "billing@bluepeak.example.com",
+    "subject": "Approved invoice copy for scheduled payment run",
+    "body": "Attaching the signed invoice copy and receipt for your scheduled payment run. No bank changes requested. Please use the approved remittance instructions already on file.",
+    "messages": [
+      "Attaching the signed invoice copy and receipt for your scheduled payment run.",
+      "No bank changes requested. Please use the approved remittance instructions already on file."
+    ],
+    "sender_domain": "bluepeak.example.com",
+    "expected_domain": "bluepeak.example.com",
+    "vendor_domain": "bluepeak.example.com",
+    "flags": []
   }
 ]
