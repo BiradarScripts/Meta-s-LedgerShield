@@ -123,7 +123,7 @@ def log_end(success: bool, steps: int, score: float, rewards: list[float]) -> No
         "[END] "
         f"success={str(success).lower()} "
         f"steps={steps} "
-        f"score={score:.3f} "
+        f"score={score:.2f} "
         f"rewards={rewards_str}",
         flush=True,
     )
