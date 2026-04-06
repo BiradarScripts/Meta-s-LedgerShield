@@ -66,6 +66,7 @@ def test_reset_endpoint():
     assert data["done"] is False
     assert data["observation"]["task_type"] == "task_a"
     assert len(data["observation"]["visible_documents"]) >= 1
+    assert "benchmark_split" not in data["observation"]["case_metadata"]
 
 
 def test_state_endpoint():

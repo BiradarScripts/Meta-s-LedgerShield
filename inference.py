@@ -29,6 +29,9 @@ with warnings.catch_warnings():
     from openai import OpenAI
     from ledgershield_env import LedgerShieldAction, LedgerShieldEnv
 
+from openenv_compat import StepResult
+from server.environment import LedgerShieldEnvironment
+
 
 API_BASE_URL = os.getenv("API_BASE_URL") or "https://router.huggingface.co/v1"
 MODEL_NAME = os.getenv("MODEL_NAME") or "openai/gpt-4.1-mini"
@@ -246,6 +249,23 @@ def parse_email_tokens(tokens: list[dict[str, Any]], doc_id: str) -> dict[str, A
     return evidence
 
 
+def derive_email_thread_signals(thread: dict[str, Any]) -> set[str]:
+    sender_profile = thread.get("sender_profile", {}) or {}
+    request_signals = thread.get("request_signals", {}) or {}
+    signals: set[str] = set()
+
+    if normalize_text(sender_profile.get("domain_alignment")) == "mismatch":
+        signals.add("sender_domain_spoof")
+    if bool(request_signals.get("bank_change_language")):
+        signals.add("bank_override_attempt")
+    if bool(request_signals.get("callback_discouraged")) or bool(request_signals.get("policy_override_language")):
+        signals.add("policy_bypass_attempt")
+    if bool(request_signals.get("urgency_language")):
+        signals.add("urgent_payment_pressure")
+
+    return signals
+
+
 def vendor_key_for(fields: dict[str, Any]) -> str:
     vendor_name = normalize_text(fields.get("vendor_name"))
     return VENDOR_KEY_BY_NAME.get(vendor_name, "")
@@ -418,7 +438,7 @@ def build_task_d_submission(collected: dict[str, Any], model_assessment: dict[st
     ledger_search = collected.get("ledger_search") or {}
     bank_compares = collected.get("bank_compares") or ([collected.get("bank_compare")] if collected.get("bank_compare") else [])
     vendor_history = collected.get("vendor_history", []) or []
-    email_flags = {normalize_text(flag) for flag in email_thread.get("derived_flags", []) or email_thread.get("flags", []) or []}
+    email_flags = derive_email_thread_signals(email_thread)
     ledger_hits = collected.get("ledger_hits", []) or []
     duplicate_detected = bool(ledger_hits) or int(ledger_search.get("exact_duplicate_count", 0) or 0) > 0
     bank_mismatch = any(compare and not bool(compare.get("matched")) for compare in bank_compares)
@@ -529,11 +549,39 @@ def build_final_submission(task_type: str, collected: dict[str, Any], model_asse
     return {"decision": "NEEDS_REVIEW", "confidence": 0.50}
 
 
+class LocalLedgerShieldEnv:
+    def __init__(self, db: dict[str, Any] | None = None) -> None:
+        self._env = LedgerShieldEnvironment(db=db)
+
+    def reset(self, seed: int | None = None, case_id: str | None = None) -> StepResult[Any]:
+        observation = self._env.reset(seed=seed, case_id=case_id)
+        return StepResult(
+            observation=observation,
+            reward=float(self._env._last_reward),
+            done=bool(self._env._last_done),
+            info=dict(self._env._last_info),
+        )
+
+    def step(self, action: LedgerShieldAction) -> StepResult[Any]:
+        observation = self._env.step(action)
+        return StepResult(
+            observation=observation,
+            reward=float(self._env._last_reward),
+            done=bool(self._env._last_done),
+            info=dict(self._env._last_info),
+        )
+
+    def close(self) -> None:
+        return None
+
+
 def perform_step(
-    env: LedgerShieldEnv,
+    env: Any,
     step_no: int,
     rewards: list[float],
     action: LedgerShieldAction,
+    *,
+    emit_logs: bool = True,
 ) -> tuple[Any, int]:
     result = env.step(action)
     reward = float(result.reward or 0.0)
@@ -544,13 +592,14 @@ def perform_step(
     if error is None and result.info:
         error = result.info.get("error")
 
-    log_step(
-        step=step_no,
-        action=format_action(action),
-        reward=reward,
-        done=bool(result.done),
-        error=error,
-    )
+    if emit_logs:
+        log_step(
+            step=step_no,
+            action=format_action(action),
+            reward=reward,
+            done=bool(result.done),
+            error=error,
+        )
     return result, step_no + 1
 
 
@@ -584,10 +633,12 @@ def capture_email_data(collected: dict[str, Any], tool_result: dict[str, Any]) -
     collected["email_evidence"] = parse_email_tokens(tokens, doc_id)
 
 
-def run_episode(
-    env_url: str,
+def run_episode_with_env(
+    env: Any,
     case_id: str,
     client: Optional[OpenAI],
+    *,
+    emit_logs: bool = True,
 ) -> dict[str, Any]:
     rewards: list[float] = []
     steps_taken = 0
@@ -595,8 +646,8 @@ def run_episode(
     success = False
     task_type = "unknown"
 
-    env = LedgerShieldEnv(base_url=env_url)
-    log_start(task=case_id, env=BENCHMARK, model=MODEL_NAME)
+    if emit_logs:
+        log_start(task=case_id, env=BENCHMARK, model=MODEL_NAME)
 
     try:
         reset_result = env.reset(case_id=case_id)
@@ -647,6 +698,7 @@ def run_episode(
                     action_type="ocr",
                     payload={"doc_id": invoice_doc_id, "mode": "accurate"},
                 ),
+                emit_logs=emit_logs,
             )
             steps_taken = step_no - 1
             capture_invoice_data(collected, ocr_invoice_result.observation.last_tool_result)
@@ -663,6 +715,7 @@ def run_episode(
                     action_type="zoom",
                     payload={"doc_id": invoice_doc_id, "bbox": [0, 0, 400, 400]},
                 ),
+                emit_logs=emit_logs,
             )
             steps_taken = step_no - 1
             if zoom_result.done:
@@ -675,6 +728,7 @@ def run_episode(
                 step_no,
                 rewards,
                 LedgerShieldAction(action_type="submit_decision", payload=submit_payload),
+                emit_logs=emit_logs,
             )
             steps_taken = step_no - 1
             final_score = float(final_result.info.get("final_score", final_result.reward or 0.0))
@@ -767,7 +821,7 @@ def run_episode(
         for action in action_plan:
             if step_no > MAX_STEPS:
                 break
-            result, step_no = perform_step(env, step_no, rewards, action)
+            result, step_no = perform_step(env, step_no, rewards, action, emit_logs=emit_logs)
             steps_taken = step_no - 1
             tool = result.observation.last_tool_result or {}
             tool_name = tool.get("tool_name")
@@ -817,6 +871,7 @@ def run_episode(
                     step_no,
                     rewards,
                     LedgerShieldAction(action_type="request_callback_verification", payload={}),
+                    emit_logs=emit_logs,
                 )
                 steps_taken = step_no - 1
                 if result.done:
@@ -840,7 +895,7 @@ def run_episode(
                 ]:
                     if step_no > MAX_STEPS:
                         break
-                    result, step_no = perform_step(env, step_no, rewards, action)
+                    result, step_no = perform_step(env, step_no, rewards, action, emit_logs=emit_logs)
                     steps_taken = step_no - 1
                     if result.done:
                         final_score = float(result.info.get("final_score", result.reward or 0.0))
@@ -862,7 +917,7 @@ def run_episode(
                 ]:
                     if step_no > MAX_STEPS:
                         break
-                    result, step_no = perform_step(env, step_no, rewards, action)
+                    result, step_no = perform_step(env, step_no, rewards, action, emit_logs=emit_logs)
                     steps_taken = step_no - 1
                     if result.done:
                         final_score = float(result.info.get("final_score", result.reward or 0.0))
@@ -894,6 +949,7 @@ def run_episode(
                 step_no,
                 rewards,
                 LedgerShieldAction(action_type="submit_decision", payload=submit_payload),
+                emit_logs=emit_logs,
             )
             steps_taken = step_no - 1
             final_score = float(final_result.info.get("final_score", final_result.reward or 0.0))
@@ -923,7 +979,17 @@ def run_episode(
             env.close()
         except Exception as exc:  # noqa: BLE001
             trace(f"[DEBUG] env.close failed for {case_id}: {exc}")
-        log_end(success=success, steps=steps_taken, rewards=rewards)
+        if emit_logs:
+            log_end(success=success, steps=steps_taken, rewards=rewards)
+
+
+def run_episode(
+    env_url: str,
+    case_id: str,
+    client: Optional[OpenAI],
+) -> dict[str, Any]:
+    env = LedgerShieldEnv(base_url=env_url)
+    return run_episode_with_env(env=env, case_id=case_id, client=client, emit_logs=True)
 
 
 def build_openai_client() -> Optional[OpenAI]:
@@ -952,6 +1018,29 @@ def run_baseline_inference(
         f"avg_score={avg_score:.4f} "
         f"scores={compact_json({result['case_id']: result.get('score', 0.0) for result in results})}"
     )
+    return {
+        "results": results,
+        "average_score": avg_score,
+    }
+
+
+def run_local_baseline(
+    cases: list[str],
+    *,
+    db: dict[str, Any] | None = None,
+    client: Optional[OpenAI] = None,
+    emit_logs: bool = False,
+) -> dict[str, Any]:
+    results = [
+        run_episode_with_env(
+            env=LocalLedgerShieldEnv(db=db),
+            case_id=case_id,
+            client=client,
+            emit_logs=emit_logs,
+        )
+        for case_id in cases
+    ]
+    avg_score = sum(result.get("score", 0.0) for result in results) / max(len(results), 1)
     return {
         "results": results,
         "average_score": avg_score,

@@ -70,9 +70,9 @@ SHAPING_SCALE = 0.18
 
 
 class LedgerShieldEnvironment(Environment):
-    def __init__(self) -> None:
+    def __init__(self, db: dict[str, Any] | None = None) -> None:
         super().__init__()
-        self.db = load_all()
+        self.db = db if db is not None else load_all()
         self.rng = random.Random(42)
         self.current_case: dict[str, Any] | None = None
         self._state = LedgerShieldState()
@@ -160,7 +160,6 @@ class LedgerShieldEnvironment(Environment):
             available_interventions=list(INTERVENTION_ACTIONS),
             case_metadata={
                 "task_label": self.current_case.get("task_label", ""),
-                "benchmark_split": self.current_case.get("benchmark_split", "benchmark"),
             },
             portfolio_context=dict(self._hidden_world.get("campaign_context", {})),
         )

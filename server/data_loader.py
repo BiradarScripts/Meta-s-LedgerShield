@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any
 
-from .case_factory import generate_case_batch
+from .case_factory import generate_case_batch, generate_holdout_suite
 from .schema import normalize_id, normalize_text
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -66,22 +67,43 @@ def _case_defaults(case: dict[str, Any]) -> dict[str, Any]:
     return cloned
 
 
+def _env_flag(name: str, default: bool) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return normalize_text(value) in {"1", "true", "yes", "on"}
+
+
 def load_all() -> dict[str, Any]:
     vendors = load_json("vendors.json")
     vendor_history = load_json("vendor_history.json")
     base_cases = [_case_defaults(case) for case in load_json("cases.json")]
-    hard_cases = [
-        case
-        for case in base_cases
-        if normalize_text(case.get("task_type")) in {"task_c", "task_d"}
-    ]
-    challenge_cases = generate_case_batch(
-        base_cases=hard_cases,
-        variants_per_case=2,
-        seed=2026,
-        split="challenge",
-    )
-    cases = base_cases + [_case_defaults(case) for case in challenge_cases]
+    hard_cases = [case for case in base_cases if normalize_text(case.get("task_type")) in {"task_c", "task_d"}]
+    include_challenge = _env_flag("LEDGERSHIELD_INCLUDE_CHALLENGE", True)
+    include_holdout = _env_flag("LEDGERSHIELD_INCLUDE_HOLDOUT", False)
+    challenge_variants = max(0, int(os.getenv("LEDGERSHIELD_CHALLENGE_VARIANTS", "2") or 2))
+    challenge_seed = int(os.getenv("LEDGERSHIELD_CHALLENGE_SEED", "2026") or 2026)
+    holdout_variants = max(0, int(os.getenv("LEDGERSHIELD_HOLDOUT_VARIANTS", "1") or 1))
+    holdout_seed = int(os.getenv("LEDGERSHIELD_HOLDOUT_SEED", "31415") or 31415)
+
+    cases = list(base_cases)
+    if include_challenge and hard_cases and challenge_variants > 0:
+        challenge_cases = generate_case_batch(
+            base_cases=hard_cases,
+            variants_per_case=challenge_variants,
+            seed=challenge_seed,
+            split="challenge",
+        )
+        cases.extend(_case_defaults(case) for case in challenge_cases)
+
+    if include_holdout and hard_cases and holdout_variants > 0:
+        holdout_cases = generate_holdout_suite(
+            base_cases=hard_cases,
+            variants_per_case=holdout_variants,
+            seed=holdout_seed,
+        )
+        cases.extend(_case_defaults(case) for case in holdout_cases)
+
     po_records = load_json("po_records.json")
     receipts = load_json("receipts.json")
     ledger_index = load_json("ledger_index.json")

@@ -42,3 +42,24 @@ def test_default_cases_cover_clean_and_adversarial_paths():
         "CASE-D-004",
     }
     assert expected.issubset(set(inference.DEFAULT_CASES))
+
+
+def test_email_thread_signal_derivation_uses_structured_email_view():
+    signals = inference.derive_email_thread_signals(
+        {
+            "sender_profile": {"domain_alignment": "mismatch"},
+            "request_signals": {
+                "bank_change_language": True,
+                "callback_discouraged": True,
+                "policy_override_language": False,
+                "urgency_language": True,
+            },
+        }
+    )
+
+    assert {
+        "sender_domain_spoof",
+        "bank_override_attempt",
+        "policy_bypass_attempt",
+        "urgent_payment_pressure",
+    }.issubset(signals)

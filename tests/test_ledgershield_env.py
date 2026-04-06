@@ -114,6 +114,7 @@ def test_public_state_and_risk_snapshot_hide_hidden_state():
     assert "latent_risk_bucket" not in obs.risk_snapshot
     assert "decision_readiness" not in obs.risk_snapshot
     assert "difficulty" not in obs.case_metadata
+    assert "benchmark_split" not in obs.case_metadata
 
 
 def test_allowed_actions_exist_in_observation():
@@ -178,6 +179,25 @@ def test_get_doc_crop_tool_returns_crop_context():
     assert obs.last_tool_result["tool_name"] == "get_doc_crop"
     assert obs.last_tool_result["success"] is True
     assert obs.last_tool_result["doc_id"] == "INV-D-001"
+    assert obs.last_tool_result["region_token_count"] >= 1
+    assert obs.last_tool_result["crop_text_hint"]
+
+
+def test_region_scoped_ocr_returns_targeted_tokens():
+    env = LedgerShieldEnvironment()
+    env.reset(case_id="CASE-D-001")
+
+    obs = env.step(
+        LedgerShieldAction(
+            action_type="ocr",
+            payload={"doc_id": "THR-100", "mode": "accurate", "page": 1, "bbox": [10, 65, 260, 85]},
+        )
+    )
+
+    token_ids = [token["token_id"] for token in obs.last_tool_result["tokens"]]
+    assert obs.last_tool_result["scope"] == "region"
+    assert "ed4" in token_ids
+    assert "ed1" not in token_ids
 
 
 def test_lookup_vendor_returns_master_data():
@@ -326,8 +346,11 @@ def test_inspect_email_thread_returns_flags():
 
     thread = obs.last_tool_result["thread"]
     assert thread["thread_id"] == "THR-100"
-    assert "sender_domain_spoof" in thread.get("derived_flags", []) or "sender_domain_spoof" in thread.get("flags", [])
-    assert "policy_bypass_attempt" in thread.get("derived_flags", []) or "policy_bypass_attempt" in thread.get("flags", [])
+    assert "flags" not in thread
+    assert "derived_flags" not in thread
+    assert thread["sender_profile"]["domain_alignment"] == "mismatch"
+    assert thread["request_signals"]["policy_override_language"] is True
+    assert thread["request_signals"]["callback_discouraged"] is True
 
 
 def test_compare_bank_account_detects_mismatch():

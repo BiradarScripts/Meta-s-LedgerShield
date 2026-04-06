@@ -258,7 +258,7 @@ The public observation returned by the environment is defined in [models.py](./m
 | `last_tool_result` | `dict` | Result of the most recent tool or intervention |
 | `allowed_actions` | `list[str]` | Full action vocabulary for the episode |
 | `available_interventions` | `list[str]` | Intervention actions available to the agent |
-| `case_metadata` | `dict` | Difficulty and task label |
+| `case_metadata` | `dict` | Public task label metadata without split or difficulty leakage |
 | `portfolio_context` | `dict` | Campaign/linked-case context such as at-risk amount and queue pressure |
 
 ### Final decision space
@@ -289,16 +289,16 @@ These actions gather evidence and update the trajectory:
 
 | Action | Cost | Purpose |
 |---|---:|---|
-| `zoom` | `0.20` | Inspect a region of a document |
-| `get_doc_crop` | `0.20` | Retrieve a crop-level text hint |
-| `ocr` | `0.45` fast / `1.10` accurate | Extract OCR tokens from a document |
+| `zoom` | `0.20` | Inspect a document region and receive region-scoped focus cues |
+| `get_doc_crop` | `0.20` | Retrieve crop-level text hints from the requested region |
+| `ocr` | `0.45` fast / `1.10` accurate | Extract OCR tokens from a document, page, or bbox-scoped region |
 | `lookup_vendor` | `0.20` | Query vendor master data |
 | `lookup_vendor_history` | `0.25` | Retrieve prior vendor change events |
 | `lookup_policy` | `0.15` | Retrieve policy rules or a specific policy |
 | `lookup_po` | `0.20` | Load purchase-order record |
 | `lookup_receipt` | `0.20` | Load goods-receipt record |
 | `search_ledger` | `0.35` | Search prior ledger entries for duplicates |
-| `inspect_email_thread` | `0.25` | Inspect email content and derive fraud flags |
+| `inspect_email_thread` | `0.25` | Inspect email sender/workflow evidence without returning gold fraud labels |
 | `compare_bank_account` | `0.15` | Compare proposed bank account against approved master data |
 
 ### Intervention actions
@@ -340,7 +340,7 @@ This is what makes LedgerShield a **true environment** rather than a stateless e
 
 ## Task Suite
 
-LedgerShield ships with **4 task families**, **11 curated benchmark cases**, and **12 deterministic challenge variants** for a total runtime suite of **23 cases** spanning adversarial, benign, linked-case campaign, and workflow-override flows.
+LedgerShield ships with **4 task families**, **11 curated benchmark cases**, and **12 deterministic challenge variants** for a total default runtime suite of **23 cases** spanning adversarial, benign, linked-case campaign, and workflow-override flows.
 
 | Case ID | Task | Difficulty | Budget | Max Steps | Visible Docs |
 |---|---|---|---:|---:|---|
@@ -535,6 +535,14 @@ This makes the project useful not only as a hackathon benchmark, but as a **trai
 
 The same generator stack also supports a deterministic **holdout split** of adversarial variants, used in local validation to check that the environment remains stable and reproducible on generated cases rather than only hand-authored fixtures.
 
+To enable holdout episodes in the runtime directly:
+
+```bash
+export LEDGERSHIELD_INCLUDE_HOLDOUT=1
+export LEDGERSHIELD_HOLDOUT_SEED=31415
+export LEDGERSHIELD_HOLDOUT_VARIANTS=1
+```
+
 ## File and Module Map
 
 ### Root
@@ -544,7 +552,8 @@ The same generator stack also supports a deterministic **holdout split** of adve
 | [models.py](./models.py) | Typed action, observation, state, and decision models |
 | [client.py](./client.py) | Thin OpenEnv-compatible HTTP client |
 | [openenv_compat.py](./openenv_compat.py) | OpenEnv compatibility layer and local fallback |
-| [inference.py](./inference.py) | Baseline agent loop with required structured stdout logs |
+| [inference.py](./inference.py) | Baseline agent loop with required structured stdout logs and local execution support |
+| [benchmark_report.py](./benchmark_report.py) | Deterministic public/holdout benchmark report generator |
 | [openenv.yaml](./openenv.yaml) | OpenEnv runtime metadata |
 | [pyproject.toml](./pyproject.toml) | Package config and dependencies |
 | [Dockerfile](./Dockerfile) | Container entrypoint for HF Space / Docker runtime |
@@ -673,6 +682,12 @@ PORT=8001 python server/app.py
 python inference.py --env-url http://127.0.0.1:8000
 ```
 
+### Run the deterministic benchmark report
+
+```bash
+python benchmark_report.py --format markdown
+```
+
 ### Required stdout format
 
 The hackathon validator requires `inference.py` to emit:
@@ -698,18 +713,37 @@ Verified locally on the current 11-case benchmark suite:
 |---|---|---|---:|
 | `CASE-A-001` | Task A | easy | `0.998` |
 | `CASE-A-002` | Task A | medium | `0.998` |
-| `CASE-B-001` | Task B | medium | `0.978` |
-| `CASE-B-002` | Task B | medium | `0.958` |
-| `CASE-B-003` | Task B | easy | `0.978` |
-| `CASE-C-001` | Task C | hard | `0.992` |
-| `CASE-C-002` | Task C | medium | `0.969` |
-| `CASE-D-001` | Task D | hard | `0.970` |
+| `CASE-B-001` | Task B | medium | `0.954` |
+| `CASE-B-002` | Task B | medium | `0.930` |
+| `CASE-B-003` | Task B | easy | `0.974` |
+| `CASE-C-001` | Task C | hard | `0.984` |
+| `CASE-C-002` | Task C | medium | `0.970` |
+| `CASE-D-001` | Task D | hard | `0.968` |
 | `CASE-D-002` | Task D | hard | `0.966` |
-| `CASE-D-003` | Task D | hard | `0.965` |
-| `CASE-D-004` | Task D | hard | `0.972` |
+| `CASE-D-003` | Task D | hard | `0.964` |
+| `CASE-D-004` | Task D | hard | `0.971` |
 | **Average** | **All tasks** | — | **`0.971`** |
 
 These scores were produced on the current benchmark fixtures using the root [inference.py](./inference.py).
+
+### Holdout benchmark report
+
+LedgerShield also ships a deterministic report script:
+
+```bash
+python benchmark_report.py --format markdown --variants-per-case 1 --holdout-seeds 2026 2027 2028
+```
+
+Verified locally on the current codebase:
+
+- public benchmark average: `0.9707`
+- public pass rate @ `0.85`: `1.0000`
+- generated holdout mean: `0.6112`
+- generated holdout pass rate @ `0.85`: `0.5556`
+- generated holdout `pass^4`: `0.9610`
+- generated holdout `pass^8`: `0.9985`
+
+This is intentional: the curated public suite stays reproducible, while the generated holdout split preserves meaningful headroom and benchmark separation.
 
 ## Quick Start
 
