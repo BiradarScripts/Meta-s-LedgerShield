@@ -36,15 +36,10 @@ from openenv_compat import StepResult
 from server.environment import LedgerShieldEnvironment
 
 
-API_BASE_URL = os.getenv("API_BASE_URL") or "https://router.huggingface.co/v1"
-MODEL_NAME = os.getenv("MODEL_NAME") or "openai/gpt-4.1-mini"
+API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
+MODEL_NAME = os.getenv("MODEL_NAME", "openai/gpt-4.1-mini")
 HF_TOKEN = os.getenv("HF_TOKEN")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-API_KEY = (
-    HF_TOKEN
-    or OPENAI_API_KEY
-    or os.getenv("API_KEY")
-)
+LOCAL_IMAGE_NAME = os.getenv("LOCAL_IMAGE_NAME")
 ENV_URL = os.getenv("ENV_URL") or "http://localhost:8000"
 BENCHMARK = "ledgershield"
 MAX_STEPS = 20
@@ -102,6 +97,10 @@ def clamp(value: float, lo: float, hi: float) -> float:
     return max(lo, min(hi, value))
 
 
+def normalize_score(value: Any) -> float:
+    return clamp(safe_float(value), 0.0, 1.0)
+
+
 def compact_json(value: Any) -> str:
     return json.dumps(value, separators=(",", ":"), ensure_ascii=True, sort_keys=True)
 
@@ -133,12 +132,14 @@ def log_step(step: int, action: str, reward: float, done: bool, error: Optional[
     )
 
 
-def log_end(success: bool, steps: int, rewards: list[float]) -> None:
+def log_end(success: bool, steps: int, rewards: list[float], score: Optional[float] = None) -> None:
+    final_score = rewards[-1] if score is None and rewards else (0.0 if score is None else score)
     rewards_str = ",".join(f"{reward:.2f}" for reward in rewards)
     print(
         "[END] "
         f"success={str(success).lower()} "
         f"steps={steps} "
+        f"score={normalize_score(final_score):.2f} "
         f"rewards={rewards_str}",
         flush=True,
     )
@@ -721,7 +722,7 @@ def summarize_case_trials(
     *,
     pass_threshold: float,
 ) -> dict[str, Any]:
-    scores = [float(trial.get("score", 0.0) or 0.0) for trial in trials]
+    scores = [normalize_score(trial.get("score", 0.0)) for trial in trials]
     steps = [int(trial.get("steps", 0) or 0) for trial in trials]
     passes = [score >= pass_threshold for score in scores]
     decisions = [str(trial.get("final_decision", "") or "") for trial in trials]
@@ -821,8 +822,10 @@ def perform_step(
     reward = float(result.reward or 0.0)
     rewards.append(reward)
 
+    error = getattr(result.observation, "last_action_error", None)
     tool_result = getattr(result.observation, "last_tool_result", {}) or {}
-    error = tool_result.get("error")
+    if error is None:
+        error = tool_result.get("error")
     if error is None and result.info:
         error = result.info.get("error")
 
@@ -958,7 +961,7 @@ def run_episode_with_env(
             )
             steps_taken = step_no - 1
             if zoom_result.done:
-                final_score = float(zoom_result.info.get("final_score", rewards[-1] if rewards else 0.0))
+                final_score = normalize_score(zoom_result.info.get("final_score", rewards[-1] if rewards else 0.0))
                 success = final_score >= SUCCESS_SCORE_THRESHOLD
             model_assessment = get_model_assessment(client, case_id, task_type, collected, temperature=temperature)
             submit_payload = build_final_submission(task_type, collected, model_assessment)
@@ -981,7 +984,7 @@ def run_episode_with_env(
                 emit_logs=emit_logs,
             )
             steps_taken = step_no - 1
-            final_score = float(final_result.info.get("final_score", final_result.reward or 0.0))
+            final_score = normalize_score(final_result.info.get("final_score", final_result.reward or 0.0))
             success = final_score >= SUCCESS_SCORE_THRESHOLD
             return {
                 "case_id": case_id,
@@ -1109,7 +1112,7 @@ def run_episode_with_env(
                     collected["pressure_events_seen"].append(pressure_doc_id)
 
             if result.done:
-                final_score = float(result.info.get("final_score", result.reward or 0.0))
+                final_score = normalize_score(result.info.get("final_score", result.reward or 0.0))
                 success = final_score >= SUCCESS_SCORE_THRESHOLD
                 return {
                     "case_id": case_id,
@@ -1139,7 +1142,7 @@ def run_episode_with_env(
             steps_taken = step_no - 1
             collected["pressure_docs"].append(pressure_doc_id)
             if pressure_result.done:
-                final_score = float(pressure_result.info.get("final_score", pressure_result.reward or 0.0))
+                final_score = normalize_score(pressure_result.info.get("final_score", pressure_result.reward or 0.0))
                 success = final_score >= SUCCESS_SCORE_THRESHOLD
                 last_tool = pressure_result.observation.last_tool_result or {}
                 return {
@@ -1164,7 +1167,7 @@ def run_episode_with_env(
                 )
                 steps_taken = step_no - 1
                 if result.done:
-                    final_score = float(result.info.get("final_score", result.reward or 0.0))
+                    final_score = normalize_score(result.info.get("final_score", result.reward or 0.0))
                     success = final_score >= SUCCESS_SCORE_THRESHOLD
                     return {
                         "case_id": case_id,
@@ -1190,7 +1193,7 @@ def run_episode_with_env(
                     result, step_no = perform_step(env, step_no, rewards, action, emit_logs=emit_logs)
                     steps_taken = step_no - 1
                     if result.done:
-                        final_score = float(result.info.get("final_score", result.reward or 0.0))
+                        final_score = normalize_score(result.info.get("final_score", result.reward or 0.0))
                         success = final_score >= SUCCESS_SCORE_THRESHOLD
                         return {
                             "case_id": case_id,
@@ -1232,7 +1235,7 @@ def run_episode_with_env(
                     result, step_no = perform_step(env, step_no, rewards, action, emit_logs=emit_logs)
                     steps_taken = step_no - 1
                     if result.done:
-                        final_score = float(result.info.get("final_score", result.reward or 0.0))
+                        final_score = normalize_score(result.info.get("final_score", result.reward or 0.0))
                         success = final_score >= SUCCESS_SCORE_THRESHOLD
                         return {
                             "case_id": case_id,
@@ -1294,12 +1297,12 @@ def run_episode_with_env(
                 emit_logs=emit_logs,
             )
             steps_taken = step_no - 1
-            final_score = float(final_result.info.get("final_score", final_result.reward or 0.0))
+            final_score = normalize_score(final_result.info.get("final_score", final_result.reward or 0.0))
             success = final_score >= SUCCESS_SCORE_THRESHOLD
             final_info = dict(final_result.info or {})
             last_tool = final_result.observation.last_tool_result or {}
         else:
-            final_score = clamp(rewards[-1] if rewards else 0.0, 0.0, 1.0)
+            final_score = normalize_score(rewards[-1] if rewards else 0.0)
             success = False
 
         return {
@@ -1330,7 +1333,7 @@ def run_episode_with_env(
         except Exception as exc:  # noqa: BLE001
             trace(f"[DEBUG] env.close failed for {case_id}: {exc}")
         if emit_logs:
-            log_end(success=success, steps=steps_taken, rewards=rewards)
+            log_end(success=success, steps=steps_taken, rewards=rewards, score=final_score)
 
 
 def run_episode(
@@ -1352,12 +1355,12 @@ def run_episode(
 
 
 def build_openai_client() -> Optional[OpenAI]:
-    if not API_KEY:
-        trace("[DEBUG] HF_TOKEN / OPENAI_API_KEY not set; running heuristic-only baseline.")
+    if not HF_TOKEN:
+        trace("[DEBUG] HF_TOKEN not set; running heuristic-only baseline.")
         return None
 
     try:
-        return OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
+        return OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
     except Exception as exc:  # noqa: BLE001
         trace(f"[DEBUG] failed to initialize OpenAI client: {exc}")
         return None
@@ -1393,13 +1396,12 @@ def run_baseline_inference(
         total_trial_successes += int(summary.get("successful_trials", 0) or 0)
         total_trials += int(summary.get("trial_count", 0) or 0)
         if emit_logs and pass_k > 1:
-            print(
+            trace(
                 "[PASSK] "
                 f"case={case_id} "
                 f"k={int(pass_k)} "
                 f"trial_pass_rate={float(summary.get('trial_pass_rate', 0.0)):.3f} "
-                f"consistent_pass={str(bool(summary.get('pass_k_consistent', False))).lower()}",
-                flush=True,
+                f"consistent_pass={str(bool(summary.get('pass_k_consistent', False))).lower()}"
             )
 
     avg_score = sum(result.get("score", 0.0) for result in results) / max(len(results), 1)
@@ -1473,7 +1475,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="LedgerShield baseline inference")
     parser.add_argument("--api-url", default=API_BASE_URL)
     parser.add_argument("--model", default=MODEL_NAME)
-    parser.add_argument("--token", default=API_KEY)
+    parser.add_argument("--token", default=HF_TOKEN)
     parser.add_argument("--env-url", default=ENV_URL)
     parser.add_argument("--cases", nargs="+", default=DEFAULT_CASES)
     parser.add_argument("--temperature", type=float, default=TEMPERATURE)
@@ -1485,13 +1487,17 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
-    global API_BASE_URL, MODEL_NAME, API_KEY, ENV_URL
+    global API_BASE_URL, MODEL_NAME, HF_TOKEN, ENV_URL
 
     args = parse_args()
     API_BASE_URL = args.api_url
     MODEL_NAME = args.model
-    API_KEY = args.token
+    HF_TOKEN = args.token
     ENV_URL = args.env_url
+    emit_logs = True
+
+    if args.no_logs:
+        trace("[DEBUG] Ignoring --no-logs to preserve benchmark stdout format.")
 
     payload = run_baseline_inference(
         env_url=args.env_url,
@@ -1499,7 +1505,7 @@ def main() -> None:
         temperature=float(args.temperature),
         pass_k=max(1, int(args.passK)),
         pass_threshold=float(args.pass_threshold),
-        emit_logs=not bool(args.no_logs),
+        emit_logs=emit_logs,
     )
     payload["generated_at"] = datetime.now(timezone.utc).isoformat()
     payload["model"] = MODEL_NAME
@@ -1507,9 +1513,6 @@ def main() -> None:
 
     if args.output_artifact:
         write_run_artifact(args.output_artifact, payload)
-
-    if args.no_logs:
-        print(json.dumps(payload, indent=2, sort_keys=True))
 
 
 if __name__ == "__main__":
