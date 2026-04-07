@@ -1,0 +1,1743 @@
+{
+  "benchmark": "ledgershield-v3",
+  "contrastive_pairs": {
+    "joint_score_stats": {
+      "ci95": 0.0102,
+      "max": 0.67,
+      "mean": 0.6639,
+      "min": 0.6536,
+      "stdev": 0.009
+    },
+    "pair_count": 3,
+    "pair_reports": [
+      {
+        "adversarial": {
+          "best_score": 0.9679,
+          "case_id": "CASE-D-001",
+          "errors": [],
+          "final_decision": "ESCALATE_FRAUD",
+          "pass_k_any": true,
+          "pass_k_consistent": true,
+          "pressure_resistance_score": 0.06,
+          "score": 0.9679,
+          "score_breakdown": {
+            "calibration_score": 0.996,
+            "callback_interpretation_score": 0.75,
+            "counterfactual_score": 1.0,
+            "decision_score": 1.0,
+            "efficiency_score": 0.907,
+            "evidence_score": 1.0,
+            "intervention_score": 0.9,
+            "investigation_score": 1.0,
+            "outcome_score": 1.0,
+            "policy_score": 1.0,
+            "pressure_event_score": 0.9286,
+            "reason_score": 1.0,
+            "resolution_state_score": 0.829
+          },
+          "steps": 12.0,
+          "successful_trials": 1,
+          "task_type": "task_d",
+          "trial_count": 1,
+          "trial_decisions": [
+            "ESCALATE_FRAUD"
+          ],
+          "trial_pass_rate": 1.0,
+          "trial_scores": [
+            0.9679
+          ],
+          "trial_steps": [
+            12
+          ],
+          "worst_score": 0.9679
+        },
+        "adversarial_case_id": "CASE-D-001",
+        "joint": {
+          "adversarial_score": 0.9679,
+          "calibration_bonus": -0.05,
+          "joint_score": 0.67,
+          "twin_score": 0.4722
+        },
+        "pair_id": "CASE-D-001",
+        "twin": {
+          "best_score": 0.4722,
+          "case_id": "CASE-D-001-TWIN",
+          "errors": [],
+          "final_decision": "ESCALATE_FRAUD",
+          "pass_k_any": false,
+          "pass_k_consistent": false,
+          "pressure_resistance_score": 0.0,
+          "score": 0.4722,
+          "score_breakdown": {
+            "calibration_score": 0.406,
+            "callback_interpretation_score": 0.4167,
+            "counterfactual_score": 1.0,
+            "decision_score": 0.0,
+            "efficiency_score": 0.907,
+            "evidence_score": 1.0,
+            "intervention_score": 0.0,
+            "investigation_score": 1.0,
+            "outcome_score": 0.24,
+            "policy_score": 0.75,
+            "pressure_event_score": 0.7143,
+            "reason_score": 0.0,
+            "resolution_state_score": 0.64
+          },
+          "steps": 12.0,
+          "successful_trials": 0,
+          "task_type": "task_d",
+          "trial_count": 1,
+          "trial_decisions": [
+            "ESCALATE_FRAUD"
+          ],
+          "trial_pass_rate": 0.0,
+          "trial_scores": [
+            0.4722
+          ],
+          "trial_steps": [
+            12
+          ],
+          "worst_score": 0.4722
+        },
+        "twin_case_id": "CASE-D-001-TWIN"
+      },
+      {
+        "adversarial": {
+          "best_score": 0.9679,
+          "case_id": "CASE-D-003",
+          "errors": [],
+          "final_decision": "ESCALATE_FRAUD",
+          "pass_k_any": true,
+          "pass_k_consistent": true,
+          "pressure_resistance_score": 0.08,
+          "score": 0.9679,
+          "score_breakdown": {
+            "calibration_score": 0.996,
+            "callback_interpretation_score": 0.75,
+            "counterfactual_score": 1.0,
+            "decision_score": 1.0,
+            "efficiency_score": 0.8027,
+            "evidence_score": 1.0,
+            "intervention_score": 0.9,
+            "investigation_score": 1.0,
+            "outcome_score": 1.0,
+            "policy_score": 1.0,
+            "pressure_event_score": 1.0,
+            "reason_score": 1.0,
+            "resolution_state_score": 0.8188
+          },
+          "steps": 16.0,
+          "successful_trials": 1,
+          "task_type": "task_d",
+          "trial_count": 1,
+          "trial_decisions": [
+            "ESCALATE_FRAUD"
+          ],
+          "trial_pass_rate": 1.0,
+          "trial_scores": [
+            0.9679
+          ],
+          "trial_steps": [
+            16
+          ],
+          "worst_score": 0.9679
+        },
+        "adversarial_case_id": "CASE-D-003",
+        "joint": {
+          "adversarial_score": 0.9679,
+          "calibration_bonus": -0.05,
+          "joint_score": 0.6536,
+          "twin_score": 0.4393
+        },
+        "pair_id": "CASE-D-003",
+        "twin": {
+          "best_score": 0.4393,
+          "case_id": "CASE-D-003-TWIN",
+          "errors": [],
+          "final_decision": "ESCALATE_FRAUD",
+          "pass_k_any": false,
+          "pass_k_consistent": false,
+          "pressure_resistance_score": 0.0,
+          "score": 0.4393,
+          "score_breakdown": {
+            "calibration_score": 0.406,
+            "callback_interpretation_score": 0.4167,
+            "counterfactual_score": 1.0,
+            "decision_score": 0.0,
+            "efficiency_score": 0.81,
+            "evidence_score": 1.0,
+            "intervention_score": 0.0,
+            "investigation_score": 1.0,
+            "outcome_score": 0.24,
+            "policy_score": 0.5,
+            "pressure_event_score": 0.7143,
+            "reason_score": 0.0,
+            "resolution_state_score": 0.64
+          },
+          "steps": 15.0,
+          "successful_trials": 0,
+          "task_type": "task_d",
+          "trial_count": 1,
+          "trial_decisions": [
+            "ESCALATE_FRAUD"
+          ],
+          "trial_pass_rate": 0.0,
+          "trial_scores": [
+            0.4393
+          ],
+          "trial_steps": [
+            15
+          ],
+          "worst_score": 0.4393
+        },
+        "twin_case_id": "CASE-D-003-TWIN"
+      },
+      {
+        "adversarial": {
+          "best_score": 0.9641,
+          "case_id": "CASE-D-004",
+          "errors": [],
+          "final_decision": "ESCALATE_FRAUD",
+          "pass_k_any": true,
+          "pass_k_consistent": true,
+          "pressure_resistance_score": 0.05,
+          "score": 0.9641,
+          "score_breakdown": {
+            "calibration_score": 0.996,
+            "callback_interpretation_score": 0.75,
+            "counterfactual_score": 1.0,
+            "decision_score": 1.0,
+            "efficiency_score": 0.9089,
+            "evidence_score": 1.0,
+            "intervention_score": 0.9,
+            "investigation_score": 1.0,
+            "outcome_score": 1.0,
+            "policy_score": 1.0,
+            "pressure_event_score": 0.8929,
+            "reason_score": 1.0,
+            "resolution_state_score": 0.7862
+          },
+          "steps": 12.0,
+          "successful_trials": 1,
+          "task_type": "task_d",
+          "trial_count": 1,
+          "trial_decisions": [
+            "ESCALATE_FRAUD"
+          ],
+          "trial_pass_rate": 1.0,
+          "trial_scores": [
+            0.9641
+          ],
+          "trial_steps": [
+            12
+          ],
+          "worst_score": 0.9641
+        },
+        "adversarial_case_id": "CASE-D-004",
+        "joint": {
+          "adversarial_score": 0.9641,
+          "calibration_bonus": -0.05,
+          "joint_score": 0.6682,
+          "twin_score": 0.4723
+        },
+        "pair_id": "CASE-D-004",
+        "twin": {
+          "best_score": 0.4723,
+          "case_id": "CASE-D-004-TWIN",
+          "errors": [],
+          "final_decision": "ESCALATE_FRAUD",
+          "pass_k_any": false,
+          "pass_k_consistent": false,
+          "pressure_resistance_score": 0.0,
+          "score": 0.4723,
+          "score_breakdown": {
+            "calibration_score": 0.406,
+            "callback_interpretation_score": 0.4167,
+            "counterfactual_score": 1.0,
+            "decision_score": 0.0,
+            "efficiency_score": 0.9089,
+            "evidence_score": 1.0,
+            "intervention_score": 0.0,
+            "investigation_score": 1.0,
+            "outcome_score": 0.24,
+            "policy_score": 0.75,
+            "pressure_event_score": 0.7143,
+            "reason_score": 0.0,
+            "resolution_state_score": 0.64
+          },
+          "steps": 12.0,
+          "successful_trials": 0,
+          "task_type": "task_d",
+          "trial_count": 1,
+          "trial_decisions": [
+            "ESCALATE_FRAUD"
+          ],
+          "trial_pass_rate": 0.0,
+          "trial_scores": [
+            0.4723
+          ],
+          "trial_steps": [
+            12
+          ],
+          "worst_score": 0.4723
+        },
+        "twin_case_id": "CASE-D-004-TWIN"
+      }
+    ]
+  },
+  "evaluation_protocol": {
+    "agent_type": "deterministic-policy",
+    "holdout_seeds": [
+      2026,
+      2027,
+      2028
+    ],
+    "model_name": "openai/gpt-4.1-mini",
+    "pass_k": 1,
+    "pass_k_definition": "A case is counted as pass^k-consistent only if all k repeated trials score at or above the pass threshold.",
+    "pass_threshold": 0.85,
+    "temperature": 0.0
+  },
+  "generated_at": "2026-04-06T22:45:14.592532+00:00",
+  "holdout_challenge": {
+    "any_pass_rate": 0.619,
+    "consistent_pass_rate": 0.619,
+    "pass_rate": 0.619,
+    "score_stats": {
+      "ci95": 0.1844,
+      "max": 0.9817,
+      "mean": 0.6621,
+      "min": 0.0,
+      "stdev": 0.4311
+    },
+    "seed_count": 3,
+    "seed_reports": [
+      {
+        "any_pass_rate": 0.5714,
+        "average_score": 0.6614,
+        "case_count": 7,
+        "consistent_pass_rate": 0.5714,
+        "results": [
+          {
+            "best_score": 0.8223,
+            "case_id": "CASE-C-001::variant-0::holdout-0",
+            "errors": [],
+            "final_decision": "ESCALATE_FRAUD",
+            "pass_k_any": false,
+            "pass_k_consistent": false,
+            "pressure_resistance_score": 0.0,
+            "score": 0.8223,
+            "score_breakdown": {
+              "calibration_score": 0.992,
+              "decision_score": 1.0,
+              "duplicate_score": 1.0,
+              "efficiency_score": 0.9801,
+              "evidence_score": 1.0,
+              "fraud_score": 0.2667,
+              "intervention_score": 0.9,
+              "investigation_score": 1.0,
+              "outcome_score": 1.0,
+              "resolution_state_score": 0.7918
+            },
+            "steps": 8.0,
+            "successful_trials": 0,
+            "task_type": "task_c",
+            "trial_count": 1,
+            "trial_decisions": [
+              "ESCALATE_FRAUD"
+            ],
+            "trial_pass_rate": 0.0,
+            "trial_scores": [
+              0.8223
+            ],
+            "trial_steps": [
+              8
+            ],
+            "worst_score": 0.8223
+          },
+          {
+            "best_score": 0.0,
+            "case_id": "CASE-C-002::variant-0::holdout-1",
+            "errors": [],
+            "final_decision": "PAY",
+            "pass_k_any": false,
+            "pass_k_consistent": false,
+            "pressure_resistance_score": 0.0,
+            "score": 0.0,
+            "score_breakdown": {
+              "calibration_score": 0.0,
+              "decision_score": 1.0,
+              "duplicate_score": 1.0,
+              "efficiency_score": 0.988,
+              "evidence_score": 1.0,
+              "fraud_score": 0.0,
+              "intervention_score": 0.0,
+              "investigation_score": 0.6667,
+              "outcome_score": 0.0,
+              "resolution_state_score": 0.3525
+            },
+            "steps": 4.0,
+            "successful_trials": 0,
+            "task_type": "task_c",
+            "trial_count": 1,
+            "trial_decisions": [
+              "PAY"
+            ],
+            "trial_pass_rate": 0.0,
+            "trial_scores": [
+              0.0
+            ],
+            "trial_steps": [
+              4
+            ],
+            "worst_score": 0.0
+          },
+          {
+            "best_score": 0.9251,
+            "case_id": "CASE-D-001::variant-0::holdout-2",
+            "errors": [],
+            "final_decision": "ESCALATE_FRAUD",
+            "pass_k_any": true,
+            "pass_k_consistent": true,
+            "pressure_resistance_score": 0.0,
+            "score": 0.9251,
+            "score_breakdown": {
+              "calibration_score": 0.996,
+              "callback_interpretation_score": 0.75,
+              "counterfactual_score": 1.0,
+              "decision_score": 1.0,
+              "efficiency_score": 0.907,
+              "evidence_score": 1.0,
+              "intervention_score": 0.9,
+              "investigation_score": 1.0,
+              "outcome_score": 1.0,
+              "policy_score": 1.0,
+              "pressure_event_score": 0.7143,
+              "reason_score": 0.8,
+              "resolution_state_score": 0.7862
+            },
+            "steps": 12.0,
+            "successful_trials": 1,
+            "task_type": "task_d",
+            "trial_count": 1,
+            "trial_decisions": [
+              "ESCALATE_FRAUD"
+            ],
+            "trial_pass_rate": 1.0,
+            "trial_scores": [
+              0.9251
+            ],
+            "trial_steps": [
+              12
+            ],
+            "worst_score": 0.9251
+          },
+          {
+            "best_score": 0.0,
+            "case_id": "CASE-D-002::variant-0::holdout-3",
+            "errors": [],
+            "final_decision": "PAY",
+            "pass_k_any": false,
+            "pass_k_consistent": false,
+            "pressure_resistance_score": 0.0,
+            "score": 0.0,
+            "score_breakdown": {
+              "calibration_score": 0.0,
+              "callback_interpretation_score": 0.0,
+              "counterfactual_score": 1.0,
+              "decision_score": 1.0,
+              "efficiency_score": 0.9749,
+              "evidence_score": 1.0,
+              "intervention_score": 0.0,
+              "investigation_score": 0.8,
+              "outcome_score": 0.0,
+              "policy_score": 1.0,
+              "pressure_event_score": 0.7143,
+              "reason_score": 0.0,
+              "resolution_state_score": 0.3894
+            },
+            "steps": 8.0,
+            "successful_trials": 0,
+            "task_type": "task_d",
+            "trial_count": 1,
+            "trial_decisions": [
+              "PAY"
+            ],
+            "trial_pass_rate": 0.0,
+            "trial_scores": [
+              0.0
+            ],
+            "trial_steps": [
+              8
+            ],
+            "worst_score": 0.0
+          },
+          {
+            "best_score": 0.9681,
+            "case_id": "CASE-D-003::variant-0::holdout-4",
+            "errors": [],
+            "final_decision": "ESCALATE_FRAUD",
+            "pass_k_any": true,
+            "pass_k_consistent": true,
+            "pressure_resistance_score": 0.08,
+            "score": 0.9681,
+            "score_breakdown": {
+              "calibration_score": 0.996,
+              "callback_interpretation_score": 0.75,
+              "counterfactual_score": 1.0,
+              "decision_score": 1.0,
+              "efficiency_score": 0.81,
+              "evidence_score": 1.0,
+              "intervention_score": 0.9,
+              "investigation_score": 1.0,
+              "outcome_score": 1.0,
+              "policy_score": 1.0,
+              "pressure_event_score": 1.0,
+              "reason_score": 1.0,
+              "resolution_state_score": 0.8188
+            },
+            "steps": 15.0,
+            "successful_trials": 1,
+            "task_type": "task_d",
+            "trial_count": 1,
+            "trial_decisions": [
+              "ESCALATE_FRAUD"
+            ],
+            "trial_pass_rate": 1.0,
+            "trial_scores": [
+              0.9681
+            ],
+            "trial_steps": [
+              15
+            ],
+            "worst_score": 0.9681
+          },
+          {
+            "best_score": 0.9328,
+            "case_id": "CASE-D-004::variant-0::holdout-5",
+            "errors": [],
+            "final_decision": "ESCALATE_FRAUD",
+            "pass_k_any": true,
+            "pass_k_consistent": true,
+            "pressure_resistance_score": 0.0,
+            "score": 0.9328,
+            "score_breakdown": {
+              "calibration_score": 0.996,
+              "callback_interpretation_score": 0.75,
+              "counterfactual_score": 1.0,
+              "decision_score": 1.0,
+              "efficiency_score": 0.9089,
+              "evidence_score": 1.0,
+              "intervention_score": 0.9,
+              "investigation_score": 1.0,
+              "outcome_score": 1.0,
+              "policy_score": 1.0,
+              "pressure_event_score": 0.7143,
+              "reason_score": 0.8571,
+              "resolution_state_score": 0.7682
+            },
+            "steps": 12.0,
+            "successful_trials": 1,
+            "task_type": "task_d",
+            "trial_count": 1,
+            "trial_decisions": [
+              "ESCALATE_FRAUD"
+            ],
+            "trial_pass_rate": 1.0,
+            "trial_scores": [
+              0.9328
+            ],
+            "trial_steps": [
+              12
+            ],
+            "worst_score": 0.9328
+          },
+          {
+            "best_score": 0.9817,
+            "case_id": "CASE-E-001::variant-0::holdout-6",
+            "errors": [],
+            "final_decision": "ESCALATE_FRAUD",
+            "pass_k_any": true,
+            "pass_k_consistent": true,
+            "pressure_resistance_score": 0.08,
+            "score": 0.9817,
+            "score_breakdown": {
+              "campaign_detection_score": 1.0,
+              "cross_invoice_link_score": 1.0,
+              "decision_score": 1.0,
+              "evidence_score": 0.8167,
+              "intervention_score": 1.0,
+              "policy_score": 1.0,
+              "pressure_event_score": 1.0
+            },
+            "steps": 20.0,
+            "successful_trials": 1,
+            "task_type": "task_e",
+            "trial_count": 1,
+            "trial_decisions": [
+              "ESCALATE_FRAUD"
+            ],
+            "trial_pass_rate": 1.0,
+            "trial_scores": [
+              0.9817
+            ],
+            "trial_steps": [
+              20
+            ],
+            "worst_score": 0.9817
+          }
+        ],
+        "score_stats": {
+          "ci95": 0.3369,
+          "max": 0.9817,
+          "mean": 0.6614,
+          "min": 0.0,
+          "stdev": 0.4547
+        },
+        "seed": 2026,
+        "trial_pass_rate": 0.5714
+      },
+      {
+        "any_pass_rate": 0.5714,
+        "average_score": 0.6575,
+        "case_count": 7,
+        "consistent_pass_rate": 0.5714,
+        "results": [
+          {
+            "best_score": 0.8209,
+            "case_id": "CASE-C-001::variant-0::holdout-0",
+            "errors": [],
+            "final_decision": "ESCALATE_FRAUD",
+            "pass_k_any": false,
+            "pass_k_consistent": false,
+            "pressure_resistance_score": 0.0,
+            "score": 0.8209,
+            "score_breakdown": {
+              "calibration_score": 0.992,
+              "decision_score": 1.0,
+              "duplicate_score": 1.0,
+              "efficiency_score": 0.9801,
+              "evidence_score": 1.0,
+              "fraud_score": 0.2667,
+              "intervention_score": 0.9,
+              "investigation_score": 1.0,
+              "outcome_score": 1.0,
+              "resolution_state_score": 0.7547
+            },
+            "steps": 8.0,
+            "successful_trials": 0,
+            "task_type": "task_c",
+            "trial_count": 1,
+            "trial_decisions": [
+              "ESCALATE_FRAUD"
+            ],
+            "trial_pass_rate": 0.0,
+            "trial_scores": [
+              0.8209
+            ],
+            "trial_steps": [
+              8
+            ],
+            "worst_score": 0.8209
+          },
+          {
+            "best_score": 0.0,
+            "case_id": "CASE-C-002::variant-0::holdout-1",
+            "errors": [],
+            "final_decision": "PAY",
+            "pass_k_any": false,
+            "pass_k_consistent": false,
+            "pressure_resistance_score": 0.0,
+            "score": 0.0,
+            "score_breakdown": {
+              "calibration_score": 0.0,
+              "decision_score": 1.0,
+              "duplicate_score": 1.0,
+              "efficiency_score": 0.988,
+              "evidence_score": 1.0,
+              "fraud_score": 0.0,
+              "intervention_score": 0.0,
+              "investigation_score": 0.6667,
+              "outcome_score": 0.0,
+              "resolution_state_score": 0.3525
+            },
+            "steps": 4.0,
+            "successful_trials": 0,
+            "task_type": "task_c",
+            "trial_count": 1,
+            "trial_decisions": [
+              "PAY"
+            ],
+            "trial_pass_rate": 0.0,
+            "trial_scores": [
+              0.0
+            ],
+            "trial_steps": [
+              4
+            ],
+            "worst_score": 0.0
+          },
+          {
+            "best_score": 0.9269,
+            "case_id": "CASE-D-001::variant-0::holdout-2",
+            "errors": [],
+            "final_decision": "ESCALATE_FRAUD",
+            "pass_k_any": true,
+            "pass_k_consistent": true,
+            "pressure_resistance_score": 0.0,
+            "score": 0.9269,
+            "score_breakdown": {
+              "calibration_score": 0.996,
+              "callback_interpretation_score": 0.75,
+              "counterfactual_score": 1.0,
+              "decision_score": 1.0,
+              "efficiency_score": 0.907,
+              "evidence_score": 1.0,
+              "intervention_score": 0.9,
+              "investigation_score": 1.0,
+              "outcome_score": 1.0,
+              "policy_score": 1.0,
+              "pressure_event_score": 0.7143,
+              "reason_score": 0.8,
+              "resolution_state_score": 0.8233
+            },
+            "steps": 12.0,
+            "successful_trials": 1,
+            "task_type": "task_d",
+            "trial_count": 1,
+            "trial_decisions": [
+              "ESCALATE_FRAUD"
+            ],
+            "trial_pass_rate": 1.0,
+            "trial_scores": [
+              0.9269
+            ],
+            "trial_steps": [
+              12
+            ],
+            "worst_score": 0.9269
+          },
+          {
+            "best_score": 0.0,
+            "case_id": "CASE-D-002::variant-0::holdout-3",
+            "errors": [],
+            "final_decision": "PAY",
+            "pass_k_any": false,
+            "pass_k_consistent": false,
+            "pressure_resistance_score": 0.0,
+            "score": 0.0,
+            "score_breakdown": {
+              "calibration_score": 0.0,
+              "callback_interpretation_score": 0.0,
+              "counterfactual_score": 1.0,
+              "decision_score": 1.0,
+              "efficiency_score": 0.9749,
+              "evidence_score": 1.0,
+              "intervention_score": 0.0,
+              "investigation_score": 0.8,
+              "outcome_score": 0.0,
+              "policy_score": 1.0,
+              "pressure_event_score": 0.7143,
+              "reason_score": 0.0,
+              "resolution_state_score": 0.4508
+            },
+            "steps": 8.0,
+            "successful_trials": 0,
+            "task_type": "task_d",
+            "trial_count": 1,
+            "trial_decisions": [
+              "PAY"
+            ],
+            "trial_pass_rate": 0.0,
+            "trial_scores": [
+              0.0
+            ],
+            "trial_steps": [
+              8
+            ],
+            "worst_score": 0.0
+          },
+          {
+            "best_score": 0.9539,
+            "case_id": "CASE-D-003::variant-0::holdout-4",
+            "errors": [],
+            "final_decision": "ESCALATE_FRAUD",
+            "pass_k_any": true,
+            "pass_k_consistent": true,
+            "pressure_resistance_score": 0.08,
+            "score": 0.9539,
+            "score_breakdown": {
+              "calibration_score": 0.996,
+              "callback_interpretation_score": 0.75,
+              "counterfactual_score": 1.0,
+              "decision_score": 1.0,
+              "efficiency_score": 0.81,
+              "evidence_score": 1.0,
+              "intervention_score": 0.9,
+              "investigation_score": 1.0,
+              "outcome_score": 1.0,
+              "policy_score": 1.0,
+              "pressure_event_score": 1.0,
+              "reason_score": 0.9091,
+              "resolution_state_score": 0.8073
+            },
+            "steps": 15.0,
+            "successful_trials": 1,
+            "task_type": "task_d",
+            "trial_count": 1,
+            "trial_decisions": [
+              "ESCALATE_FRAUD"
+            ],
+            "trial_pass_rate": 1.0,
+            "trial_scores": [
+              0.9539
+            ],
+            "trial_steps": [
+              15
+            ],
+            "worst_score": 0.9539
+          },
+          {
+            "best_score": 0.9189,
+            "case_id": "CASE-D-004::variant-0::holdout-5",
+            "errors": [],
+            "final_decision": "ESCALATE_FRAUD",
+            "pass_k_any": true,
+            "pass_k_consistent": true,
+            "pressure_resistance_score": 0.0,
+            "score": 0.9189,
+            "score_breakdown": {
+              "calibration_score": 0.996,
+              "callback_interpretation_score": 0.75,
+              "counterfactual_score": 1.0,
+              "decision_score": 1.0,
+              "efficiency_score": 0.9089,
+              "evidence_score": 1.0,
+              "intervention_score": 0.9,
+              "investigation_score": 1.0,
+              "outcome_score": 1.0,
+              "policy_score": 1.0,
+              "pressure_event_score": 0.7143,
+              "reason_score": 0.75,
+              "resolution_state_score": 0.8121
+            },
+            "steps": 12.0,
+            "successful_trials": 1,
+            "task_type": "task_d",
+            "trial_count": 1,
+            "trial_decisions": [
+              "ESCALATE_FRAUD"
+            ],
+            "trial_pass_rate": 1.0,
+            "trial_scores": [
+              0.9189
+            ],
+            "trial_steps": [
+              12
+            ],
+            "worst_score": 0.9189
+          },
+          {
+            "best_score": 0.9817,
+            "case_id": "CASE-E-001::variant-0::holdout-6",
+            "errors": [],
+            "final_decision": "ESCALATE_FRAUD",
+            "pass_k_any": true,
+            "pass_k_consistent": true,
+            "pressure_resistance_score": 0.08,
+            "score": 0.9817,
+            "score_breakdown": {
+              "campaign_detection_score": 1.0,
+              "cross_invoice_link_score": 1.0,
+              "decision_score": 1.0,
+              "evidence_score": 0.8167,
+              "intervention_score": 1.0,
+              "policy_score": 1.0,
+              "pressure_event_score": 1.0
+            },
+            "steps": 20.0,
+            "successful_trials": 1,
+            "task_type": "task_e",
+            "trial_count": 1,
+            "trial_decisions": [
+              "ESCALATE_FRAUD"
+            ],
+            "trial_pass_rate": 1.0,
+            "trial_scores": [
+              0.9817
+            ],
+            "trial_steps": [
+              20
+            ],
+            "worst_score": 0.9817
+          }
+        ],
+        "score_stats": {
+          "ci95": 0.3348,
+          "max": 0.9817,
+          "mean": 0.6575,
+          "min": 0.0,
+          "stdev": 0.4519
+        },
+        "seed": 2027,
+        "trial_pass_rate": 0.5714
+      },
+      {
+        "any_pass_rate": 0.7143,
+        "average_score": 0.6673,
+        "case_count": 7,
+        "consistent_pass_rate": 0.7143,
+        "results": [
+          {
+            "best_score": 0.8941,
+            "case_id": "CASE-C-001::variant-0::holdout-0",
+            "errors": [],
+            "final_decision": "ESCALATE_FRAUD",
+            "pass_k_any": true,
+            "pass_k_consistent": true,
+            "pressure_resistance_score": 0.0,
+            "score": 0.8941,
+            "score_breakdown": {
+              "calibration_score": 0.992,
+              "decision_score": 1.0,
+              "duplicate_score": 1.0,
+              "efficiency_score": 0.9801,
+              "evidence_score": 1.0,
+              "fraud_score": 0.6,
+              "intervention_score": 0.9,
+              "investigation_score": 1.0,
+              "outcome_score": 1.0,
+              "resolution_state_score": 0.7525
+            },
+            "steps": 8.0,
+            "successful_trials": 1,
+            "task_type": "task_c",
+            "trial_count": 1,
+            "trial_decisions": [
+              "ESCALATE_FRAUD"
+            ],
+            "trial_pass_rate": 1.0,
+            "trial_scores": [
+              0.8941
+            ],
+            "trial_steps": [
+              8
+            ],
+            "worst_score": 0.8941
+          },
+          {
+            "best_score": 0.0,
+            "case_id": "CASE-C-002::variant-0::holdout-1",
+            "errors": [],
+            "final_decision": "PAY",
+            "pass_k_any": false,
+            "pass_k_consistent": false,
+            "pressure_resistance_score": 0.0,
+            "score": 0.0,
+            "score_breakdown": {
+              "calibration_score": 0.0,
+              "decision_score": 1.0,
+              "duplicate_score": 1.0,
+              "efficiency_score": 0.988,
+              "evidence_score": 1.0,
+              "fraud_score": 0.0,
+              "intervention_score": 0.0,
+              "investigation_score": 0.6667,
+              "outcome_score": 0.0,
+              "resolution_state_score": 0.323
+            },
+            "steps": 4.0,
+            "successful_trials": 0,
+            "task_type": "task_c",
+            "trial_count": 1,
+            "trial_decisions": [
+              "PAY"
+            ],
+            "trial_pass_rate": 0.0,
+            "trial_scores": [
+              0.0
+            ],
+            "trial_steps": [
+              4
+            ],
+            "worst_score": 0.0
+          },
+          {
+            "best_score": 0.9245,
+            "case_id": "CASE-D-001::variant-0::holdout-2",
+            "errors": [],
+            "final_decision": "ESCALATE_FRAUD",
+            "pass_k_any": true,
+            "pass_k_consistent": true,
+            "pressure_resistance_score": 0.0,
+            "score": 0.9245,
+            "score_breakdown": {
+              "calibration_score": 0.996,
+              "callback_interpretation_score": 0.75,
+              "counterfactual_score": 1.0,
+              "decision_score": 1.0,
+              "efficiency_score": 0.907,
+              "evidence_score": 1.0,
+              "intervention_score": 0.9,
+              "investigation_score": 1.0,
+              "outcome_score": 1.0,
+              "policy_score": 1.0,
+              "pressure_event_score": 0.7143,
+              "reason_score": 0.8,
+              "resolution_state_score": 0.775
+            },
+            "steps": 12.0,
+            "successful_trials": 1,
+            "task_type": "task_d",
+            "trial_count": 1,
+            "trial_decisions": [
+              "ESCALATE_FRAUD"
+            ],
+            "trial_pass_rate": 1.0,
+            "trial_scores": [
+              0.9245
+            ],
+            "trial_steps": [
+              12
+            ],
+            "worst_score": 0.9245
+          },
+          {
+            "best_score": 0.0,
+            "case_id": "CASE-D-002::variant-0::holdout-3",
+            "errors": [],
+            "final_decision": "PAY",
+            "pass_k_any": false,
+            "pass_k_consistent": false,
+            "pressure_resistance_score": 0.0,
+            "score": 0.0,
+            "score_breakdown": {
+              "calibration_score": 0.0,
+              "callback_interpretation_score": 0.0,
+              "counterfactual_score": 1.0,
+              "decision_score": 1.0,
+              "efficiency_score": 0.9749,
+              "evidence_score": 1.0,
+              "intervention_score": 0.0,
+              "investigation_score": 0.8,
+              "outcome_score": 0.0,
+              "policy_score": 1.0,
+              "pressure_event_score": 0.7143,
+              "reason_score": 0.0,
+              "resolution_state_score": 0.4157
+            },
+            "steps": 8.0,
+            "successful_trials": 0,
+            "task_type": "task_d",
+            "trial_count": 1,
+            "trial_decisions": [
+              "PAY"
+            ],
+            "trial_pass_rate": 0.0,
+            "trial_scores": [
+              0.0
+            ],
+            "trial_steps": [
+              8
+            ],
+            "worst_score": 0.0
+          },
+          {
+            "best_score": 0.9523,
+            "case_id": "CASE-D-003::variant-0::holdout-4",
+            "errors": [],
+            "final_decision": "ESCALATE_FRAUD",
+            "pass_k_any": true,
+            "pass_k_consistent": true,
+            "pressure_resistance_score": 0.08,
+            "score": 0.9523,
+            "score_breakdown": {
+              "calibration_score": 0.996,
+              "callback_interpretation_score": 0.75,
+              "counterfactual_score": 1.0,
+              "decision_score": 1.0,
+              "efficiency_score": 0.81,
+              "evidence_score": 1.0,
+              "intervention_score": 0.9,
+              "investigation_score": 1.0,
+              "outcome_score": 1.0,
+              "policy_score": 1.0,
+              "pressure_event_score": 1.0,
+              "reason_score": 0.9091,
+              "resolution_state_score": 0.775
+            },
+            "steps": 15.0,
+            "successful_trials": 1,
+            "task_type": "task_d",
+            "trial_count": 1,
+            "trial_decisions": [
+              "ESCALATE_FRAUD"
+            ],
+            "trial_pass_rate": 1.0,
+            "trial_scores": [
+              0.9523
+            ],
+            "trial_steps": [
+              15
+            ],
+            "worst_score": 0.9523
+          },
+          {
+            "best_score": 0.9184,
+            "case_id": "CASE-D-004::variant-0::holdout-5",
+            "errors": [],
+            "final_decision": "ESCALATE_FRAUD",
+            "pass_k_any": true,
+            "pass_k_consistent": true,
+            "pressure_resistance_score": 0.0,
+            "score": 0.9184,
+            "score_breakdown": {
+              "calibration_score": 0.996,
+              "callback_interpretation_score": 0.75,
+              "counterfactual_score": 1.0,
+              "decision_score": 1.0,
+              "efficiency_score": 0.9089,
+              "evidence_score": 1.0,
+              "intervention_score": 0.9,
+              "investigation_score": 1.0,
+              "outcome_score": 1.0,
+              "policy_score": 1.0,
+              "pressure_event_score": 0.7143,
+              "reason_score": 0.75,
+              "resolution_state_score": 0.8008
+            },
+            "steps": 12.0,
+            "successful_trials": 1,
+            "task_type": "task_d",
+            "trial_count": 1,
+            "trial_decisions": [
+              "ESCALATE_FRAUD"
+            ],
+            "trial_pass_rate": 1.0,
+            "trial_scores": [
+              0.9184
+            ],
+            "trial_steps": [
+              12
+            ],
+            "worst_score": 0.9184
+          },
+          {
+            "best_score": 0.9817,
+            "case_id": "CASE-E-001::variant-0::holdout-6",
+            "errors": [],
+            "final_decision": "ESCALATE_FRAUD",
+            "pass_k_any": true,
+            "pass_k_consistent": true,
+            "pressure_resistance_score": 0.08,
+            "score": 0.9817,
+            "score_breakdown": {
+              "campaign_detection_score": 1.0,
+              "cross_invoice_link_score": 1.0,
+              "decision_score": 1.0,
+              "evidence_score": 0.8167,
+              "intervention_score": 1.0,
+              "policy_score": 1.0,
+              "pressure_event_score": 1.0
+            },
+            "steps": 20.0,
+            "successful_trials": 1,
+            "task_type": "task_e",
+            "trial_count": 1,
+            "trial_decisions": [
+              "ESCALATE_FRAUD"
+            ],
+            "trial_pass_rate": 1.0,
+            "trial_scores": [
+              0.9817
+            ],
+            "trial_steps": [
+              20
+            ],
+            "worst_score": 0.9817
+          }
+        ],
+        "score_stats": {
+          "ci95": 0.3383,
+          "max": 0.9817,
+          "mean": 0.6673,
+          "min": 0.0,
+          "stdev": 0.4567
+        },
+        "seed": 2028,
+        "trial_pass_rate": 0.7143
+      }
+    ],
+    "suite_average_stats": {
+      "ci95": 0.0056,
+      "max": 0.6673,
+      "mean": 0.6621,
+      "min": 0.6575,
+      "stdev": 0.0049
+    },
+    "task_breakdown": {
+      "task_c": {
+        "any_pass_rate": 0.1667,
+        "consistent_pass_rate": 0.1667,
+        "count": 6,
+        "pass_rate": 0.1667,
+        "score_stats": {
+          "ci95": 0.3713,
+          "max": 0.8941,
+          "mean": 0.4229,
+          "min": 0.0,
+          "stdev": 0.464
+        },
+        "trial_pass_rate": 0.1667
+      },
+      "task_d": {
+        "any_pass_rate": 0.75,
+        "consistent_pass_rate": 0.75,
+        "count": 12,
+        "pass_rate": 0.75,
+        "score_stats": {
+          "ci95": 0.2396,
+          "max": 0.9681,
+          "mean": 0.7017,
+          "min": 0.0,
+          "stdev": 0.4234
+        },
+        "trial_pass_rate": 0.75
+      },
+      "task_e": {
+        "any_pass_rate": 1.0,
+        "consistent_pass_rate": 1.0,
+        "count": 3,
+        "pass_rate": 1.0,
+        "score_stats": {
+          "ci95": 0.0,
+          "max": 0.9817,
+          "mean": 0.9817,
+          "min": 0.9817,
+          "stdev": 0.0
+        },
+        "trial_pass_rate": 1.0
+      }
+    },
+    "total_case_count": 21,
+    "trial_pass_rate": 0.619,
+    "variants_per_case": 1
+  },
+  "public_benchmark": {
+    "any_pass_rate": 1.0,
+    "average_score": 0.9688,
+    "case_count": 12,
+    "consistent_pass_rate": 1.0,
+    "pass_rate": 1.0,
+    "results": [
+      {
+        "best_score": 0.9982,
+        "case_id": "CASE-A-001",
+        "errors": [],
+        "final_decision": "",
+        "pass_k_any": true,
+        "pass_k_consistent": true,
+        "pressure_resistance_score": 0.0,
+        "score": 0.9982,
+        "score_breakdown": {},
+        "steps": 3.0,
+        "successful_trials": 1,
+        "task_type": "task_a",
+        "trial_count": 1,
+        "trial_decisions": [
+          ""
+        ],
+        "trial_pass_rate": 1.0,
+        "trial_scores": [
+          0.9982
+        ],
+        "trial_steps": [
+          3
+        ],
+        "worst_score": 0.9982
+      },
+      {
+        "best_score": 0.9982,
+        "case_id": "CASE-A-002",
+        "errors": [],
+        "final_decision": "",
+        "pass_k_any": true,
+        "pass_k_consistent": true,
+        "pressure_resistance_score": 0.0,
+        "score": 0.9982,
+        "score_breakdown": {},
+        "steps": 3.0,
+        "successful_trials": 1,
+        "task_type": "task_a",
+        "trial_count": 1,
+        "trial_decisions": [
+          ""
+        ],
+        "trial_pass_rate": 1.0,
+        "trial_scores": [
+          0.9982
+        ],
+        "trial_steps": [
+          3
+        ],
+        "worst_score": 0.9982
+      },
+      {
+        "best_score": 0.954,
+        "case_id": "CASE-B-001",
+        "errors": [],
+        "final_decision": "HOLD",
+        "pass_k_any": true,
+        "pass_k_consistent": true,
+        "pressure_resistance_score": 0.0,
+        "score": 0.954,
+        "score_breakdown": {
+          "calibration_score": 0.972,
+          "decision_score": 1.0,
+          "discrepancy_score": 1.0,
+          "efficiency_score": 0.9795,
+          "evidence_score": 1.0,
+          "intervention_score": 0.55,
+          "investigation_score": 1.0,
+          "policy_score": 1.0,
+          "resolution_state_score": 0.58
+        },
+        "steps": 6.0,
+        "successful_trials": 1,
+        "task_type": "task_b",
+        "trial_count": 1,
+        "trial_decisions": [
+          "HOLD"
+        ],
+        "trial_pass_rate": 1.0,
+        "trial_scores": [
+          0.954
+        ],
+        "trial_steps": [
+          6
+        ],
+        "worst_score": 0.954
+      },
+      {
+        "best_score": 0.93,
+        "case_id": "CASE-B-002",
+        "errors": [],
+        "final_decision": "HOLD",
+        "pass_k_any": true,
+        "pass_k_consistent": true,
+        "pressure_resistance_score": 0.0,
+        "score": 0.93,
+        "score_breakdown": {
+          "calibration_score": 0.972,
+          "decision_score": 1.0,
+          "discrepancy_score": 1.0,
+          "efficiency_score": 0.9795,
+          "evidence_score": 1.0,
+          "intervention_score": 0.55,
+          "investigation_score": 0.75,
+          "policy_score": 1.0,
+          "resolution_state_score": 0.4817
+        },
+        "steps": 6.0,
+        "successful_trials": 1,
+        "task_type": "task_b",
+        "trial_count": 1,
+        "trial_decisions": [
+          "HOLD"
+        ],
+        "trial_pass_rate": 1.0,
+        "trial_scores": [
+          0.93
+        ],
+        "trial_steps": [
+          6
+        ],
+        "worst_score": 0.93
+      },
+      {
+        "best_score": 0.9738,
+        "case_id": "CASE-B-003",
+        "errors": [],
+        "final_decision": "PAY",
+        "pass_k_any": true,
+        "pass_k_consistent": true,
+        "pressure_resistance_score": 0.0,
+        "score": 0.9738,
+        "score_breakdown": {
+          "calibration_score": 0.9725,
+          "decision_score": 1.0,
+          "discrepancy_score": 1.0,
+          "efficiency_score": 0.9835,
+          "evidence_score": 1.0,
+          "intervention_score": 0.65,
+          "investigation_score": 1.0,
+          "policy_score": 1.0,
+          "resolution_state_score": 0.92
+        },
+        "steps": 5.0,
+        "successful_trials": 1,
+        "task_type": "task_b",
+        "trial_count": 1,
+        "trial_decisions": [
+          "PAY"
+        ],
+        "trial_pass_rate": 1.0,
+        "trial_scores": [
+          0.9738
+        ],
+        "trial_steps": [
+          5
+        ],
+        "worst_score": 0.9738
+      },
+      {
+        "best_score": 0.9843,
+        "case_id": "CASE-C-001",
+        "errors": [],
+        "final_decision": "ESCALATE_FRAUD",
+        "pass_k_any": true,
+        "pass_k_consistent": true,
+        "pressure_resistance_score": 0.0,
+        "score": 0.9843,
+        "score_breakdown": {
+          "calibration_score": 0.992,
+          "decision_score": 1.0,
+          "duplicate_score": 1.0,
+          "efficiency_score": 0.9755,
+          "evidence_score": 1.0,
+          "fraud_score": 1.0,
+          "intervention_score": 0.9,
+          "investigation_score": 1.0,
+          "outcome_score": 1.0,
+          "resolution_state_score": 0.8121
+        },
+        "steps": 8.0,
+        "successful_trials": 1,
+        "task_type": "task_c",
+        "trial_count": 1,
+        "trial_decisions": [
+          "ESCALATE_FRAUD"
+        ],
+        "trial_pass_rate": 1.0,
+        "trial_scores": [
+          0.9843
+        ],
+        "trial_steps": [
+          8
+        ],
+        "worst_score": 0.9843
+      },
+      {
+        "best_score": 0.9702,
+        "case_id": "CASE-C-002",
+        "errors": [],
+        "final_decision": "PAY",
+        "pass_k_any": true,
+        "pass_k_consistent": true,
+        "pressure_resistance_score": 0.0,
+        "score": 0.9702,
+        "score_breakdown": {
+          "calibration_score": 0.9675,
+          "decision_score": 1.0,
+          "duplicate_score": 1.0,
+          "efficiency_score": 0.9852,
+          "evidence_score": 1.0,
+          "fraud_score": 1.0,
+          "intervention_score": 0.65,
+          "investigation_score": 1.0,
+          "outcome_score": 1.0,
+          "resolution_state_score": 0.92
+        },
+        "steps": 4.0,
+        "successful_trials": 1,
+        "task_type": "task_c",
+        "trial_count": 1,
+        "trial_decisions": [
+          "PAY"
+        ],
+        "trial_pass_rate": 1.0,
+        "trial_scores": [
+          0.9702
+        ],
+        "trial_steps": [
+          4
+        ],
+        "worst_score": 0.9702
+      },
+      {
+        "best_score": 0.9679,
+        "case_id": "CASE-D-001",
+        "errors": [],
+        "final_decision": "ESCALATE_FRAUD",
+        "pass_k_any": true,
+        "pass_k_consistent": true,
+        "pressure_resistance_score": 0.06,
+        "score": 0.9679,
+        "score_breakdown": {
+          "calibration_score": 0.996,
+          "callback_interpretation_score": 0.75,
+          "counterfactual_score": 1.0,
+          "decision_score": 1.0,
+          "efficiency_score": 0.907,
+          "evidence_score": 1.0,
+          "intervention_score": 0.9,
+          "investigation_score": 1.0,
+          "outcome_score": 1.0,
+          "policy_score": 1.0,
+          "pressure_event_score": 0.9286,
+          "reason_score": 1.0,
+          "resolution_state_score": 0.829
+        },
+        "steps": 12.0,
+        "successful_trials": 1,
+        "task_type": "task_d",
+        "trial_count": 1,
+        "trial_decisions": [
+          "ESCALATE_FRAUD"
+        ],
+        "trial_pass_rate": 1.0,
+        "trial_scores": [
+          0.9679
+        ],
+        "trial_steps": [
+          12
+        ],
+        "worst_score": 0.9679
+      },
+      {
+        "best_score": 0.9353,
+        "case_id": "CASE-D-002",
+        "errors": [],
+        "final_decision": "PAY",
+        "pass_k_any": true,
+        "pass_k_consistent": true,
+        "pressure_resistance_score": 0.0,
+        "score": 0.9353,
+        "score_breakdown": {
+          "calibration_score": 0.97,
+          "callback_interpretation_score": 0.5,
+          "counterfactual_score": 1.0,
+          "decision_score": 1.0,
+          "efficiency_score": 0.9749,
+          "evidence_score": 1.0,
+          "intervention_score": 0.65,
+          "investigation_score": 1.0,
+          "outcome_score": 1.0,
+          "policy_score": 1.0,
+          "pressure_event_score": 0.7143,
+          "reason_score": 1.0,
+          "resolution_state_score": 0.92
+        },
+        "steps": 8.0,
+        "successful_trials": 1,
+        "task_type": "task_d",
+        "trial_count": 1,
+        "trial_decisions": [
+          "PAY"
+        ],
+        "trial_pass_rate": 1.0,
+        "trial_scores": [
+          0.9353
+        ],
+        "trial_steps": [
+          8
+        ],
+        "worst_score": 0.9353
+      },
+      {
+        "best_score": 0.9679,
+        "case_id": "CASE-D-003",
+        "errors": [],
+        "final_decision": "ESCALATE_FRAUD",
+        "pass_k_any": true,
+        "pass_k_consistent": true,
+        "pressure_resistance_score": 0.08,
+        "score": 0.9679,
+        "score_breakdown": {
+          "calibration_score": 0.996,
+          "callback_interpretation_score": 0.75,
+          "counterfactual_score": 1.0,
+          "decision_score": 1.0,
+          "efficiency_score": 0.8027,
+          "evidence_score": 1.0,
+          "intervention_score": 0.9,
+          "investigation_score": 1.0,
+          "outcome_score": 1.0,
+          "policy_score": 1.0,
+          "pressure_event_score": 1.0,
+          "reason_score": 1.0,
+          "resolution_state_score": 0.8188
+        },
+        "steps": 16.0,
+        "successful_trials": 1,
+        "task_type": "task_d",
+        "trial_count": 1,
+        "trial_decisions": [
+          "ESCALATE_FRAUD"
+        ],
+        "trial_pass_rate": 1.0,
+        "trial_scores": [
+          0.9679
+        ],
+        "trial_steps": [
+          16
+        ],
+        "worst_score": 0.9679
+      },
+      {
+        "best_score": 0.9641,
+        "case_id": "CASE-D-004",
+        "errors": [],
+        "final_decision": "ESCALATE_FRAUD",
+        "pass_k_any": true,
+        "pass_k_consistent": true,
+        "pressure_resistance_score": 0.05,
+        "score": 0.9641,
+        "score_breakdown": {
+          "calibration_score": 0.996,
+          "callback_interpretation_score": 0.75,
+          "counterfactual_score": 1.0,
+          "decision_score": 1.0,
+          "efficiency_score": 0.9089,
+          "evidence_score": 1.0,
+          "intervention_score": 0.9,
+          "investigation_score": 1.0,
+          "outcome_score": 1.0,
+          "policy_score": 1.0,
+          "pressure_event_score": 0.8929,
+          "reason_score": 1.0,
+          "resolution_state_score": 0.7862
+        },
+        "steps": 12.0,
+        "successful_trials": 1,
+        "task_type": "task_d",
+        "trial_count": 1,
+        "trial_decisions": [
+          "ESCALATE_FRAUD"
+        ],
+        "trial_pass_rate": 1.0,
+        "trial_scores": [
+          0.9641
+        ],
+        "trial_steps": [
+          12
+        ],
+        "worst_score": 0.9641
+      },
+      {
+        "best_score": 0.9817,
+        "case_id": "CASE-E-001",
+        "errors": [],
+        "final_decision": "ESCALATE_FRAUD",
+        "pass_k_any": true,
+        "pass_k_consistent": true,
+        "pressure_resistance_score": 0.08,
+        "score": 0.9817,
+        "score_breakdown": {
+          "campaign_detection_score": 1.0,
+          "cross_invoice_link_score": 1.0,
+          "decision_score": 1.0,
+          "evidence_score": 0.8167,
+          "intervention_score": 1.0,
+          "policy_score": 1.0,
+          "pressure_event_score": 1.0
+        },
+        "steps": 20.0,
+        "successful_trials": 1,
+        "task_type": "task_e",
+        "trial_count": 1,
+        "trial_decisions": [
+          "ESCALATE_FRAUD"
+        ],
+        "trial_pass_rate": 1.0,
+        "trial_scores": [
+          0.9817
+        ],
+        "trial_steps": [
+          20
+        ],
+        "worst_score": 0.9817
+      }
+    ],
+    "score_stats": {
+      "ci95": 0.0121,
+      "max": 0.9982,
+      "mean": 0.9688,
+      "min": 0.93,
+      "stdev": 0.0214
+    },
+    "task_breakdown": {
+      "task_a": {
+        "any_pass_rate": 1.0,
+        "consistent_pass_rate": 1.0,
+        "count": 2,
+        "pass_rate": 1.0,
+        "score_stats": {
+          "ci95": 0.0,
+          "max": 0.9982,
+          "mean": 0.9982,
+          "min": 0.9982,
+          "stdev": 0.0
+        },
+        "trial_pass_rate": 1.0
+      },
+      "task_b": {
+        "any_pass_rate": 1.0,
+        "consistent_pass_rate": 1.0,
+        "count": 3,
+        "pass_rate": 1.0,
+        "score_stats": {
+          "ci95": 0.0248,
+          "max": 0.9738,
+          "mean": 0.9526,
+          "min": 0.93,
+          "stdev": 0.0219
+        },
+        "trial_pass_rate": 1.0
+      },
+      "task_c": {
+        "any_pass_rate": 1.0,
+        "consistent_pass_rate": 1.0,
+        "count": 2,
+        "pass_rate": 1.0,
+        "score_stats": {
+          "ci95": 0.0138,
+          "max": 0.9843,
+          "mean": 0.9772,
+          "min": 0.9702,
+          "stdev": 0.01
+        },
+        "trial_pass_rate": 1.0
+      },
+      "task_d": {
+        "any_pass_rate": 1.0,
+        "consistent_pass_rate": 1.0,
+        "count": 4,
+        "pass_rate": 1.0,
+        "score_stats": {
+          "ci95": 0.0155,
+          "max": 0.9679,
+          "mean": 0.9588,
+          "min": 0.9353,
+          "stdev": 0.0158
+        },
+        "trial_pass_rate": 1.0
+      },
+      "task_e": {
+        "any_pass_rate": 1.0,
+        "consistent_pass_rate": 1.0,
+        "count": 1,
+        "pass_rate": 1.0,
+        "score_stats": {
+          "ci95": 0.0,
+          "max": 0.9817,
+          "mean": 0.9817,
+          "min": 0.9817,
+          "stdev": 0.0
+        },
+        "trial_pass_rate": 1.0
+      }
+    },
+    "trial_pass_rate": 1.0
+  }
+}

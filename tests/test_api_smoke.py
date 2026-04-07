@@ -44,6 +44,18 @@ def _run_task_d_investigation_steps() -> None:
             "action_type": "request_callback_verification",
             "payload": {},
         },
+        {
+            "action_type": "lookup_policy",
+            "payload": {},
+        },
+        {
+            "action_type": "lookup_policy",
+            "payload": {},
+        },
+        {
+            "action_type": "lookup_policy",
+            "payload": {},
+        },
     ]
 
     for step in steps:
@@ -55,6 +67,14 @@ def test_health():
     response = client.get("/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
+
+
+def test_leaderboard_endpoint():
+    response = client.get("/leaderboard")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["benchmark"] == "ledgershield-v3"
+    assert "entries" in payload
 
 
 def test_reset_endpoint():
@@ -267,4 +287,18 @@ def test_campaign_task_d_reset_exposes_portfolio_context():
 
     assert len(invoice_docs) == 2
     assert observation["portfolio_context"]["linked_invoice_count"] == 2
+    assert observation["portfolio_context"]["queue_pressure"] == "campaign"
+
+
+def test_task_e_reset_exposes_multi_invoice_campaign():
+    response = client.post("/reset", json={"case_id": "CASE-E-001"})
+    assert response.status_code == 200
+
+    data = response.json()
+    observation = data["observation"]
+    invoice_docs = [doc for doc in observation["visible_documents"] if doc["doc_type"] == "invoice"]
+
+    assert len(invoice_docs) == 3
+    assert observation["task_type"] == "task_e"
+    assert observation["portfolio_context"]["linked_invoice_count"] == 3
     assert observation["portfolio_context"]["queue_pressure"] == "campaign"

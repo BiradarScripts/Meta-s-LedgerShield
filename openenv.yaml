@@ -4,3 +4,17 @@ type: space
 runtime: fastapi
 app: server.app:app
 port: 8000
+metadata:
+  formal_model: pomdp
+  horizon: finite
+  observation: partial
+  domain: enterprise-payment-integrity
+  novelty:
+    - mid-episode-adversarial-pressure
+    - contrastive-calibration-grading
+    - callback-dec-pomdp-extension
+    - campaign-level-multi-invoice-triage
+  task_families: 5
+  curated_benchmark_cases: 12
+  challenge_variants_default: 14
+  supports_holdout_generation: true

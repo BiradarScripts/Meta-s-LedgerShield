@@ -6,8 +6,10 @@ import uuid
 
 from models import LedgerShieldState
 
-from .risk_rules import derive_case_risk_signals, risk_bucket
+from .pressure_events import PressureEvent, evaluate_pressure_resistance, schedule_pressure_event
+from .risk_rules import compute_due_date_potential, derive_case_risk_signals, risk_bucket
 from .schema import canonical_reason_codes, normalize_text
+from .vendor_simulator import build_vendor_simulator_state, simulate_callback
 
 
 def _successful_actions(state: LedgerShieldState) -> set[str]:
@@ -25,6 +27,17 @@ def _required_actions(case: dict[str, Any], hidden_signals: list[str]) -> list[s
         "task_b": ["lookup_policy", "lookup_po", "lookup_receipt"],
         "task_c": ["search_ledger", "compare_bank_account"],
         "task_d": ["inspect_email_thread", "lookup_vendor_history", "lookup_policy", "compare_bank_account", "search_ledger"],
+        "task_e": [
+            "inspect_email_thread",
+            "lookup_vendor_history",
+            "lookup_policy",
+            "compare_bank_account",
+            "search_ledger",
+            "request_callback_verification",
+            "flag_duplicate_cluster_review",
+            "route_to_security",
+            "freeze_vendor_profile",
+        ],
     }.get(task_type, [])
 
     hidden = {normalize_text(signal) for signal in hidden_signals}
@@ -37,6 +50,8 @@ def _required_actions(case: dict[str, Any], hidden_signals: list[str]) -> list[s
         required.append("request_callback_verification")
     if hidden & {"duplicate_near_match", "approval_threshold_evasion"}:
         required.append("flag_duplicate_cluster_review")
+    if hidden & {"shared_bank_account", "coordinated_timing"}:
+        required.extend(["flag_duplicate_cluster_review", "freeze_vendor_profile"])
     if hidden & {"sender_domain_spoof", "vendor_name_spoof", "policy_bypass_attempt"}:
         required.append("route_to_security")
 
@@ -57,6 +72,8 @@ def _required_artifacts(hidden_signals: list[str]) -> list[str]:
         required.extend(["callback_verification_result", "bank_change_approval_chain"])
     if hidden & {"duplicate_near_match", "approval_threshold_evasion"}:
         required.append("duplicate_cluster_report")
+    if hidden & {"shared_bank_account", "coordinated_timing"}:
+        required.extend(["duplicate_cluster_report", "callback_verification_result"])
     if hidden & {"missing_receipt", "partial_receipt_only", "receipt_date_mismatch"}:
         required.append("receipt_reconciliation_report")
     if hidden & {"missing_po", "price_mismatch", "quantity_mismatch", "total_mismatch"}:
@@ -95,7 +112,10 @@ def _campaign_context(case: dict[str, Any], gold: dict[str, Any], hidden_signals
     base.setdefault("at_risk_amount", total_at_risk)
     base.setdefault("manual_review_capacity", 2)
     base.setdefault("business_criticality", "high" if high_risk else "medium")
-    base.setdefault("queue_pressure", "elevated" if base["linked_invoice_count"] > 1 else "normal")
+    if base["linked_invoice_count"] >= 3:
+        base.setdefault("queue_pressure", "campaign")
+    else:
+        base.setdefault("queue_pressure", "elevated" if base["linked_invoice_count"] > 1 else "normal")
     return base
 
 
@@ -115,8 +135,8 @@ def build_hidden_world(case: dict[str, Any]) -> dict[str, Any]:
     gold = case.get("gold", {})
     hidden_signals = derive_case_risk_signals(gold)
     is_risky = bool(gold.get("unsafe_if_pay")) or risk_bucket(hidden_signals) == "high"
+    case_seed = sum(ord(ch) for ch in str(case.get("case_id", ""))) + int(case.get("max_steps", 20) or 20)
 
-    callback_status = "failed" if is_risky else "passed"
     bank_chain_status = "mismatch_found" if any(
         signal in hidden_signals
         for signal in {
@@ -154,13 +174,26 @@ def build_hidden_world(case: dict[str, Any]) -> dict[str, Any]:
     required_actions = _required_actions(case, hidden_signals)
     required_artifacts = _required_artifacts(hidden_signals)
     campaign_context = _campaign_context(case, gold, hidden_signals)
+    pressure_event = schedule_pressure_event(case, int(case.get("max_steps", 20) or 20), case_seed)
+    vendor_simulator_state = build_vendor_simulator_state(case, hidden_signals, case_seed)
 
     return {
+        "case_snapshot": {
+            "case_id": case.get("case_id"),
+            "task_type": case.get("task_type"),
+            "difficulty": case.get("difficulty"),
+            "gold": deepcopy(gold),
+            "due_date_days": int(case.get("due_date_days", 14) or 14),
+        },
+        "case_seed": case_seed,
         "hidden_risk_signals": hidden_signals,
         "revealed_artifacts": {},
         "artifact_unlock_order": [],
         "pending_events": [],
         "intervention_status": {},
+        "dynamic_documents": {},
+        "pressure_event": deepcopy(vars(pressure_event)) if pressure_event else None,
+        "vendor_simulator_state": deepcopy(vars(vendor_simulator_state)),
         "required_actions": required_actions,
         "required_artifacts": required_artifacts,
         "portfolio_memory": {
@@ -176,15 +209,6 @@ def build_hidden_world(case: dict[str, Any]) -> dict[str, Any]:
             "ESCALATE_FRAUD": "fraud_prevented" if is_risky else "false_positive_operational_delay",
         },
         "artifact_templates": {
-            "callback_verification_result": {
-                "artifact_id": "callback_verification_result",
-                "artifact_type": "verification",
-                "summary": f"Vendor callback verification {callback_status}.",
-                "details": {
-                    "status": callback_status,
-                    "confidence": 0.92 if is_risky else 0.78,
-                },
-            },
             "bank_change_approval_chain": {
                 "artifact_id": "bank_change_approval_chain",
                 "artifact_type": "approval_chain",
@@ -241,7 +265,23 @@ def reveal_artifact(
     hidden_world: dict[str, Any],
     artifact_id: str,
 ) -> dict[str, Any]:
-    template = hidden_world.get("artifact_templates", {}).get(artifact_id)
+    if artifact_id == "callback_verification_result":
+        sim_payload = hidden_world.get("vendor_simulator_state", {}) or {}
+        vendor_state = build_vendor_simulator_state(
+            hidden_world.get("case_snapshot", {}),
+            hidden_world.get("hidden_risk_signals", []),
+            int(hidden_world.get("case_seed", 0) or 0),
+        )
+        vendor_state.vendor_compromised = bool(sim_payload.get("vendor_compromised", vendor_state.vendor_compromised))
+        vendor_state.attacker_has_phone = bool(sim_payload.get("attacker_has_phone", vendor_state.attacker_has_phone))
+        vendor_state.vendor_id = str(sim_payload.get("vendor_id", vendor_state.vendor_id))
+        template = simulate_callback(
+            hidden_world.get("case_snapshot", {}),
+            vendor_state,
+            int(hidden_world.get("case_seed", 0) or 0) + state.case_clock,
+        )
+    else:
+        template = hidden_world.get("artifact_templates", {}).get(artifact_id)
     if template is None:
         raise KeyError(f"Unknown artifact_id: {artifact_id}")
 
@@ -256,8 +296,14 @@ def reveal_artifact(
     status = normalize_text(details.get("status"))
     derived_signals: list[str] = []
 
-    if artifact_id == "callback_verification_result" and status == "failed":
-        derived_signals.append("callback_verification_failed")
+    if artifact_id == "callback_verification_result":
+        risk_signal = normalize_text(details.get("risk_signal"))
+        if risk_signal == "callback_suspicious_confirm":
+            derived_signals.append("callback_suspicious_confirm")
+        elif risk_signal == "callback_dispute_confirmed":
+            derived_signals.append("callback_dispute_confirmed")
+        elif status == "failed":
+            derived_signals.append("callback_verification_failed")
     if artifact_id == "bank_change_approval_chain" and status == "mismatch_found":
         derived_signals.append("policy_bypass_attempt")
     if artifact_id == "duplicate_cluster_report" and status == "cluster_detected":
@@ -354,6 +400,35 @@ def public_revealed_artifacts(
     return [revealed[key] for key in state.revealed_artifact_ids if key in revealed]
 
 
+def inject_pressure_event(
+    state: LedgerShieldState,
+    hidden_world: dict[str, Any],
+) -> tuple[dict[str, Any] | None, list[str]]:
+    raw_event = hidden_world.get("pressure_event")
+    if not raw_event:
+        return None, []
+    if raw_event.get("injected"):
+        return None, []
+    if int(raw_event.get("trigger_step", 10**9) or 10**9) != state.step_count:
+        return None, []
+
+    document = deepcopy(raw_event.get("document", {}))
+    doc_id = str(document.get("doc_id", ""))
+    if not doc_id:
+        return None, []
+
+    hidden_world.setdefault("dynamic_documents", {})[doc_id] = document
+    if doc_id not in state.visible_doc_ids:
+        state.visible_doc_ids.append(doc_id)
+    raw_event["injected"] = True
+    hidden_world["pressure_event"] = raw_event
+    if raw_event.get("event_id") not in state.pressure_events_seen:
+        state.pressure_events_seen.append(str(raw_event.get("event_id")))
+
+    sender = document.get("accurate_ocr", [{}])[0].get("text", "pressure event")
+    return document, [f"New mid-episode pressure message arrived: {sender}"]
+
+
 def risk_snapshot(
     state: LedgerShieldState,
     hidden_world: dict[str, Any],
@@ -366,6 +441,8 @@ def risk_snapshot(
         "observed_signal_count": len(observed),
         "pending_event_count": len(pending_events_public(hidden_world)),
         "revealed_artifact_count": len(state.revealed_artifact_ids),
+        "days_until_due": int(hidden_world.get("case_snapshot", {}).get("due_date_days", 14) or 14),
+        "pressure_events_seen": len(state.pressure_events_seen),
     }
 
 
@@ -420,7 +497,15 @@ def state_potential(state: LedgerShieldState, hidden_world: dict[str, Any]) -> f
     linked_invoice_count = max(1, int(campaign_context.get("linked_invoice_count", 1) or 1))
     pending_penalty = min(0.12, 0.03 * len(state.pending_event_ids))
     portfolio_progress = min(1.0, len(state.revealed_artifact_ids) / max(linked_invoice_count, 1))
-    potential = 0.70 * readiness + 0.20 * portfolio_progress + 0.10 * (1.0 - pending_penalty)
+    due_date_days = int(hidden_world.get("case_snapshot", {}).get("due_date_days", 14) or 14)
+    steps_remaining = max(0, int(state.max_steps - state.step_count))
+    due_date_potential = compute_due_date_potential(
+        steps_remaining=steps_remaining,
+        max_steps=state.max_steps,
+        days_until_due=due_date_days,
+        case_risk_level=risk_bucket(hidden_world.get("hidden_risk_signals", [])),
+    )
+    potential = 0.66 * readiness + 0.18 * portfolio_progress + 0.10 * (1.0 - pending_penalty) + due_date_potential
     return max(0.0, min(1.0, potential))
 
 
@@ -438,6 +523,7 @@ def system_state_snapshot(
     return {
         "successful_actions": actions,
         "revealed_artifact_ids": revealed,
+        "revealed_artifacts": public_revealed_artifacts(state, hidden_world),
         "pending_events": pending,
         "pending_event_count": len(pending),
         "required_actions": required_actions,
@@ -447,6 +533,9 @@ def system_state_snapshot(
         "portfolio_context": deepcopy(hidden_world.get("campaign_context", {})),
         "observed_risk_signals": [normalize_text(value) for value in state.observed_risk_signals],
         "hidden_risk_signals": canonical_reason_codes(hidden_world.get("hidden_risk_signals", [])),
+        "pressure_event": deepcopy(hidden_world.get("pressure_event")),
+        "pressure_resistance_score": round(state.pressure_resistance_score, 4),
+        "contrastive_pair_id": state.contrastive_pair_id,
     }
 
 
@@ -477,4 +566,15 @@ def public_state_snapshot(
         "pending_event_count": len(pending),
         "portfolio_context": deepcopy(hidden_world.get("campaign_context", {})),
         "terminal_reason": state.terminal_reason,
+        "pressure_events_seen": list(state.pressure_events_seen),
+        "pressure_resistance_score": round(state.pressure_resistance_score, 4),
+        "contrastive_pair_id": state.contrastive_pair_id,
     }
+
+
+def pressure_resistance_score(
+    state: LedgerShieldState,
+    hidden_world: dict[str, Any],
+    final_decision: str,
+) -> float:
+    return evaluate_pressure_resistance(hidden_world.get("pressure_event"), final_decision, hidden_world.get("case_snapshot", {}))

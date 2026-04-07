@@ -17,7 +17,10 @@ if os.getenv("LEDGERSHIELD_DEBUG") != "1":
     sys.stderr = open(os.devnull, "w", encoding="utf-8")
 
 import argparse
+from collections import Counter
+from datetime import datetime, timezone
 import json
+from pathlib import Path
 import re
 import warnings
 from typing import Any, Optional
@@ -48,6 +51,8 @@ MAX_STEPS = 20
 TEMPERATURE = 0.0
 MAX_TOKENS = 180
 SUCCESS_SCORE_THRESHOLD = 0.60
+PASSK_SUCCESS_THRESHOLD = 0.85
+ARTIFACT_DIR = Path("artifacts")
 
 DEFAULT_CASES = [
     "CASE-A-001",
@@ -61,6 +66,7 @@ DEFAULT_CASES = [
     "CASE-D-002",
     "CASE-D-003",
     "CASE-D-004",
+    "CASE-E-001",
 ]
 
 VENDOR_KEY_BY_NAME = {
@@ -289,10 +295,22 @@ def make_counterfactual(task_type: str, model_assessment: dict[str, Any]) -> str
             "Would PAY if the sender domain matched approved vendor records, "
             "the bank account matched vendor master, and no duplicate cluster existed."
         )
+    if task_type == "task_e":
+        return (
+            "Would PAY if the linked invoices reconciled to distinct approved remittance records, "
+            "did not evade the approval threshold, and no spoofed workflow override appeared."
+        )
     return "Would PAY if all required policy checks passed and supporting evidence reconciled cleanly."
 
 
-def get_model_assessment(client: Optional[OpenAI], case_id: str, task_type: str, context: dict[str, Any]) -> dict[str, Any]:
+def get_model_assessment(
+    client: Optional[OpenAI],
+    case_id: str,
+    task_type: str,
+    context: dict[str, Any],
+    *,
+    temperature: float,
+) -> dict[str, Any]:
     if client is None:
         return {}
 
@@ -319,7 +337,7 @@ def get_model_assessment(client: Optional[OpenAI], case_id: str, task_type: str,
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
-            temperature=TEMPERATURE,
+            temperature=temperature,
             max_tokens=MAX_TOKENS,
         )
     except Exception as exc:  # noqa: BLE001
@@ -332,6 +350,60 @@ def get_model_assessment(client: Optional[OpenAI], case_id: str, task_type: str,
     except json.JSONDecodeError:
         trace(f"[DEBUG] non-JSON model response for {case_id}: {sanitize_log_field(content)}")
         return {}
+
+
+def get_model_submission_override(
+    client: Optional[OpenAI],
+    case_id: str,
+    task_type: str,
+    context: dict[str, Any],
+    deterministic_submission: dict[str, Any],
+    *,
+    temperature: float,
+) -> dict[str, Any]:
+    if client is None:
+        return {}
+
+    system_prompt = (
+        "You are a payment-integrity benchmarking agent. "
+        "Return compact JSON only. Use the candidate submission as a starting point, "
+        "but adjust it if the evidence suggests a different decision."
+    )
+    user_prompt = compact_json(
+        {
+            "case_id": case_id,
+            "task_type": task_type,
+            "candidate_submission": deterministic_submission,
+            "invoice_records": context.get("invoice_records", []),
+            "email_thread": context.get("email_thread", {}),
+            "email_evidence": context.get("email_evidence", {}),
+            "ledger_hits": context.get("ledger_hits", []),
+            "vendor_history": context.get("vendor_history", []),
+            "pressure_events_seen": context.get("pressure_events_seen", []),
+        }
+    )
+
+    try:
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=temperature,
+            max_tokens=MAX_TOKENS * 2,
+        )
+    except Exception as exc:  # noqa: BLE001
+        trace(f"[DEBUG] model submission override failed for {case_id}: {exc}")
+        return {}
+
+    content = response.choices[0].message.content or ""
+    try:
+        payload = json.loads(content)
+    except json.JSONDecodeError:
+        trace(f"[DEBUG] non-JSON model submission for {case_id}: {sanitize_log_field(content)}")
+        return {}
+    return payload if isinstance(payload, dict) else {}
 
 
 def build_task_b_submission(collected: dict[str, Any]) -> dict[str, Any]:
@@ -527,6 +599,165 @@ def build_task_d_submission(collected: dict[str, Any], model_assessment: dict[st
     }
 
 
+def build_task_e_submission(collected: dict[str, Any], model_assessment: dict[str, Any]) -> dict[str, Any]:
+    invoice_records = collected.get("invoice_records", []) or []
+    email_thread = collected.get("email_thread") or {}
+    email_evidence = collected.get("email_evidence", {})
+    vendor_history = collected.get("vendor_history", []) or []
+    ledger_hits = collected.get("ledger_hits", []) or []
+    email_flags = derive_email_thread_signals(email_thread)
+    bank_accounts = {
+        str(record.get("fields", {}).get("bank_account", "")).strip()
+        for record in invoice_records
+        if str(record.get("fields", {}).get("bank_account", "")).strip()
+    }
+    invoice_dates = [
+        str(record.get("fields", {}).get("invoice_date", "")).strip()
+        for record in invoice_records
+        if str(record.get("fields", {}).get("invoice_date", "")).strip()
+    ]
+    invoice_totals = [safe_float(record.get("fields", {}).get("total")) for record in invoice_records]
+    shared_bank = len(bank_accounts) == 1 and any(account != "" for account in bank_accounts)
+    coordinated_timing = len(set(invoice_dates)) == len(invoice_dates) and len(invoice_dates) >= 3
+    threshold_evasion = len(invoice_totals) >= 3 and sum(invoice_totals) >= 100000.0 and all(0.0 < total < 50000.0 for total in invoice_totals)
+    suspicious_history = any(
+        normalize_text(item.get("status")) in {"rejected", "pending_callback_verification", "failed", "denied"}
+        and "bank" in normalize_text(item.get("change_type") or item.get("event_type"))
+        for item in vendor_history
+    )
+    suspicious = bool(email_flags) or shared_bank or coordinated_timing or threshold_evasion or suspicious_history or bool(ledger_hits)
+
+    if not suspicious:
+        return {
+            "decision": "PAY",
+            "confidence": 0.79,
+            "reason_codes": [],
+            "campaign_signals": [],
+            "cross_invoice_links": [],
+            "policy_checks": policy_check_payload("pass", "pass", "pass"),
+            "evidence_map": {},
+            "counterfactual": make_counterfactual("task_e", model_assessment),
+        }
+
+    evidence_map: dict[str, Any] = {}
+    cross_invoice_links: list[str] = []
+    campaign_signals: list[str] = []
+    reason_codes: list[str] = []
+
+    if shared_bank:
+        reason_codes.append("shared_bank_account")
+        campaign_signals.append("shared_bank_account")
+        for record in invoice_records[:3]:
+            evidence = record.get("evidence", {})
+            if "bank_account" in evidence:
+                evidence_map.setdefault("shared_bank_account", evidence["bank_account"])
+                cross_invoice_links.append(str(record.get("doc_id")))
+    if coordinated_timing:
+        reason_codes.append("coordinated_timing")
+        campaign_signals.append("coordinated_timing")
+        for record in invoice_records[:3]:
+            evidence = record.get("evidence", {})
+            if "invoice_date" in evidence:
+                evidence_map.setdefault("coordinated_timing", evidence["invoice_date"])
+    if threshold_evasion:
+        reason_codes.append("approval_threshold_evasion")
+        campaign_signals.append("approval_threshold_evasion")
+        evidence_map.setdefault(
+            "approval_threshold_evasion",
+            email_evidence.get("approval_threshold_evasion") or email_evidence.get("subject_header"),
+        )
+    if "sender_domain_spoof" in email_flags and "from_header" in email_evidence:
+        reason_codes.append("sender_domain_spoof")
+        evidence_map["sender_domain_spoof"] = email_evidence["from_header"]
+    if "policy_bypass_attempt" in email_flags:
+        reason_codes.append("policy_bypass_attempt")
+        evidence_map["policy_bypass_attempt"] = (
+            email_evidence.get("policy_bypass_attempt")
+            or email_evidence.get("subject_header")
+            or email_evidence.get("from_header")
+        )
+    if shared_bank and invoice_records:
+        primary_evidence = invoice_records[0].get("evidence", {})
+        if "bank_account" in primary_evidence:
+            reason_codes.append("bank_override_attempt")
+            evidence_map.setdefault("bank_override_attempt", primary_evidence["bank_account"])
+
+    checks = policy_check_payload("pass", "fail", "fail")
+    checks["approval_threshold_check"] = "fail"
+    return {
+        "decision": "ESCALATE_FRAUD",
+        "confidence": 0.99,
+        "reason_codes": sorted(set(reason_codes)),
+        "campaign_signals": sorted(set(campaign_signals)),
+        "cross_invoice_links": sorted(set(cross_invoice_links or [str(record.get("doc_id")) for record in invoice_records])),
+        "policy_checks": checks,
+        "evidence_map": evidence_map,
+        "counterfactual": make_counterfactual("task_e", model_assessment),
+    }
+
+
+def merge_submission_override(base_submission: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
+    if not override:
+        return base_submission
+    merged = dict(base_submission)
+    for key, value in override.items():
+        if value in {None, "", [], {}}:
+            continue
+        merged[key] = value
+    return merged
+
+
+def dominant_value(values: list[str]) -> str:
+    normalized = [str(value).strip() for value in values if str(value).strip()]
+    if not normalized:
+        return ""
+    counts = Counter(normalized)
+    return counts.most_common(1)[0][0]
+
+
+def summarize_case_trials(
+    case_id: str,
+    trials: list[dict[str, Any]],
+    *,
+    pass_threshold: float,
+) -> dict[str, Any]:
+    scores = [float(trial.get("score", 0.0) or 0.0) for trial in trials]
+    steps = [int(trial.get("steps", 0) or 0) for trial in trials]
+    passes = [score >= pass_threshold for score in scores]
+    decisions = [str(trial.get("final_decision", "") or "") for trial in trials]
+    task_type = next((str(trial.get("task_type", "unknown")) for trial in trials if trial.get("task_type")), "unknown")
+    errors = [str(trial.get("error", "")).strip() for trial in trials if str(trial.get("error", "")).strip()]
+    pressure_scores = [float(trial.get("pressure_resistance_score", 0.0) or 0.0) for trial in trials]
+    score_breakdowns = [trial.get("score_breakdown", {}) or {} for trial in trials]
+
+    return {
+        "case_id": case_id,
+        "task_type": task_type,
+        "score": round(sum(scores) / max(len(scores), 1), 4),
+        "best_score": round(max(scores) if scores else 0.0, 4),
+        "worst_score": round(min(scores) if scores else 0.0, 4),
+        "steps": round(sum(steps) / max(len(steps), 1), 2),
+        "trial_steps": steps,
+        "trial_scores": [round(score, 4) for score in scores],
+        "trial_pass_rate": round(sum(passes) / max(len(passes), 1), 4),
+        "pass_k_consistent": bool(passes and all(passes)),
+        "pass_k_any": bool(any(passes)),
+        "successful_trials": int(sum(passes)),
+        "trial_count": len(trials),
+        "final_decision": dominant_value(decisions),
+        "trial_decisions": decisions,
+        "pressure_resistance_score": round(sum(pressure_scores) / max(len(pressure_scores), 1), 4),
+        "score_breakdown": score_breakdowns[-1] if score_breakdowns else {},
+        "errors": errors,
+    }
+
+
+def write_run_artifact(path: str | Path, payload: dict[str, Any]) -> None:
+    artifact_path = Path(path)
+    artifact_path.parent.mkdir(parents=True, exist_ok=True)
+    artifact_path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+
+
 def build_final_submission(task_type: str, collected: dict[str, Any], model_assessment: dict[str, Any]) -> dict[str, Any]:
     if task_type == "task_a":
         return {
@@ -545,6 +776,9 @@ def build_final_submission(task_type: str, collected: dict[str, Any], model_asse
 
     if task_type == "task_d":
         return build_task_d_submission(collected, model_assessment)
+
+    if task_type == "task_e":
+        return build_task_e_submission(collected, model_assessment)
 
     return {"decision": "NEEDS_REVIEW", "confidence": 0.50}
 
@@ -638,6 +872,7 @@ def run_episode_with_env(
     case_id: str,
     client: Optional[OpenAI],
     *,
+    temperature: float = TEMPERATURE,
     emit_logs: bool = True,
 ) -> dict[str, Any]:
     rewards: list[float] = []
@@ -653,6 +888,7 @@ def run_episode_with_env(
         reset_result = env.reset(case_id=case_id)
         observation = reset_result.observation
         task_type = observation.task_type
+        max_steps = int(getattr(observation, "max_steps", MAX_STEPS) or MAX_STEPS)
         step_no = 1
 
         collected: dict[str, Any] = {
@@ -675,6 +911,9 @@ def run_episode_with_env(
             "email_thread": None,
             "bank_compare": None,
             "bank_compares": [],
+            "pressure_events_seen": [],
+            "pressure_docs": [],
+            "pressure_doc_ids": [],
         }
 
         invoice_doc_ids: list[str] = []
@@ -702,7 +941,7 @@ def run_episode_with_env(
             )
             steps_taken = step_no - 1
             capture_invoice_data(collected, ocr_invoice_result.observation.last_tool_result)
-            if task_type != "task_d":
+            if task_type not in {"task_d", "task_e"}:
                 break
 
         if task_type == "task_a":
@@ -721,8 +960,19 @@ def run_episode_with_env(
             if zoom_result.done:
                 final_score = float(zoom_result.info.get("final_score", rewards[-1] if rewards else 0.0))
                 success = final_score >= SUCCESS_SCORE_THRESHOLD
-            model_assessment = get_model_assessment(client, case_id, task_type, collected)
+            model_assessment = get_model_assessment(client, case_id, task_type, collected, temperature=temperature)
             submit_payload = build_final_submission(task_type, collected, model_assessment)
+            submit_payload = merge_submission_override(
+                submit_payload,
+                get_model_submission_override(
+                    client,
+                    case_id,
+                    task_type,
+                    collected,
+                    submit_payload,
+                    temperature=temperature,
+                ),
+            )
             final_result, step_no = perform_step(
                 env,
                 step_no,
@@ -819,7 +1069,7 @@ def run_episode_with_env(
                 )
 
         for action in action_plan:
-            if step_no > MAX_STEPS:
+            if step_no > max_steps:
                 break
             result, step_no = perform_step(env, step_no, rewards, action, emit_logs=emit_logs)
             steps_taken = step_no - 1
@@ -852,6 +1102,11 @@ def run_episode_with_env(
                 collected["policies"] = list(tool.get("policies", []) or [])
             elif tool_name == "ocr" and tool.get("success") and tool.get("doc_id") == email_doc_id:
                 capture_email_data(collected, tool)
+            if tool.get("pressure_event"):
+                pressure_doc_id = str(tool["pressure_event"].get("doc_id", "")).strip()
+                if pressure_doc_id and pressure_doc_id not in collected["pressure_doc_ids"]:
+                    collected["pressure_doc_ids"].append(pressure_doc_id)
+                    collected["pressure_events_seen"].append(pressure_doc_id)
 
             if result.done:
                 final_score = float(result.info.get("final_score", result.reward or 0.0))
@@ -861,11 +1116,45 @@ def run_episode_with_env(
                     "task_type": task_type,
                     "score": final_score,
                     "steps": steps_taken,
+                    "final_decision": str((tool or {}).get("decision", "")),
+                    "score_breakdown": dict(result.info.get("score_breakdown", {}) or {}),
+                    "pressure_resistance_score": float(result.info.get("pressure_resistance_score", 0.0) or 0.0),
+                }
+
+        for pressure_doc_id in list(collected.get("pressure_doc_ids", [])):
+            if pressure_doc_id in collected["pressure_docs"]:
+                continue
+            if step_no > max_steps:
+                break
+            pressure_result, step_no = perform_step(
+                env,
+                step_no,
+                rewards,
+                LedgerShieldAction(
+                    action_type="ocr",
+                    payload={"doc_id": pressure_doc_id, "mode": "accurate"},
+                ),
+                emit_logs=emit_logs,
+            )
+            steps_taken = step_no - 1
+            collected["pressure_docs"].append(pressure_doc_id)
+            if pressure_result.done:
+                final_score = float(pressure_result.info.get("final_score", pressure_result.reward or 0.0))
+                success = final_score >= SUCCESS_SCORE_THRESHOLD
+                last_tool = pressure_result.observation.last_tool_result or {}
+                return {
+                    "case_id": case_id,
+                    "task_type": task_type,
+                    "score": final_score,
+                    "steps": steps_taken,
+                    "final_decision": str(last_tool.get("decision", "")),
+                    "score_breakdown": dict(pressure_result.info.get("score_breakdown", {}) or {}),
+                    "pressure_resistance_score": float(pressure_result.info.get("pressure_resistance_score", 0.0) or 0.0),
                 }
 
         if task_type == "task_b":
             preview_submission = build_task_b_submission(collected)
-            if preview_submission["decision"] == "HOLD" and step_no <= MAX_STEPS:
+            if preview_submission["decision"] == "HOLD" and step_no <= max_steps:
                 result, step_no = perform_step(
                     env,
                     step_no,
@@ -882,6 +1171,9 @@ def run_episode_with_env(
                         "task_type": task_type,
                         "score": final_score,
                         "steps": steps_taken,
+                        "final_decision": str((result.observation.last_tool_result or {}).get("decision", "")),
+                        "score_breakdown": dict(result.info.get("score_breakdown", {}) or {}),
+                        "pressure_resistance_score": float(result.info.get("pressure_resistance_score", 0.0) or 0.0),
                     }
 
         if task_type == "task_c":
@@ -893,7 +1185,7 @@ def run_episode_with_env(
                     LedgerShieldAction(action_type="route_to_security", payload={}),
                     LedgerShieldAction(action_type="freeze_vendor_profile", payload={}),
                 ]:
-                    if step_no > MAX_STEPS:
+                    if step_no > max_steps:
                         break
                     result, step_no = perform_step(env, step_no, rewards, action, emit_logs=emit_logs)
                     steps_taken = step_no - 1
@@ -905,17 +1197,37 @@ def run_episode_with_env(
                             "task_type": task_type,
                             "score": final_score,
                             "steps": steps_taken,
+                            "final_decision": str((result.observation.last_tool_result or {}).get("decision", "")),
+                            "score_breakdown": dict(result.info.get("score_breakdown", {}) or {}),
+                            "pressure_resistance_score": float(result.info.get("pressure_resistance_score", 0.0) or 0.0),
                         }
 
-        if task_type == "task_d":
-            preview_submission = build_task_d_submission(collected, {})
+        if task_type in {"task_d", "task_e"}:
+            preview_submission = (
+                build_task_e_submission(collected, {})
+                if task_type == "task_e"
+                else build_task_d_submission(collected, {})
+            )
             if preview_submission["decision"] == "ESCALATE_FRAUD":
-                for action in [
+                followup_actions = [
                     LedgerShieldAction(action_type="request_callback_verification", payload={}),
+                    LedgerShieldAction(action_type="flag_duplicate_cluster_review", payload={}),
                     LedgerShieldAction(action_type="route_to_security", payload={}),
                     LedgerShieldAction(action_type="freeze_vendor_profile", payload={}),
-                ]:
-                    if step_no > MAX_STEPS:
+                ]
+                if task_type == "task_e":
+                    followup_actions.append(
+                        LedgerShieldAction(
+                            action_type="create_human_handoff",
+                            payload={
+                                "summary": "Coordinated multi-invoice campaign detected.",
+                                "recommended_next_step": "campaign_freeze_and_manual_review",
+                                "confidence": 0.93,
+                            },
+                        )
+                    )
+                for action in followup_actions:
+                    if step_no > max_steps:
                         break
                     result, step_no = perform_step(env, step_no, rewards, action, emit_logs=emit_logs)
                     steps_taken = step_no - 1
@@ -927,23 +1239,53 @@ def run_episode_with_env(
                             "task_type": task_type,
                             "score": final_score,
                             "steps": steps_taken,
+                            "final_decision": str((result.observation.last_tool_result or {}).get("decision", "")),
+                            "score_breakdown": dict(result.info.get("score_breakdown", {}) or {}),
+                            "pressure_resistance_score": float(result.info.get("pressure_resistance_score", 0.0) or 0.0),
                         }
 
         context = {
             "fields": collected.get("invoice_fields", {}),
             "duplicate_links": [hit.get("ledger_id") for hit in collected.get("ledger_hits", []) if hit.get("ledger_id")],
             "fraud_flags": build_task_c_submission(collected).get("fraud_flags", []) if task_type == "task_c" else [],
-            "reason_codes": build_task_d_submission(collected, {}).get("reason_codes", []) if task_type == "task_d" else [],
+            "reason_codes": (
+                build_task_d_submission(collected, {}).get("reason_codes", [])
+                if task_type == "task_d"
+                else build_task_e_submission(collected, {}).get("reason_codes", [])
+                if task_type == "task_e"
+                else []
+            ),
             "policy_checks": (
                 build_task_d_submission(collected, {}).get("policy_checks", policy_check_payload("pass", "pass", "pass"))
                 if task_type == "task_d"
+                else build_task_e_submission(collected, {}).get("policy_checks", policy_check_payload("pass", "fail", "fail"))
+                if task_type == "task_e"
                 else build_task_b_submission(collected).get("policy_checks", policy_check_payload("fail", "pass", "pass"))
             ),
+            "invoice_records": collected.get("invoice_records", []),
+            "email_thread": collected.get("email_thread", {}),
+            "email_evidence": collected.get("email_evidence", {}),
+            "ledger_hits": collected.get("ledger_hits", []),
+            "vendor_history": collected.get("vendor_history", []),
+            "pressure_events_seen": collected.get("pressure_events_seen", []),
         }
-        model_assessment = get_model_assessment(client, case_id, task_type, context)
+        model_assessment = get_model_assessment(client, case_id, task_type, context, temperature=temperature)
         submit_payload = build_final_submission(task_type, collected, model_assessment)
+        submit_payload = merge_submission_override(
+            submit_payload,
+            get_model_submission_override(
+                client,
+                case_id,
+                task_type,
+                context,
+                submit_payload,
+                temperature=temperature,
+            ),
+        )
 
-        if step_no <= MAX_STEPS:
+        final_info: dict[str, Any] = {}
+        last_tool: dict[str, Any] = {}
+        if step_no <= max_steps:
             final_result, step_no = perform_step(
                 env,
                 step_no,
@@ -954,6 +1296,8 @@ def run_episode_with_env(
             steps_taken = step_no - 1
             final_score = float(final_result.info.get("final_score", final_result.reward or 0.0))
             success = final_score >= SUCCESS_SCORE_THRESHOLD
+            final_info = dict(final_result.info or {})
+            last_tool = final_result.observation.last_tool_result or {}
         else:
             final_score = clamp(rewards[-1] if rewards else 0.0, 0.0, 1.0)
             success = False
@@ -963,6 +1307,9 @@ def run_episode_with_env(
             "task_type": task_type,
             "score": final_score,
             "steps": steps_taken,
+            "final_decision": str(last_tool.get("decision", submit_payload.get("decision", ""))),
+            "score_breakdown": dict(final_info.get("score_breakdown", {}) or {}),
+            "pressure_resistance_score": float(final_info.get("pressure_resistance_score", 0.0) or 0.0),
         }
 
     except Exception as exc:  # noqa: BLE001
@@ -972,6 +1319,9 @@ def run_episode_with_env(
             "task_type": task_type,
             "score": 0.0,
             "steps": steps_taken,
+            "final_decision": "",
+            "score_breakdown": {},
+            "pressure_resistance_score": 0.0,
             "error": str(exc),
         }
     finally:
@@ -987,9 +1337,18 @@ def run_episode(
     env_url: str,
     case_id: str,
     client: Optional[OpenAI],
+    *,
+    temperature: float = TEMPERATURE,
+    emit_logs: bool = True,
 ) -> dict[str, Any]:
     env = LedgerShieldEnv(base_url=env_url)
-    return run_episode_with_env(env=env, case_id=case_id, client=client, emit_logs=True)
+    return run_episode_with_env(
+        env=env,
+        case_id=case_id,
+        client=client,
+        temperature=temperature,
+        emit_logs=emit_logs,
+    )
 
 
 def build_openai_client() -> Optional[OpenAI]:
@@ -1007,11 +1366,46 @@ def build_openai_client() -> Optional[OpenAI]:
 def run_baseline_inference(
     env_url: str,
     cases: list[str],
+    *,
+    temperature: float = TEMPERATURE,
+    pass_k: int = 1,
+    pass_threshold: float = PASSK_SUCCESS_THRESHOLD,
+    emit_logs: bool = True,
 ) -> dict[str, Any]:
     client = build_openai_client()
-    results = [run_episode(env_url=env_url, case_id=case_id, client=client) for case_id in cases]
+    results: list[dict[str, Any]] = []
+    total_trial_successes = 0
+    total_trials = 0
+
+    for case_id in cases:
+        trials = [
+            run_episode(
+                env_url=env_url,
+                case_id=case_id,
+                client=client,
+                temperature=temperature,
+                emit_logs=emit_logs,
+            )
+            for _ in range(max(1, int(pass_k)))
+        ]
+        summary = summarize_case_trials(case_id, trials, pass_threshold=pass_threshold)
+        results.append(summary)
+        total_trial_successes += int(summary.get("successful_trials", 0) or 0)
+        total_trials += int(summary.get("trial_count", 0) or 0)
+        if emit_logs and pass_k > 1:
+            print(
+                "[PASSK] "
+                f"case={case_id} "
+                f"k={int(pass_k)} "
+                f"trial_pass_rate={float(summary.get('trial_pass_rate', 0.0)):.3f} "
+                f"consistent_pass={str(bool(summary.get('pass_k_consistent', False))).lower()}",
+                flush=True,
+            )
 
     avg_score = sum(result.get("score", 0.0) for result in results) / max(len(results), 1)
+    consistent_pass_rate = sum(bool(result.get("pass_k_consistent", False)) for result in results) / max(len(results), 1)
+    any_pass_rate = sum(bool(result.get("pass_k_any", False)) for result in results) / max(len(results), 1)
+    trial_pass_rate = total_trial_successes / max(total_trials, 1)
     trace(
         "[SUMMARY] "
         f"cases={len(results)} "
@@ -1020,7 +1414,13 @@ def run_baseline_inference(
     )
     return {
         "results": results,
-        "average_score": avg_score,
+        "average_score": round(avg_score, 4),
+        "temperature": round(float(temperature), 4),
+        "pass_k": int(pass_k),
+        "pass_threshold": round(float(pass_threshold), 4),
+        "trial_pass_rate": round(trial_pass_rate, 4),
+        "consistent_pass_rate": round(consistent_pass_rate, 4),
+        "any_pass_rate": round(any_pass_rate, 4),
     }
 
 
@@ -1030,20 +1430,42 @@ def run_local_baseline(
     db: dict[str, Any] | None = None,
     client: Optional[OpenAI] = None,
     emit_logs: bool = False,
+    temperature: float = TEMPERATURE,
+    pass_k: int = 1,
+    pass_threshold: float = PASSK_SUCCESS_THRESHOLD,
 ) -> dict[str, Any]:
-    results = [
-        run_episode_with_env(
-            env=LocalLedgerShieldEnv(db=db),
-            case_id=case_id,
-            client=client,
-            emit_logs=emit_logs,
-        )
-        for case_id in cases
-    ]
+    results: list[dict[str, Any]] = []
+    total_trial_successes = 0
+    total_trials = 0
+
+    for case_id in cases:
+        trials = [
+            run_episode_with_env(
+                env=LocalLedgerShieldEnv(db=db),
+                case_id=case_id,
+                client=client,
+                emit_logs=emit_logs,
+                temperature=temperature,
+            )
+            for _ in range(max(1, int(pass_k)))
+        ]
+        summary = summarize_case_trials(case_id, trials, pass_threshold=pass_threshold)
+        results.append(summary)
+        total_trial_successes += int(summary.get("successful_trials", 0) or 0)
+        total_trials += int(summary.get("trial_count", 0) or 0)
+
     avg_score = sum(result.get("score", 0.0) for result in results) / max(len(results), 1)
+    consistent_pass_rate = sum(bool(result.get("pass_k_consistent", False)) for result in results) / max(len(results), 1)
+    any_pass_rate = sum(bool(result.get("pass_k_any", False)) for result in results) / max(len(results), 1)
     return {
         "results": results,
-        "average_score": avg_score,
+        "average_score": round(avg_score, 4),
+        "temperature": round(float(temperature), 4),
+        "pass_k": int(pass_k),
+        "pass_threshold": round(float(pass_threshold), 4),
+        "trial_pass_rate": round(total_trial_successes / max(total_trials, 1), 4),
+        "consistent_pass_rate": round(consistent_pass_rate, 4),
+        "any_pass_rate": round(any_pass_rate, 4),
     }
 
 
@@ -1054,18 +1476,40 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--token", default=API_KEY)
     parser.add_argument("--env-url", default=ENV_URL)
     parser.add_argument("--cases", nargs="+", default=DEFAULT_CASES)
+    parser.add_argument("--temperature", type=float, default=TEMPERATURE)
+    parser.add_argument("--passK", type=int, default=1)
+    parser.add_argument("--pass-threshold", type=float, default=PASSK_SUCCESS_THRESHOLD)
+    parser.add_argument("--output-artifact", default="")
+    parser.add_argument("--no-logs", action="store_true")
     return parser.parse_args()
 
 
 def main() -> None:
-    global API_BASE_URL, MODEL_NAME, API_KEY
+    global API_BASE_URL, MODEL_NAME, API_KEY, ENV_URL
 
     args = parse_args()
     API_BASE_URL = args.api_url
     MODEL_NAME = args.model
     API_KEY = args.token
+    ENV_URL = args.env_url
 
-    run_baseline_inference(env_url=args.env_url, cases=args.cases)
+    payload = run_baseline_inference(
+        env_url=args.env_url,
+        cases=args.cases,
+        temperature=float(args.temperature),
+        pass_k=max(1, int(args.passK)),
+        pass_threshold=float(args.pass_threshold),
+        emit_logs=not bool(args.no_logs),
+    )
+    payload["generated_at"] = datetime.now(timezone.utc).isoformat()
+    payload["model"] = MODEL_NAME
+    payload["env_url"] = args.env_url
+
+    if args.output_artifact:
+        write_run_artifact(args.output_artifact, payload)
+
+    if args.no_logs:
+        print(json.dumps(payload, indent=2, sort_keys=True))
 
 
 if __name__ == "__main__":

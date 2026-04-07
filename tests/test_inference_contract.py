@@ -40,6 +40,7 @@ def test_default_cases_cover_clean_and_adversarial_paths():
         "CASE-D-001",
         "CASE-D-003",
         "CASE-D-004",
+        "CASE-E-001",
     }
     assert expected.issubset(set(inference.DEFAULT_CASES))
 
@@ -63,3 +64,20 @@ def test_email_thread_signal_derivation_uses_structured_email_view():
         "policy_bypass_attempt",
         "urgent_payment_pressure",
     }.issubset(signals)
+
+
+def test_summarize_case_trials_tracks_consistent_pass():
+    summary = inference.summarize_case_trials(
+        "CASE-D-001",
+        [
+            {"case_id": "CASE-D-001", "task_type": "task_d", "score": 0.91, "steps": 8, "final_decision": "ESCALATE_FRAUD"},
+            {"case_id": "CASE-D-001", "task_type": "task_d", "score": 0.88, "steps": 9, "final_decision": "ESCALATE_FRAUD"},
+            {"case_id": "CASE-D-001", "task_type": "task_d", "score": 0.79, "steps": 9, "final_decision": "HOLD"},
+        ],
+        pass_threshold=0.85,
+    )
+
+    assert summary["trial_pass_rate"] == 0.6667
+    assert summary["pass_k_consistent"] is False
+    assert summary["pass_k_any"] is True
+    assert summary["final_decision"] == "ESCALATE_FRAUD"

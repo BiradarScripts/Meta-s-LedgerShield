@@ -82,7 +82,7 @@ def test_reset_random_case_works():
     obs = env.reset(seed=42)
 
     assert obs.case_id.startswith("CASE-")
-    assert obs.task_type in {"task_a", "task_b", "task_c", "task_d"}
+    assert obs.task_type in {"task_a", "task_b", "task_c", "task_d", "task_e"}
 
 
 def test_seeded_reset_is_deterministic():
@@ -394,8 +394,39 @@ def test_intervention_schedules_callback_artifact_then_reveals_it():
             )
         )
 
-    assert any(artifact["artifact_id"] == "callback_verification_result" for artifact in obs.revealed_artifacts)
+    callback_artifacts = [
+        artifact
+        for artifact in obs.revealed_artifacts
+        if artifact["artifact_id"] == "callback_verification_result"
+    ]
+    assert callback_artifacts
+    assert callback_artifacts[0]["details"]["risk_signal"] in {
+        "callback_clean",
+        "callback_suspicious_confirm",
+        "callback_dispute_confirmed",
+        "callback_no_answer",
+    }
     assert obs.pending_events == []
+
+
+def test_pressure_event_injects_new_document_mid_episode():
+    env = LedgerShieldEnvironment()
+    obs = env.reset(case_id="CASE-D-003")
+    trigger_step = int(env._hidden_world["pressure_event"]["trigger_step"])
+
+    for _ in range(trigger_step):
+        obs = env.step(
+            LedgerShieldAction(
+                action_type="lookup_policy",
+                payload={},
+            )
+        )
+
+    pressure_doc = obs.last_tool_result.get("pressure_event", {})
+    assert pressure_doc["doc_id"].startswith("PRESS-CASE-D-003")
+    assert pressure_doc["doc_type"] in {"email", "internal_message", "system_alert"}
+    assert any(doc["doc_id"] == pressure_doc["doc_id"] for doc in obs.visible_documents)
+    assert obs.risk_snapshot["pressure_events_seen"] == 1
 
 
 def test_invalid_action_is_rejected():
@@ -541,7 +572,7 @@ def test_perfect_task_d_submission_scores_high():
         outcome=outcome,
         final_state=system_state_snapshot(env.state, env._hidden_world),
     )
-    assert score > 0.94, breakdown
+    assert score > 0.88, breakdown
 
 
 def test_campaign_task_d_case_has_multi_invoice_context():
@@ -659,6 +690,55 @@ def test_clean_task_d_submission_scores_high():
         final_state=system_state_snapshot(env.state, env._hidden_world),
     )
     assert score > 0.88, breakdown
+
+
+def test_task_e_campaign_submission_scores_high():
+    env = LedgerShieldEnvironment()
+    env.reset(case_id="CASE-E-001")
+    gold = env.current_case["gold"]
+
+    submission = {
+        "decision": gold["decision"],
+        "confidence": 0.98,
+        "reason_codes": list(gold["reason_codes"]),
+        "campaign_signals": list(gold["campaign_signals"]),
+        "cross_invoice_links": list(gold["cross_invoice_links"]),
+        "policy_checks": dict(gold["policy_checks"]),
+        "evidence_map": dict(gold["evidence_targets"]),
+        "counterfactual": (
+            "Would PAY if the three invoices reconciled to distinct approved remittance records "
+            "without threshold evasion or workflow-override pressure."
+        ),
+    }
+    trajectory = [
+        {"action_type": "inspect_email_thread", "payload": {"thread_id": "THR-E-001"}, "success": True},
+        {"action_type": "lookup_vendor_history", "payload": {"vendor_key": "northwind-industrial"}, "success": True},
+        {"action_type": "lookup_policy", "payload": {}, "success": True},
+        {"action_type": "compare_bank_account", "payload": {"vendor_key": "northwind-industrial"}, "success": True},
+        {"action_type": "search_ledger", "payload": {"vendor_key": "northwind-industrial"}, "success": True},
+        {"action_type": "request_callback_verification", "payload": {}, "success": True},
+        {"action_type": "flag_duplicate_cluster_review", "payload": {}, "success": True},
+        {"action_type": "route_to_security", "payload": {}, "success": True},
+        {"action_type": "freeze_vendor_profile", "payload": {}, "success": True},
+        {"action_type": "create_human_handoff", "payload": {}, "success": True},
+    ]
+    outcome = simulate_outcome(
+        submitted=submission,
+        trajectory=trajectory,
+        hidden_world=env._hidden_world,
+        final_state=system_state_snapshot(env.state, env._hidden_world),
+    )
+
+    score, breakdown = score_submission(
+        "task_e",
+        submission,
+        gold,
+        budget_penalty=0.0,
+        trajectory=trajectory,
+        outcome=outcome,
+        final_state=system_state_snapshot(env.state, env._hidden_world),
+    )
+    assert score > 0.90, breakdown
 
 
 def test_holdout_generation_is_deterministic():

@@ -259,85 +259,94 @@ def search_ledger_tool(ledger_index: list[dict[str, Any]], payload: dict[str, An
     }
 
 
-def inspect_email_thread_tool(email_threads: list[dict[str, Any]], payload: dict[str, Any]) -> dict[str, Any]:
+def inspect_email_thread_tool(case: dict[str, Any], email_threads: list[dict[str, Any]], payload: dict[str, Any]) -> dict[str, Any]:
     thread_id = payload.get("thread_id")
-    for row in email_threads:
-        if row.get("thread_id") != thread_id:
-            continue
+    for doc in case.get("documents", []):
+        if doc.get("doc_id") == thread_id and isinstance(doc.get("thread_data"), dict):
+            row = doc.get("thread_data") or {}
+            break
+    else:
+        row = None
 
-        subject = normalize_text(row.get("subject"))
-        body = normalize_text(row.get("body") or " ".join(row.get("messages", [])))
-        sender = normalize_text(row.get("sender"))
-        from_domain = prefix_domain(sender)
-        expected_domain = prefix_domain(row.get("expected_domain") or row.get("vendor_domain"))
+    if row is None:
+        for candidate in email_threads:
+            if candidate.get("thread_id") == thread_id:
+                row = candidate
+                break
 
-        urgency_language = "urgent" in subject or "urgent" in body or "asap" in body
+    if row is None:
+        return {"error": f"thread not found: {thread_id}"}
 
-        domain_alignment = "mismatch" if expected_domain and from_domain and expected_domain != from_domain else "aligned"
+    subject = normalize_text(row.get("subject"))
+    body = normalize_text(row.get("body") or " ".join(row.get("messages", [])))
+    sender = normalize_text(row.get("sender"))
+    from_domain = prefix_domain(sender)
+    expected_domain = prefix_domain(row.get("expected_domain") or row.get("vendor_domain"))
 
-        explicit_no_change = any(
-            phrase in body
-            for phrase in {
-                "no bank change",
-                "no bank changes",
-                "no change to bank",
-                "approved remittance instructions already on file",
-            }
-        )
-        bank_change_language = (
-            "bank" in body and ("change" in body or "update" in body or "override" in body) and not explicit_no_change
-        )
+    urgency_language = "urgent" in subject or "urgent" in body or "asap" in body
+    domain_alignment = "mismatch" if expected_domain and from_domain and expected_domain != from_domain else "aligned"
 
-        bypass_phrases = {
-            "skip callback",
-            "do not call",
-            "don't call",
-            "ignore standard workflow",
-            "override policy",
-            "bypass policy",
-            "do not verify",
-            "treat this email as the source of truth",
-            "portal is offline",
-            "avoid reapproval",
+    explicit_no_change = any(
+        phrase in body
+        for phrase in {
+            "no bank change",
+            "no bank changes",
+            "no change to bank",
+            "approved remittance instructions already on file",
         }
-        callback_discouraged = any(phrase in body for phrase in {"skip callback", "do not call", "don't call", "do not verify"})
-        policy_override_language = any(phrase in body for phrase in bypass_phrases)
-        quoted_directives: list[str] = []
-        if bank_change_language:
-            quoted_directives.append("bank or remittance instructions changed in email body")
-        if callback_discouraged:
-            quoted_directives.append("email discourages callback verification")
-        if policy_override_language:
-            quoted_directives.append("email pressures agent to override standard workflow")
-        if urgency_language:
-            quoted_directives.append("message uses urgency language")
+    )
+    bank_change_language = (
+        "bank" in body and ("change" in body or "update" in body or "override" in body) and not explicit_no_change
+    )
 
-        thread = {
-            "thread_id": row.get("thread_id"),
-            "vendor_key": row.get("vendor_key"),
-            "sender": row.get("sender") or row.get("from"),
-            "subject": row.get("subject", ""),
-            "body": row.get("body", ""),
-            "message_count": max(1, len(row.get("messages", []) or [])),
-            "sender_profile": {
-                "from_domain": from_domain,
-                "expected_domain": expected_domain,
-                "domain_alignment": domain_alignment,
-            },
-            "request_signals": {
-                "bank_change_language": bank_change_language,
-                "urgency_language": urgency_language,
-                "callback_discouraged": callback_discouraged,
-                "policy_override_language": policy_override_language,
-            },
-            "quoted_directives": quoted_directives,
-        }
-        return {
-            "thread": thread,
-            "message": "Email thread inspection complete.",
-        }
+    bypass_phrases = {
+        "skip callback",
+        "do not call",
+        "don't call",
+        "ignore standard workflow",
+        "override policy",
+        "bypass policy",
+        "do not verify",
+        "treat this email as the source of truth",
+        "portal is offline",
+        "avoid reapproval",
+    }
+    callback_discouraged = any(phrase in body for phrase in {"skip callback", "do not call", "don't call", "do not verify"})
+    policy_override_language = any(phrase in body for phrase in bypass_phrases)
+    quoted_directives: list[str] = []
+    if bank_change_language:
+        quoted_directives.append("bank or remittance instructions changed in email body")
+    if callback_discouraged:
+        quoted_directives.append("email discourages callback verification")
+    if policy_override_language:
+        quoted_directives.append("email pressures agent to override standard workflow")
+    if urgency_language:
+        quoted_directives.append("message uses urgency language")
 
-    return {"error": f"thread not found: {thread_id}"}
+    thread = {
+        "thread_id": row.get("thread_id"),
+        "vendor_key": row.get("vendor_key"),
+        "sender": row.get("sender") or row.get("from"),
+        "subject": row.get("subject", ""),
+        "body": row.get("body", ""),
+        "message_count": max(1, len(row.get("messages", []) or [])),
+        "sender_profile": {
+            "from_domain": from_domain,
+            "expected_domain": expected_domain,
+            "domain_alignment": domain_alignment,
+        },
+        "request_signals": {
+            "bank_change_language": bank_change_language,
+            "urgency_language": urgency_language,
+            "callback_discouraged": callback_discouraged,
+            "policy_override_language": policy_override_language,
+        },
+        "quoted_directives": quoted_directives,
+    }
+    return {
+        "thread": thread,
+        "message": "Email thread inspection complete.",
+    }
 
 
 def compare_bank_account_tool(vendors_by_key: dict[str, dict[str, Any]], payload: dict[str, Any]) -> dict[str, Any]:

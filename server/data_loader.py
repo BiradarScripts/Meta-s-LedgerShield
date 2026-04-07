@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-from .case_factory import generate_case_batch, generate_holdout_suite
+from .case_factory import generate_benign_twin, generate_case_batch, generate_holdout_suite
 from .schema import normalize_id, normalize_text
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -60,9 +60,19 @@ def _case_defaults(case: dict[str, Any]) -> dict[str, Any]:
     cloned.setdefault("max_steps", 20)
     cloned.setdefault("difficulty", "medium")
     cloned.setdefault("benchmark_split", "benchmark")
+    difficulty = normalize_text(cloned.get("difficulty"))
+    if "due_date_days" not in cloned:
+        if difficulty == "easy":
+            cloned["due_date_days"] = 3
+        elif difficulty in {"hard", "expert"}:
+            cloned["due_date_days"] = 30
+        else:
+            cloned["due_date_days"] = 14
     cloned.setdefault("documents", [])
     cloned.setdefault("gold", {})
     cloned.setdefault("task_label", cloned.get("task_type", ""))
+    cloned.setdefault("contrastive_pair_id", "")
+    cloned.setdefault("contrastive_role", "")
     cloned.setdefault("initial_visible_doc_ids", [doc.get("doc_id") for doc in cloned.get("documents", []) if doc.get("doc_id")])
     return cloned
 
@@ -76,11 +86,13 @@ def _env_flag(name: str, default: bool) -> bool:
 
 def load_all() -> dict[str, Any]:
     vendors = load_json("vendors.json")
+    vendors_by_key = _vendor_index(vendors)
     vendor_history = load_json("vendor_history.json")
     base_cases = [_case_defaults(case) for case in load_json("cases.json")]
-    hard_cases = [case for case in base_cases if normalize_text(case.get("task_type")) in {"task_c", "task_d"}]
+    hard_cases = [case for case in base_cases if normalize_text(case.get("task_type")) in {"task_c", "task_d", "task_e"}]
     include_challenge = _env_flag("LEDGERSHIELD_INCLUDE_CHALLENGE", True)
     include_holdout = _env_flag("LEDGERSHIELD_INCLUDE_HOLDOUT", False)
+    include_twins = _env_flag("LEDGERSHIELD_INCLUDE_TWINS", False)
     challenge_variants = max(0, int(os.getenv("LEDGERSHIELD_CHALLENGE_VARIANTS", "2") or 2))
     challenge_seed = int(os.getenv("LEDGERSHIELD_CHALLENGE_SEED", "2026") or 2026)
     holdout_variants = max(0, int(os.getenv("LEDGERSHIELD_HOLDOUT_VARIANTS", "1") or 1))
@@ -104,6 +116,22 @@ def load_all() -> dict[str, Any]:
         )
         cases.extend(_case_defaults(case) for case in holdout_cases)
 
+    if include_twins:
+        for idx, case in enumerate(base_cases):
+            gold = case.get("gold", {}) or {}
+            if normalize_text(case.get("task_type")) not in {"task_d", "task_e"} or not gold.get("unsafe_if_pay"):
+                continue
+            approved_bank_account = None
+            for vendor_key_candidate in {
+                normalize_text(case.get("vendor_key")),
+                normalize_text(gold.get("vendor_key")),
+            }:
+                if vendor_key_candidate and vendor_key_candidate in vendors_by_key:
+                    approved_bank_account = vendors_by_key[vendor_key_candidate].get("bank_account")
+                    break
+            twin = generate_benign_twin(case, seed=holdout_seed + idx, approved_bank_account=approved_bank_account)
+            cases.append(_case_defaults(twin))
+
     po_records = load_json("po_records.json")
     receipts = load_json("receipts.json")
     ledger_index = load_json("ledger_index.json")
@@ -120,7 +148,7 @@ def load_all() -> dict[str, Any]:
         "email_threads": email_threads,
         "policy_rules": policy_rules,
         "cases_by_id": _case_index(cases),
-        "vendors_by_key": _vendor_index(vendors),
+        "vendors_by_key": vendors_by_key,
         "po_by_id": _index_by(po_records, "po_id"),
         "receipt_by_id": _index_by(receipts, "receipt_id"),
         "thread_by_id": _index_by(email_threads, "thread_id"),

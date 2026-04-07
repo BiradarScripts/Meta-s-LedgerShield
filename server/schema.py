@@ -69,8 +69,12 @@ FRAUD_TYPES = [
     "approval_threshold_evasion",
     "urgent_payment_pressure",
     "callback_verification_failed",
+    "callback_suspicious_confirm",
+    "callback_dispute_confirmed",
     "vendor_account_takeover_suspected",
     "policy_bypass_attempt",
+    "shared_bank_account",
+    "coordinated_timing",
 ]
 
 POLICY_CHECK_KEYS = [
