@@ -1,0 +1,54 @@
+{
+  "experiment": "Main vs hg_edits Branch Comparison (Same inference.py)",
+  "date": "2025-01-06",
+  "methodology": "Using regular inference.py (deterministic/heuristic-based) on both branches",
+  "branches": {
+    "main": "09ea410 - minor improvements and inference openai updated",
+    "hg_edits": "147bf27 - taske"
+  },
+  "main_branch_results": {
+    "gpt-3.5-turbo": {
+      "average_score": 0.9755,
+      "note": "All models score identically on main"
+    },
+    "gpt-4o": {
+      "average_score": 0.9755,
+      "note": "All models score identically on main"
+    },
+    "gpt-5.4": {
+      "average_score": 0.9755,
+      "note": "All models score identically on main"
+    }
+  },
+  "hg_edits_results": {
+    "gpt-3.5-turbo": {
+      "average_score": 0.9645,
+      "change_vs_main": -0.0110,
+      "change_percentage": -1.13
+    },
+    "gpt-4o": {
+      "average_score": 0.9645,
+      "change_vs_main": -0.0110,
+      "change_percentage": -1.13
+    },
+    "gpt-5.4": {
+      "average_score": 0.9700,
+      "change_vs_main": -0.0055,
+      "change_percentage": -0.56
+    }
+  },
+  "comparison_summary": {
+    "main_separation": 0.0,
+    "hg_edits_separation": 0.0055,
+    "finding": "hg_edits creates slight model variance while main has zero variance",
+    "main_characteristic": "All models deterministic - identical scores (0.9755)",
+    "hg_edits_characteristic": "Models diverge slightly - SOTA (0.9700) vs Weak (0.9645)"
+  },
+  "key_insights": {
+    "main_branch": "Deterministic heuristics produce identical results across all models",
+    "hg_edits_branch": "Changes introduce slight variance - SOTA model performs better than weak models",
+    "score_drop": "All models score lower on hg_edits (-0.56% to -1.13%)",
+    "separation": "hg_edits achieves 0.55% separation vs 0% on main",
+    "interpretation": "hg_edits changes made the environment harder or more nuanced"
+  }
+}

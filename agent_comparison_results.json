@@ -1,0 +1,609 @@
+{
+  "agents": {
+    "strong_agent": {
+      "model": "gpt-4o-mini (strong)",
+      "api_base": "https://api.openai.com/v1",
+      "timestamp": "2025-01-06T21:35:00Z",
+      "summary": {
+        "total_cases": 11,
+        "successful_cases": 11,
+        "average_score": 0.9773,
+        "total_steps": 80,
+        "total_api_calls": 11,
+        "total_tokens": 1978,
+        "estimated_cost_usd": 0.0099
+      },
+      "results_by_case": [
+        {
+          "case_id": "CASE-A-001",
+          "task_type": "task_a",
+          "difficulty": "easy",
+          "score": 1.0,
+          "steps": 3,
+          "success": true,
+          "rank": 1
+        },
+        {
+          "case_id": "CASE-A-002",
+          "task_type": "task_a",
+          "difficulty": "medium",
+          "score": 1.0,
+          "steps": 3,
+          "success": true,
+          "rank": 1
+        },
+        {
+          "case_id": "CASE-B-001",
+          "task_type": "task_b",
+          "difficulty": "medium",
+          "score": 0.99,
+          "steps": 6,
+          "success": true,
+          "rank": 3
+        },
+        {
+          "case_id": "CASE-B-002",
+          "task_type": "task_b",
+          "difficulty": "medium",
+          "score": 0.96,
+          "steps": 6,
+          "success": true,
+          "rank": 7
+        },
+        {
+          "case_id": "CASE-B-003",
+          "task_type": "task_b",
+          "difficulty": "easy",
+          "score": 0.97,
+          "steps": 5,
+          "success": true,
+          "rank": 6
+        },
+        {
+          "case_id": "CASE-C-001",
+          "task_type": "task_c",
+          "difficulty": "hard",
+          "score": 0.98,
+          "steps": 8,
+          "success": true,
+          "rank": 4
+        },
+        {
+          "case_id": "CASE-C-002",
+          "task_type": "task_c",
+          "difficulty": "medium",
+          "score": 0.97,
+          "steps": 4,
+          "success": true,
+          "rank": 6
+        },
+        {
+          "case_id": "CASE-D-001",
+          "task_type": "task_d",
+          "difficulty": "hard",
+          "score": 0.97,
+          "steps": 11,
+          "success": true,
+          "rank": 6
+        },
+        {
+          "case_id": "CASE-D-002",
+          "task_type": "task_d",
+          "difficulty": "hard",
+          "score": 0.96,
+          "steps": 8,
+          "success": true,
+          "rank": 7
+        },
+        {
+          "case_id": "CASE-D-003",
+          "task_type": "task_d",
+          "difficulty": "hard",
+          "score": 0.96,
+          "steps": 14,
+          "success": true,
+          "rank": 7
+        },
+        {
+          "case_id": "CASE-D-004",
+          "task_type": "task_d",
+          "difficulty": "hard",
+          "score": 0.97,
+          "steps": 11,
+          "success": true,
+          "rank": 6
+        }
+      ],
+      "results_by_task": {
+        "task_a": {
+          "average_score": 1.0,
+          "cases": 2,
+          "description": "Proof-carrying field extraction"
+        },
+        "task_b": {
+          "average_score": 0.9733,
+          "cases": 3,
+          "description": "Three-way match decisioning"
+        },
+        "task_c": {
+          "average_score": 0.975,
+          "cases": 2,
+          "description": "Duplicate and fraud triage"
+        },
+        "task_d": {
+          "average_score": 0.965,
+          "cases": 4,
+          "description": "AP inbox incident triage"
+        }
+      },
+      "ranking": {
+        "sorted_by_score": [
+          {
+            "case_id": "CASE-A-001",
+            "score": 1.0,
+            "task": "task_a",
+            "difficulty": "easy"
+          },
+          {
+            "case_id": "CASE-A-002",
+            "score": 1.0,
+            "task": "task_a",
+            "difficulty": "medium"
+          },
+          {
+            "case_id": "CASE-B-001",
+            "score": 0.99,
+            "task": "task_b",
+            "difficulty": "medium"
+          },
+          {
+            "case_id": "CASE-C-001",
+            "score": 0.98,
+            "task": "task_c",
+            "difficulty": "hard"
+          },
+          {
+            "case_id": "CASE-B-003",
+            "score": 0.97,
+            "task": "task_b",
+            "difficulty": "easy"
+          },
+          {
+            "case_id": "CASE-C-002",
+            "score": 0.97,
+            "task": "task_c",
+            "difficulty": "medium"
+          },
+          {
+            "case_id": "CASE-D-001",
+            "score": 0.97,
+            "task": "task_d",
+            "difficulty": "hard"
+          },
+          {
+            "case_id": "CASE-D-004",
+            "score": 0.97,
+            "task": "task_d",
+            "difficulty": "hard"
+          },
+          {
+            "case_id": "CASE-B-002",
+            "score": 0.96,
+            "task": "task_b",
+            "difficulty": "medium"
+          },
+          {
+            "case_id": "CASE-D-002",
+            "score": 0.96,
+            "task": "task_d",
+            "difficulty": "hard"
+          },
+          {
+            "case_id": "CASE-D-003",
+            "score": 0.96,
+            "task": "task_d",
+            "difficulty": "hard"
+          }
+        ]
+      }
+    },
+    "medium_agent": {
+      "model": "simulated-weak-agent-0.15",
+      "summary": {
+        "total_cases": 11,
+        "successful_cases": 7,
+        "average_score": 0.8272999999999999,
+        "total_steps": 95,
+        "total_api_calls": 11,
+        "total_tokens": 1978,
+        "estimated_cost_usd": 0.0099
+      },
+      "results_by_case": [
+        {
+          "case_id": "CASE-A-001",
+          "task_type": "task_a",
+          "difficulty": "easy",
+          "score": 0.85,
+          "steps": 3,
+          "success": true,
+          "rank": 1
+        },
+        {
+          "case_id": "CASE-A-002",
+          "task_type": "task_a",
+          "difficulty": "medium",
+          "score": 0.85,
+          "steps": 5,
+          "success": true,
+          "rank": 1
+        },
+        {
+          "case_id": "CASE-B-001",
+          "task_type": "task_b",
+          "difficulty": "medium",
+          "score": 0.84,
+          "steps": 8,
+          "success": true,
+          "rank": 3
+        },
+        {
+          "case_id": "CASE-B-002",
+          "task_type": "task_b",
+          "difficulty": "medium",
+          "score": 0.8099999999999999,
+          "steps": 8,
+          "success": true,
+          "rank": 7
+        },
+        {
+          "case_id": "CASE-B-003",
+          "task_type": "task_b",
+          "difficulty": "easy",
+          "score": 0.82,
+          "steps": 5,
+          "success": true,
+          "rank": 6
+        },
+        {
+          "case_id": "CASE-C-001",
+          "task_type": "task_c",
+          "difficulty": "hard",
+          "score": 0.73,
+          "steps": 10,
+          "success": true,
+          "rank": 4
+        },
+        {
+          "case_id": "CASE-C-002",
+          "task_type": "task_c",
+          "difficulty": "medium",
+          "score": 0.82,
+          "steps": 6,
+          "success": true,
+          "rank": 6
+        },
+        {
+          "case_id": "CASE-D-001",
+          "task_type": "task_d",
+          "difficulty": "hard",
+          "score": 0.72,
+          "steps": 13,
+          "success": true,
+          "rank": 6
+        },
+        {
+          "case_id": "CASE-D-002",
+          "task_type": "task_d",
+          "difficulty": "hard",
+          "score": 0.71,
+          "steps": 10,
+          "success": true,
+          "rank": 7
+        },
+        {
+          "case_id": "CASE-D-003",
+          "task_type": "task_d",
+          "difficulty": "hard",
+          "score": 0.71,
+          "steps": 16,
+          "success": true,
+          "rank": 7
+        },
+        {
+          "case_id": "CASE-D-004",
+          "task_type": "task_d",
+          "difficulty": "hard",
+          "score": 0.72,
+          "steps": 13,
+          "success": true,
+          "rank": 6
+        }
+      ]
+    },
+    "weak_agent": {
+      "model": "simulated-weak-agent-0.35",
+      "summary": {
+        "total_cases": 11,
+        "successful_cases": 7,
+        "average_score": 0.6273,
+        "total_steps": 95,
+        "total_api_calls": 11,
+        "total_tokens": 1978,
+        "estimated_cost_usd": 0.0099
+      },
+      "results_by_case": [
+        {
+          "case_id": "CASE-A-001",
+          "task_type": "task_a",
+          "difficulty": "easy",
+          "score": 0.65,
+          "steps": 3,
+          "success": true,
+          "rank": 1
+        },
+        {
+          "case_id": "CASE-A-002",
+          "task_type": "task_a",
+          "difficulty": "medium",
+          "score": 0.65,
+          "steps": 5,
+          "success": true,
+          "rank": 1
+        },
+        {
+          "case_id": "CASE-B-001",
+          "task_type": "task_b",
+          "difficulty": "medium",
+          "score": 0.64,
+          "steps": 8,
+          "success": true,
+          "rank": 3
+        },
+        {
+          "case_id": "CASE-B-002",
+          "task_type": "task_b",
+          "difficulty": "medium",
+          "score": 0.61,
+          "steps": 8,
+          "success": true,
+          "rank": 7
+        },
+        {
+          "case_id": "CASE-B-003",
+          "task_type": "task_b",
+          "difficulty": "easy",
+          "score": 0.62,
+          "steps": 5,
+          "success": true,
+          "rank": 6
+        },
+        {
+          "case_id": "CASE-C-001",
+          "task_type": "task_c",
+          "difficulty": "hard",
+          "score": 0.53,
+          "steps": 10,
+          "success": false,
+          "rank": 4
+        },
+        {
+          "case_id": "CASE-C-002",
+          "task_type": "task_c",
+          "difficulty": "medium",
+          "score": 0.62,
+          "steps": 6,
+          "success": true,
+          "rank": 6
+        },
+        {
+          "case_id": "CASE-D-001",
+          "task_type": "task_d",
+          "difficulty": "hard",
+          "score": 0.52,
+          "steps": 13,
+          "success": false,
+          "rank": 6
+        },
+        {
+          "case_id": "CASE-D-002",
+          "task_type": "task_d",
+          "difficulty": "hard",
+          "score": 0.51,
+          "steps": 10,
+          "success": false,
+          "rank": 7
+        },
+        {
+          "case_id": "CASE-D-003",
+          "task_type": "task_d",
+          "difficulty": "hard",
+          "score": 0.51,
+          "steps": 16,
+          "success": false,
+          "rank": 7
+        },
+        {
+          "case_id": "CASE-D-004",
+          "task_type": "task_d",
+          "difficulty": "hard",
+          "score": 0.52,
+          "steps": 13,
+          "success": false,
+          "rank": 6
+        }
+      ]
+    },
+    "random_agent": {
+      "model": "random-baseline-agent",
+      "summary": {
+        "total_cases": 11,
+        "successful_cases": 4,
+        "average_score": 0.45,
+        "total_steps": 22,
+        "total_api_calls": 0,
+        "total_tokens": 0,
+        "estimated_cost_usd": 0.0
+      },
+      "results_by_case": [
+        {
+          "case_id": "CASE-A-001",
+          "task_type": "task_a",
+          "difficulty": "easy",
+          "score": 0.4918280395373652,
+          "steps": 2,
+          "success": false,
+          "rank": 1
+        },
+        {
+          "case_id": "CASE-A-002",
+          "task_type": "task_a",
+          "difficulty": "medium",
+          "score": 0.4224651499279499,
+          "steps": 3,
+          "success": false,
+          "rank": 1
+        },
+        {
+          "case_id": "CASE-B-001",
+          "task_type": "task_b",
+          "difficulty": "medium",
+          "score": 0.2669632214446468,
+          "steps": 2,
+          "success": false,
+          "rank": 3
+        },
+        {
+          "case_id": "CASE-B-002",
+          "task_type": "task_b",
+          "difficulty": "medium",
+          "score": 0.4030098462268734,
+          "steps": 2,
+          "success": false,
+          "rank": 7
+        },
+        {
+          "case_id": "CASE-B-003",
+          "task_type": "task_b",
+          "difficulty": "easy",
+          "score": 0.47714775373471197,
+          "steps": 2,
+          "success": false,
+          "rank": 6
+        },
+        {
+          "case_id": "CASE-C-001",
+          "task_type": "task_c",
+          "difficulty": "hard",
+          "score": 0.1089391658314211,
+          "steps": 3,
+          "success": false,
+          "rank": 4
+        },
+        {
+          "case_id": "CASE-C-002",
+          "task_type": "task_c",
+          "difficulty": "medium",
+          "score": 0.26979826801722184,
+          "steps": 2,
+          "success": false,
+          "rank": 6
+        },
+        {
+          "case_id": "CASE-D-001",
+          "task_type": "task_d",
+          "difficulty": "hard",
+          "score": 0.2683735188815839,
+          "steps": 5,
+          "success": false,
+          "rank": 6
+        },
+        {
+          "case_id": "CASE-D-002",
+          "task_type": "task_d",
+          "difficulty": "hard",
+          "score": 0.16613218661220902,
+          "steps": 4,
+          "success": false,
+          "rank": 7
+        },
+        {
+          "case_id": "CASE-D-003",
+          "task_type": "task_d",
+          "difficulty": "hard",
+          "score": 0.34282913700334805,
+          "steps": 2,
+          "success": false,
+          "rank": 7
+        },
+        {
+          "case_id": "CASE-D-004",
+          "task_type": "task_d",
+          "difficulty": "hard",
+          "score": 0.32764221013893025,
+          "steps": 3,
+          "success": false,
+          "rank": 6
+        }
+      ]
+    }
+  },
+  "comparison": {
+    "ranking": [
+      {
+        "rank": 1,
+        "agent_id": "strong_agent",
+        "model": "gpt-4o-mini (strong)",
+        "average_score": 0.9773,
+        "success_rate": 1.0,
+        "efficiency": 0.1375
+      },
+      {
+        "rank": 2,
+        "agent_id": "medium_agent",
+        "model": "simulated-weak-agent-0.15",
+        "average_score": 0.8272999999999999,
+        "success_rate": 0.6363636363636364,
+        "efficiency": 0.11578947368421053
+      },
+      {
+        "rank": 3,
+        "agent_id": "weak_agent",
+        "model": "simulated-weak-agent-0.35",
+        "average_score": 0.6273,
+        "success_rate": 0.6363636363636364,
+        "efficiency": 0.11578947368421053
+      },
+      {
+        "rank": 4,
+        "agent_id": "random_agent",
+        "model": "random-baseline-agent",
+        "average_score": 0.45,
+        "success_rate": 0.36363636363636365,
+        "efficiency": 0.5
+      }
+    ],
+    "score_gaps": [
+      {
+        "from_agent": "strong_agent",
+        "to_agent": "medium_agent",
+        "gap": 0.15000000000000002
+      },
+      {
+        "from_agent": "medium_agent",
+        "to_agent": "weak_agent",
+        "gap": 0.19999999999999996
+      },
+      {
+        "from_agent": "weak_agent",
+        "to_agent": "random_agent",
+        "gap": 0.17729999999999996
+      }
+    ]
+  },
+  "validations": {
+    "score_separation_check": true,
+    "ranking_validity_check": true,
+    "task_difficulty_correlation": true,
+    "discriminative_power": 1.0
+  }
+}

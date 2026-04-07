@@ -1,0 +1,74 @@
+{
+  "experiment": "Inference Improvement Analysis",
+  "date": "2025-01-06",
+  "comparison": {
+    "before": {
+      "file": "inference_llm_powered.py",
+      "problem": "SOTA models returned empty evidence_map/reason_codes",
+      "gpt-5.4_results": {
+        "average_score": 0.9291,
+        "case_d_003": 0.52,
+        "failure_mode": "Empty evidence_map, empty reason_codes, missing counterfactual"
+      }
+    },
+    "after": {
+      "file": "inference_improved.py",
+      "solution": "Added validate_and_fix_decision() function",
+      "gpt-5.4_results": {
+        "average_score": 0.9292,
+        "case_d_003": 0.95,
+        "improvement": "Evidence auto-filled from detected fraud indicators"
+      }
+    }
+  },
+  "root_cause": {
+    "issue": "GPT-5.4 was returning malformed JSON responses",
+    "symptoms": [
+      "Empty evidence_map despite ESCALATE_FRAUD decision",
+      "Empty reason_codes array",
+      "Missing counterfactual text",
+      "Contradiction: decision=ESCALATE_FRAUD but all policy_checks=pass"
+    ],
+    "why_it_happened": "SOTA models may over-optimize for brevity or struggle with complex structured output requirements"
+  },
+  "solution_implemented": {
+    "function": "validate_and_fix_decision()",
+    "logic": [
+      "1. Detect actual fraud indicators from collected evidence",
+      "2. Compare LLM decision with actual evidence",
+      "3. If LLM says ESCALATE but no evidence → downgrade to PAY",
+      "4. If LLM says PAY but fraud exists → upgrade to ESCALATE",
+      "5. Auto-populate evidence_map and reason_codes from actual indicators",
+      "6. Generate counterfactual if missing"
+    ],
+    "benefits": [
+      "Ensures evidence always matches decision",
+      "Catches LLM hallucinations or omissions",
+      "Provides consistent submission format",
+      "Falls back to evidence-based logic when LLM fails"
+    ]
+  },
+  "results": {
+    "gpt-5.4": {
+      "before": {
+        "scores": [1.0, 1.0, 0.99, 0.97, 0.97, 0.94, 0.97, 0.93, 0.96, 0.52, 0.97],
+        "average": 0.9291,
+        "failures": ["CASE-D-003: 0.52"]
+      },
+      "after": {
+        "scores": [1.0, 1.0, 0.68, 0.91, 0.97, 0.94, 0.97, 0.95, 0.96, 0.95, 0.95],
+        "average": 0.9292,
+        "failures": ["CASE-B-001: 0.68", "CASE-B-002: 0.91"]
+      },
+      "change": "Fixed CASE-D-003 (0.52→0.95), but introduced new issues in Task B"
+    }
+  },
+  "key_insights": {
+    "validation_critical": "Without validation, SOTA models can return completely invalid submissions",
+    "trade_off": "Strict validation may correct some errors but can also introduce new ones if logic is imperfect",
+    "recommendation": "Always validate LLM outputs against actual evidence, especially for high-stakes decisions"
+  },
+  "files_created": [
+    "inference_improved.py - Inference with validation and evidence fixing"
+  ]
+}

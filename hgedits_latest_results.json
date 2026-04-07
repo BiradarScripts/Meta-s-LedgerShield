@@ -1,0 +1,56 @@
+{
+  "experiment": "hg_edits Branch Latest Code - Inference Results",
+  "date": "2025-01-06",
+  "branch": "hg_edits (latest pull)",
+  "commit": "719a3cb - did improvements",
+  "models_tested": {
+    "gpt-3.5-turbo": {
+      "tier": "Legacy/Weak",
+      "average_score": 0.9645,
+      "case_scores": [1.0, 1.0, 0.99, 0.96, 0.97, 0.98, 0.97, 0.91, 0.96, 0.90, 0.97],
+      "total_tokens": 2529,
+      "cost_usd": 0.0126
+    },
+    "gpt-4o": {
+      "tier": "Strong",
+      "average_score": 0.9700,
+      "case_scores": [1.0, 1.0, 0.99, 0.96, 0.97, 0.98, 0.97, 0.91, 0.96, 0.96, 0.97],
+      "total_tokens": 2156,
+      "cost_usd": 0.0108
+    },
+    "gpt-5.4": {
+      "tier": "SOTA",
+      "average_score": 0.9700,
+      "case_scores": [1.0, 1.0, 0.99, 0.96, 0.97, 0.98, 0.97, 0.97, 0.90, 0.96, 0.97],
+      "total_tokens": 2430,
+      "cost_usd": 0.0122
+    }
+  },
+  "comparison": {
+    "score_range": "0.9645 - 0.9700",
+    "separation": 0.0055,
+    "separation_percentage": 0.55,
+    "best_model": "gpt-4o / gpt-5.4 (tie)",
+    "worst_model": "gpt-3.5-turbo"
+  },
+  "key_findings": {
+    "minimal_separation": "Only 0.55% separation between best and worst models",
+    "tie_for_first": "gpt-4o and gpt-5.4 both score exactly 0.9700",
+    "weak_model_competitive": "gpt-3.5-turbo at 0.9645 is only 0.55% behind",
+    "low_token_usage": "All models use ~2,000 tokens (vs 10,000+ with LLM-powered)",
+    "conclusion": "hg_edits improvements reduced model variance - all models perform similarly"
+  },
+  "vs_llm_powered": {
+    "hg_edits_heuristics": {
+      "separation": 0.55,
+      "gpt-5.4_score": 0.9700,
+      "method": "Deterministic heuristics"
+    },
+    "main_llm_powered": {
+      "separation": 1.55,
+      "gpt-5.4_score": 0.9291,
+      "method": "LLM decision-making"
+    },
+    "observation": "Heuristics create higher scores but less separation; LLM creates lower scores but more separation"
+  }
+}
