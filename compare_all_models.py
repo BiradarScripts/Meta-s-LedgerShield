@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+from pathlib import Path
 import subprocess
 import sys
 from typing import Any
@@ -27,6 +28,8 @@ MODEL_TIERS = [
     ("gpt-5.4-pro", "SOTA 5.4 Pro"),
 ]
 
+REPO_ROOT = Path(__file__).resolve().parent
+
 def run_inference(model: str, api_key: str) -> dict[str, Any]:
     """Run inference_llm_powered.py with specific model."""
     env = os.environ.copy()
@@ -42,7 +45,7 @@ def run_inference(model: str, api_key: str) -> dict[str, Any]:
             text=True,
             timeout=600,
             env=env,
-            cwd="/Users/aryamanpathak/meta-hackathon/Meta-s-LedgerShield"
+            cwd=str(REPO_ROOT),
         )
         
         # Parse results from output

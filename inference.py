@@ -1,11 +1,24 @@
 """
-LedgerShield baseline inference script for the Meta OpenEnv hackathon.
+Inference Script Example
+===================================
+MANDATORY
+- Before submitting, ensure the following variables are defined in your
+  environment configuration:
+    API_BASE_URL
+    MODEL_NAME
+    HF_TOKEN
+    LOCAL_IMAGE_NAME
 
-Key properties:
-- uses the OpenAI client with API_BASE_URL / MODEL_NAME / HF_TOKEN
-- emits validator-friendly stdout logs in [START] / [STEP] / [END] format
-- follows a deterministic task-aware policy over the environment API
-- remains reproducible even if the model call fails by falling back to heuristics
+- Defaults are set only for API_BASE_URL and MODEL_NAME.
+- The inference script must be named `inference.py` and placed in the project
+  root.
+- All LLM calls use the OpenAI client configured via these variables.
+
+STDOUT FORMAT
+- The script emits exactly three line types to stdout:
+    [START] task=<task_name> env=<benchmark> model=<model_name>
+    [STEP] step=<n> action=<action_str> reward=<0.00> done=<true|false> error=<msg|null>
+    [END] success=<true|false> steps=<n> score=<score> rewards=<r1,r2,...,rn>
 """
 
 from __future__ import annotations
@@ -33,18 +46,27 @@ with warnings.catch_warnings():
     from ledgershield_env import LedgerShieldAction, LedgerShieldEnv
 
 from openenv_compat import StepResult
+from llm_utils import create_json_chat_completion, parse_json_dict
 from server.environment import LedgerShieldEnvironment
+from task_d_guardrails import (
+    derive_email_thread_signals as _derive_email_thread_signals,
+    grounded_task_d_submission,
+    policy_check_payload as _policy_check_payload,
+    validate_task_d_submission,
+)
 
 
+# Required runtime configuration. Only the endpoint/model have defaults.
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "openai/gpt-4.1-mini")
 HF_TOKEN = os.getenv("HF_TOKEN")
+# Optional when running with from_docker_image().
 LOCAL_IMAGE_NAME = os.getenv("LOCAL_IMAGE_NAME")
 ENV_URL = os.getenv("ENV_URL") or "http://localhost:8000"
 BENCHMARK = "ledgershield"
 MAX_STEPS = 20
 TEMPERATURE = 0.0
-MAX_TOKENS = 180
+MAX_TOKENS = 512
 SUCCESS_SCORE_THRESHOLD = 0.60
 PASSK_SUCCESS_THRESHOLD = 0.85
 TASK_SCORE_MIN = 0.01
@@ -259,20 +281,7 @@ def parse_email_tokens(tokens: list[dict[str, Any]], doc_id: str) -> dict[str, A
 
 
 def derive_email_thread_signals(thread: dict[str, Any]) -> set[str]:
-    sender_profile = thread.get("sender_profile", {}) or {}
-    request_signals = thread.get("request_signals", {}) or {}
-    signals: set[str] = set()
-
-    if normalize_text(sender_profile.get("domain_alignment")) == "mismatch":
-        signals.add("sender_domain_spoof")
-    if bool(request_signals.get("bank_change_language")):
-        signals.add("bank_override_attempt")
-    if bool(request_signals.get("callback_discouraged")) or bool(request_signals.get("policy_override_language")):
-        signals.add("policy_bypass_attempt")
-    if bool(request_signals.get("urgency_language")):
-        signals.add("urgent_payment_pressure")
-
-    return signals
+    return _derive_email_thread_signals(thread)
 
 
 def vendor_key_for(fields: dict[str, Any]) -> str:
@@ -281,12 +290,7 @@ def vendor_key_for(fields: dict[str, Any]) -> str:
 
 
 def policy_check_payload(three_way_match: str, bank_change_verification: str, duplicate_check: str) -> dict[str, str]:
-    return {
-        "three_way_match": three_way_match,
-        "bank_change_verification": bank_change_verification,
-        "duplicate_check": duplicate_check,
-        "approval_threshold_check": "pass",
-    }
+    return _policy_check_payload(three_way_match, bank_change_verification, duplicate_check)
 
 
 def make_counterfactual(task_type: str, model_assessment: dict[str, Any]) -> str:
@@ -334,25 +338,26 @@ def get_model_assessment(
     )
 
     try:
-        response = client.chat.completions.create(
+        response = create_json_chat_completion(
+            client,
             model=MODEL_NAME,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
             temperature=temperature,
-            max_tokens=MAX_TOKENS,
+            max_output_tokens=MAX_TOKENS,
+            api_base_url=API_BASE_URL,
         )
     except Exception as exc:  # noqa: BLE001
         trace(f"[DEBUG] model assessment failed for {case_id}: {exc}")
         return {}
 
     content = response.choices[0].message.content or ""
-    try:
-        return json.loads(content)
-    except json.JSONDecodeError:
+    payload = parse_json_dict(content)
+    if not payload:
         trace(f"[DEBUG] non-JSON model response for {case_id}: {sanitize_log_field(content)}")
-        return {}
+    return payload
 
 
 def get_model_submission_override(
@@ -369,8 +374,12 @@ def get_model_submission_override(
 
     system_prompt = (
         "You are a payment-integrity benchmarking agent. "
-        "Return compact JSON only. Use the candidate submission as a starting point, "
-        "but adjust it if the evidence suggests a different decision."
+        "Return compact JSON only. Use the candidate submission as a starting point. "
+        "You may add additional evidence, notes, or counterfactual reasoning. "
+        "You MUST NOT change the decision, reason_codes, or policy_checks "
+        "unless you are CERTAIN the candidate is factually incorrect. "
+        "Never downgrade ESCALATE_FRAUD to PAY. "
+        "Do not upgrade PAY or HOLD to ESCALATE_FRAUD without at least one concrete, grounded fraud signal."
     )
     user_prompt = compact_json(
         {
@@ -387,23 +396,24 @@ def get_model_submission_override(
     )
 
     try:
-        response = client.chat.completions.create(
+        response = create_json_chat_completion(
+            client,
             model=MODEL_NAME,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
             temperature=temperature,
-            max_tokens=MAX_TOKENS * 2,
+            max_output_tokens=MAX_TOKENS * 2,
+            api_base_url=API_BASE_URL,
         )
     except Exception as exc:  # noqa: BLE001
         trace(f"[DEBUG] model submission override failed for {case_id}: {exc}")
         return {}
 
     content = response.choices[0].message.content or ""
-    try:
-        payload = json.loads(content)
-    except json.JSONDecodeError:
+    payload = parse_json_dict(content)
+    if not payload:
         trace(f"[DEBUG] non-JSON model submission for {case_id}: {sanitize_log_field(content)}")
         return {}
     return payload if isinstance(payload, dict) else {}
@@ -502,104 +512,10 @@ def build_task_c_submission(collected: dict[str, Any]) -> dict[str, Any]:
 
 
 def build_task_d_submission(collected: dict[str, Any], model_assessment: dict[str, Any]) -> dict[str, Any]:
-    invoice_records = collected.get("invoice_records", []) or []
-    primary_record = invoice_records[0] if invoice_records else {
-        "fields": collected.get("invoice_fields", {}),
-        "evidence": collected.get("invoice_evidence", {}),
-    }
-    invoice_evidence = primary_record.get("evidence", {})
-    email_evidence = collected.get("email_evidence", {})
-    email_thread = collected.get("email_thread") or {}
-    ledger_search = collected.get("ledger_search") or {}
-    bank_compares = collected.get("bank_compares") or ([collected.get("bank_compare")] if collected.get("bank_compare") else [])
-    vendor_history = collected.get("vendor_history", []) or []
-    email_flags = derive_email_thread_signals(email_thread)
-    ledger_hits = collected.get("ledger_hits", []) or []
-    duplicate_detected = bool(ledger_hits) or int(ledger_search.get("exact_duplicate_count", 0) or 0) > 0
-    bank_mismatch = any(compare and not bool(compare.get("matched")) for compare in bank_compares)
-    invoice_totals = [safe_float(record.get("fields", {}).get("total")) for record in invoice_records]
-    threshold_split = (
-        len(invoice_totals) >= 2
-        and sum(invoice_totals) >= 3000.0
-        and all(0.0 < total < 2000.0 for total in invoice_totals)
+    return grounded_task_d_submission(
+        collected,
+        counterfactual=make_counterfactual("task_d", model_assessment),
     )
-    suspicious_history = any(
-        normalize_text(item.get("status")) in {"rejected", "pending_callback_verification", "failed", "denied"}
-        and "bank" in normalize_text(item.get("change_type") or item.get("event_type"))
-        for item in vendor_history
-    )
-    suspicious = duplicate_detected or bank_mismatch or bool(email_flags) or suspicious_history or threshold_split
-
-    evidence_map: dict[str, Any] = {}
-    reason_codes: list[str] = []
-    bank_evidence = None
-    duplicate_evidence = None
-    for record in invoice_records:
-        evidence = record.get("evidence", {})
-        if bank_evidence is None and "bank_account" in evidence:
-            bank_evidence = evidence["bank_account"]
-        if duplicate_evidence is None and "invoice_number" in evidence:
-            duplicate_evidence = evidence["invoice_number"]
-
-    if bank_mismatch and bank_evidence:
-        evidence_map["bank_override_attempt"] = bank_evidence
-        reason_codes.append("bank_override_attempt")
-    if duplicate_detected and duplicate_evidence:
-        evidence_map["duplicate_near_match"] = duplicate_evidence
-        reason_codes.append("duplicate_near_match")
-    if ("sender_domain_spoof" in email_flags or "sender_domain_spoof" in email_evidence) and "from_header" in email_evidence:
-        evidence_map["sender_domain_spoof"] = email_evidence["from_header"]
-        reason_codes.append("sender_domain_spoof")
-    if "approval_threshold_evasion" in email_flags or threshold_split:
-        threshold_evidence = (
-            email_evidence.get("approval_threshold_evasion")
-            or email_evidence.get("subject_header")
-            or duplicate_evidence
-        )
-        if threshold_evidence:
-            evidence_map["approval_threshold_evasion"] = threshold_evidence
-        reason_codes.append("approval_threshold_evasion")
-    if ("policy_bypass_attempt" in email_flags or "policy_bypass_attempt" in email_evidence):
-        bypass_evidence = (
-            email_evidence.get("policy_bypass_attempt")
-            or email_evidence.get("subject_header")
-            or email_evidence.get("from_header")
-        )
-        if bypass_evidence:
-            evidence_map["policy_bypass_attempt"] = bypass_evidence
-        reason_codes.append("policy_bypass_attempt")
-
-    if not suspicious:
-        return {
-            "decision": "PAY",
-            "confidence": 0.88,
-            "reason_codes": [],
-            "policy_checks": policy_check_payload("pass", "pass", "pass"),
-            "evidence_map": {},
-            "counterfactual": (
-                "Would HOLD if the sender domain changed, the bank account mismatched "
-                "vendor master, or a duplicate cluster appeared in ledger history."
-            ),
-        }
-
-    checks = policy_check_payload(
-        three_way_match="pass",
-        bank_change_verification="fail"
-        if bank_mismatch or "sender_domain_spoof" in reason_codes or "policy_bypass_attempt" in reason_codes
-        else "pass",
-        duplicate_check="fail" if duplicate_detected else "pass",
-    )
-    if "approval_threshold_evasion" in reason_codes:
-        checks["approval_threshold_check"] = "fail"
-
-    return {
-        "decision": "ESCALATE_FRAUD",
-        "confidence": 0.99,
-        "reason_codes": sorted(set(reason_codes)),
-        "policy_checks": checks,
-        "evidence_map": evidence_map,
-        "counterfactual": make_counterfactual("task_d", model_assessment),
-    }
 
 
 def build_task_e_submission(collected: dict[str, Any], model_assessment: dict[str, Any]) -> dict[str, Any]:
@@ -703,8 +619,18 @@ def merge_submission_override(base_submission: dict[str, Any], override: dict[st
     if not override:
         return base_submission
     merged = dict(base_submission)
+
+    def is_effectively_empty(value: Any) -> bool:
+        if value is None:
+            return True
+        if isinstance(value, str):
+            return value.strip() == ""
+        if isinstance(value, (list, dict, tuple, set)):
+            return len(value) == 0
+        return False
+
     for key, value in override.items():
-        if value in {None, "", [], {}}:
+        if is_effectively_empty(value):
             continue
         merged[key] = value
     return merged
@@ -824,12 +750,8 @@ def perform_step(
     reward = float(result.reward or 0.0)
     rewards.append(reward)
 
+    # The validator expects the raw last_action_error only, or null when absent.
     error = getattr(result.observation, "last_action_error", None)
-    tool_result = getattr(result.observation, "last_tool_result", {}) or {}
-    if error is None:
-        error = tool_result.get("error")
-    if error is None and result.info:
-        error = result.info.get("error")
 
     if emit_logs:
         log_step(
@@ -1287,6 +1209,8 @@ def run_episode_with_env(
                 temperature=temperature,
             ),
         )
+        if task_type == "task_d":
+            submit_payload = validate_task_d_submission(submit_payload, collected)
 
         final_info: dict[str, Any] = {}
         last_tool: dict[str, Any] = {}

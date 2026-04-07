@@ -4,6 +4,7 @@ import io
 from contextlib import redirect_stdout
 
 import inference
+from server.data_loader import load_all
 
 
 def test_log_helpers_emit_required_stdout_format():
@@ -81,3 +82,97 @@ def test_summarize_case_trials_tracks_consistent_pass():
     assert summary["pass_k_consistent"] is False
     assert summary["pass_k_any"] is True
     assert summary["final_decision"] == "ESCALATE_FRAUD"
+
+
+def test_merge_submission_override_handles_non_empty_collections():
+    base = {
+        "decision": "PAY",
+        "reason_codes": [],
+        "policy_checks": {
+            "three_way_match": "pass",
+            "bank_change_verification": "pass",
+            "duplicate_check": "pass",
+            "approval_threshold_check": "pass",
+        },
+    }
+    override = {
+        "reason_codes": ["sender_domain_spoof"],
+        "evidence_map": {
+            "sender_domain_spoof": {
+                "doc_id": "THR-130",
+                "page": 1,
+                "bbox": [10, 10, 220, 20],
+                "token_ids": ["ed21"],
+            }
+        },
+    }
+
+    merged = inference.merge_submission_override(base, override)
+
+    assert merged["reason_codes"] == ["sender_domain_spoof"]
+    assert "sender_domain_spoof" in merged["evidence_map"]
+
+
+def test_run_local_baseline_blocks_unfounded_task_d_escalation(monkeypatch):
+    original = inference.build_final_submission
+
+    def fake_build(task_type: str, collected: dict, model_assessment: dict) -> dict:
+        if task_type != "task_d":
+            return original(task_type, collected, model_assessment)
+        return {
+            "decision": "ESCALATE_FRAUD",
+            "confidence": 0.95,
+            "reason_codes": ["sender_domain_spoof"],
+            "policy_checks": {
+                "three_way_match": "pass",
+                "bank_change_verification": "fail",
+                "duplicate_check": "pass",
+                "approval_threshold_check": "pass",
+            },
+            "evidence_map": {
+                "sender_domain_spoof": {
+                    "doc_id": "THR-130",
+                    "page": 1,
+                    "bbox": [10, 10, 220, 20],
+                    "token_ids": ["ed21"],
+                }
+            },
+            "counterfactual": "Would PAY if the sender domain matched vendor records.",
+        }
+
+    monkeypatch.setattr(inference, "build_final_submission", fake_build)
+
+    result = inference.run_local_baseline(["CASE-D-002"], db=load_all(), emit_logs=False)
+    case = result["results"][0]
+
+    assert case["final_decision"] == "PAY"
+    assert case["score"] >= 0.9
+
+
+def test_run_local_baseline_repairs_incomplete_task_d_fraud_submission(monkeypatch):
+    original = inference.build_final_submission
+
+    def fake_build(task_type: str, collected: dict, model_assessment: dict) -> dict:
+        if task_type != "task_d":
+            return original(task_type, collected, model_assessment)
+        return {
+            "decision": "ESCALATE_FRAUD",
+            "confidence": 0.99,
+            "reason_codes": [],
+            "policy_checks": {
+                "three_way_match": "pass",
+                "bank_change_verification": "pass",
+                "duplicate_check": "pass",
+                "approval_threshold_check": "pass",
+            },
+            "evidence_map": {},
+            "counterfactual": "",
+        }
+
+    monkeypatch.setattr(inference, "build_final_submission", fake_build)
+
+    result = inference.run_local_baseline(["CASE-D-003"], db=load_all(), emit_logs=False)
+    case = result["results"][0]
+
+    assert case["final_decision"] == "ESCALATE_FRAUD"
+    assert case["score"] >= 0.95

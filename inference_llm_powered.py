@@ -29,6 +29,9 @@ with warnings.catch_warnings():
     from openai import OpenAI
     from ledgershield_env import LedgerShieldAction, LedgerShieldEnv
 
+from llm_utils import create_json_chat_completion, parse_json_dict
+from task_d_guardrails import grounded_task_d_submission, validate_task_d_submission
+
 
 API_BASE_URL = os.getenv("API_BASE_URL") or "https://api.openai.com/v1"
 MODEL_NAME = os.getenv("MODEL_NAME") or "gpt-4o-mini"
@@ -38,7 +41,7 @@ ENV_URL = os.getenv("ENV_URL") or "http://localhost:8000"
 BENCHMARK = "ledgershield"
 MAX_STEPS = 20
 TEMPERATURE = 0.0
-MAX_TOKENS = 512
+MAX_TOKENS = 1024
 SUCCESS_SCORE_THRESHOLD = 0.60
 
 DEFAULT_CASES = [
@@ -282,18 +285,22 @@ Return JSON format:
 }"""
     
     try:
-        response = client.chat.completions.create(
+        response = create_json_chat_completion(
+            client,
             model=MODEL_NAME,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": compact_json(context)},
             ],
             temperature=TEMPERATURE,
-            max_completion_tokens=MAX_TOKENS,
+            max_output_tokens=MAX_TOKENS,
+            api_base_url=API_BASE_URL,
         )
         content = response.choices[0].message.content or "{}"
         track_api_usage(response.usage)
-        result = json.loads(content)
+        result = parse_json_dict(content)
+        if not result:
+            raise ValueError("Task B response was not valid JSON.")
         
         # Validate and normalize
         decision = result.get("decision", "HOLD")
@@ -413,18 +420,22 @@ Return JSON format:
 }"""
     
     try:
-        response = client.chat.completions.create(
+        response = create_json_chat_completion(
+            client,
             model=MODEL_NAME,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": compact_json(context)},
             ],
             temperature=TEMPERATURE,
-            max_completion_tokens=MAX_TOKENS,
+            max_output_tokens=MAX_TOKENS,
+            api_base_url=API_BASE_URL,
         )
         content = response.choices[0].message.content or "{}"
         track_api_usage(response.usage)
-        result = json.loads(content)
+        result = parse_json_dict(content)
+        if not result:
+            raise ValueError("Task C response was not valid JSON.")
         
         decision = result.get("decision", "ESCALATE_FRAUD")
         if decision not in ["PAY", "ESCALATE_FRAUD"]:
@@ -514,6 +525,11 @@ Decision:
 - PAY: Clean transaction, all checks pass
 - ESCALATE_FRAUD: Any fraud indicators present
 
+Hard constraints:
+- Do not return ESCALATE_FRAUD unless at least one concrete fraud indicator is evidenced.
+- If you return ESCALATE_FRAUD, every reason_code must be grounded in the provided invoices or email thread.
+- If no fraud indicators are evidenced, return PAY with an empty reason_codes array.
+
 Return JSON format:
 {
   "decision": "PAY" or "ESCALATE_FRAUD",
@@ -530,129 +546,31 @@ Return JSON format:
 }"""
     
     try:
-        response = client.chat.completions.create(
+        response = create_json_chat_completion(
+            client,
             model=MODEL_NAME,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": compact_json(context)},
             ],
             temperature=TEMPERATURE,
-            max_completion_tokens=MAX_TOKENS,
+            max_output_tokens=MAX_TOKENS,
+            api_base_url=API_BASE_URL,
         )
         content = response.choices[0].message.content or "{}"
         track_api_usage(response.usage)
-        result = json.loads(content)
-        
-        decision = result.get("decision", "ESCALATE_FRAUD")
-        if decision not in ["PAY", "ESCALATE_FRAUD"]:
-            decision = "ESCALATE_FRAUD"
-        
-        reason_codes = result.get("reason_codes", [])
-        if not isinstance(reason_codes, list):
-            reason_codes = []
-        
-        # Build evidence map
-        primary_record = invoice_records[0] if invoice_records else {"evidence": collected.get("invoice_evidence", {})}
-        invoice_evidence = primary_record.get("evidence", {})
-        email_evidence = collected.get("email_evidence", {})
-        
-        evidence_map = {}
-        if "bank_override_attempt" in reason_codes and "bank_account" in invoice_evidence:
-            evidence_map["bank_override_attempt"] = invoice_evidence["bank_account"]
-        if "duplicate_near_match" in reason_codes and "invoice_number" in invoice_evidence:
-            evidence_map["duplicate_near_match"] = invoice_evidence["invoice_number"]
-        if "sender_domain_spoof" in reason_codes and "from_header" in email_evidence:
-            evidence_map["sender_domain_spoof"] = email_evidence["from_header"]
-        if "policy_bypass_attempt" in reason_codes and email_evidence.get("policy_bypass_attempt"):
-            evidence_map["policy_bypass_attempt"] = email_evidence["policy_bypass_attempt"]
-        if "approval_threshold_evasion" in reason_codes and email_evidence.get("approval_threshold_evasion"):
-            evidence_map["approval_threshold_evasion"] = email_evidence["approval_threshold_evasion"]
-        
-        return {
-            "decision": decision,
-            "confidence": clamp(float(result.get("confidence", 0.9)), 0.0, 1.0),
-            "reason_codes": reason_codes,
-            "policy_checks": result.get("policy_checks", {
-                "three_way_match": "pass",
-                "bank_change_verification": "fail" if "bank_override_attempt" in reason_codes else "pass",
-                "duplicate_check": "fail" if "duplicate_near_match" in reason_codes else "pass",
-                "approval_threshold_check": "fail" if "approval_threshold_evasion" in reason_codes else "pass",
-            }),
-            "evidence_map": evidence_map,
-            "counterfactual": result.get("counterfactual", ""),
-        }
+        result = parse_json_dict(content)
+        if not result:
+            raise ValueError("Task D response was not valid JSON.")
+
+        return validate_task_d_submission(result, collected)
     except Exception as e:
         trace(f"[LLM ERROR] Task D: {e}")
-        return heuristic_task_d(collected)
+        return grounded_task_d_submission(collected)
 
 def heuristic_task_d(collected: dict[str, Any]) -> dict[str, Any]:
     """Original deterministic logic as fallback."""
-    invoice_records = collected.get("invoice_records", []) or []
-    primary_record = invoice_records[0] if invoice_records else {"fields": collected.get("invoice_fields", {}), "evidence": collected.get("invoice_evidence", {})}
-    invoice_evidence = primary_record.get("evidence", {})
-    email_evidence = collected.get("email_evidence", {})
-    email_thread = collected.get("email_thread") or {}
-    ledger_search = collected.get("ledger_search") or {}
-    bank_compares = collected.get("bank_compares", [])
-    vendor_history = collected.get("vendor_history", []) or []
-    email_flags = {normalize_text(flag) for flag in email_thread.get("derived_flags", []) or email_thread.get("flags", []) or []}
-    ledger_hits = collected.get("ledger_hits", []) or []
-    duplicate_detected = bool(ledger_hits) or int(ledger_search.get("exact_duplicate_count", 0) or 0) > 0
-    bank_mismatch = any(compare and not bool(compare.get("matched")) for compare in bank_compares)
-    invoice_totals = [safe_float(record.get("fields", {}).get("total")) for record in invoice_records]
-    threshold_split = (len(invoice_totals) >= 2 and sum(invoice_totals) >= 3000.0 and all(0.0 < total < 2000.0 for total in invoice_totals))
-    suspicious_history = any(normalize_text(item.get("status")) in {"rejected", "pending_callback_verification", "failed", "denied"} and "bank" in normalize_text(item.get("change_type") or item.get("event_type")) for item in vendor_history)
-    suspicious = duplicate_detected or bank_mismatch or bool(email_flags) or suspicious_history or threshold_split
-
-    evidence_map = {}
-    reason_codes = []
-    bank_evidence = None
-    duplicate_evidence = None
-    for record in invoice_records:
-        evidence = record.get("evidence", {})
-        if bank_evidence is None and "bank_account" in evidence:
-            bank_evidence = evidence["bank_account"]
-        if duplicate_evidence is None and "invoice_number" in evidence:
-            duplicate_evidence = evidence["invoice_number"]
-
-    if bank_mismatch and bank_evidence:
-        evidence_map["bank_override_attempt"] = bank_evidence
-        reason_codes.append("bank_override_attempt")
-    if duplicate_detected and duplicate_evidence:
-        evidence_map["duplicate_near_match"] = duplicate_evidence
-        reason_codes.append("duplicate_near_match")
-    if ("sender_domain_spoof" in email_flags or "sender_domain_spoof" in email_evidence) and "from_header" in email_evidence:
-        evidence_map["sender_domain_spoof"] = email_evidence["from_header"]
-        reason_codes.append("sender_domain_spoof")
-    if "approval_threshold_evasion" in email_flags or threshold_split:
-        evidence_map["approval_threshold_evasion"] = email_evidence.get("approval_threshold_evasion") or email_evidence.get("subject_header") or duplicate_evidence
-        reason_codes.append("approval_threshold_evasion")
-    if "policy_bypass_attempt" in email_flags or "policy_bypass_attempt" in email_evidence:
-        evidence_map["policy_bypass_attempt"] = email_evidence.get("policy_bypass_attempt") or email_evidence.get("subject_header") or email_evidence.get("from_header")
-        reason_codes.append("policy_bypass_attempt")
-
-    if not suspicious:
-        return {
-            "decision": "PAY",
-            "confidence": 0.88,
-            "reason_codes": [],
-            "policy_checks": {"three_way_match": "pass", "bank_change_verification": "pass", "duplicate_check": "pass", "approval_threshold_check": "pass"},
-            "evidence_map": {},
-            "counterfactual": "Would HOLD if sender domain changed, bank account mismatched, or duplicate cluster appeared.",
-        }
-
-    checks = {"three_way_match": "pass", "bank_change_verification": "fail" if bank_mismatch or "sender_domain_spoof" in reason_codes or "policy_bypass_attempt" in reason_codes else "pass", "duplicate_check": "fail" if duplicate_detected else "pass"}
-    if "approval_threshold_evasion" in reason_codes:
-        checks["approval_threshold_check"] = "fail"
-
-    return {
-        "decision": "ESCALATE_FRAUD",
-        "confidence": 0.99,
-        "reason_codes": sorted(set(reason_codes)),
-        "policy_checks": checks,
-        "evidence_map": evidence_map,
-        "counterfactual": "Would PAY if all required policy checks passed.",
-    }
+    return grounded_task_d_submission(collected)
 
 # =============================================================================
 # MAIN INFERENCE LOGIC (Modified to use LLM decisions)
