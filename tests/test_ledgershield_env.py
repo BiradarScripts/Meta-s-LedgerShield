@@ -537,6 +537,7 @@ def test_perfect_task_a_submission_scores_high():
         outcome=outcome,
     )
     assert score > 0.94, breakdown
+    assert score < 1.0, breakdown
 
 
 def test_perfect_task_d_submission_scores_high():
@@ -762,6 +763,7 @@ def test_unsafe_pay_is_penalized():
     )
 
     assert obs.last_tool_result["unsafe_outcome"] is True
+    assert obs.last_tool_result["final_score"] > 0.0
     assert obs.last_tool_result["final_score"] <= 0.15
 
 
@@ -831,6 +833,7 @@ def test_correct_task_d_submission_finishes_episode():
     assert obs.last_tool_result["tool_name"] == "submit_decision"
     assert obs.last_tool_result["success"] is True
     assert obs.last_tool_result["final_score"] > 0.90
+    assert obs.last_tool_result["final_score"] < 1.0
 
 
 def test_workflow_override_task_d_case_scores_high():

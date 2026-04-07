@@ -1006,7 +1006,7 @@ This section is written to mirror the hackathon's pre-submission gate as closely
 - [x] Full OpenEnv interface: typed models plus `reset()`, `step()`, and `state()`
 - [x] `openenv.yaml` present in project root
 - [x] Minimum three graded tasks: LedgerShield provides five task families across twelve curated benchmark cases plus deterministic challenge variants
-- [x] Scores and rewards bounded in `[0.0, 1.0]` at task completion
+- [x] Task scores bounded strictly within `(0.0, 1.0)` at task completion
 - [x] Meaningful reward shaping with partial progress signals and unsafe-action penalties
 - [x] Root `inference.py` using the OpenAI client and required env vars
 - [x] Structured inference stdout with `[START]`, `[STEP]`, and `[END]`

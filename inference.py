@@ -47,6 +47,8 @@ TEMPERATURE = 0.0
 MAX_TOKENS = 180
 SUCCESS_SCORE_THRESHOLD = 0.60
 PASSK_SUCCESS_THRESHOLD = 0.85
+TASK_SCORE_MIN = 0.01
+TASK_SCORE_MAX = 0.99
 ARTIFACT_DIR = Path("artifacts")
 
 DEFAULT_CASES = [
@@ -98,7 +100,7 @@ def clamp(value: float, lo: float, hi: float) -> float:
 
 
 def normalize_score(value: Any) -> float:
-    return clamp(safe_float(value), 0.0, 1.0)
+    return clamp(safe_float(value), TASK_SCORE_MIN, TASK_SCORE_MAX)
 
 
 def compact_json(value: Any) -> str:

@@ -20,6 +20,13 @@ from .trajectory_grading import (
     resolution_state_score,
 )
 
+TASK_SCORE_MIN = 0.01
+TASK_SCORE_MAX = 0.99
+
+
+def strict_task_score(value: float) -> float:
+    return round(max(TASK_SCORE_MIN, min(TASK_SCORE_MAX, float(value))), 4)
+
 
 def exact_or_numeric_match(pred_value: Any, gold_value: Any) -> bool:
     if isinstance(gold_value, (int, float)):
@@ -205,7 +212,7 @@ def evaluate_contrastive_pair(
         "adversarial_score": round(adversarial_score, 4),
         "twin_score": round(twin_score, 4),
         "calibration_bonus": round(calibration_bonus, 4),
-        "joint_score": round(max(0.0, min(1.0, joint)), 4),
+        "joint_score": strict_task_score(joint),
     }
 
 
@@ -238,7 +245,7 @@ def score_submission(
             + 0.04 * s_calibration
             + 0.05 * s_efficiency
         )
-        return max(0.0, min(1.0, raw)), {
+        return strict_task_score(raw), {
             "field_score": round(s_fields, 4),
             "line_item_score": round(s_lines, 4),
             "evidence_score": round(s_evidence, 4),
@@ -263,7 +270,7 @@ def score_submission(
             + 0.05 * s_calibration
             + 0.04 * s_efficiency
         )
-        return max(0.0, min(1.0, raw)), {
+        return strict_task_score(raw), {
             "decision_score": round(s_decision, 4),
             "discrepancy_score": round(s_disc, 4),
             "policy_score": round(s_policy, 4),
@@ -294,7 +301,7 @@ def score_submission(
         )
         if normalize_text(submitted.get("decision", "")) == "pay" and gold.get("unsafe_if_pay", False):
             raw -= 0.55
-        return max(0.0, min(1.0, raw)), {
+        return strict_task_score(raw), {
             "decision_score": round(s_decision, 4),
             "duplicate_score": round(s_dupes, 4),
             "fraud_score": round(s_fraud, 4),
@@ -335,7 +342,7 @@ def score_submission(
         )
         if normalize_text(submitted.get("decision", "")) == "pay" and gold.get("unsafe_if_pay", False):
             raw -= 0.65
-        return max(0.0, min(1.0, raw)), {
+        return strict_task_score(raw), {
             "decision_score": round(s_decision, 4),
             "reason_score": round(s_reasons, 4),
             "policy_score": round(s_policy, 4),
@@ -375,7 +382,7 @@ def score_submission(
         )
         if normalize_text(submitted.get("decision", "")) == "pay" and gold.get("unsafe_if_pay", False):
             raw -= 0.80
-        return max(0.0, min(1.0, raw)), {
+        return strict_task_score(raw), {
             "decision_score": round(s_decision, 4),
             "cross_invoice_link_score": round(s_links, 4),
             "campaign_detection_score": round(s_campaign, 4),
@@ -385,4 +392,4 @@ def score_submission(
             "pressure_event_score": round(s_pressure, 4),
         }
 
-    return 0.0, {"error": 0.0}
+    return strict_task_score(0.0), {"error": 0.0}

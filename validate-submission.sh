@@ -308,7 +308,7 @@ for line in lines:
         if not score_match:
             raise SystemExit(f"missing score in [END] line: {line}")
         score_value = float(score_match.group(1))
-        if not (0.0 <= score_value <= 1.0):
+        if not (0.0 < score_value < 1.0):
             raise SystemExit(f"score out of range in [END] line: {line}")
         rewards_match = re.search(r"rewards=(.*)$", line)
         if not rewards_match:
