@@ -801,7 +801,7 @@ Example:
 [START] task=CASE-D-001 env=ledgershield model=openai/gpt-4.1-mini
 [STEP] step=1 action=ocr({"doc_id":"INV-D-001","mode":"accurate"}) reward=-0.06 done=false error=null
 [STEP] step=2 action=inspect_email_thread({"thread_id":"THR-100"}) reward=0.05 done=false error=null
-[END] success=true steps=11 rewards=-0.06,-0.06,0.05,0.01,-0.01,0.01,-0.02,0.03,-0.01,-0.01,0.99
+[END] success=true steps=11 score=0.99 rewards=-0.06,-0.06,0.05,0.01,-0.01,0.01,-0.02,0.03,-0.01,-0.01,0.99
 ```
 
 ## Verified Baseline Results

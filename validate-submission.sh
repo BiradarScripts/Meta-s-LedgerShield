@@ -271,7 +271,7 @@ lines = [line.rstrip("\n") for line in path.read_text(encoding="utf-8").splitlin
 
 start_re = re.compile(r"^\[START\] task=\S+ env=\S+ model=\S+$")
 step_re = re.compile(r"^\[STEP\] step=\d+ action=.+ reward=-?\d+\.\d{2} done=(true|false) error=.+$")
-end_re = re.compile(r"^\[END\] success=(true|false) steps=\d+ rewards=.*$")
+end_re = re.compile(r"^\[END\] success=(true|false) steps=\d+ score=\d+\.\d{2} rewards=.*$")
 
 if not lines:
     raise SystemExit("inference.py produced no stdout")
@@ -304,6 +304,12 @@ for line in lines:
             raise SystemExit("encountered [END] before [START]")
         if not end_re.match(line):
             raise SystemExit(f"invalid [END] line: {line}")
+        score_match = re.search(r"score=(\d+\.\d{2})", line)
+        if not score_match:
+            raise SystemExit(f"missing score in [END] line: {line}")
+        score_value = float(score_match.group(1))
+        if not (0.0 <= score_value <= 1.0):
+            raise SystemExit(f"score out of range in [END] line: {line}")
         rewards_match = re.search(r"rewards=(.*)$", line)
         if not rewards_match:
             raise SystemExit(f"missing rewards in [END] line: {line}")
