@@ -100,6 +100,16 @@ def _group_by_task(results: list[dict[str, Any]], pass_threshold: float) -> dict
     return summary
 
 
+def _task_score_mean(section: dict[str, Any], task_type: str) -> float | None:
+    task_breakdown = section.get("task_breakdown", {}) or {}
+    task_summary = task_breakdown.get(task_type, {}) or {}
+    score_stats = task_summary.get("score_stats", {}) or {}
+    raw = score_stats.get("mean")
+    if raw is None:
+        return None
+    return round(float(raw), 4)
+
+
 def _evaluate_cases(
     cases: list[dict[str, Any]],
     *,
@@ -322,6 +332,8 @@ def build_leaderboard_entry(
     holdout = report["holdout_challenge"]
     contrastive = report["contrastive_pairs"]
     protocol = report["evaluation_protocol"]
+    public_task_e_mean = _task_score_mean(public, "task_e")
+    holdout_task_e_mean = _task_score_mean(holdout, "task_e")
 
     return {
         "model": model_name,
@@ -336,6 +348,10 @@ def build_leaderboard_entry(
         "holdout_trial_pass_rate": holdout["trial_pass_rate"],
         "holdout_pass_k_consistent": holdout["consistent_pass_rate"],
         "contrastive_joint_mean": contrastive["joint_score_stats"]["mean"],
+        "public_task_e_expert_mean": public_task_e_mean,
+        "holdout_task_e_expert_mean": holdout_task_e_mean,
+        "task_e_expert_mean": holdout_task_e_mean if holdout_task_e_mean is not None else public_task_e_mean,
+        "provenance": "generated-from-report",
         "updated_at": report["generated_at"],
     }
 
@@ -400,7 +416,8 @@ def upsert_leaderboard_entry(
         "entries": retained,
         "note": (
             "pass_k_consistent is the fraction of benchmark cases that remained above the pass threshold "
-            "on all repeated trials."
+            "on all repeated trials. task_e_expert_mean is the holdout mean for the expert multi-invoice "
+            "campaign task when that task is present in the evaluated suite."
         ),
     }
     write_json_artifact(leaderboard_path, updated)
@@ -412,8 +429,9 @@ def _format_markdown(report: dict[str, Any]) -> str:
     holdout = report["holdout_challenge"]
     contrastive = report["contrastive_pairs"]
     protocol = report["evaluation_protocol"]
-
-    lines = [
+    public_task_e_mean = _task_score_mean(public, "task_e")
+    holdout_task_e_mean = _task_score_mean(holdout, "task_e")
+    public_lines = [
         "# LedgerShield Benchmark Report",
         "",
         "## Evaluation Protocol",
@@ -430,6 +448,11 @@ def _format_markdown(report: dict[str, Any]) -> str:
         f"- Trial pass rate: {public['trial_pass_rate']:.4f}",
         f"- pass^{protocol['pass_k']} consistent rate: {public['consistent_pass_rate']:.4f}",
         f"- Score stddev: {public['score_stats']['stdev']:.4f}",
+    ]
+    if public_task_e_mean is not None:
+        public_lines.append(f"- Task E expert mean: {public_task_e_mean:.4f}")
+
+    holdout_lines = [
         "",
         "## Holdout Challenge",
         f"- Holdout seeds: {', '.join(str(seed) for seed in protocol['holdout_seeds'])}",
@@ -441,6 +464,11 @@ def _format_markdown(report: dict[str, Any]) -> str:
         f"- pass^{protocol['pass_k']} consistent rate: {holdout['consistent_pass_rate']:.4f}",
         f"- Any-pass rate over {protocol['pass_k']} trials: {holdout['any_pass_rate']:.4f}",
         f"- Seed-average stddev: {holdout['suite_average_stats']['stdev']:.4f}",
+    ]
+    if holdout_task_e_mean is not None:
+        holdout_lines.append(f"- Task E expert mean: {holdout_task_e_mean:.4f}")
+
+    lines = public_lines + holdout_lines + [
         "",
         "## Contrastive Calibration",
         f"- Adversarial/twin pairs: {contrastive['pair_count']}",
@@ -460,7 +488,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--temperature", type=float, default=DEFAULT_TEMPERATURE)
     parser.add_argument("--api-url", default=inference.API_BASE_URL)
     parser.add_argument("--model", default=inference.MODEL_NAME)
-    parser.add_argument("--token", default=inference.API_KEY)
+    parser.add_argument("--token", default=inference.HF_TOKEN)
     parser.add_argument("--report-path", default=str(DEFAULT_REPORT_PATH))
     parser.add_argument("--leaderboard-path", default=str(DEFAULT_LEADERBOARD_PATH))
     parser.add_argument("--skip-write", action="store_true")
@@ -472,7 +500,7 @@ def main() -> None:
     args = parse_args()
     inference.API_BASE_URL = args.api_url
     inference.MODEL_NAME = args.model
-    inference.API_KEY = args.token
+    inference.HF_TOKEN = args.token
     client = inference.build_openai_client()
 
     report = build_report(

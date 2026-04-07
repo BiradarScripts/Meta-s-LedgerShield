@@ -34,6 +34,17 @@ LedgerShield simulates an accounts-payable control tower where AI agents must:
 
 Unlike static document benchmarks, LedgerShield models the complete operational loop with partial observability, budget constraints, and adversarial pressure events.
 
+## Problem Framing
+
+Business Email Compromise and AP payment fraud caused more than `$2.9 billion` in reported losses in `2023` alone, according to the [FBI Internet Crime Complaint Center (IC3) 2023 Internet Crime Report](https://www.ic3.gov/AnnualReport/Reports/2023_ic3report.pdf). That makes enterprise payment integrity one of the highest-stakes operational domains for AI agent evaluation.
+
+LedgerShield is designed around the control failures that matter in that setting:
+
+- spoofed vendor communications and bank-change pressure
+- partial observability across invoices, emails, ledgers, and vendor history
+- out-of-band verification such as callback checks to trusted numbers
+- decision quality measured by downstream operational and fraud outcomes, not just classification accuracy
+
 ## Key Features
 
 | Feature | Description |
@@ -51,7 +62,7 @@ Unlike static document benchmarks, LedgerShield models the complete operational 
 
 - Python 3.11+
 - Docker (optional)
-- Hugging Face API token
+- Hugging Face API token (optional for deterministic smoke tests, required for real external LLM evaluation)
 
 ### Installation
 
@@ -83,6 +94,29 @@ export ENV_URL="http://127.0.0.1:8000"
 
 python inference.py
 ```
+
+### Run stochastic pass^k evaluation
+
+```bash
+python inference.py \
+  --env-url http://127.0.0.1:8000 \
+  --model openai/gpt-4.1-mini \
+  --temperature 0.6 \
+  --passK 3
+```
+
+Set `HF_TOKEN` to run this with a real external LLM agent. Without a token, `inference.py` intentionally falls back to the deterministic policy so local smoke tests still work.
+
+### Generate leaderboard and benchmark artifacts
+
+```bash
+python benchmark_report.py \
+  --format markdown \
+  --pass-k 3 \
+  --temperature 0.6
+```
+
+Use `benchmark_report.py` for holdout reporting and leaderboard publication. It stays deterministic without credentials, and it upgrades to a real `llm-agent` evaluation automatically when `HF_TOKEN` is available.
 
 ### Docker Deployment
 
@@ -123,12 +157,32 @@ Verified baseline performance on the 12-case public benchmark suite:
 
 | Metric | Value |
 |--------|-------|
-| **Mean Score** | 0.969 |
+| **Mean Score** | 0.9674 |
 | **Pass@1 (0.85 threshold)** | 100% |
-| **Task A Average** | 0.998 |
-| **Task D Average** | 0.959 |
+| **Task A Average** | 0.9900 |
+| **Task D Average** | 0.9588 |
+| **Task E Average** | 0.9817 |
 
-Full results available in [benchmark_report.py](./benchmark_report.py).
+Deterministic holdout reporting on the current codebase:
+
+| Metric | Value |
+|--------|-------|
+| **Public Mean** | 0.9674 |
+| **Public pass^1 consistent @ 0.85** | 1.0000 |
+| **Generated Holdout Mean** | 0.6649 |
+| **Generated Holdout pass^1 consistent @ 0.85** | 0.6190 |
+| **Contrastive Joint Mean** | 0.6639 |
+
+Published leaderboard snapshot:
+
+| Model | Type | Temp | pass^k | Holdout Mean | Holdout pass^k consistent | Task E Expert Mean | Provenance |
+|-------|------|------:|-------:|-------------:|--------------------------:|-------------------:|------------|
+| `openai/gpt-4.1-mini` | `deterministic-policy` | 0.0 | 1 | 0.6649 | 0.6190 | 0.9817 | generated locally from `benchmark_report.py` |
+| `openai/gpt-4.1-mini` | `llm-agent` | 0.6 | 3 | 0.3847 | 0.2222 | 0.2891 | published external run in `artifacts/leaderboard.json` |
+
+This split is deliberate and mirrors the reliability framing used by [τ-bench](https://arxiv.org/abs/2406.12045): the deterministic baseline stays reproducible without credentials, while the stochastic row demonstrates remaining headroom for real external agents under repeated-trial `pass^k` evaluation.
+
+Full results are available through [benchmark_report.py](./benchmark_report.py), [`artifacts/benchmark_report_latest.json`](./artifacts/benchmark_report_latest.json), and [`artifacts/leaderboard.json`](./artifacts/leaderboard.json).
 
 ## Project Structure
 
@@ -170,7 +224,7 @@ See [API Reference](./docs/api-reference.md) for detailed endpoint documentation
 |----------|-------------|---------|
 | `API_BASE_URL` | LLM API base URL | `https://router.huggingface.co/v1` |
 | `MODEL_NAME` | Model identifier | `openai/gpt-4.1-mini` |
-| `HF_TOKEN` | Hugging Face API token | Required |
+| `HF_TOKEN` | Hugging Face API token for real external LLM runs | Optional |
 | `ENV_URL` | Environment server URL | `http://127.0.0.1:8000` |
 | `PORT` | Server port | `8000` |
 

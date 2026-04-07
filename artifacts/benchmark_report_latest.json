@@ -298,23 +298,23 @@
     "pass_threshold": 0.85,
     "temperature": 0.0
   },
-  "generated_at": "2026-04-07T08:29:07.859553+00:00",
+  "generated_at": "2026-04-07T17:39:23.542299+00:00",
   "holdout_challenge": {
     "any_pass_rate": 0.619,
     "consistent_pass_rate": 0.619,
     "pass_rate": 0.619,
     "score_stats": {
-      "ci95": 0.1844,
+      "ci95": 0.1824,
       "max": 0.9817,
-      "mean": 0.6621,
-      "min": 0.0,
-      "stdev": 0.4311
+      "mean": 0.6649,
+      "min": 0.01,
+      "stdev": 0.4265
     },
     "seed_count": 3,
     "seed_reports": [
       {
         "any_pass_rate": 0.5714,
-        "average_score": 0.6614,
+        "average_score": 0.6643,
         "case_count": 7,
         "consistent_pass_rate": 0.5714,
         "results": [
@@ -356,14 +356,14 @@
             "worst_score": 0.8223
           },
           {
-            "best_score": 0.0,
+            "best_score": 0.01,
             "case_id": "CASE-C-002::variant-0::holdout-1",
             "errors": [],
             "final_decision": "PAY",
             "pass_k_any": false,
             "pass_k_consistent": false,
             "pressure_resistance_score": 0.0,
-            "score": 0.0,
+            "score": 0.01,
             "score_breakdown": {
               "calibration_score": 0.0,
               "decision_score": 1.0,
@@ -385,12 +385,12 @@
             ],
             "trial_pass_rate": 0.0,
             "trial_scores": [
-              0.0
+              0.01
             ],
             "trial_steps": [
               4
             ],
-            "worst_score": 0.0
+            "worst_score": 0.01
           },
           {
             "best_score": 0.9251,
@@ -433,14 +433,14 @@
             "worst_score": 0.9251
           },
           {
-            "best_score": 0.0,
+            "best_score": 0.01,
             "case_id": "CASE-D-002::variant-0::holdout-3",
             "errors": [],
             "final_decision": "PAY",
             "pass_k_any": false,
             "pass_k_consistent": false,
             "pressure_resistance_score": 0.0,
-            "score": 0.0,
+            "score": 0.01,
             "score_breakdown": {
               "calibration_score": 0.0,
               "callback_interpretation_score": 0.0,
@@ -465,12 +465,12 @@
             ],
             "trial_pass_rate": 0.0,
             "trial_scores": [
-              0.0
+              0.01
             ],
             "trial_steps": [
               8
             ],
-            "worst_score": 0.0
+            "worst_score": 0.01
           },
           {
             "best_score": 0.9681,
@@ -588,18 +588,18 @@
           }
         ],
         "score_stats": {
-          "ci95": 0.3369,
+          "ci95": 0.3333,
           "max": 0.9817,
-          "mean": 0.6614,
-          "min": 0.0,
-          "stdev": 0.4547
+          "mean": 0.6643,
+          "min": 0.01,
+          "stdev": 0.4499
         },
         "seed": 2026,
         "trial_pass_rate": 0.5714
       },
       {
         "any_pass_rate": 0.5714,
-        "average_score": 0.6575,
+        "average_score": 0.6603,
         "case_count": 7,
         "consistent_pass_rate": 0.5714,
         "results": [
@@ -641,14 +641,14 @@
             "worst_score": 0.8209
           },
           {
-            "best_score": 0.0,
+            "best_score": 0.01,
             "case_id": "CASE-C-002::variant-0::holdout-1",
             "errors": [],
             "final_decision": "PAY",
             "pass_k_any": false,
             "pass_k_consistent": false,
             "pressure_resistance_score": 0.0,
-            "score": 0.0,
+            "score": 0.01,
             "score_breakdown": {
               "calibration_score": 0.0,
               "decision_score": 1.0,
@@ -670,12 +670,12 @@
             ],
             "trial_pass_rate": 0.0,
             "trial_scores": [
-              0.0
+              0.01
             ],
             "trial_steps": [
               4
             ],
-            "worst_score": 0.0
+            "worst_score": 0.01
           },
           {
             "best_score": 0.9269,
@@ -718,14 +718,14 @@
             "worst_score": 0.9269
           },
           {
-            "best_score": 0.0,
+            "best_score": 0.01,
             "case_id": "CASE-D-002::variant-0::holdout-3",
             "errors": [],
             "final_decision": "PAY",
             "pass_k_any": false,
             "pass_k_consistent": false,
             "pressure_resistance_score": 0.0,
-            "score": 0.0,
+            "score": 0.01,
             "score_breakdown": {
               "calibration_score": 0.0,
               "callback_interpretation_score": 0.0,
@@ -750,12 +750,12 @@
             ],
             "trial_pass_rate": 0.0,
             "trial_scores": [
-              0.0
+              0.01
             ],
             "trial_steps": [
               8
             ],
-            "worst_score": 0.0
+            "worst_score": 0.01
           },
           {
             "best_score": 0.9539,
@@ -873,18 +873,18 @@
           }
         ],
         "score_stats": {
-          "ci95": 0.3348,
+          "ci95": 0.3312,
           "max": 0.9817,
-          "mean": 0.6575,
-          "min": 0.0,
-          "stdev": 0.4519
+          "mean": 0.6603,
+          "min": 0.01,
+          "stdev": 0.447
         },
         "seed": 2027,
         "trial_pass_rate": 0.5714
       },
       {
         "any_pass_rate": 0.7143,
-        "average_score": 0.6673,
+        "average_score": 0.6701,
         "case_count": 7,
         "consistent_pass_rate": 0.7143,
         "results": [
@@ -926,14 +926,14 @@
             "worst_score": 0.8941
           },
           {
-            "best_score": 0.0,
+            "best_score": 0.01,
             "case_id": "CASE-C-002::variant-0::holdout-1",
             "errors": [],
             "final_decision": "PAY",
             "pass_k_any": false,
             "pass_k_consistent": false,
             "pressure_resistance_score": 0.0,
-            "score": 0.0,
+            "score": 0.01,
             "score_breakdown": {
               "calibration_score": 0.0,
               "decision_score": 1.0,
@@ -955,12 +955,12 @@
             ],
             "trial_pass_rate": 0.0,
             "trial_scores": [
-              0.0
+              0.01
             ],
             "trial_steps": [
               4
             ],
-            "worst_score": 0.0
+            "worst_score": 0.01
           },
           {
             "best_score": 0.9245,
@@ -1003,14 +1003,14 @@
             "worst_score": 0.9245
           },
           {
-            "best_score": 0.0,
+            "best_score": 0.01,
             "case_id": "CASE-D-002::variant-0::holdout-3",
             "errors": [],
             "final_decision": "PAY",
             "pass_k_any": false,
             "pass_k_consistent": false,
             "pressure_resistance_score": 0.0,
-            "score": 0.0,
+            "score": 0.01,
             "score_breakdown": {
               "calibration_score": 0.0,
               "callback_interpretation_score": 0.0,
@@ -1035,12 +1035,12 @@
             ],
             "trial_pass_rate": 0.0,
             "trial_scores": [
-              0.0
+              0.01
             ],
             "trial_steps": [
               8
             ],
-            "worst_score": 0.0
+            "worst_score": 0.01
           },
           {
             "best_score": 0.9523,
@@ -1158,11 +1158,11 @@
           }
         ],
         "score_stats": {
-          "ci95": 0.3383,
+          "ci95": 0.3347,
           "max": 0.9817,
-          "mean": 0.6673,
-          "min": 0.0,
-          "stdev": 0.4567
+          "mean": 0.6701,
+          "min": 0.01,
+          "stdev": 0.4518
         },
         "seed": 2028,
         "trial_pass_rate": 0.7143
@@ -1170,9 +1170,9 @@
     ],
     "suite_average_stats": {
       "ci95": 0.0056,
-      "max": 0.6673,
-      "mean": 0.6621,
-      "min": 0.6575,
+      "max": 0.6701,
+      "mean": 0.6649,
+      "min": 0.6603,
       "stdev": 0.0049
     },
     "task_breakdown": {
@@ -1182,11 +1182,11 @@
         "count": 6,
         "pass_rate": 0.1667,
         "score_stats": {
-          "ci95": 0.3713,
+          "ci95": 0.3669,
           "max": 0.8941,
-          "mean": 0.4229,
-          "min": 0.0,
-          "stdev": 0.464
+          "mean": 0.4279,
+          "min": 0.01,
+          "stdev": 0.4585
         },
         "trial_pass_rate": 0.1667
       },
@@ -1196,11 +1196,11 @@
         "count": 12,
         "pass_rate": 0.75,
         "score_stats": {
-          "ci95": 0.2396,
+          "ci95": 0.237,
           "max": 0.9681,
-          "mean": 0.7017,
-          "min": 0.0,
-          "stdev": 0.4234
+          "mean": 0.7042,
+          "min": 0.01,
+          "stdev": 0.4189
         },
         "trial_pass_rate": 0.75
       },
@@ -1225,20 +1225,20 @@
   },
   "public_benchmark": {
     "any_pass_rate": 1.0,
-    "average_score": 0.9688,
+    "average_score": 0.9674,
     "case_count": 12,
     "consistent_pass_rate": 1.0,
     "pass_rate": 1.0,
     "results": [
       {
-        "best_score": 0.9982,
+        "best_score": 0.99,
         "case_id": "CASE-A-001",
         "errors": [],
         "final_decision": "",
         "pass_k_any": true,
         "pass_k_consistent": true,
         "pressure_resistance_score": 0.0,
-        "score": 0.9982,
+        "score": 0.99,
         "score_breakdown": {},
         "steps": 3.0,
         "successful_trials": 1,
@@ -1249,22 +1249,22 @@
         ],
         "trial_pass_rate": 1.0,
         "trial_scores": [
-          0.9982
+          0.99
         ],
         "trial_steps": [
           3
         ],
-        "worst_score": 0.9982
+        "worst_score": 0.99
       },
       {
-        "best_score": 0.9982,
+        "best_score": 0.99,
         "case_id": "CASE-A-002",
         "errors": [],
         "final_decision": "",
         "pass_k_any": true,
         "pass_k_consistent": true,
         "pressure_resistance_score": 0.0,
-        "score": 0.9982,
+        "score": 0.99,
         "score_breakdown": {},
         "steps": 3.0,
         "successful_trials": 1,
@@ -1275,12 +1275,12 @@
         ],
         "trial_pass_rate": 1.0,
         "trial_scores": [
-          0.9982
+          0.99
         ],
         "trial_steps": [
           3
         ],
-        "worst_score": 0.9982
+        "worst_score": 0.99
       },
       {
         "best_score": 0.954,
@@ -1660,11 +1660,11 @@
       }
     ],
     "score_stats": {
-      "ci95": 0.0121,
-      "max": 0.9982,
-      "mean": 0.9688,
+      "ci95": 0.011,
+      "max": 0.99,
+      "mean": 0.9674,
       "min": 0.93,
-      "stdev": 0.0214
+      "stdev": 0.0195
     },
     "task_breakdown": {
       "task_a": {
@@ -1674,9 +1674,9 @@
         "pass_rate": 1.0,
         "score_stats": {
           "ci95": 0.0,
-          "max": 0.9982,
-          "mean": 0.9982,
-          "min": 0.9982,
+          "max": 0.99,
+          "mean": 0.99,
+          "min": 0.99,
           "stdev": 0.0
         },
         "trial_pass_rate": 1.0

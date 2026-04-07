@@ -3,20 +3,38 @@
   "entries": [
     {
       "contrastive_joint_mean": 0.6639,
-      "holdout_mean": 0.6621,
+      "holdout_mean": 0.6649,
       "holdout_pass_k_consistent": 0.619,
+      "holdout_task_e_expert_mean": 0.9817,
       "holdout_trial_pass_rate": 0.619,
       "model": "openai/gpt-4.1-mini",
       "pass_k": 1,
       "pass_threshold": 0.85,
-      "public_mean": 0.9688,
+      "provenance": "generated-from-report",
+      "public_mean": 0.9674,
       "public_pass_k_consistent": 1.0,
+      "public_task_e_expert_mean": 0.9817,
       "public_trial_pass_rate": 1.0,
+      "task_e_expert_mean": 0.9817,
       "temperature": 0.0,
       "type": "deterministic-policy",
-      "updated_at": "2026-04-07T08:29:07.859553+00:00"
+      "updated_at": "2026-04-07T17:39:23.542299+00:00"
+    },
+    {
+      "holdout_mean": 0.3847,
+      "holdout_pass_k_consistent": 0.2222,
+      "holdout_task_e_expert_mean": 0.2891,
+      "model": "openai/gpt-4.1-mini",
+      "notes": "Published external run focused on stochastic holdout reliability. Local reproduction requires HF_TOKEN-backed benchmark_report.py execution.",
+      "pass_k": 3,
+      "pass_threshold": 0.85,
+      "provenance": "maintainer-published external run",
+      "task_e_expert_mean": 0.2891,
+      "temperature": 0.6,
+      "type": "llm-agent",
+      "updated_at": "2026-04-07T17:38:46+00:00"
     }
   ],
-  "generated_at": "2026-04-07T08:29:07.875490+00:00",
-  "note": "pass_k_consistent is the fraction of benchmark cases that remained above the pass threshold on all repeated trials."
+  "generated_at": "2026-04-07T17:39:23.545912+00:00",
+  "note": "pass_k_consistent is the fraction of benchmark cases that remained above the pass threshold on all repeated trials. task_e_expert_mean is the holdout mean for the expert multi-invoice campaign task when that task is present in the evaluated suite."
 }
