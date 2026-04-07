@@ -3,7 +3,7 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any
 
-from .schema import fuzzy_numeric_similarity, normalize_id, normalize_text, prefix_domain, safe_float
+from .schema import bbox_iou, fuzzy_numeric_similarity, normalize_id, normalize_text, prefix_domain, safe_float
 
 
 def _find_doc(case: dict[str, Any], doc_id: str) -> dict[str, Any] | None:
@@ -13,18 +13,65 @@ def _find_doc(case: dict[str, Any], doc_id: str) -> dict[str, Any] | None:
     return None
 
 
+def _page_number(value: Any) -> int | None:
+    if value in {None, ""}:
+        return None
+    try:
+        return int(value)
+    except Exception:
+        return None
+
+
+def _scoped_tokens(
+    doc: dict[str, Any],
+    *,
+    mode: str = "accurate",
+    page: int | None = None,
+    bbox: list[float] | None = None,
+) -> list[dict[str, Any]]:
+    token_key = "accurate_ocr" if mode == "accurate" else "noisy_ocr"
+    tokens = deepcopy(doc.get(token_key, []))
+    if page is None and not bbox:
+        return tokens
+
+    selected: list[dict[str, Any]] = []
+    for token in tokens:
+        token_page = _page_number(token.get("page")) or 1
+        if page is not None and token_page != page:
+            continue
+        if bbox and bbox_iou(token.get("bbox"), bbox) <= 0.0:
+            continue
+        selected.append(token)
+
+    return selected
+
+
+def _token_text_preview(tokens: list[dict[str, Any]], limit: int = 6) -> list[str]:
+    preview: list[str] = []
+    for token in tokens[:limit]:
+        text = str(token.get("text", "")).strip()
+        if text:
+            preview.append(text)
+    return preview
+
+
 def zoom_tool(case: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
     doc_id = payload.get("doc_id")
+    page = _page_number(payload.get("page")) or 1
     bbox = payload.get("bbox", [0, 0, 100, 100])
     doc = _find_doc(case, doc_id)
     if doc is None:
         return {"error": f"unknown doc_id: {doc_id}"}
 
+    focus_tokens = _scoped_tokens(doc, page=page, bbox=bbox)
     return {
         "doc_id": doc_id,
+        "page": page,
         "bbox": bbox,
         "crop_hint": f"zoomed view for {doc_id}",
         "visual_tokens": deepcopy(doc.get("visual_tokens", []))[:20],
+        "focus_text": _token_text_preview(focus_tokens),
+        "region_token_count": len(focus_tokens),
         "message": "Zoom completed.",
     }
 
@@ -37,11 +84,13 @@ def get_doc_crop_tool(case: dict[str, Any], payload: dict[str, Any]) -> dict[str
     if doc is None:
         return {"error": f"unknown doc_id: {doc_id}"}
 
+    focus_tokens = _scoped_tokens(doc, page=page, bbox=bbox)
     return {
         "doc_id": doc_id,
         "page": page,
         "bbox": bbox,
-        "crop_text_hint": deepcopy(doc.get("crop_text_hint", []))[:10],
+        "crop_text_hint": _token_text_preview(focus_tokens, limit=8) or deepcopy(doc.get("crop_text_hint", []))[:10],
+        "region_token_count": len(focus_tokens),
         "message": "Document crop returned.",
     }
 
@@ -49,16 +98,22 @@ def get_doc_crop_tool(case: dict[str, Any], payload: dict[str, Any]) -> dict[str
 def ocr_tool(case: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
     doc_id = payload.get("doc_id")
     mode = payload.get("mode", "fast")
+    page = _page_number(payload.get("page"))
+    bbox = payload.get("bbox")
     doc = _find_doc(case, doc_id)
     if doc is None:
         return {"error": f"unknown doc_id: {doc_id}"}
 
-    tokens = deepcopy(doc.get("accurate_ocr", [])) if mode == "accurate" else deepcopy(doc.get("noisy_ocr", []))
+    tokens = _scoped_tokens(doc, mode=mode, page=page, bbox=bbox)
+    scope = "region" if bbox else ("page" if page is not None else "document")
     text = " ".join(str(token.get("text", token)) for token in tokens[:200])
 
     return {
         "doc_id": doc_id,
         "mode": mode,
+        "scope": scope,
+        "page": page,
+        "bbox": bbox,
         "tokens": tokens,
         "text_preview": text[:600],
         "message": f"Returned {mode} OCR.",
@@ -204,61 +259,94 @@ def search_ledger_tool(ledger_index: list[dict[str, Any]], payload: dict[str, An
     }
 
 
-def inspect_email_thread_tool(email_threads: list[dict[str, Any]], payload: dict[str, Any]) -> dict[str, Any]:
+def inspect_email_thread_tool(case: dict[str, Any], email_threads: list[dict[str, Any]], payload: dict[str, Any]) -> dict[str, Any]:
     thread_id = payload.get("thread_id")
-    for row in email_threads:
-        if row.get("thread_id") != thread_id:
-            continue
+    for doc in case.get("documents", []):
+        if doc.get("doc_id") == thread_id and isinstance(doc.get("thread_data"), dict):
+            row = doc.get("thread_data") or {}
+            break
+    else:
+        row = None
 
-        thread = deepcopy(row)
-        signals: list[str] = list(thread.get("flags", []) or thread.get("fraud_signals", []) or [])
+    if row is None:
+        for candidate in email_threads:
+            if candidate.get("thread_id") == thread_id:
+                row = candidate
+                break
 
-        subject = normalize_text(thread.get("subject"))
-        body = normalize_text(thread.get("body") or " ".join(thread.get("messages", [])))
-        sender = normalize_text(thread.get("sender"))
-        from_domain = prefix_domain(sender)
-        expected_domain = prefix_domain(thread.get("expected_domain") or thread.get("vendor_domain"))
+    if row is None:
+        return {"error": f"thread not found: {thread_id}"}
 
-        if "urgent" in subject or "urgent" in body or "asap" in body:
-            signals.append("urgent_payment_pressure")
+    subject = normalize_text(row.get("subject"))
+    body = normalize_text(row.get("body") or " ".join(row.get("messages", [])))
+    sender = normalize_text(row.get("sender"))
+    from_domain = prefix_domain(sender)
+    expected_domain = prefix_domain(row.get("expected_domain") or row.get("vendor_domain"))
 
-        if expected_domain and from_domain and expected_domain != from_domain:
-            signals.append("sender_domain_spoof")
+    urgency_language = "urgent" in subject or "urgent" in body or "asap" in body
+    domain_alignment = "mismatch" if expected_domain and from_domain and expected_domain != from_domain else "aligned"
 
-        explicit_no_change = any(
-            phrase in body
-            for phrase in {
-                "no bank change",
-                "no bank changes",
-                "no change to bank",
-                "approved remittance instructions already on file",
-            }
-        )
-        if "bank" in body and ("change" in body or "update" in body or "override" in body) and not explicit_no_change:
-            signals.append("bank_override_attempt")
-
-        bypass_phrases = {
-            "skip callback",
-            "do not call",
-            "don't call",
-            "ignore standard workflow",
-            "override policy",
-            "bypass policy",
-            "do not verify",
-            "treat this email as the source of truth",
-            "portal is offline",
-            "avoid reapproval",
+    explicit_no_change = any(
+        phrase in body
+        for phrase in {
+            "no bank change",
+            "no bank changes",
+            "no change to bank",
+            "approved remittance instructions already on file",
         }
-        if any(phrase in body for phrase in bypass_phrases):
-            signals.append("policy_bypass_attempt")
+    )
+    bank_change_language = (
+        "bank" in body and ("change" in body or "update" in body or "override" in body) and not explicit_no_change
+    )
 
-        thread["derived_flags"] = sorted(set(normalize_text(x) for x in signals if x))
-        return {
-            "thread": thread,
-            "message": "Email thread inspection complete.",
-        }
+    bypass_phrases = {
+        "skip callback",
+        "do not call",
+        "don't call",
+        "ignore standard workflow",
+        "override policy",
+        "bypass policy",
+        "do not verify",
+        "treat this email as the source of truth",
+        "portal is offline",
+        "avoid reapproval",
+    }
+    callback_discouraged = any(phrase in body for phrase in {"skip callback", "do not call", "don't call", "do not verify"})
+    policy_override_language = any(phrase in body for phrase in bypass_phrases)
+    quoted_directives: list[str] = []
+    if bank_change_language:
+        quoted_directives.append("bank or remittance instructions changed in email body")
+    if callback_discouraged:
+        quoted_directives.append("email discourages callback verification")
+    if policy_override_language:
+        quoted_directives.append("email pressures agent to override standard workflow")
+    if urgency_language:
+        quoted_directives.append("message uses urgency language")
 
-    return {"error": f"thread not found: {thread_id}"}
+    thread = {
+        "thread_id": row.get("thread_id"),
+        "vendor_key": row.get("vendor_key"),
+        "sender": row.get("sender") or row.get("from"),
+        "subject": row.get("subject", ""),
+        "body": row.get("body", ""),
+        "message_count": max(1, len(row.get("messages", []) or [])),
+        "sender_profile": {
+            "from_domain": from_domain,
+            "expected_domain": expected_domain,
+            "domain_alignment": domain_alignment,
+        },
+        "request_signals": {
+            "bank_change_language": bank_change_language,
+            "urgency_language": urgency_language,
+            "callback_discouraged": callback_discouraged,
+            "policy_override_language": policy_override_language,
+        },
+        "quoted_directives": quoted_directives,
+    }
+    return {
+        "thread": thread,
+        "message": "Email thread inspection complete.",
+    }
 
 
 def compare_bank_account_tool(vendors_by_key: dict[str, dict[str, Any]], payload: dict[str, Any]) -> dict[str, Any]:
@@ -280,13 +368,11 @@ def compare_bank_account_tool(vendors_by_key: dict[str, dict[str, Any]], payload
     )
 
     matched = approved_bank_account == proposed_bank_account
-    derived_flags = [] if matched else ["bank_account_mismatch"]
-
     return {
         "vendor_key": vendor.get("vendor_key"),
         "approved_bank_account": approved_bank_account,
         "proposed_bank_account": proposed_bank_account,
         "matched": matched,
-        "derived_flags": derived_flags,
+        "comparison_summary": "matched_master_data" if matched else "mismatch_to_master_data",
         "message": "Compared proposed bank account to approved master data.",
     }

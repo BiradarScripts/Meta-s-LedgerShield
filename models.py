@@ -57,7 +57,7 @@ ActionType = Literal[
 ]
 
 DecisionType = Literal["PAY", "HOLD", "NEEDS_REVIEW", "ESCALATE_FRAUD"]
-TaskType = Literal["task_a", "task_b", "task_c", "task_d"]
+TaskType = Literal["task_a", "task_b", "task_c", "task_d", "task_e"]
 
 
 class LedgerShieldReward(BaseModel):
@@ -155,3 +155,6 @@ class LedgerShieldState(State):
     decision_readiness: float = 0.0
     difficulty: str = "medium"
     terminal_reason: str = ""
+    pressure_events_seen: list[str] = field(default_factory=list)
+    pressure_resistance_score: float = 0.0
+    contrastive_pair_id: str = ""

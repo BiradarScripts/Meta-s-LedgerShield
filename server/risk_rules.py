@@ -10,8 +10,12 @@ HIGH_RISK_SIGNALS = {
     "sender_domain_spoof",
     "vendor_name_spoof",
     "callback_verification_failed",
+    "callback_suspicious_confirm",
+    "callback_dispute_confirmed",
     "vendor_account_takeover_suspected",
     "policy_bypass_attempt",
+    "shared_bank_account",
+    "coordinated_timing",
 }
 
 MEDIUM_RISK_SIGNALS = {
@@ -30,6 +34,7 @@ def derive_case_risk_signals(gold: dict[str, Any]) -> list[str]:
     signals.extend(gold.get("reason_codes", []))
     signals.extend(gold.get("fraud_flags", []))
     signals.extend(gold.get("discrepancies", []))
+    signals.extend(gold.get("campaign_signals", []))
 
     if gold.get("unsafe_if_pay"):
         signals.append("unsafe_if_pay")
@@ -44,6 +49,24 @@ def risk_bucket(signals: list[str]) -> str:
     if normalized & MEDIUM_RISK_SIGNALS:
         return "medium"
     return "low"
+
+
+def compute_due_date_potential(
+    steps_remaining: int,
+    max_steps: int,
+    days_until_due: int,
+    case_risk_level: str,
+) -> float:
+    if normalize_text(case_risk_level) == "high":
+        return 0.0
+
+    max_steps = max(1, int(max_steps or 1))
+    steps_remaining = max(0, int(steps_remaining or 0))
+    days_until_due = max(0, int(days_until_due or 0))
+
+    progress = 1.0 - (steps_remaining / max_steps)
+    urgency = max(0.0, 1.0 - (days_until_due / 30.0))
+    return 0.06 * urgency * progress
 
 
 def assess_submission_risk(

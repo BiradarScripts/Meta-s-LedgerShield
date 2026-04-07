@@ -8,6 +8,44 @@ from .schema import normalize_text
 from .world_state import register_observed_signals, reveal_artifact, schedule_artifact_event
 
 
+def _signals_from_vendor_history(result: dict[str, Any]) -> list[str]:
+    derived = list(result.get("derived_flags", []) or [])
+    if derived:
+        return derived
+
+    risk_flags: list[str] = []
+    for row in result.get("history", []) or []:
+        event_type = normalize_text(row.get("event_type") or row.get("change_type"))
+        status = normalize_text(row.get("status"))
+        if "bank" in event_type and status in {"rejected", "failed", "denied"}:
+            risk_flags.append("historical_bank_change_rejected")
+        if "fraud" in event_type:
+            risk_flags.append("historical_fraud_event")
+    return risk_flags
+
+
+def _signals_from_email_thread(thread: dict[str, Any]) -> list[str]:
+    sender_profile = thread.get("sender_profile", {}) or {}
+    request_signals = thread.get("request_signals", {}) or {}
+
+    signals: list[str] = []
+    if normalize_text(sender_profile.get("domain_alignment")) == "mismatch":
+        signals.append("sender_domain_spoof")
+    if bool(request_signals.get("bank_change_language")):
+        signals.append("bank_override_attempt")
+    if bool(request_signals.get("urgency_language")):
+        signals.append("urgent_payment_pressure")
+    if bool(request_signals.get("callback_discouraged")) or bool(request_signals.get("policy_override_language")):
+        signals.append("policy_bypass_attempt")
+    return signals
+
+
+def _signals_from_bank_compare(result: dict[str, Any]) -> list[str]:
+    if result.get("matched") is False:
+        return ["bank_account_mismatch"]
+    return list(result.get("derived_flags", []) or [])
+
+
 def update_from_tool_result(
     state: LedgerShieldState,
     tool_name: str,
@@ -16,15 +54,15 @@ def update_from_tool_result(
     signals: list[str] = []
 
     if tool_name == "lookup_vendor_history":
-        signals.extend(result.get("derived_flags", []))
+        signals.extend(_signals_from_vendor_history(result))
     elif tool_name == "search_ledger":
         if result.get("near_duplicate_count", 0) > 0:
             signals.append("duplicate_near_match")
     elif tool_name == "inspect_email_thread":
         thread = result.get("thread", {})
-        signals.extend(thread.get("derived_flags", []))
+        signals.extend(_signals_from_email_thread(thread))
     elif tool_name == "compare_bank_account":
-        signals.extend(result.get("derived_flags", []))
+        signals.extend(_signals_from_bank_compare(result))
 
     return register_observed_signals(state, signals)
 

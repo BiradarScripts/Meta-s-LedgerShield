@@ -39,6 +39,14 @@ def investigation_score(
         "task_b": {"lookup_po", "lookup_receipt", "lookup_policy"},
         "task_c": {"search_ledger", "compare_bank_account"},
         "task_d": {"inspect_email_thread", "lookup_vendor_history", "lookup_policy", "compare_bank_account"},
+        "task_e": {
+            "inspect_email_thread",
+            "lookup_vendor_history",
+            "lookup_policy",
+            "compare_bank_account",
+            "search_ledger",
+            "request_callback_verification",
+        },
     }
     required = required_by_task.get(task_type, set())
     if gold.get("unsafe_if_pay"):
@@ -89,6 +97,8 @@ def intervention_score(
         score += 0.10
     if risky and "flag_duplicate_cluster_review" in actions:
         score += 0.10
+    if risky and "create_human_handoff" in actions:
+        score += 0.05
     if risky and not taken_interventions:
         score -= 0.15
 
@@ -104,6 +114,9 @@ def intervention_score(
         score -= 0.10
     if outcome and outcome.get("unsafe_payment"):
         score -= 0.3
+    if gold.get("campaign_signals"):
+        if {"route_to_security", "freeze_vendor_profile"} <= actions:
+            score += 0.08
 
     return max(0.0, min(1.0, score))
 

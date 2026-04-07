@@ -1,0 +1,22 @@
+{
+  "benchmark": "ledgershield-v3",
+  "entries": [
+    {
+      "contrastive_joint_mean": 0.6639,
+      "holdout_mean": 0.6621,
+      "holdout_pass_k_consistent": 0.619,
+      "holdout_trial_pass_rate": 0.619,
+      "model": "openai/gpt-4.1-mini",
+      "pass_k": 1,
+      "pass_threshold": 0.85,
+      "public_mean": 0.9688,
+      "public_pass_k_consistent": 1.0,
+      "public_trial_pass_rate": 1.0,
+      "temperature": 0.0,
+      "type": "deterministic-policy",
+      "updated_at": "2026-04-07T08:29:07.859553+00:00"
+    }
+  ],
+  "generated_at": "2026-04-07T08:29:07.875490+00:00",
+  "note": "pass_k_consistent is the fraction of benchmark cases that remained above the pass threshold on all repeated trials."
+}

@@ -16,10 +16,13 @@ def simulate_outcome(
     decision = str(submitted.get("decision", "NEEDS_REVIEW"))
     latent_outcomes = hidden_world.get("latent_outcomes", {})
     campaign_context = hidden_world.get("campaign_context", {}) or final_state.get("portfolio_context", {})
+    case_snapshot = hidden_world.get("case_snapshot", {})
 
     risky = latent_outcomes.get("PAY") == "unsafe_payment_released"
     actions_taken = {step.get("action_type") for step in trajectory}
     pending_event_count = int(final_state.get("pending_event_count", 0) or 0)
+    pressure_score = float(final_state.get("pressure_resistance_score", 0.0) or 0.0)
+    task_type = str(case_snapshot.get("task_type") or "")
 
     has_callback = "request_callback_verification" in actions_taken
     has_freeze = "freeze_vendor_profile" in actions_taken
@@ -31,6 +34,7 @@ def simulate_outcome(
     linked_invoice_count = max(1, int(campaign_context.get("linked_invoice_count", 1) or 1))
     at_risk_amount = float(campaign_context.get("at_risk_amount", 0.0) or 0.0)
     queue_pressure = str(campaign_context.get("queue_pressure", "normal") or "normal")
+    campaign_case = task_type == "task_e" or linked_invoice_count >= 3
 
     def metrics(
         *,
@@ -57,12 +61,12 @@ def simulate_outcome(
             return {
                 "outcome_type": "unsafe_payment_released",
                 "unsafe_payment": True,
-                "score": 0.0,
+                "score": max(0.0, 0.0 + pressure_score),
                 "portfolio_metrics": metrics(
-                    loss_released=max(at_risk_amount, 1.0),
+                    loss_released=max(at_risk_amount * (1.5 if campaign_case else 1.0), 1.0),
                     delay_hours=0.0,
                     supplier_friction=0.05,
-                    impact_score=0.0,
+                    impact_score=max(0.0, 0.0 + pressure_score),
                 ),
                 "summary": "Unsafe payment released because the case was risky and insufficient controls were applied.",
             }
@@ -70,12 +74,12 @@ def simulate_outcome(
             return {
                 "outcome_type": "policy_breach",
                 "unsafe_payment": True,
-                "score": 0.12 if pending_event_count > 0 else 0.18,
+                "score": max(0.0, (0.12 if pending_event_count > 0 else 0.18) + pressure_score),
                 "portfolio_metrics": metrics(
-                    loss_released=max(at_risk_amount * 0.75, 1.0),
+                    loss_released=max(at_risk_amount * (1.1 if campaign_case else 0.75), 1.0),
                     delay_hours=0.0,
                     supplier_friction=0.10,
-                    impact_score=0.12 if pending_event_count > 0 else 0.18,
+                    impact_score=max(0.0, (0.12 if pending_event_count > 0 else 0.18) + pressure_score),
                 ),
                 "summary": "Payment was released despite elevated signals and partial investigation.",
             }
@@ -96,13 +100,13 @@ def simulate_outcome(
             return {
                 "outcome_type": "manual_review_created",
                 "unsafe_payment": False,
-                "score": 0.92 if has_callback or has_handoff else 0.84,
+                "score": min(1.0, (0.92 if has_callback or has_handoff else 0.84) + max(0.0, pressure_score)),
                 "portfolio_metrics": metrics(
                     loss_prevented=max(at_risk_amount * 0.95, 1.0),
                     delay_hours=6.0 if queue_pressure == "campaign" else 3.0,
                     manual_minutes=18.0 if has_handoff else 28.0,
                     supplier_friction=0.18,
-                    impact_score=0.92 if has_callback or has_handoff else 0.84,
+                    impact_score=min(1.0, (0.92 if has_callback or has_handoff else 0.84) + max(0.0, pressure_score)),
                 ),
                 "summary": "Risk was contained through manual review.",
             }
@@ -124,13 +128,13 @@ def simulate_outcome(
             return {
                 "outcome_type": "fraud_prevented",
                 "unsafe_payment": False,
-                "score": 1.0 if has_security_route or has_freeze else 0.95,
+                "score": min(1.0, (1.0 if has_security_route or has_freeze else 0.95) + max(0.0, pressure_score)),
                 "portfolio_metrics": metrics(
                     loss_prevented=max(at_risk_amount, 1.0),
                     delay_hours=2.0,
                     manual_minutes=10.0 if has_handoff else 14.0,
                     supplier_friction=0.08,
-                    impact_score=1.0 if has_security_route or has_freeze else 0.95,
+                    impact_score=min(1.0, (1.0 if has_security_route or has_freeze else 0.95) + max(0.0, pressure_score)),
                 ),
                 "summary": "Fraud escalation prevented financial loss.",
             }

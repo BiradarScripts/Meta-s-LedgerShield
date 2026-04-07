@@ -31,8 +31,10 @@ from .world_state import (
     advance_pending_events,
     build_hidden_world,
     decision_readiness,
+    inject_pressure_event,
     investigation_status,
     pending_events_public,
+    pressure_resistance_score,
     public_state_snapshot,
     public_revealed_artifacts,
     risk_snapshot,
@@ -70,9 +72,9 @@ SHAPING_SCALE = 0.18
 
 
 class LedgerShieldEnvironment(Environment):
-    def __init__(self) -> None:
+    def __init__(self, db: dict[str, Any] | None = None) -> None:
         super().__init__()
-        self.db = load_all()
+        self.db = db if db is not None else load_all()
         self.rng = random.Random(42)
         self.current_case: dict[str, Any] | None = None
         self._state = LedgerShieldState()
@@ -106,12 +108,19 @@ class LedgerShieldEnvironment(Environment):
         ]
         return [str(doc_id) for doc_id in doc_ids]
 
+    def _all_documents(self) -> list[dict[str, Any]]:
+        assert self.current_case is not None
+        docs = list(self.current_case.get("documents", []))
+        dynamic_docs = self._hidden_world.get("dynamic_documents", {}) or {}
+        docs.extend(dynamic_docs.values())
+        return docs
+
     def _visible_document_catalog(self) -> list[dict[str, Any]]:
         assert self.current_case is not None
         docs: list[dict[str, Any]] = []
         visible_set = set(self._state.visible_doc_ids)
 
-        for doc in self.current_case.get("documents", []):
+        for doc in self._all_documents():
             doc_id = str(doc.get("doc_id"))
             if doc_id not in visible_set:
                 continue
@@ -160,7 +169,7 @@ class LedgerShieldEnvironment(Environment):
             available_interventions=list(INTERVENTION_ACTIONS),
             case_metadata={
                 "task_label": self.current_case.get("task_label", ""),
-                "benchmark_split": self.current_case.get("benchmark_split", "benchmark"),
+                "due_date_days": int(self.current_case.get("due_date_days", 14) or 14),
             },
             portfolio_context=dict(self._hidden_world.get("campaign_context", {})),
         )
@@ -195,6 +204,7 @@ class LedgerShieldEnvironment(Environment):
             difficulty=self.current_case.get("difficulty", "medium"),
             hidden_risk_signals=list(self._hidden_world.get("hidden_risk_signals", [])),
             portfolio_metrics=dict(self._hidden_world.get("campaign_context", {})),
+            contrastive_pair_id=str(self.current_case.get("contrastive_pair_id", "")),
         )
 
         self._last_reward = 0.0
@@ -210,6 +220,7 @@ class LedgerShieldEnvironment(Environment):
 
     def _dispatch_tool(self, tool_name: str, payload: dict[str, Any]) -> dict[str, Any]:
         assert self.current_case is not None
+        overrides = self.current_case.get("context_overrides", {}) or {}
 
         if tool_name == "zoom":
             return zoom_tool(self.current_case, payload)
@@ -220,7 +231,7 @@ class LedgerShieldEnvironment(Environment):
         if tool_name == "lookup_vendor":
             return lookup_vendor_tool(self.db["vendors_by_key"], payload)
         if tool_name == "lookup_vendor_history":
-            return lookup_vendor_history_tool(self.db["vendor_history"], payload)
+            return lookup_vendor_history_tool(overrides.get("vendor_history", self.db["vendor_history"]), payload)
         if tool_name == "lookup_policy":
             return lookup_policy_tool(self.db["policy_by_id"], self.db["policy_rules"], payload)
         if tool_name == "lookup_po":
@@ -228,9 +239,9 @@ class LedgerShieldEnvironment(Environment):
         if tool_name == "lookup_receipt":
             return lookup_receipt_tool(self.db["receipt_by_id"], payload)
         if tool_name == "search_ledger":
-            return search_ledger_tool(self.db["ledger_index"], payload)
+            return search_ledger_tool(overrides.get("ledger_index", self.db["ledger_index"]), payload)
         if tool_name == "inspect_email_thread":
-            return inspect_email_thread_tool(self.db["email_threads"], payload)
+            return inspect_email_thread_tool(self.current_case, self.db["email_threads"], payload)
         if tool_name == "compare_bank_account":
             return compare_bank_account_tool(self.db["vendors_by_key"], payload)
 
@@ -339,6 +350,10 @@ class LedgerShieldEnvironment(Environment):
 
             budget_used = max(self._state.budget_total - self._state.budget_remaining, 0.0)
             budget_penalty = (budget_used / max(self._state.budget_total, 1.0)) * 0.12
+            self._state.pressure_resistance_score = round(
+                pressure_resistance_score(self._state, self._hidden_world, decision),
+                4,
+            )
 
             outcome = simulate_outcome(
                 submitted=submitted,
@@ -391,6 +406,7 @@ class LedgerShieldEnvironment(Environment):
                 "decision": decision,
                 "outcome": outcome,
                 "system_state": public_system_state,
+                "pressure_resistance_score": self._state.pressure_resistance_score,
                 "message": "Decision submitted and graded.",
                 "cost": 0.0,
             }
@@ -401,12 +417,14 @@ class LedgerShieldEnvironment(Environment):
                 "unsafe_outcome": self._state.unsafe_outcome,
                 "outcome": outcome,
                 "system_state": public_system_state,
+                "pressure_resistance_score": self._state.pressure_resistance_score,
             }
             reward_components = {"final_score": final_score}
             reward_metadata.update(
                 {
                     "unsafe_outcome": self._state.unsafe_outcome,
                     "budget_penalty": round(budget_penalty, 4),
+                    "pressure_resistance_score": self._state.pressure_resistance_score,
                 }
             )
             cost = 0.0
@@ -483,6 +501,14 @@ class LedgerShieldEnvironment(Environment):
             result["revealed_artifact_ids"] = [artifact.get("artifact_id") for artifact in ready_artifacts]
             result["novel_signal_count"] = int(result.get("novel_signal_count", 0) or 0) + async_signals
             messages = list(messages) + async_messages
+
+        injected_doc, pressure_messages = inject_pressure_event(self._state, self._hidden_world)
+        if injected_doc:
+            result["pressure_event"] = {
+                "doc_id": injected_doc.get("doc_id"),
+                "doc_type": injected_doc.get("doc_type"),
+            }
+            messages = list(messages) + pressure_messages
 
         trajectory_entry = {
             "step": self._state.step_count,

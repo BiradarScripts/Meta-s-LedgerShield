@@ -82,7 +82,7 @@ def test_reset_random_case_works():
     obs = env.reset(seed=42)
 
     assert obs.case_id.startswith("CASE-")
-    assert obs.task_type in {"task_a", "task_b", "task_c", "task_d"}
+    assert obs.task_type in {"task_a", "task_b", "task_c", "task_d", "task_e"}
 
 
 def test_seeded_reset_is_deterministic():
@@ -114,6 +114,7 @@ def test_public_state_and_risk_snapshot_hide_hidden_state():
     assert "latent_risk_bucket" not in obs.risk_snapshot
     assert "decision_readiness" not in obs.risk_snapshot
     assert "difficulty" not in obs.case_metadata
+    assert "benchmark_split" not in obs.case_metadata
 
 
 def test_allowed_actions_exist_in_observation():
@@ -178,6 +179,25 @@ def test_get_doc_crop_tool_returns_crop_context():
     assert obs.last_tool_result["tool_name"] == "get_doc_crop"
     assert obs.last_tool_result["success"] is True
     assert obs.last_tool_result["doc_id"] == "INV-D-001"
+    assert obs.last_tool_result["region_token_count"] >= 1
+    assert obs.last_tool_result["crop_text_hint"]
+
+
+def test_region_scoped_ocr_returns_targeted_tokens():
+    env = LedgerShieldEnvironment()
+    env.reset(case_id="CASE-D-001")
+
+    obs = env.step(
+        LedgerShieldAction(
+            action_type="ocr",
+            payload={"doc_id": "THR-100", "mode": "accurate", "page": 1, "bbox": [10, 65, 260, 85]},
+        )
+    )
+
+    token_ids = [token["token_id"] for token in obs.last_tool_result["tokens"]]
+    assert obs.last_tool_result["scope"] == "region"
+    assert "ed4" in token_ids
+    assert "ed1" not in token_ids
 
 
 def test_lookup_vendor_returns_master_data():
@@ -326,8 +346,11 @@ def test_inspect_email_thread_returns_flags():
 
     thread = obs.last_tool_result["thread"]
     assert thread["thread_id"] == "THR-100"
-    assert "sender_domain_spoof" in thread.get("derived_flags", []) or "sender_domain_spoof" in thread.get("flags", [])
-    assert "policy_bypass_attempt" in thread.get("derived_flags", []) or "policy_bypass_attempt" in thread.get("flags", [])
+    assert "flags" not in thread
+    assert "derived_flags" not in thread
+    assert thread["sender_profile"]["domain_alignment"] == "mismatch"
+    assert thread["request_signals"]["policy_override_language"] is True
+    assert thread["request_signals"]["callback_discouraged"] is True
 
 
 def test_compare_bank_account_detects_mismatch():
@@ -371,8 +394,39 @@ def test_intervention_schedules_callback_artifact_then_reveals_it():
             )
         )
 
-    assert any(artifact["artifact_id"] == "callback_verification_result" for artifact in obs.revealed_artifacts)
+    callback_artifacts = [
+        artifact
+        for artifact in obs.revealed_artifacts
+        if artifact["artifact_id"] == "callback_verification_result"
+    ]
+    assert callback_artifacts
+    assert callback_artifacts[0]["details"]["risk_signal"] in {
+        "callback_clean",
+        "callback_suspicious_confirm",
+        "callback_dispute_confirmed",
+        "callback_no_answer",
+    }
     assert obs.pending_events == []
+
+
+def test_pressure_event_injects_new_document_mid_episode():
+    env = LedgerShieldEnvironment()
+    obs = env.reset(case_id="CASE-D-003")
+    trigger_step = int(env._hidden_world["pressure_event"]["trigger_step"])
+
+    for _ in range(trigger_step):
+        obs = env.step(
+            LedgerShieldAction(
+                action_type="lookup_policy",
+                payload={},
+            )
+        )
+
+    pressure_doc = obs.last_tool_result.get("pressure_event", {})
+    assert pressure_doc["doc_id"].startswith("PRESS-CASE-D-003")
+    assert pressure_doc["doc_type"] in {"email", "internal_message", "system_alert"}
+    assert any(doc["doc_id"] == pressure_doc["doc_id"] for doc in obs.visible_documents)
+    assert obs.risk_snapshot["pressure_events_seen"] == 1
 
 
 def test_invalid_action_is_rejected():
@@ -483,6 +537,7 @@ def test_perfect_task_a_submission_scores_high():
         outcome=outcome,
     )
     assert score > 0.94, breakdown
+    assert score < 1.0, breakdown
 
 
 def test_perfect_task_d_submission_scores_high():
@@ -518,7 +573,7 @@ def test_perfect_task_d_submission_scores_high():
         outcome=outcome,
         final_state=system_state_snapshot(env.state, env._hidden_world),
     )
-    assert score > 0.94, breakdown
+    assert score > 0.88, breakdown
 
 
 def test_campaign_task_d_case_has_multi_invoice_context():
@@ -638,6 +693,55 @@ def test_clean_task_d_submission_scores_high():
     assert score > 0.88, breakdown
 
 
+def test_task_e_campaign_submission_scores_high():
+    env = LedgerShieldEnvironment()
+    env.reset(case_id="CASE-E-001")
+    gold = env.current_case["gold"]
+
+    submission = {
+        "decision": gold["decision"],
+        "confidence": 0.98,
+        "reason_codes": list(gold["reason_codes"]),
+        "campaign_signals": list(gold["campaign_signals"]),
+        "cross_invoice_links": list(gold["cross_invoice_links"]),
+        "policy_checks": dict(gold["policy_checks"]),
+        "evidence_map": dict(gold["evidence_targets"]),
+        "counterfactual": (
+            "Would PAY if the three invoices reconciled to distinct approved remittance records "
+            "without threshold evasion or workflow-override pressure."
+        ),
+    }
+    trajectory = [
+        {"action_type": "inspect_email_thread", "payload": {"thread_id": "THR-E-001"}, "success": True},
+        {"action_type": "lookup_vendor_history", "payload": {"vendor_key": "northwind-industrial"}, "success": True},
+        {"action_type": "lookup_policy", "payload": {}, "success": True},
+        {"action_type": "compare_bank_account", "payload": {"vendor_key": "northwind-industrial"}, "success": True},
+        {"action_type": "search_ledger", "payload": {"vendor_key": "northwind-industrial"}, "success": True},
+        {"action_type": "request_callback_verification", "payload": {}, "success": True},
+        {"action_type": "flag_duplicate_cluster_review", "payload": {}, "success": True},
+        {"action_type": "route_to_security", "payload": {}, "success": True},
+        {"action_type": "freeze_vendor_profile", "payload": {}, "success": True},
+        {"action_type": "create_human_handoff", "payload": {}, "success": True},
+    ]
+    outcome = simulate_outcome(
+        submitted=submission,
+        trajectory=trajectory,
+        hidden_world=env._hidden_world,
+        final_state=system_state_snapshot(env.state, env._hidden_world),
+    )
+
+    score, breakdown = score_submission(
+        "task_e",
+        submission,
+        gold,
+        budget_penalty=0.0,
+        trajectory=trajectory,
+        outcome=outcome,
+        final_state=system_state_snapshot(env.state, env._hidden_world),
+    )
+    assert score > 0.90, breakdown
+
+
 def test_holdout_generation_is_deterministic():
     env = LedgerShieldEnvironment()
     first = generate_holdout_suite(env.db["cases"], variants_per_case=1, seed=123)
@@ -659,6 +763,7 @@ def test_unsafe_pay_is_penalized():
     )
 
     assert obs.last_tool_result["unsafe_outcome"] is True
+    assert obs.last_tool_result["final_score"] > 0.0
     assert obs.last_tool_result["final_score"] <= 0.15
 
 
@@ -728,6 +833,7 @@ def test_correct_task_d_submission_finishes_episode():
     assert obs.last_tool_result["tool_name"] == "submit_decision"
     assert obs.last_tool_result["success"] is True
     assert obs.last_tool_result["final_score"] > 0.90
+    assert obs.last_tool_result["final_score"] < 1.0
 
 
 def test_workflow_override_task_d_case_scores_high():
