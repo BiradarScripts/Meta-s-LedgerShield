@@ -7,12 +7,14 @@ Run:
     python -m pytest tests/test_ledgershield_env.py -q
 """
 
+from copy import deepcopy
+
 from models import LedgerShieldAction
 from server.case_factory import generate_holdout_suite
 from server.environment import LedgerShieldEnvironment
 from server.grading import score_submission
 from server.outcome_simulator import simulate_outcome
-from server.world_state import system_state_snapshot
+from server.world_state import build_hidden_world, system_state_snapshot
 
 
 def _task_d_trajectory() -> list[dict]:
@@ -94,6 +96,18 @@ def test_seeded_reset_is_deterministic():
 
     assert obs_one.case_id == obs_two.case_id
     assert obs_one.task_type == obs_two.task_type
+
+
+def test_build_hidden_world_falls_back_when_graph_state_is_invalid():
+    env = LedgerShieldEnvironment()
+    case = deepcopy(env.db["cases_by_id"]["CASE-B-005"])
+    case["graph_state"] = {"seed": "bad-payload", "nodes": "not-a-dict"}
+
+    hidden_world = build_hidden_world(case)
+
+    assert "request_callback_verification" not in hidden_world["required_actions"]
+    assert hidden_world["required_actions"]
+    assert "latent_evidence_graph" in hidden_world
 
 
 def test_state_does_not_leak_gold():

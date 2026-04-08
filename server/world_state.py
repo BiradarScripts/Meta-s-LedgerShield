@@ -10,6 +10,7 @@ from .pressure_events import PressureEvent, evaluate_pressure_resistance, schedu
 from .risk_rules import compute_due_date_potential, derive_case_risk_signals, risk_bucket
 from .schema import canonical_reason_codes, normalize_text
 from .vendor_simulator import build_vendor_simulator_state, simulate_callback
+from .evidence_graph import EvidenceGraph, generate_scenario_graph
 
 
 def _successful_actions(state: LedgerShieldState) -> set[str]:
@@ -39,24 +40,41 @@ def _required_actions(case: dict[str, Any], hidden_signals: list[str]) -> list[s
             "freeze_vendor_profile",
         ],
     }.get(task_type, [])
-
     hidden = {normalize_text(signal) for signal in hidden_signals}
-    if hidden & {
-        "bank_override_attempt",
-        "callback_verification_failed",
-        "vendor_account_takeover_suspected",
-        "policy_bypass_attempt",
-    }:
-        required.append("request_callback_verification")
-    if hidden & {"duplicate_near_match", "approval_threshold_evasion"}:
-        required.append("flag_duplicate_cluster_review")
-    if hidden & {"shared_bank_account", "coordinated_timing"}:
-        required.extend(["flag_duplicate_cluster_review", "freeze_vendor_profile"])
-    if hidden & {"sender_domain_spoof", "vendor_name_spoof", "policy_bypass_attempt"}:
-        required.append("route_to_security")
 
     seen: set[str] = set()
     ordered: list[str] = []
+    
+    # Extract dynamically required actions from the EvidenceGraph if provided
+    use_legacy_rules = True
+    latent_graph_data = case.get("graph_state")
+    if latent_graph_data:
+        try:
+            graph = EvidenceGraph.deserialize(latent_graph_data)
+        except Exception:
+            graph = None
+        if graph is not None:
+            use_legacy_rules = False
+            for rule in graph.unlock_rules:
+                # If the scenario is risky or requires interventions, append them
+                if graph.latent_hypothesis != "safe":
+                    required.append(rule.trigger_action)
+    if use_legacy_rules:
+        # Fallback to legacy rule table
+        if hidden & {
+            "bank_override_attempt",
+            "callback_verification_failed",
+            "vendor_account_takeover_suspected",
+            "policy_bypass_attempt",
+        }:
+            required.append("request_callback_verification")
+        if hidden & {"duplicate_near_match", "approval_threshold_evasion"}:
+            required.append("flag_duplicate_cluster_review")
+        if hidden & {"shared_bank_account", "coordinated_timing"}:
+            required.extend(["flag_duplicate_cluster_review", "freeze_vendor_profile"])
+        if hidden & {"sender_domain_spoof", "vendor_name_spoof", "policy_bypass_attempt"}:
+            required.append("route_to_security")
+
     for action in required:
         norm = normalize_text(action)
         if norm and norm not in seen:
@@ -177,7 +195,25 @@ def build_hidden_world(case: dict[str, Any]) -> dict[str, Any]:
     pressure_event = schedule_pressure_event(case, int(case.get("max_steps", 20) or 20), case_seed)
     vendor_simulator_state = build_vendor_simulator_state(case, hidden_signals, case_seed)
 
+    # Leverage EvidenceGraph for latent states
+    # Map the risk signals to a scenario_type for graph initialization
+    scenario_type = "safe"
+    if "bank_override_attempt" in hidden_signals or "vendor_account_takeover_suspected" in hidden_signals:
+        scenario_type = "bank_change_fraud"
+    elif "duplicate_near_match" in hidden_signals or gold.get("duplicate_links"):
+        scenario_type = "duplicate_invoice"
+
+    graph_state = case.get("graph_state")
+    if graph_state:
+        try:
+            graph = EvidenceGraph.deserialize(graph_state)
+        except Exception:
+            graph = generate_scenario_graph(scenario_type, case_seed)
+    else:
+        graph = generate_scenario_graph(scenario_type, case_seed)
+
     return {
+        "latent_evidence_graph": graph.serialize(),
         "case_snapshot": {
             "case_id": case.get("case_id"),
             "task_type": case.get("task_type"),
