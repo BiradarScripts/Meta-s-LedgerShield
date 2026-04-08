@@ -1,14 +1,53 @@
+# Version control
 .git
 .gitignore
+.github
+
+# Python artifacts
 .venv
 venv
 __pycache__
 .pytest_cache
 .mypy_cache
-.DS_Store
 *.pyc
 *.pyo
 *.pyd
+
+# IDE and OS
+.DS_Store
+.vscode
+.idea
+
+# Documentation (not needed at runtime)
 README.md
-tests
-envs
+docs/
+CHANGELOG.md
+
+# Tests (not needed at runtime)
+tests/
+envs/
+
+# Benchmark and comparison data (not needed at runtime)
+live_model_comparison_debug/
+live_model_comparison.json
+final_corrected_comparison.json
+
+# Development scripts (not needed at runtime)
+benchmark_report.py
+compare_models_live.py
+compare_all_models.py
+generate_branch_comparison_report.py
+generate_comparison_report.py
+generate_final_report.py
+generate_sota_report.py
+
+# LLM debugging utils (not needed at runtime)
+llm_judge_grader.py
+llm_utils.py
+find_codec.py
+find_crash.py
+validate_agent_grading.py
+validate_grader.py
+
+# Lock files
+uv.lock
