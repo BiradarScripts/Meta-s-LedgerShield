@@ -353,6 +353,25 @@ def test_inspect_email_thread_returns_flags():
     assert thread["request_signals"]["callback_discouraged"] is True
 
 
+def test_inspect_email_thread_falls_back_to_email_document_ocr():
+    env = LedgerShieldEnvironment()
+    env.reset(case_id="CASE-D-005")
+
+    obs = env.step(
+        LedgerShieldAction(
+            action_type="inspect_email_thread",
+            payload={"thread_id": "THR-CEO-001"},
+        )
+    )
+
+    thread = obs.last_tool_result["thread"]
+    assert thread["thread_id"] == "THR-CEO-001"
+    assert thread["sender"] == "ceo@company-executive.example.net"
+    assert thread["sender_profile"]["domain_alignment"] == "mismatch"
+    assert thread["request_signals"]["policy_override_language"] is True
+    assert thread["request_signals"]["urgency_language"] is True
+
+
 def test_compare_bank_account_detects_mismatch():
     env = LedgerShieldEnvironment()
     env.reset(case_id="CASE-D-001")

@@ -74,7 +74,7 @@ def test_validate_task_c_submission_reverts_false_escalation_for_clean_case():
     assert validated["decision"] == "PAY"
     assert validated["fraud_flags"] == []
     assert validated["duplicate_links"] == []
-    assert validated["evidence_map"] == {}
+    assert set(validated["evidence_map"]) == {"bank_account_verified", "duplicate_check_cleared"}
 
 
 def test_validate_task_c_submission_repairs_partial_fraud_output():
@@ -143,6 +143,24 @@ def test_sanitize_task_c_submission_backfills_grounded_evidence_for_chosen_flags
 
     assert sanitized["fraud_flags"] == ["bank_override_attempt"]
     assert set(sanitized["evidence_map"]) == {"bank_override_attempt"}
+
+
+def test_sanitize_task_c_submission_keeps_false_negative_pay_sparse():
+    sanitized = sanitize_task_c_submission(
+        {
+            "decision": "PAY",
+            "confidence": 0.72,
+            "fraud_flags": [],
+            "duplicate_links": [],
+            "evidence_map": {},
+        },
+        _risky_collected(),
+    )
+
+    assert sanitized["decision"] == "PAY"
+    assert sanitized["fraud_flags"] == []
+    assert sanitized["duplicate_links"] == []
+    assert sanitized["evidence_map"] == {}
 
 
 def test_grounded_task_c_submission_promotes_threshold_case_to_needs_review():
@@ -228,6 +246,16 @@ def test_grounded_task_c_submission_surfaces_cross_vendor_campaign_signals():
     )
 
     assert grounded["decision"] == "ESCALATE_FRAUD"
-    assert "shared_bank_account" in grounded["fraud_flags"]
-    assert "coordinated_timing" in grounded["fraud_flags"]
+    assert grounded["fraud_flags"] == ["shared_bank_account", "coordinated_timing"]
+    assert grounded["discrepancies"] == ["shared_bank_account", "coordinated_timing"]
     assert grounded["duplicate_links"] == ["LED-131"]
+    assert set(grounded["evidence_map"]) == {"shared_bank_account", "coordinated_timing"}
+
+
+def test_grounded_task_c_submission_keeps_pay_proof_evidence():
+    grounded = grounded_task_c_submission(_clean_collected())
+
+    assert grounded["decision"] == "PAY"
+    assert grounded["fraud_flags"] == []
+    assert grounded["duplicate_links"] == []
+    assert set(grounded["evidence_map"]) == {"bank_account_verified", "duplicate_check_cleared"}

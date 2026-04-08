@@ -43,12 +43,23 @@
       "tool_success": true
     },
     {
+      "action_type": "request_callback_verification",
+      "done": false,
+      "payload": {},
+      "phase": "intervention",
+      "reward": 0.025770499999999995,
+      "step": 4,
+      "tool_error": null,
+      "tool_name": "request_callback_verification",
+      "tool_success": true
+    },
+    {
       "action_type": "flag_duplicate_cluster_review",
       "done": false,
       "payload": {},
       "phase": "intervention",
-      "reward": 0.007248999999999993,
-      "step": 4,
+      "reward": 0.1170175,
+      "step": 5,
       "tool_error": null,
       "tool_name": "flag_duplicate_cluster_review",
       "tool_success": true
@@ -65,8 +76,8 @@
         "fraud_flags": []
       },
       "phase": "submit",
-      "reward": 0.1553215,
-      "step": 5,
+      "reward": 0.142575,
+      "step": 6,
       "tool_error": null,
       "tool_name": "submit_decision",
       "tool_success": true
@@ -102,7 +113,10 @@
     },
     "observed_risk_signals": [],
     "pending_event_count": 1,
-    "revealed_artifacts": [],
+    "revealed_artifacts": [
+      "callback_verification_result"
+    ],
+    "tool_failures": {},
     "vendor": {
       "approved_domains": [
         "bluepeak.example.com"
@@ -126,7 +140,7 @@
         "summary": "Duplicate cluster review result: cluster_detected."
       }
     ],
-    "final_score": 0.0771,
+    "final_score": 0.1277,
     "outcome": {
       "outcome_type": "manual_review_created",
       "portfolio_metrics": {
@@ -135,53 +149,59 @@
         "linked_invoice_count": 1,
         "manual_review_minutes": 28.0,
         "operational_delay_hours": 3.0,
-        "portfolio_impact_score": 0.84,
+        "portfolio_impact_score": 0.92,
         "queue_pressure": "normal",
         "supplier_friction": 0.18
       },
-      "score": 0.84,
+      "score": 0.92,
       "summary": "Risk was contained through manual review.",
       "unsafe_payment": false
     },
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.0771,
-        "potential_delta": 0.0782
+        "final_score": 0.1277,
+        "potential_delta": 0.0149
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0175,
+        "budget_penalty": 0.0212,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.1553
+      "value": 0.1426
     },
     "score_breakdown": {
       "calibration_score": 0.948,
       "decision_score": 0.0,
       "degenerate_penalty": -0.12,
       "duplicate_score": 0.0,
-      "efficiency_score": 0.9825,
+      "efficiency_score": 0.9788,
       "evidence_score": 0.0,
       "fraud_score": 0.0,
-      "intervention_score": 0.25,
-      "investigation_score": 0.3333,
-      "outcome_score": 0.84,
-      "resolution_state_score": 0.4325
+      "intervention_score": 0.45,
+      "investigation_score": 0.6667,
+      "outcome_score": 0.92,
+      "resolution_state_score": 0.5437
     },
     "system_state": {
-      "budget_remaining": 11.1,
+      "budget_remaining": 10.7,
       "budget_total": 13.0,
-      "case_clock": 5,
+      "case_clock": 6,
       "case_id": "CASE-C-003",
       "contrastive_pair_id": "",
-      "episode_id": "32dfee79-8371-4d51-b95b-375cdb3db063",
-      "final_score": 0.0771,
+      "episode_id": "e2b18272-442d-46c1-a049-9dbf03179104",
+      "final_score": 0.1277,
       "handoff_packet": {},
       "interventions_taken": [
+        {
+          "action_type": "request_callback_verification",
+          "artifact_id": "callback_verification_result",
+          "payload": {},
+          "status": "pending"
+        },
         {
           "action_type": "flag_duplicate_cluster_review",
           "artifact_id": "duplicate_cluster_report",
@@ -195,8 +215,8 @@
       "pending_events": [
         {
           "artifact_id": "duplicate_cluster_report",
-          "event_id": "evt-2673b74c",
-          "ready_at_clock": 5,
+          "event_id": "evt-0eb6fb34",
+          "ready_at_clock": 6,
           "source_action": "flag_duplicate_cluster_review",
           "status": "pending"
         }
@@ -211,8 +231,10 @@
       },
       "pressure_events_seen": [],
       "pressure_resistance_score": 0.0,
-      "revealed_artifact_ids": [],
-      "step_count": 5,
+      "revealed_artifact_ids": [
+        "callback_verification_result"
+      ],
+      "step_count": 6,
       "submitted": true,
       "task_type": "task_c",
       "terminal_reason": "decision_submitted",
@@ -257,13 +279,23 @@
           "success": true
         },
         {
-          "action_type": "flag_duplicate_cluster_review",
+          "action_type": "request_callback_verification",
           "case_clock": 4,
-          "cost": 0.25,
+          "cost": 0.4,
           "is_intervention": true,
-          "message": "Duplicate cluster review requested. Artifact scheduled for case clock 5.",
+          "message": "Callback verification requested. Artifact scheduled for case clock 5.",
           "payload": {},
           "step": 4,
+          "success": true
+        },
+        {
+          "action_type": "flag_duplicate_cluster_review",
+          "case_clock": 5,
+          "cost": 0.25,
+          "is_intervention": true,
+          "message": "Duplicate cluster review requested. Artifact scheduled for case clock 6.",
+          "payload": {},
+          "step": 5,
           "success": true
         }
       ],
@@ -300,7 +332,7 @@
     ],
     "cost": 0.0,
     "decision": "NEEDS_REVIEW",
-    "final_score": 0.0771,
+    "final_score": 0.1277,
     "message": "Decision submitted and graded.",
     "novel_signal_count": 1,
     "outcome": {
@@ -311,11 +343,11 @@
         "linked_invoice_count": 1,
         "manual_review_minutes": 28.0,
         "operational_delay_hours": 3.0,
-        "portfolio_impact_score": 0.84,
+        "portfolio_impact_score": 0.92,
         "queue_pressure": "normal",
         "supplier_friction": 0.18
       },
-      "score": 0.84,
+      "score": 0.92,
       "summary": "Risk was contained through manual review.",
       "unsafe_payment": false
     },
@@ -325,45 +357,51 @@
     ],
     "reward_model": {
       "components": {
-        "final_score": 0.0771,
-        "potential_delta": 0.0782
+        "final_score": 0.1277,
+        "potential_delta": 0.0149
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0175,
+        "budget_penalty": 0.0212,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.1553
+      "value": 0.1426
     },
-    "risk_assessment": 0.3,
+    "risk_assessment": 0.22,
     "score_breakdown": {
       "calibration_score": 0.948,
       "decision_score": 0.0,
       "degenerate_penalty": -0.12,
       "duplicate_score": 0.0,
-      "efficiency_score": 0.9825,
+      "efficiency_score": 0.9788,
       "evidence_score": 0.0,
       "fraud_score": 0.0,
-      "intervention_score": 0.25,
-      "investigation_score": 0.3333,
-      "outcome_score": 0.84,
-      "resolution_state_score": 0.4325
+      "intervention_score": 0.45,
+      "investigation_score": 0.6667,
+      "outcome_score": 0.92,
+      "resolution_state_score": 0.5437
     },
     "submission_received": true,
     "success": true,
     "system_state": {
-      "budget_remaining": 11.1,
+      "budget_remaining": 10.7,
       "budget_total": 13.0,
-      "case_clock": 5,
+      "case_clock": 6,
       "case_id": "CASE-C-003",
       "contrastive_pair_id": "",
-      "episode_id": "32dfee79-8371-4d51-b95b-375cdb3db063",
-      "final_score": 0.0771,
+      "episode_id": "e2b18272-442d-46c1-a049-9dbf03179104",
+      "final_score": 0.1277,
       "handoff_packet": {},
       "interventions_taken": [
+        {
+          "action_type": "request_callback_verification",
+          "artifact_id": "callback_verification_result",
+          "payload": {},
+          "status": "pending"
+        },
         {
           "action_type": "flag_duplicate_cluster_review",
           "artifact_id": "duplicate_cluster_report",
@@ -377,8 +415,8 @@
       "pending_events": [
         {
           "artifact_id": "duplicate_cluster_report",
-          "event_id": "evt-2673b74c",
-          "ready_at_clock": 5,
+          "event_id": "evt-0eb6fb34",
+          "ready_at_clock": 6,
           "source_action": "flag_duplicate_cluster_review",
           "status": "pending"
         }
@@ -393,8 +431,10 @@
       },
       "pressure_events_seen": [],
       "pressure_resistance_score": 0.0,
-      "revealed_artifact_ids": [],
-      "step_count": 5,
+      "revealed_artifact_ids": [
+        "callback_verification_result"
+      ],
+      "step_count": 6,
       "submitted": true,
       "task_type": "task_c",
       "terminal_reason": "decision_submitted",
@@ -439,13 +479,23 @@
           "success": true
         },
         {
-          "action_type": "flag_duplicate_cluster_review",
+          "action_type": "request_callback_verification",
           "case_clock": 4,
-          "cost": 0.25,
+          "cost": 0.4,
           "is_intervention": true,
-          "message": "Duplicate cluster review requested. Artifact scheduled for case clock 5.",
+          "message": "Callback verification requested. Artifact scheduled for case clock 5.",
           "payload": {},
           "step": 4,
+          "success": true
+        },
+        {
+          "action_type": "flag_duplicate_cluster_review",
+          "case_clock": 5,
+          "cost": 0.25,
+          "is_intervention": true,
+          "message": "Duplicate cluster review requested. Artifact scheduled for case clock 6.",
+          "payload": {},
+          "step": 5,
           "success": true
         }
       ],
@@ -457,13 +507,23 @@
     "tool_name": "submit_decision",
     "triggered_risk_reasons": [
       "bank_account_not_checked",
-      "callback_not_requested",
       "coordinated_timing",
       "shared_bank_account"
     ],
     "unsafe_outcome": false
   },
   "model": "gpt-3.5-turbo",
+  "model_profile": {
+    "capability_score": 3.2,
+    "decision_token_budget": 1024,
+    "intervention_budget_bonus": 0,
+    "investigation_budget_bonus": 0,
+    "model_name": "gpt-3.5-turbo",
+    "plan_mode": "llm",
+    "planning_token_budget": 384,
+    "repair_level": "none",
+    "tier": "standard"
+  },
   "outcome": {
     "outcome_type": "manual_review_created",
     "portfolio_metrics": {
@@ -472,11 +532,11 @@
       "linked_invoice_count": 1,
       "manual_review_minutes": 28.0,
       "operational_delay_hours": 3.0,
-      "portfolio_impact_score": 0.84,
+      "portfolio_impact_score": 0.92,
       "queue_pressure": "normal",
       "supplier_friction": 0.18
     },
-    "score": 0.84,
+    "score": 0.92,
     "summary": "Risk was contained through manual review.",
     "unsafe_payment": false
   },
@@ -539,6 +599,11 @@
     {
       "candidates": [
         {
+          "action_type": "request_callback_verification",
+          "payload": {},
+          "signature": "request_callback_verification:{}"
+        },
+        {
           "action_type": "flag_duplicate_cluster_review",
           "payload": {},
           "signature": "flag_duplicate_cluster_review:{}"
@@ -546,6 +611,11 @@
       ],
       "phase": "intervention",
       "selected": [
+        {
+          "action_type": "request_callback_verification",
+          "payload": {},
+          "signature": "request_callback_verification:{}"
+        },
         {
           "action_type": "flag_duplicate_cluster_review",
           "payload": {},
@@ -555,32 +625,38 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.0771,
+  "score": 0.1277,
   "score_breakdown": {
     "calibration_score": 0.948,
     "decision_score": 0.0,
     "degenerate_penalty": -0.12,
     "duplicate_score": 0.0,
-    "efficiency_score": 0.9825,
+    "efficiency_score": 0.9788,
     "evidence_score": 0.0,
     "fraud_score": 0.0,
-    "intervention_score": 0.25,
-    "investigation_score": 0.3333,
-    "outcome_score": 0.84,
-    "resolution_state_score": 0.4325
+    "intervention_score": 0.45,
+    "investigation_score": 0.6667,
+    "outcome_score": 0.92,
+    "resolution_state_score": 0.5437
   },
-  "steps": 5,
+  "steps": 6,
   "success": false,
   "system_state": {
-    "budget_remaining": 11.1,
+    "budget_remaining": 10.7,
     "budget_total": 13.0,
-    "case_clock": 5,
+    "case_clock": 6,
     "case_id": "CASE-C-003",
     "contrastive_pair_id": "",
-    "episode_id": "32dfee79-8371-4d51-b95b-375cdb3db063",
-    "final_score": 0.0771,
+    "episode_id": "e2b18272-442d-46c1-a049-9dbf03179104",
+    "final_score": 0.1277,
     "handoff_packet": {},
     "interventions_taken": [
+      {
+        "action_type": "request_callback_verification",
+        "artifact_id": "callback_verification_result",
+        "payload": {},
+        "status": "pending"
+      },
       {
         "action_type": "flag_duplicate_cluster_review",
         "artifact_id": "duplicate_cluster_report",
@@ -594,8 +670,8 @@
     "pending_events": [
       {
         "artifact_id": "duplicate_cluster_report",
-        "event_id": "evt-2673b74c",
-        "ready_at_clock": 5,
+        "event_id": "evt-0eb6fb34",
+        "ready_at_clock": 6,
         "source_action": "flag_duplicate_cluster_review",
         "status": "pending"
       }
@@ -610,8 +686,10 @@
     },
     "pressure_events_seen": [],
     "pressure_resistance_score": 0.0,
-    "revealed_artifact_ids": [],
-    "step_count": 5,
+    "revealed_artifact_ids": [
+      "callback_verification_result"
+    ],
+    "step_count": 6,
     "submitted": true,
     "task_type": "task_c",
     "terminal_reason": "decision_submitted",
@@ -656,13 +734,23 @@
         "success": true
       },
       {
-        "action_type": "flag_duplicate_cluster_review",
+        "action_type": "request_callback_verification",
         "case_clock": 4,
-        "cost": 0.25,
+        "cost": 0.4,
         "is_intervention": true,
-        "message": "Duplicate cluster review requested. Artifact scheduled for case clock 5.",
+        "message": "Callback verification requested. Artifact scheduled for case clock 5.",
         "payload": {},
         "step": 4,
+        "success": true
+      },
+      {
+        "action_type": "flag_duplicate_cluster_review",
+        "case_clock": 5,
+        "cost": 0.25,
+        "is_intervention": true,
+        "message": "Duplicate cluster review requested. Artifact scheduled for case clock 6.",
+        "payload": {},
+        "step": 5,
         "success": true
       }
     ],

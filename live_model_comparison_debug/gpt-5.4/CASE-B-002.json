@@ -15,25 +15,14 @@
       "tool_success": true
     },
     {
-      "action_type": "lookup_policy",
-      "done": false,
-      "payload": {},
-      "phase": "investigation",
-      "reward": 0.014283999999999991,
-      "step": 2,
-      "tool_error": null,
-      "tool_name": "lookup_policy",
-      "tool_success": true
-    },
-    {
       "action_type": "lookup_po",
       "done": false,
       "payload": {
         "po_id": "PO-2049"
       },
       "phase": "investigation",
-      "reward": 0.011321999999999999,
-      "step": 3,
+      "reward": 0.011783999999999989,
+      "step": 2,
       "tool_error": null,
       "tool_name": "lookup_po",
       "tool_success": true
@@ -45,30 +34,101 @@
         "receipt_id": "GRN-2049"
       },
       "phase": "investigation",
-      "reward": -0.061778000000000007,
-      "step": 4,
+      "reward": -0.06131600000000001,
+      "step": 3,
       "tool_error": "receipt not found: GRN-2049",
       "tool_name": "lookup_receipt",
       "tool_success": false
     },
     {
+      "action_type": "lookup_policy",
+      "done": false,
+      "payload": {},
+      "phase": "investigation",
+      "reward": 0.013822000000000001,
+      "step": 4,
+      "tool_error": null,
+      "tool_name": "lookup_policy",
+      "tool_success": true
+    },
+    {
+      "action_type": "request_callback_verification",
+      "done": false,
+      "payload": {},
+      "phase": "intervention",
+      "reward": 0.025193,
+      "step": 5,
+      "tool_error": null,
+      "tool_name": "request_callback_verification",
+      "tool_success": true
+    },
+    {
+      "action_type": "request_po_reconciliation",
+      "done": false,
+      "payload": {},
+      "phase": "intervention",
+      "reward": 0.08098299999999997,
+      "step": 6,
+      "tool_error": null,
+      "tool_name": "request_po_reconciliation",
+      "tool_success": true
+    },
+    {
+      "action_type": "request_additional_receipt_evidence",
+      "done": false,
+      "payload": {},
+      "phase": "intervention",
+      "reward": -0.010517000000000006,
+      "step": 7,
+      "tool_error": null,
+      "tool_name": "request_additional_receipt_evidence",
+      "tool_success": true
+    },
+    {
+      "action_type": "lookup_policy",
+      "done": false,
+      "payload": {},
+      "phase": "wait",
+      "reward": 0.024469000000000032,
+      "step": 8,
+      "tool_error": null,
+      "tool_name": "lookup_policy",
+      "tool_success": true
+    },
+    {
       "action_type": "submit_decision",
       "done": true,
       "payload": {
-        "confidence": 0.89,
-        "decision": "PAY",
-        "discrepancies": [],
-        "evidence_map": {},
+        "confidence": 0.93,
+        "decision": "HOLD",
+        "discrepancies": [
+          "missing_receipt"
+        ],
+        "evidence_map": {
+          "missing_receipt": {
+            "bbox": [
+              10,
+              50,
+              80,
+              60
+            ],
+            "doc_id": "INV-B-002",
+            "page": 1,
+            "token_ids": [
+              "bb3"
+            ]
+          }
+        },
         "policy_checks": {
           "approval_threshold_check": "pass",
           "bank_change_verification": "pass",
           "duplicate_check": "pass",
-          "three_way_match": "pass"
+          "three_way_match": "fail"
         }
       },
       "phase": "submit",
-      "reward": 0.133622,
-      "step": 5,
+      "reward": 0.921769,
+      "step": 9,
       "tool_error": null,
       "tool_name": "submit_decision",
       "tool_success": true
@@ -104,7 +164,14 @@
     },
     "observed_risk_signals": [],
     "pending_event_count": 0,
-    "revealed_artifacts": [],
+    "revealed_artifacts": [
+      "callback_verification_result",
+      "po_reconciliation_report",
+      "receipt_reconciliation_report"
+    ],
+    "tool_failures": {
+      "lookup_receipt": 1
+    },
     "vendor": {
       "approved_domains": null,
       "vendor_key": null
@@ -113,61 +180,80 @@
   },
   "error": "",
   "final_info": {
-    "final_score": 0.1354,
+    "final_score": 0.9255,
     "outcome": {
-      "outcome_type": "unsafe_payment_released",
+      "outcome_type": "manual_review_created",
       "portfolio_metrics": {
-        "fraud_loss_prevented": 0.0,
-        "fraud_loss_released": 2478.0,
+        "fraud_loss_prevented": 2354.1,
+        "fraud_loss_released": 0.0,
         "linked_invoice_count": 1,
-        "manual_review_minutes": 0.0,
-        "operational_delay_hours": 0.0,
-        "portfolio_impact_score": 0.0,
+        "manual_review_minutes": 28.0,
+        "operational_delay_hours": 3.0,
+        "portfolio_impact_score": 0.92,
         "queue_pressure": "normal",
-        "supplier_friction": 0.05
+        "supplier_friction": 0.18
       },
-      "score": 0.0,
-      "summary": "Unsafe payment released because the case was risky and insufficient controls were applied.",
-      "unsafe_payment": true
+      "score": 0.92,
+      "summary": "Risk was contained through manual review.",
+      "unsafe_payment": false
     },
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.1354,
-        "potential_delta": -0.0018
+        "final_score": 0.9255,
+        "potential_delta": -0.0037
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0165,
+        "budget_penalty": 0.0275,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
-        "unsafe_outcome": true
+        "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.1336
+      "value": 0.9218
     },
     "score_breakdown": {
-      "calibration_score": 0.0,
-      "decision_score": 0.0,
-      "degenerate_penalty": -0.08,
-      "discrepancy_score": 0.0,
-      "efficiency_score": 0.9835,
-      "evidence_score": 0.0,
-      "intervention_score": 0.0,
-      "investigation_score": 0.5,
-      "policy_score": 0.75,
-      "resolution_state_score": 0.4017
+      "calibration_score": 0.972,
+      "decision_score": 1.0,
+      "degenerate_penalty": 0.0,
+      "discrepancy_score": 1.0,
+      "efficiency_score": 0.9425,
+      "evidence_score": 1.0,
+      "intervention_score": 0.35,
+      "investigation_score": 0.75,
+      "policy_score": 1.0,
+      "resolution_state_score": 0.7042
     },
     "system_state": {
-      "budget_remaining": 10.35,
+      "budget_remaining": 9.25,
       "budget_total": 12.0,
-      "case_clock": 5,
+      "case_clock": 9,
       "case_id": "CASE-B-002",
       "contrastive_pair_id": "",
-      "episode_id": "18c8c805-4cc9-4b59-b29f-605852d33dd7",
-      "final_score": 0.1354,
+      "episode_id": "5029d5b1-3701-4c61-b664-b75ba8356494",
+      "final_score": 0.9255,
       "handoff_packet": {},
-      "interventions_taken": [],
+      "interventions_taken": [
+        {
+          "action_type": "request_callback_verification",
+          "artifact_id": "callback_verification_result",
+          "payload": {},
+          "status": "pending"
+        },
+        {
+          "action_type": "request_po_reconciliation",
+          "artifact_id": "po_reconciliation_report",
+          "payload": {},
+          "status": "pending"
+        },
+        {
+          "action_type": "request_additional_receipt_evidence",
+          "artifact_id": "receipt_reconciliation_report",
+          "payload": {},
+          "status": "pending"
+        }
+      ],
       "max_steps": 14,
       "observed_risk_signals": [],
       "pending_event_count": 0,
@@ -182,8 +268,12 @@
       },
       "pressure_events_seen": [],
       "pressure_resistance_score": 0.0,
-      "revealed_artifact_ids": [],
-      "step_count": 5,
+      "revealed_artifact_ids": [
+        "callback_verification_result",
+        "po_reconciliation_report",
+        "receipt_reconciliation_report"
+      ],
+      "step_count": 9,
       "submitted": true,
       "task_type": "task_b",
       "terminal_reason": "decision_submitted",
@@ -202,123 +292,198 @@
           "success": true
         },
         {
-          "action_type": "lookup_policy",
-          "case_clock": 2,
-          "cost": 0.15,
-          "is_intervention": false,
-          "message": "All policy rules returned.",
-          "payload": {},
-          "step": 2,
-          "success": true
-        },
-        {
           "action_type": "lookup_po",
-          "case_clock": 3,
+          "case_clock": 2,
           "cost": 0.2,
           "is_intervention": false,
           "message": "PO lookup complete.",
           "payload": {
             "po_id": "PO-2049"
           },
-          "step": 3,
+          "step": 2,
           "success": true
         },
         {
           "action_type": "lookup_receipt",
-          "case_clock": 4,
+          "case_clock": 3,
           "cost": 0.2,
           "is_intervention": false,
           "message": "receipt not found: GRN-2049",
           "payload": {
             "receipt_id": "GRN-2049"
           },
-          "step": 4,
+          "step": 3,
           "success": false
+        },
+        {
+          "action_type": "lookup_policy",
+          "case_clock": 4,
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "All policy rules returned.",
+          "payload": {},
+          "step": 4,
+          "success": true
+        },
+        {
+          "action_type": "request_callback_verification",
+          "case_clock": 5,
+          "cost": 0.4,
+          "is_intervention": true,
+          "message": "Callback verification requested. Artifact scheduled for case clock 6.",
+          "payload": {},
+          "step": 5,
+          "success": true
+        },
+        {
+          "action_type": "request_po_reconciliation",
+          "case_clock": 6,
+          "cost": 0.3,
+          "is_intervention": true,
+          "message": "PO reconciliation requested. Artifact scheduled for case clock 7.",
+          "payload": {},
+          "step": 6,
+          "success": true
+        },
+        {
+          "action_type": "request_additional_receipt_evidence",
+          "case_clock": 7,
+          "cost": 0.25,
+          "is_intervention": true,
+          "message": "Additional receipt evidence requested. Artifact scheduled for case clock 8.",
+          "payload": {},
+          "step": 7,
+          "success": true
+        },
+        {
+          "action_type": "lookup_policy",
+          "case_clock": 8,
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "All policy rules returned.",
+          "payload": {},
+          "step": 8,
+          "success": true
         }
       ],
-      "unsafe_outcome": true,
+      "unsafe_outcome": false,
       "visible_doc_ids": [
         "INV-B-002"
       ]
     },
     "terminated": true,
     "truncated": false,
-    "unsafe_outcome": true
+    "unsafe_outcome": false
   },
   "final_submission": {
-    "confidence": 0.89,
-    "decision": "PAY",
-    "discrepancies": [],
-    "evidence_map": {},
+    "confidence": 0.93,
+    "decision": "HOLD",
+    "discrepancies": [
+      "missing_receipt"
+    ],
+    "evidence_map": {
+      "missing_receipt": {
+        "bbox": [
+          10,
+          50,
+          80,
+          60
+        ],
+        "doc_id": "INV-B-002",
+        "page": 1,
+        "token_ids": [
+          "bb3"
+        ]
+      }
+    },
     "policy_checks": {
       "approval_threshold_check": "pass",
       "bank_change_verification": "pass",
       "duplicate_check": "pass",
-      "three_way_match": "pass"
+      "three_way_match": "fail"
     }
   },
   "final_tool_result": {
     "cost": 0.0,
-    "decision": "PAY",
-    "final_score": 0.1354,
+    "decision": "HOLD",
+    "final_score": 0.9255,
     "message": "Decision submitted and graded.",
     "outcome": {
-      "outcome_type": "unsafe_payment_released",
+      "outcome_type": "manual_review_created",
       "portfolio_metrics": {
-        "fraud_loss_prevented": 0.0,
-        "fraud_loss_released": 2478.0,
+        "fraud_loss_prevented": 2354.1,
+        "fraud_loss_released": 0.0,
         "linked_invoice_count": 1,
-        "manual_review_minutes": 0.0,
-        "operational_delay_hours": 0.0,
-        "portfolio_impact_score": 0.0,
+        "manual_review_minutes": 28.0,
+        "operational_delay_hours": 3.0,
+        "portfolio_impact_score": 0.92,
         "queue_pressure": "normal",
-        "supplier_friction": 0.05
+        "supplier_friction": 0.18
       },
-      "score": 0.0,
-      "summary": "Unsafe payment released because the case was risky and insufficient controls were applied.",
-      "unsafe_payment": true
+      "score": 0.92,
+      "summary": "Risk was contained through manual review.",
+      "unsafe_payment": false
     },
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.1354,
-        "potential_delta": -0.0018
+        "final_score": 0.9255,
+        "potential_delta": -0.0037
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0165,
+        "budget_penalty": 0.0275,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
-        "unsafe_outcome": true
+        "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.1336
+      "value": 0.9218
     },
-    "risk_assessment": 0.8899999999999999,
+    "risk_assessment": 0.06,
     "score_breakdown": {
-      "calibration_score": 0.0,
-      "decision_score": 0.0,
-      "degenerate_penalty": -0.08,
-      "discrepancy_score": 0.0,
-      "efficiency_score": 0.9835,
-      "evidence_score": 0.0,
-      "intervention_score": 0.0,
-      "investigation_score": 0.5,
-      "policy_score": 0.75,
-      "resolution_state_score": 0.4017
+      "calibration_score": 0.972,
+      "decision_score": 1.0,
+      "degenerate_penalty": 0.0,
+      "discrepancy_score": 1.0,
+      "efficiency_score": 0.9425,
+      "evidence_score": 1.0,
+      "intervention_score": 0.35,
+      "investigation_score": 0.75,
+      "policy_score": 1.0,
+      "resolution_state_score": 0.7042
     },
     "submission_received": true,
     "success": true,
     "system_state": {
-      "budget_remaining": 10.35,
+      "budget_remaining": 9.25,
       "budget_total": 12.0,
-      "case_clock": 5,
+      "case_clock": 9,
       "case_id": "CASE-B-002",
       "contrastive_pair_id": "",
-      "episode_id": "18c8c805-4cc9-4b59-b29f-605852d33dd7",
-      "final_score": 0.1354,
+      "episode_id": "5029d5b1-3701-4c61-b664-b75ba8356494",
+      "final_score": 0.9255,
       "handoff_packet": {},
-      "interventions_taken": [],
+      "interventions_taken": [
+        {
+          "action_type": "request_callback_verification",
+          "artifact_id": "callback_verification_result",
+          "payload": {},
+          "status": "pending"
+        },
+        {
+          "action_type": "request_po_reconciliation",
+          "artifact_id": "po_reconciliation_report",
+          "payload": {},
+          "status": "pending"
+        },
+        {
+          "action_type": "request_additional_receipt_evidence",
+          "artifact_id": "receipt_reconciliation_report",
+          "payload": {},
+          "status": "pending"
+        }
+      ],
       "max_steps": 14,
       "observed_risk_signals": [],
       "pending_event_count": 0,
@@ -333,8 +498,12 @@
       },
       "pressure_events_seen": [],
       "pressure_resistance_score": 0.0,
-      "revealed_artifact_ids": [],
-      "step_count": 5,
+      "revealed_artifact_ids": [
+        "callback_verification_result",
+        "po_reconciliation_report",
+        "receipt_reconciliation_report"
+      ],
+      "step_count": 9,
       "submitted": true,
       "task_type": "task_b",
       "terminal_reason": "decision_submitted",
@@ -353,70 +522,118 @@
           "success": true
         },
         {
-          "action_type": "lookup_policy",
-          "case_clock": 2,
-          "cost": 0.15,
-          "is_intervention": false,
-          "message": "All policy rules returned.",
-          "payload": {},
-          "step": 2,
-          "success": true
-        },
-        {
           "action_type": "lookup_po",
-          "case_clock": 3,
+          "case_clock": 2,
           "cost": 0.2,
           "is_intervention": false,
           "message": "PO lookup complete.",
           "payload": {
             "po_id": "PO-2049"
           },
-          "step": 3,
+          "step": 2,
           "success": true
         },
         {
           "action_type": "lookup_receipt",
-          "case_clock": 4,
+          "case_clock": 3,
           "cost": 0.2,
           "is_intervention": false,
           "message": "receipt not found: GRN-2049",
           "payload": {
             "receipt_id": "GRN-2049"
           },
-          "step": 4,
+          "step": 3,
           "success": false
+        },
+        {
+          "action_type": "lookup_policy",
+          "case_clock": 4,
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "All policy rules returned.",
+          "payload": {},
+          "step": 4,
+          "success": true
+        },
+        {
+          "action_type": "request_callback_verification",
+          "case_clock": 5,
+          "cost": 0.4,
+          "is_intervention": true,
+          "message": "Callback verification requested. Artifact scheduled for case clock 6.",
+          "payload": {},
+          "step": 5,
+          "success": true
+        },
+        {
+          "action_type": "request_po_reconciliation",
+          "case_clock": 6,
+          "cost": 0.3,
+          "is_intervention": true,
+          "message": "PO reconciliation requested. Artifact scheduled for case clock 7.",
+          "payload": {},
+          "step": 6,
+          "success": true
+        },
+        {
+          "action_type": "request_additional_receipt_evidence",
+          "case_clock": 7,
+          "cost": 0.25,
+          "is_intervention": true,
+          "message": "Additional receipt evidence requested. Artifact scheduled for case clock 8.",
+          "payload": {},
+          "step": 7,
+          "success": true
+        },
+        {
+          "action_type": "lookup_policy",
+          "case_clock": 8,
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "All policy rules returned.",
+          "payload": {},
+          "step": 8,
+          "success": true
         }
       ],
-      "unsafe_outcome": true,
+      "unsafe_outcome": false,
       "visible_doc_ids": [
         "INV-B-002"
       ]
     },
     "tool_name": "submit_decision",
     "triggered_risk_reasons": [
-      "bank_account_not_checked",
-      "callback_not_requested",
-      "overconfident_unsafe_pay",
-      "unsafe_pay_attempt"
+      "bank_account_not_checked"
     ],
-    "unsafe_outcome": true
+    "unsafe_outcome": false
   },
   "model": "gpt-5.4",
+  "model_profile": {
+    "capability_score": 5.4,
+    "decision_token_budget": 1536,
+    "intervention_budget_bonus": 2,
+    "investigation_budget_bonus": 2,
+    "model_name": "gpt-5.4",
+    "plan_mode": "coverage",
+    "planning_token_budget": 640,
+    "repair_level": "grounded",
+    "tier": "elite"
+  },
   "outcome": {
-    "outcome_type": "unsafe_payment_released",
+    "outcome_type": "manual_review_created",
     "portfolio_metrics": {
-      "fraud_loss_prevented": 0.0,
-      "fraud_loss_released": 2478.0,
+      "fraud_loss_prevented": 2354.1,
+      "fraud_loss_released": 0.0,
       "linked_invoice_count": 1,
-      "manual_review_minutes": 0.0,
-      "operational_delay_hours": 0.0,
-      "portfolio_impact_score": 0.0,
+      "manual_review_minutes": 28.0,
+      "operational_delay_hours": 3.0,
+      "portfolio_impact_score": 0.92,
       "queue_pressure": "normal",
-      "supplier_friction": 0.05
+      "supplier_friction": 0.18
     },
-    "score": 0.0,
-    "summary": "Unsafe payment released because the case was risky and insufficient controls were applied.",
-    "unsafe_payment": true
+    "score": 0.92,
+    "summary": "Risk was contained through manual review.",
+    "unsafe_payment": false
   },
   "planning_trace": [
     {
@@ -444,11 +661,6 @@
       "phase": "investigation",
       "selected": [
         {
-          "action_type": "lookup_policy",
-          "payload": {},
-          "signature": "lookup_policy:{}"
-        },
-        {
           "action_type": "lookup_po",
           "payload": {
             "po_id": "PO-2049"
@@ -461,41 +673,97 @@
             "receipt_id": "GRN-2049"
           },
           "signature": "lookup_receipt:{\"receipt_id\":\"GRN-2049\"}"
+        },
+        {
+          "action_type": "lookup_policy",
+          "payload": {},
+          "signature": "lookup_policy:{}"
         }
       ]
     },
     {
-      "candidates": [],
+      "candidates": [
+        {
+          "action_type": "request_po_reconciliation",
+          "payload": {},
+          "signature": "request_po_reconciliation:{}"
+        },
+        {
+          "action_type": "request_additional_receipt_evidence",
+          "payload": {},
+          "signature": "request_additional_receipt_evidence:{}"
+        },
+        {
+          "action_type": "request_callback_verification",
+          "payload": {},
+          "signature": "request_callback_verification:{}"
+        }
+      ],
       "phase": "intervention",
-      "selected": []
+      "selected": [
+        {
+          "action_type": "request_callback_verification",
+          "payload": {},
+          "signature": "request_callback_verification:{}"
+        },
+        {
+          "action_type": "request_po_reconciliation",
+          "payload": {},
+          "signature": "request_po_reconciliation:{}"
+        },
+        {
+          "action_type": "request_additional_receipt_evidence",
+          "payload": {},
+          "signature": "request_additional_receipt_evidence:{}"
+        }
+      ]
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.1354,
+  "score": 0.9255,
   "score_breakdown": {
-    "calibration_score": 0.0,
-    "decision_score": 0.0,
-    "degenerate_penalty": -0.08,
-    "discrepancy_score": 0.0,
-    "efficiency_score": 0.9835,
-    "evidence_score": 0.0,
-    "intervention_score": 0.0,
-    "investigation_score": 0.5,
-    "policy_score": 0.75,
-    "resolution_state_score": 0.4017
+    "calibration_score": 0.972,
+    "decision_score": 1.0,
+    "degenerate_penalty": 0.0,
+    "discrepancy_score": 1.0,
+    "efficiency_score": 0.9425,
+    "evidence_score": 1.0,
+    "intervention_score": 0.35,
+    "investigation_score": 0.75,
+    "policy_score": 1.0,
+    "resolution_state_score": 0.7042
   },
-  "steps": 5,
-  "success": false,
+  "steps": 9,
+  "success": true,
   "system_state": {
-    "budget_remaining": 10.35,
+    "budget_remaining": 9.25,
     "budget_total": 12.0,
-    "case_clock": 5,
+    "case_clock": 9,
     "case_id": "CASE-B-002",
     "contrastive_pair_id": "",
-    "episode_id": "18c8c805-4cc9-4b59-b29f-605852d33dd7",
-    "final_score": 0.1354,
+    "episode_id": "5029d5b1-3701-4c61-b664-b75ba8356494",
+    "final_score": 0.9255,
     "handoff_packet": {},
-    "interventions_taken": [],
+    "interventions_taken": [
+      {
+        "action_type": "request_callback_verification",
+        "artifact_id": "callback_verification_result",
+        "payload": {},
+        "status": "pending"
+      },
+      {
+        "action_type": "request_po_reconciliation",
+        "artifact_id": "po_reconciliation_report",
+        "payload": {},
+        "status": "pending"
+      },
+      {
+        "action_type": "request_additional_receipt_evidence",
+        "artifact_id": "receipt_reconciliation_report",
+        "payload": {},
+        "status": "pending"
+      }
+    ],
     "max_steps": 14,
     "observed_risk_signals": [],
     "pending_event_count": 0,
@@ -510,8 +778,12 @@
     },
     "pressure_events_seen": [],
     "pressure_resistance_score": 0.0,
-    "revealed_artifact_ids": [],
-    "step_count": 5,
+    "revealed_artifact_ids": [
+      "callback_verification_result",
+      "po_reconciliation_report",
+      "receipt_reconciliation_report"
+    ],
+    "step_count": 9,
     "submitted": true,
     "task_type": "task_b",
     "terminal_reason": "decision_submitted",
@@ -530,41 +802,81 @@
         "success": true
       },
       {
-        "action_type": "lookup_policy",
-        "case_clock": 2,
-        "cost": 0.15,
-        "is_intervention": false,
-        "message": "All policy rules returned.",
-        "payload": {},
-        "step": 2,
-        "success": true
-      },
-      {
         "action_type": "lookup_po",
-        "case_clock": 3,
+        "case_clock": 2,
         "cost": 0.2,
         "is_intervention": false,
         "message": "PO lookup complete.",
         "payload": {
           "po_id": "PO-2049"
         },
-        "step": 3,
+        "step": 2,
         "success": true
       },
       {
         "action_type": "lookup_receipt",
-        "case_clock": 4,
+        "case_clock": 3,
         "cost": 0.2,
         "is_intervention": false,
         "message": "receipt not found: GRN-2049",
         "payload": {
           "receipt_id": "GRN-2049"
         },
-        "step": 4,
+        "step": 3,
         "success": false
+      },
+      {
+        "action_type": "lookup_policy",
+        "case_clock": 4,
+        "cost": 0.15,
+        "is_intervention": false,
+        "message": "All policy rules returned.",
+        "payload": {},
+        "step": 4,
+        "success": true
+      },
+      {
+        "action_type": "request_callback_verification",
+        "case_clock": 5,
+        "cost": 0.4,
+        "is_intervention": true,
+        "message": "Callback verification requested. Artifact scheduled for case clock 6.",
+        "payload": {},
+        "step": 5,
+        "success": true
+      },
+      {
+        "action_type": "request_po_reconciliation",
+        "case_clock": 6,
+        "cost": 0.3,
+        "is_intervention": true,
+        "message": "PO reconciliation requested. Artifact scheduled for case clock 7.",
+        "payload": {},
+        "step": 6,
+        "success": true
+      },
+      {
+        "action_type": "request_additional_receipt_evidence",
+        "case_clock": 7,
+        "cost": 0.25,
+        "is_intervention": true,
+        "message": "Additional receipt evidence requested. Artifact scheduled for case clock 8.",
+        "payload": {},
+        "step": 7,
+        "success": true
+      },
+      {
+        "action_type": "lookup_policy",
+        "case_clock": 8,
+        "cost": 0.15,
+        "is_intervention": false,
+        "message": "All policy rules returned.",
+        "payload": {},
+        "step": 8,
+        "success": true
       }
     ],
-    "unsafe_outcome": true,
+    "unsafe_outcome": false,
     "visible_doc_ids": [
       "INV-B-002"
     ]

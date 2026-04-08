@@ -1,226 +1,201 @@
-# LedgerShield Documentation
+# LedgerShield Overview
 
-Welcome to the LedgerShield documentation. LedgerShield is a stateful, adversarial enterprise payment-integrity environment for training and evaluating AI agents in realistic high-stakes financial operations.
+LedgerShield is a high-stakes enterprise payment-integrity benchmark for AI agents. It models how an AP analyst or AP control tower agent investigates invoices, email threads, vendor records, policy rules, and ledger history before deciding whether payment is safe, risky, or fraudulent.
 
-## What is LedgerShield?
+## Why LedgerShield Exists
 
-LedgerShield models the complete accounts-payable control tower workflow where AI agents must investigate payment cases, detect fraud, and make evidence-backed decisions. Unlike static benchmarks that simply ask "can the model read this document?", LedgerShield asks:
+Most finance-adjacent benchmarks stop at extraction or classification. Real accounts-payable risk is harder:
 
-> "Can the agent safely operate an enterprise payment-control workflow under uncertainty, with tools, budget limits, policy constraints, and adversarial pressure?"
+- the agent begins with partial information
+- fraud signals are distributed across documents, history, and delayed artifacts
+- the right next action matters as much as the final label
+- unsafe `PAY` decisions can be far worse than over-cautious review
+- adversarial pressure often arrives mid-episode, not only in the first prompt
 
-## Why LedgerShield?
+LedgerShield measures all of that in one environment.
 
-### The Problem with Traditional Benchmarks
+## Real-World Utility
 
-| Benchmark Type | Tests | Missing |
-|---------------|-------|---------|
-| Static OCR | Document reading | State, safety semantics, decision pressure |
-| Fraud Classification | Label assignment | Process quality, interventions |
-| Document QA | Question answering | Operational consequences |
-| Workflow Simulator | Following procedures | Adversarial realism, multi-modal evidence |
+The domain is intentionally grounded in a real operational loss category. The FBI IC3 2023 report states that business email compromise generated **21,489 complaints and more than $2.9 billion in reported losses** in 2023, making it one of the costliest internet crime categories tracked that year.
 
-### LedgerShield's Approach
+Source:
 
-LedgerShield combines all these aspects into a unified environment:
+- [FBI IC3 2023 Internet Crime Report](https://www.ic3.gov/annualreport/reports/2023_ic3report.pdf)
 
-- **Realistic Domain**: Enterprise AP/payment-integrity operations
-- **Statefulness**: Hidden risk signals, revealed artifacts, intervention status
-- **Trajectory Matters**: Investigation quality, intervention choice, efficiency all affect scoring
-- **Adversarial Robustness**: Replayable attack patterns prevent overfitting
-- **Enterprise Semantics**: Fraud prevention, policy compliance, operational continuity
+That is why the benchmark emphasizes:
+
+- AP inbox/BEC triage
+- bank change verification
+- callback controls
+- duplicate and campaign reasoning
+- evidence-backed escalation instead of vague “looks suspicious” answers
+- SOX-style control discipline
+
+## Benchmark Scope
+
+### Public benchmark catalog
+
+LedgerShield ships with 21 curated base cases:
+
+| Task | Count | What it tests |
+|---|---:|---|
+| `task_a` | 4 | proof-carrying field extraction, multilingual documents, multi-currency invoices, IBAN/SWIFT artifacts |
+| `task_b` | 5 | three-way match, missing receipts, quantity mismatch, tax discrepancy, safe release logic |
+| `task_c` | 4 | duplicate detection, bank mismatch, cross-vendor fraud, approval-threshold evasion |
+| `task_d` | 6 | BEC/AP inbox triage, workflow override, CEO fraud, benign-vs-adversarial email reasoning |
+| `task_e` | 2 | multi-invoice campaign fraud and supply-chain-compromise APT scenarios |
+
+### Generated suites
+
+Beyond the curated base set, the repo can generate:
+
+- challenge variants from hard benchmark cases
+- holdout suites for robustness testing
+- contrastive benign twins for calibration checks
+
+With the current loader defaults, `load_all()` produces **45 total cases** locally:
+
+- 21 benchmark cases
+- 24 generated challenge variants
 
 ## Core Concepts
 
-### Partial Observability
+### Partial observability
 
-The agent starts with only a partial view of each case:
+Agents do not see the whole case upfront. The environment tracks:
 
-- Visible documents (invoices, emails)
-- Budget and step constraints
-- Initial risk snapshot
+- hidden risk signals
+- delayed artifact reveals
+- pending intervention events
+- latent outcomes
+- pressure-event injection
+- campaign context and portfolio-level risk
 
-The environment maintains hidden state including:
-- Latent fraud signals
-- Artifact templates
-- Pending intervention results
-- Downstream outcome maps
+### Investigation tools
 
-### Investigation Actions
+Agents gather evidence using tools such as:
 
-Agents use tools to gather evidence:
+- `ocr`, `zoom`, `get_doc_crop`
+- `lookup_vendor`, `lookup_vendor_history`, `lookup_policy`
+- `lookup_po`, `lookup_receipt`
+- `search_ledger`
+- `inspect_email_thread`
+- `compare_bank_account`
 
-- `ocr` - Extract text from documents
-- `lookup_vendor` - Query vendor master data
-- `search_ledger` - Find duplicate payments
-- `inspect_email_thread` - Analyze email communications
-- `compare_bank_account` - Validate bank account changes
+### Interventions
 
-Each action has a cost that consumes the investigation budget.
+Some evidence only appears after operational controls are triggered:
 
-### Intervention Actions
+- `request_callback_verification`
+- `request_bank_change_approval_chain`
+- `request_po_reconciliation`
+- `request_additional_receipt_evidence`
+- `flag_duplicate_cluster_review`
+- `route_to_security`
+- `freeze_vendor_profile`
+- `create_human_handoff`
 
-Special actions that unlock additional evidence:
+### Proof-carrying outputs
 
-- `request_callback_verification` - Trigger vendor callback
-- `freeze_vendor_profile` - Apply containment control
-- `route_to_security` - Escalate suspicious cases
-- `flag_duplicate_cluster_review` - Initiate duplicate review
+The benchmark expects structured outputs, not just decisions. Depending on the task, strong submissions include:
 
-Interventions often reveal artifacts that become available after a delay.
+- extracted invoice fields and line items
+- `policy_checks`
+- `reason_codes`
+- `fraud_flags`
+- `duplicate_links`
+- `campaign_signals`
+- `counterfactual`
+- `evidence_map` with document/page/bbox/token grounding
 
-### Decision Space
+## Environment Design Highlights
 
-The final decision must be one of:
+Recent environment upgrades visible in the implementation:
 
-| Decision | Use Case |
-|----------|----------|
-| `PAY` | Clean invoice, all checks pass |
-| `HOLD` | Issues found, needs further review |
-| `NEEDS_REVIEW` | Uncertain, requires human judgment |
-| `ESCALATE_FRAUD` | High-risk, potential fraud detected |
+| Area | Current behavior |
+|---|---|
+| Reward shaping | PBRS with `SHAPING_SCALE = 0.35` and milestone rewards |
+| Exploration bonus | information-gain bonus with `INFO_GAIN_BONUS = 0.08` |
+| Episode semantics | Gymnasium-style distinction between `terminated` and `truncated` |
+| Introspection | text `render()` summary for episode inspection |
+| Formal contracts | `action_space()` and `observation_space()` class methods |
+| Difficulty adaptation | curriculum module for tiered case selection |
+| Novelty | Dec-POMDP watchdog mode for analyst/auditor separation |
 
-### Grading
+## Scoring Philosophy
 
-Scores combine multiple factors:
+LedgerShield is trajectory-aware. The grader combines:
 
-- **Task-specific metrics**: Field extraction accuracy, discrepancy detection
-- **Investigation quality**: Coverage of risk signals
-- **Intervention quality**: Appropriate use of controls
-- **Calibration**: Avoiding false positives/negatives
-- **Efficiency**: Budget usage and step count
-- **Downstream outcomes**: Simulated enterprise impact
+- task-specific correctness
+- evidence quality
+- investigation coverage
+- intervention quality
+- calibration
+- efficiency
+- downstream simulated outcomes
+- pressure resistance on risky tasks
+- callback interpretation and campaign reasoning where relevant
 
-## Quick Start Guide
+Important grading upgrades in the current codebase:
 
-### 1. Installation
+- semantic counterfactual scoring
+- tighter penalties for degenerate or empty-evidence submissions
+- stricter unsafe-`PAY` penalties on tasks C, D, and E
+- contrastive adversarial-vs-benign evaluation support
+
+## Quick Start
+
+### Install
 
 ```bash
-# Clone repository
 git clone https://github.com/BiradarScripts/Meta-s-LedgerShield.git
 cd Meta-s-LedgerShield
 
-# Create virtual environment
 python -m venv .venv
 source .venv/bin/activate
-
-# Install dependencies
 pip install -e .
 pip install -r requirements.txt
 ```
 
-### 2. Start the Environment Server
+### Run the server
 
 ```bash
 python -m server.app
 ```
 
-The server will start on `http://127.0.0.1:8000`.
-
-### 3. Run the Baseline Agent
-
-In a new terminal:
+### Run the submission agent
 
 ```bash
 export API_BASE_URL="https://api.openai.com/v1"
 export MODEL_NAME="gpt-5.4"
-export HF_TOKEN="your_token_here"
+export HF_TOKEN="your_token"
 export ENV_URL="http://127.0.0.1:8000"
 
 python inference.py
 ```
 
-### 4. Verify Installation
+### Generate evaluation artifacts
 
 ```bash
-# Run tests
-python -m pytest tests/ -q
-
-# Validate OpenEnv compliance
-openenv validate
+python benchmark_report.py --format markdown
+python compare_models_live.py --models gpt-4o,gpt-5.4
 ```
 
-## Architecture Overview
+### Current local comparison snapshot
 
-```
-┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│   Agent         │────▶│   Environment    │────▶│   Tools         │
-│                 │     │                  │     │                 │
-│ - Investigates  │◀────│ - Maintains state│◀────│ - Query data    │
-│ - Intervenes    │     │ - Applies costs  │     │ - Return evidence│
-│ - Decides       │     │ - Scores results │     │                 │
-└─────────────────┘     └──────────────────┘     └─────────────────┘
-                               │
-                               ▼
-                        ┌──────────────────┐
-                        │   Grading        │
-                        │                  │
-                        │ - Task scores    │
-                        │ - Trajectory     │
-                        │ - Outcomes       │
-                        └──────────────────┘
-```
+The workspace also contains a fresh full-suite local comparison from **April 8, 2026** in [`../live_model_comparison.json`](../live_model_comparison.json):
 
-For detailed architecture documentation, see [Architecture](./architecture.md).
+| Model | Average Score | Success Rate |
+|---|---:|---:|
+| `gpt-3.5-turbo` | 0.7658 | 42.9% |
+| `gpt-4o` | 0.9267 | 100.0% |
+| `gpt-5.4` | 0.9276 | 100.0% |
 
-## API Overview
+That run preserves the intended capability ordering while making the hard fraud and campaign cases visibly separate weaker and stronger models.
 
-LedgerShield exposes a standard OpenEnv-compatible REST API:
+## What To Read Next
 
-```python
-# Initialize episode
-POST /reset
-{"case_id": "CASE-D-001"}
-
-# Take action
-POST /step
-{
-  "action_type": "ocr",
-  "payload": {"doc_id": "INV-D-001", "mode": "accurate"}
-}
-
-# Get state
-GET /state
-```
-
-See [API Reference](./api-reference.md) for complete documentation.
-
-## Task Overview
-
-LedgerShield includes 5 task families:
-
-| Task | Description | Key Skills |
-|------|-------------|------------|
-| **A** | Field Extraction | OCR, structured extraction, evidence grounding |
-| **B** | Three-Way Match | PO/receipt reconciliation, policy checking |
-| **C** | Fraud Triage | Duplicate detection, bank validation, escalation |
-| **D** | AP Inbox Triage | Email analysis, spoof detection, multi-hop reasoning |
-| **E** | Campaign Detection | Cross-invoice analysis, threshold evasion detection |
-
-See [Task Reference](./tasks.md) for detailed descriptions.
-
-## Next Steps
-
-- Learn about [system architecture](./architecture.md)
-- Explore the [API reference](./api-reference.md)
-- Understand the [task suite](./tasks.md)
-- Set up your [development environment](./development.md)
-- Deploy to [production](./deployment.md)
-
-## Resources
-
-- [GitHub Repository](https://github.com/BiradarScripts/Meta-s-LedgerShield)
-- [Issue Tracker](https://github.com/BiradarScripts/Meta-s-LedgerShield/issues)
-- [OpenEnv Specification](https://github.com/openenv/spec)
-
-## Getting Help
-
-If you encounter issues:
-
-1. Check the [API Reference](./api-reference.md) for endpoint details
-2. Review [common issues](./development.md#troubleshooting) in the development guide
-3. Search [existing issues](https://github.com/BiradarScripts/Meta-s-LedgerShield/issues)
-4. Create a new issue with:
-   - Environment details (Python version, OS)
-   - Steps to reproduce
-   - Expected vs actual behavior
-   - Relevant logs
+- [`tasks.md`](./tasks.md) for task-by-task contracts and scoring
+- [`api-reference.md`](./api-reference.md) for environment integration details
+- [`architecture.md`](./architecture.md) for the hidden-state, grading, and generation pipeline
+- [`development.md`](./development.md) for the detailed repo map and contributor workflow

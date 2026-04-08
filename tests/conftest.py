@@ -11,13 +11,26 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 from typing import Any
+import warnings
 
 import pytest
+
+warnings.filterwarnings(
+    "ignore",
+    message=r"websockets\.legacy is deprecated",
+    category=DeprecationWarning,
+)
 
 # Ensure project root is on path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
+
+
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
+    """Mark the whole suite so `pytest -m tests` behaves as users expect."""
+    for item in items:
+        item.add_marker(pytest.mark.tests)
 
 
 @pytest.fixture

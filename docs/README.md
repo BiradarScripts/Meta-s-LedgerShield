@@ -1,94 +1,77 @@
 # LedgerShield Documentation
 
-This directory contains the long-form documentation for LedgerShield. The root [`README.md`](../README.md) gives the big picture. This page is the documentation landing page for people who want a guided reading path through the rest of the repo.
+This folder contains the long-form documentation for LedgerShield. The root [`README.md`](../README.md) is the project pitch and quick orientation guide; the files here go deeper into benchmark design, task contracts, APIs, architecture, development workflow, and deployment.
 
-## Documentation Map
+## Reading Paths
 
-Every markdown file in `docs/` is linked below with a clear purpose.
+### If you are evaluating the benchmark
 
-| Document | Best for | Contents |
-|----------|----------|----------|
-| [`index.md`](./index.md) | first-time readers | overview, benchmark motivation, core concepts, quick start, and API overview |
-| [`tasks.md`](./tasks.md) | benchmark users and prompt engineers | task families, expected output formats, scoring breakdowns, benchmark cases, and strategy guidance |
-| [`api-reference.md`](./api-reference.md) | anyone building a custom client | REST endpoints, payload shapes, response examples, and integration details |
-| [`architecture.md`](./architecture.md) | contributors and researchers | environment design, state model, component graph, and data flow |
-| [`development.md`](./development.md) | maintainers and contributors | setup, tests, project structure, and extension workflow |
-| [`deployment.md`](./deployment.md) | operators | local, Docker, and production deployment patterns |
+1. [`../README.md`](../README.md)
+2. [`index.md`](./index.md)
+3. [`tasks.md`](./tasks.md)
+4. [`architecture.md`](./architecture.md)
 
-## Recommended Reading Paths
-
-### If you are evaluating models
-
-Start with:
+### If you are building an agent
 
 1. [`index.md`](./index.md)
 2. [`tasks.md`](./tasks.md)
 3. [`api-reference.md`](./api-reference.md)
+4. [`development.md`](./development.md)
 
-This sequence explains what the benchmark measures, what the agent is expected to output, and how to interact with the environment programmatically.
+### If you are contributing to the codebase
 
-### If you are trying to improve benchmark performance
-
-Start with:
-
-1. [`tasks.md`](./tasks.md)
+1. [`development.md`](./development.md)
 2. [`architecture.md`](./architecture.md)
-3. [`development.md`](./development.md)
+3. [`api-reference.md`](./api-reference.md)
+4. [`tasks.md`](./tasks.md)
 
-This path helps you understand the scoring levers, the hidden-state and artifact model, and where to make safe code changes.
-
-### If you are deploying LedgerShield
-
-Start with:
+### If you are operating or packaging LedgerShield
 
 1. [`deployment.md`](./deployment.md)
 2. [`api-reference.md`](./api-reference.md)
 3. [`index.md`](./index.md)
 
-### If you are new to the project
+## Documentation Map
 
-Start with:
-
-1. [`../README.md`](../README.md)
-2. [`index.md`](./index.md)
-3. [`architecture.md`](./architecture.md)
-4. [`tasks.md`](./tasks.md)
+| File | Best for | Contents |
+|---|---|---|
+| [`index.md`](./index.md) | first-time readers | motivation, benchmark scope, core concepts, quick start, and evaluation framing |
+| [`tasks.md`](./tasks.md) | agent builders and benchmark users | task families, case catalog, output contracts, and scoring dimensions |
+| [`api-reference.md`](./api-reference.md) | integrators | endpoints, request/response formats, action taxonomy, and payload examples |
+| [`architecture.md`](./architecture.md) | researchers and maintainers | system layers, hidden state, reward flow, grading pipeline, and variant generation |
+| [`development.md`](./development.md) | contributors | setup, tests, CI, repo map, and extension guidance |
+| [`deployment.md`](./deployment.md) | operators | local/Docker/HF deployment, runtime env vars, and operational checks |
 
 ## How The Docs Fit Together
 
-The documentation is intentionally layered:
+- [`../README.md`](../README.md) explains why LedgerShield exists and why it is interesting.
+- [`index.md`](./index.md) explains what the benchmark measures.
+- [`tasks.md`](./tasks.md) explains what a strong agent must output and how it is graded.
+- [`api-reference.md`](./api-reference.md) explains how agents talk to the environment.
+- [`architecture.md`](./architecture.md) explains how the server, state model, grader, and generators work.
+- [`development.md`](./development.md) explains how to work safely inside the repo.
+- [`deployment.md`](./deployment.md) explains how to run LedgerShield outside a local dev shell.
 
-- the root [`README.md`](../README.md) explains the benchmark at a project level
-- [`index.md`](./index.md) is the conceptual onboarding guide
-- [`tasks.md`](./tasks.md) translates those concepts into concrete benchmark expectations
-- [`api-reference.md`](./api-reference.md) defines the environment contract
-- [`architecture.md`](./architecture.md) explains how the server, state model, tools, and grader interact
-- [`development.md`](./development.md) and [`deployment.md`](./deployment.md) cover implementation and operations
+## Code Landmarks
 
-## Where To Look In The Code
+| Path | Why you would open it |
+|---|---|
+| [`../server/environment.py`](../server/environment.py) | reward shaping, truncation semantics, rendering, tool dispatch |
+| [`../server/world_state.py`](../server/world_state.py) | hidden/public state, artifacts, pressure events, decision readiness |
+| [`../server/grading.py`](../server/grading.py) | task rubrics and penalties |
+| [`../server/trajectory_grading.py`](../server/trajectory_grading.py) | trajectory-aware scoring and efficiency logic |
+| [`../server/case_factory.py`](../server/case_factory.py) | generated challenge/holdout/twin cases |
+| [`../server/attack_library.py`](../server/attack_library.py) | adversarial attack inventory |
+| [`../server/currency_engine.py`](../server/currency_engine.py) | multi-currency realism hooks |
+| [`../server/compliance_engine.py`](../server/compliance_engine.py) | SOX-style control evaluation |
+| [`../server/curriculum.py`](../server/curriculum.py) | dynamic difficulty adaptation |
+| [`../server/dual_agent_mode.py`](../server/dual_agent_mode.py) | watchdog-mode novelty module |
+| [`../inference.py`](../inference.py) | submission-safe agent |
+| [`../benchmark_report.py`](../benchmark_report.py) | benchmark report and leaderboard generation |
 
-The docs are most useful when paired with the main source files:
+## Practical Advice
 
-| Source file or directory | Why you would open it |
-|--------------------------|-----------------------|
-| [`../server/environment.py`](../server/environment.py) | understand the episode loop and action dispatch |
-| [`../server/world_state.py`](../server/world_state.py) | inspect hidden risk, required actions, and artifact logic |
-| [`../server/grading.py`](../server/grading.py) | understand task-specific scoring |
-| [`../server/trajectory_grading.py`](../server/trajectory_grading.py) | understand investigation and intervention scoring |
-| [`../inference.py`](../inference.py) | inspect the submission-safe agent |
-| [`../inference_llm_powered.py`](../inference_llm_powered.py) | inspect the comparison/debug agent |
-| [`../tests/`](../tests/) | verify contracts and regression coverage |
-
-## Practical Navigation Tips
-
-- If you only need the task contract, go straight to [`tasks.md`](./tasks.md).
-- If your agent is failing a live comparison case, read the root [`README.md`](../README.md) first, then inspect the debug trace JSON files produced by the comparison scripts.
-- If you are changing schemas or decisions, pair [`tasks.md`](./tasks.md) with [`api-reference.md`](./api-reference.md).
-- If you are changing environment dynamics or scoring, pair [`architecture.md`](./architecture.md) with [`development.md`](./development.md).
-
-## Support
-
-- Project overview: [`../README.md`](../README.md)
-- Repository: [GitHub](https://github.com/BiradarScripts/Meta-s-LedgerShield)
-- Issues: [GitHub Issues](https://github.com/BiradarScripts/Meta-s-LedgerShield/issues)
-- Discussions: [GitHub Discussions](https://github.com/BiradarScripts/Meta-s-LedgerShield/discussions)
+- If you need the benchmark contract quickly, start with [`tasks.md`](./tasks.md).
+- If a model is failing a case, pair [`tasks.md`](./tasks.md) with the trace artifacts in `live_model_comparison_debug/`.
+- If you are changing scoring, read [`architecture.md`](./architecture.md) and then [`development.md`](./development.md).
+- If you are changing endpoints or payloads, keep [`api-reference.md`](./api-reference.md) in sync.

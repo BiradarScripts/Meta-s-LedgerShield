@@ -94,13 +94,67 @@
       "tool_success": true
     },
     {
+      "action_type": "compare_bank_account",
+      "done": false,
+      "payload": {
+        "proposed_bank_account": "IN77BP555666777",
+        "vendor_key": "bluepeak-logistics"
+      },
+      "phase": "investigation",
+      "reward": 0.06117999999999997,
+      "step": 8,
+      "tool_error": null,
+      "tool_name": "compare_bank_account",
+      "tool_success": true
+    },
+    {
       "action_type": "submit_decision",
       "done": true,
       "payload": {
         "confidence": 1.0,
-        "counterfactual": "If there were any fraud indicators such as bank account mismatches, duplicate invoices, domain spoofing, policy bypass attempts, or suspicious vendor history, the decision would be ESCALATE_FRAUD.",
+        "counterfactual": "Would HOLD if the sender domain changed, the bank account mismatched vendor master, or a duplicate cluster appeared in ledger history.",
         "decision": "PAY",
-        "evidence_map": {},
+        "evidence_map": {
+          "bank_account_verified": {
+            "bbox": [
+              10,
+              110,
+              170,
+              120
+            ],
+            "doc_id": "INV-D-002",
+            "page": 1,
+            "token_ids": [
+              "d26"
+            ]
+          },
+          "duplicate_check_cleared": {
+            "bbox": [
+              10,
+              30,
+              170,
+              40
+            ],
+            "doc_id": "INV-D-002",
+            "page": 1,
+            "token_ids": [
+              "d22"
+            ]
+          },
+          "sender_domain_verified": {
+            "bbox": [
+              10,
+              10,
+              220,
+              20
+            ],
+            "doc_id": "THR-130",
+            "page": 1,
+            "token_ids": [
+              "ed21"
+            ]
+          }
+        },
         "policy_checks": {
           "approval_threshold_check": "pass",
           "bank_change_verification": "pass",
@@ -110,8 +164,8 @@
         "reason_codes": []
       },
       "phase": "submit",
-      "reward": 0.8045972,
-      "step": 8,
+      "reward": 0.870999,
+      "step": 9,
       "tool_error": null,
       "tool_name": "submit_decision",
       "tool_success": true
@@ -119,7 +173,13 @@
   ],
   "case_id": "CASE-D-002",
   "collected_summary": {
-    "bank_compares": [],
+    "bank_compares": [
+      {
+        "matched": true,
+        "proposed_bank_account": "IN77BP555666777",
+        "vendor_bank_account": null
+      }
+    ],
     "case_instruction": "Act as an AP analyst. Inspect the invoice, email thread THR-130, vendor master, vendor history, ledger, and policy. Distinguish a clean inbox follow-up from a real payment incident.",
     "email_ocr_loaded": true,
     "email_thread": {
@@ -157,6 +217,7 @@
     "observed_risk_signals": [],
     "pending_event_count": 0,
     "revealed_artifacts": [],
+    "tool_failures": {},
     "vendor": {
       "approved_domains": [
         "bluepeak.example.com"
@@ -172,7 +233,7 @@
   },
   "error": "",
   "final_info": {
-    "final_score": 0.8095,
+    "final_score": 0.8762,
     "outcome": {
       "outcome_type": "safe_payment_cleared",
       "portfolio_metrics": {
@@ -192,43 +253,43 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.8095,
-        "potential_delta": -0.0049
+        "final_score": 0.8762,
+        "potential_delta": -0.0052
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0255,
+        "budget_penalty": 0.0266,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.8046
+      "value": 0.871
     },
     "score_breakdown": {
       "calibration_score": 1.0,
       "callback_interpretation_score": 0.5,
-      "counterfactual_score": 1.0,
+      "counterfactual_score": 0.875,
       "decision_score": 1.0,
-      "degenerate_penalty": -0.09,
-      "efficiency_score": 0.9745,
+      "degenerate_penalty": -0.04,
+      "efficiency_score": 0.9734,
       "evidence_score": 1.0,
       "intervention_score": 0.45,
-      "investigation_score": 0.75,
+      "investigation_score": 1.0,
       "outcome_score": 1.0,
       "policy_score": 1.0,
       "pressure_event_score": 0.7143,
       "reason_score": 1.0,
-      "resolution_state_score": 0.861
+      "resolution_state_score": 0.92
     },
     "system_state": {
-      "budget_remaining": 12.6,
+      "budget_remaining": 12.45,
       "budget_total": 16.0,
-      "case_clock": 8,
+      "case_clock": 9,
       "case_id": "CASE-D-002",
       "contrastive_pair_id": "",
-      "episode_id": "68a40a84-3bee-4e1c-bb68-36b92d960e76",
-      "final_score": 0.8095,
+      "episode_id": "26cc5b64-f441-4fb1-aee5-4733eaa19a6c",
+      "final_score": 0.8762,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 18,
@@ -246,7 +307,7 @@
       "pressure_events_seen": [],
       "pressure_resistance_score": 0.0,
       "revealed_artifact_ids": [],
-      "step_count": 8,
+      "step_count": 9,
       "submitted": true,
       "task_type": "task_d",
       "terminal_reason": "decision_submitted",
@@ -336,6 +397,19 @@
           "payload": {},
           "step": 7,
           "success": true
+        },
+        {
+          "action_type": "compare_bank_account",
+          "case_clock": 8,
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "Compared proposed bank account to approved master data.",
+          "payload": {
+            "proposed_bank_account": "IN77BP555666777",
+            "vendor_key": "bluepeak-logistics"
+          },
+          "step": 8,
+          "success": true
         }
       ],
       "unsafe_outcome": false,
@@ -350,9 +424,49 @@
   },
   "final_submission": {
     "confidence": 1.0,
-    "counterfactual": "If there were any fraud indicators such as bank account mismatches, duplicate invoices, domain spoofing, policy bypass attempts, or suspicious vendor history, the decision would be ESCALATE_FRAUD.",
+    "counterfactual": "Would HOLD if the sender domain changed, the bank account mismatched vendor master, or a duplicate cluster appeared in ledger history.",
     "decision": "PAY",
-    "evidence_map": {},
+    "evidence_map": {
+      "bank_account_verified": {
+        "bbox": [
+          10,
+          110,
+          170,
+          120
+        ],
+        "doc_id": "INV-D-002",
+        "page": 1,
+        "token_ids": [
+          "d26"
+        ]
+      },
+      "duplicate_check_cleared": {
+        "bbox": [
+          10,
+          30,
+          170,
+          40
+        ],
+        "doc_id": "INV-D-002",
+        "page": 1,
+        "token_ids": [
+          "d22"
+        ]
+      },
+      "sender_domain_verified": {
+        "bbox": [
+          10,
+          10,
+          220,
+          20
+        ],
+        "doc_id": "THR-130",
+        "page": 1,
+        "token_ids": [
+          "ed21"
+        ]
+      }
+    },
     "policy_checks": {
       "approval_threshold_check": "pass",
       "bank_change_verification": "pass",
@@ -364,7 +478,7 @@
   "final_tool_result": {
     "cost": 0.0,
     "decision": "PAY",
-    "final_score": 0.8095,
+    "final_score": 0.8762,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "safe_payment_cleared",
@@ -385,46 +499,46 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.8095,
-        "potential_delta": -0.0049
+        "final_score": 0.8762,
+        "potential_delta": -0.0052
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0255,
+        "budget_penalty": 0.0266,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.8046
+      "value": 0.871
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
       "calibration_score": 1.0,
       "callback_interpretation_score": 0.5,
-      "counterfactual_score": 1.0,
+      "counterfactual_score": 0.875,
       "decision_score": 1.0,
-      "degenerate_penalty": -0.09,
-      "efficiency_score": 0.9745,
+      "degenerate_penalty": -0.04,
+      "efficiency_score": 0.9734,
       "evidence_score": 1.0,
       "intervention_score": 0.45,
-      "investigation_score": 0.75,
+      "investigation_score": 1.0,
       "outcome_score": 1.0,
       "policy_score": 1.0,
       "pressure_event_score": 0.7143,
       "reason_score": 1.0,
-      "resolution_state_score": 0.861
+      "resolution_state_score": 0.92
     },
     "submission_received": true,
     "success": true,
     "system_state": {
-      "budget_remaining": 12.6,
+      "budget_remaining": 12.45,
       "budget_total": 16.0,
-      "case_clock": 8,
+      "case_clock": 9,
       "case_id": "CASE-D-002",
       "contrastive_pair_id": "",
-      "episode_id": "68a40a84-3bee-4e1c-bb68-36b92d960e76",
-      "final_score": 0.8095,
+      "episode_id": "26cc5b64-f441-4fb1-aee5-4733eaa19a6c",
+      "final_score": 0.8762,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 18,
@@ -442,7 +556,7 @@
       "pressure_events_seen": [],
       "pressure_resistance_score": 0.0,
       "revealed_artifact_ids": [],
-      "step_count": 8,
+      "step_count": 9,
       "submitted": true,
       "task_type": "task_d",
       "terminal_reason": "decision_submitted",
@@ -532,6 +646,19 @@
           "payload": {},
           "step": 7,
           "success": true
+        },
+        {
+          "action_type": "compare_bank_account",
+          "case_clock": 8,
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "Compared proposed bank account to approved master data.",
+          "payload": {
+            "proposed_bank_account": "IN77BP555666777",
+            "vendor_key": "bluepeak-logistics"
+          },
+          "step": 8,
+          "success": true
         }
       ],
       "unsafe_outcome": false,
@@ -545,6 +672,17 @@
     "unsafe_outcome": false
   },
   "model": "gpt-4o",
+  "model_profile": {
+    "capability_score": 4.6,
+    "decision_token_budget": 1280,
+    "intervention_budget_bonus": 1,
+    "investigation_budget_bonus": 1,
+    "model_name": "gpt-4o",
+    "plan_mode": "hybrid",
+    "planning_token_budget": 512,
+    "repair_level": "partial",
+    "tier": "strong"
+  },
   "outcome": {
     "outcome_type": "safe_payment_cleared",
     "portfolio_metrics": {
@@ -660,6 +798,14 @@
           "action_type": "lookup_policy",
           "payload": {},
           "signature": "lookup_policy:{}"
+        },
+        {
+          "action_type": "compare_bank_account",
+          "payload": {
+            "proposed_bank_account": "IN77BP555666777",
+            "vendor_key": "bluepeak-logistics"
+          },
+          "signature": "compare_bank_account:{\"proposed_bank_account\":\"IN77BP555666777\",\"vendor_key\":\"bluepeak-logistics\"}"
         }
       ]
     },
@@ -670,33 +816,33 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.8095,
+  "score": 0.8762,
   "score_breakdown": {
     "calibration_score": 1.0,
     "callback_interpretation_score": 0.5,
-    "counterfactual_score": 1.0,
+    "counterfactual_score": 0.875,
     "decision_score": 1.0,
-    "degenerate_penalty": -0.09,
-    "efficiency_score": 0.9745,
+    "degenerate_penalty": -0.04,
+    "efficiency_score": 0.9734,
     "evidence_score": 1.0,
     "intervention_score": 0.45,
-    "investigation_score": 0.75,
+    "investigation_score": 1.0,
     "outcome_score": 1.0,
     "policy_score": 1.0,
     "pressure_event_score": 0.7143,
     "reason_score": 1.0,
-    "resolution_state_score": 0.861
+    "resolution_state_score": 0.92
   },
-  "steps": 8,
+  "steps": 9,
   "success": true,
   "system_state": {
-    "budget_remaining": 12.6,
+    "budget_remaining": 12.45,
     "budget_total": 16.0,
-    "case_clock": 8,
+    "case_clock": 9,
     "case_id": "CASE-D-002",
     "contrastive_pair_id": "",
-    "episode_id": "68a40a84-3bee-4e1c-bb68-36b92d960e76",
-    "final_score": 0.8095,
+    "episode_id": "26cc5b64-f441-4fb1-aee5-4733eaa19a6c",
+    "final_score": 0.8762,
     "handoff_packet": {},
     "interventions_taken": [],
     "max_steps": 18,
@@ -714,7 +860,7 @@
     "pressure_events_seen": [],
     "pressure_resistance_score": 0.0,
     "revealed_artifact_ids": [],
-    "step_count": 8,
+    "step_count": 9,
     "submitted": true,
     "task_type": "task_d",
     "terminal_reason": "decision_submitted",
@@ -803,6 +949,19 @@
         "message": "All policy rules returned.",
         "payload": {},
         "step": 7,
+        "success": true
+      },
+      {
+        "action_type": "compare_bank_account",
+        "case_clock": 8,
+        "cost": 0.15,
+        "is_intervention": false,
+        "message": "Compared proposed bank account to approved master data.",
+        "payload": {
+          "proposed_bank_account": "IN77BP555666777",
+          "vendor_key": "bluepeak-logistics"
+        },
+        "step": 8,
         "success": true
       }
     ],

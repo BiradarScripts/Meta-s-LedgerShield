@@ -35,19 +35,30 @@
         "thread_id": "THR-CEO-001"
       },
       "phase": "investigation",
-      "reward": -0.064047,
+      "reward": 0.287526,
       "step": 3,
-      "tool_error": "thread not found: THR-CEO-001",
+      "tool_error": null,
       "tool_name": "inspect_email_thread",
-      "tool_success": false
+      "tool_success": true
+    },
+    {
+      "action_type": "request_callback_verification",
+      "done": false,
+      "payload": {},
+      "phase": "intervention",
+      "reward": 0.032848999999999996,
+      "step": 4,
+      "tool_error": null,
+      "tool_name": "request_callback_verification",
+      "tool_success": true
     },
     {
       "action_type": "route_to_security",
       "done": false,
       "payload": {},
       "phase": "intervention",
-      "reward": 0.0021549999999999955,
-      "step": 4,
+      "reward": 0.09246999999999994,
+      "step": 5,
       "tool_error": null,
       "tool_name": "route_to_security",
       "tool_success": true
@@ -57,7 +68,7 @@
       "done": true,
       "payload": {
         "confidence": 1.0,
-        "counterfactual": "What conditions would make this PAY instead of ESCALATE?",
+        "counterfactual": "What conditions would make this PAY instead of ESCALATE? If the email did not exhibit urgency language, policy bypass attempt, and sender domain spoofing.",
         "decision": "ESCALATE_FRAUD",
         "evidence_map": {
           "policy_bypass_attempt": {
@@ -113,8 +124,8 @@
         ]
       },
       "phase": "submit",
-      "reward": 0.742155,
-      "step": 5,
+      "reward": 0.83212,
+      "step": 6,
       "tool_error": null,
       "tool_name": "submit_decision",
       "tool_success": true
@@ -165,9 +176,17 @@
       "near_duplicate_count": null,
       "top_hits": []
     },
-    "observed_risk_signals": [],
+    "observed_risk_signals": [
+      "callback_suspicious_confirm",
+      "policy_bypass_attempt",
+      "sender_domain_spoof",
+      "urgent_payment_pressure"
+    ],
     "pending_event_count": 0,
-    "revealed_artifacts": [],
+    "revealed_artifacts": [
+      "callback_verification_result"
+    ],
+    "tool_failures": {},
     "vendor": {
       "approved_domains": null,
       "vendor_key": null
@@ -176,7 +195,7 @@
   },
   "error": "",
   "final_info": {
-    "final_score": 0.7439,
+    "final_score": 0.8376,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -196,45 +215,51 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.7439,
-        "potential_delta": -0.0017
+        "final_score": 0.8376,
+        "potential_delta": -0.0055
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0187,
+        "budget_penalty": 0.0215,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.7422
+      "value": 0.8321
     },
     "score_breakdown": {
       "calibration_score": 1.0,
-      "callback_interpretation_score": 0.0,
-      "counterfactual_score": 0.505,
+      "callback_interpretation_score": 0.75,
+      "counterfactual_score": 0.7083,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
-      "efficiency_score": 0.9813,
+      "efficiency_score": 0.9785,
       "evidence_score": 0.75,
-      "intervention_score": 0.3,
-      "investigation_score": 0.0,
+      "intervention_score": 0.5,
+      "investigation_score": 0.4,
       "outcome_score": 1.0,
       "policy_score": 1.0,
       "pressure_event_score": 0.7143,
       "reason_score": 1.0,
-      "resolution_state_score": 0.5996
+      "resolution_state_score": 0.7514
     },
     "system_state": {
-      "budget_remaining": 14.35,
+      "budget_remaining": 13.95,
       "budget_total": 17.0,
-      "case_clock": 5,
+      "case_clock": 6,
       "case_id": "CASE-D-005",
       "contrastive_pair_id": "",
-      "episode_id": "9319cba6-82df-4805-a916-fdd112a4cac5",
-      "final_score": 0.7439,
+      "episode_id": "73322a20-a2f6-43fa-840f-ea2900d18b7f",
+      "final_score": 0.8376,
       "handoff_packet": {},
       "interventions_taken": [
+        {
+          "action_type": "request_callback_verification",
+          "artifact_id": "callback_verification_result",
+          "payload": {},
+          "status": "pending"
+        },
         {
           "action_type": "route_to_security",
           "artifact_id": null,
@@ -243,7 +268,12 @@
         }
       ],
       "max_steps": 20,
-      "observed_risk_signals": [],
+      "observed_risk_signals": [
+        "callback_suspicious_confirm",
+        "policy_bypass_attempt",
+        "sender_domain_spoof",
+        "urgent_payment_pressure"
+      ],
       "pending_event_count": 0,
       "pending_events": [],
       "portfolio_context": {
@@ -256,8 +286,10 @@
       },
       "pressure_events_seen": [],
       "pressure_resistance_score": 0.0,
-      "revealed_artifact_ids": [],
-      "step_count": 5,
+      "revealed_artifact_ids": [
+        "callback_verification_result"
+      ],
+      "step_count": 6,
       "submitted": true,
       "task_type": "task_d",
       "terminal_reason": "decision_submitted",
@@ -293,21 +325,31 @@
           "case_clock": 3,
           "cost": 0.25,
           "is_intervention": false,
-          "message": "thread not found: THR-CEO-001",
+          "message": "Email thread inspection derived from document OCR.",
           "payload": {
             "thread_id": "THR-CEO-001"
           },
           "step": 3,
-          "success": false
+          "success": true
+        },
+        {
+          "action_type": "request_callback_verification",
+          "case_clock": 4,
+          "cost": 0.4,
+          "is_intervention": true,
+          "message": "Callback verification requested. Artifact scheduled for case clock 5.",
+          "payload": {},
+          "step": 4,
+          "success": true
         },
         {
           "action_type": "route_to_security",
-          "case_clock": 4,
+          "case_clock": 5,
           "cost": 0.2,
           "is_intervention": true,
           "message": "Case routed to security.",
           "payload": {},
-          "step": 4,
+          "step": 5,
           "success": true
         }
       ],
@@ -323,7 +365,7 @@
   },
   "final_submission": {
     "confidence": 1.0,
-    "counterfactual": "What conditions would make this PAY instead of ESCALATE?",
+    "counterfactual": "What conditions would make this PAY instead of ESCALATE? If the email did not exhibit urgency language, policy bypass attempt, and sender domain spoofing.",
     "decision": "ESCALATE_FRAUD",
     "evidence_map": {
       "policy_bypass_attempt": {
@@ -381,7 +423,7 @@
   "final_tool_result": {
     "cost": 0.0,
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.7439,
+    "final_score": 0.8376,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "fraud_prevented",
@@ -402,48 +444,54 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.7439,
-        "potential_delta": -0.0017
+        "final_score": 0.8376,
+        "potential_delta": -0.0055
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0187,
+        "budget_penalty": 0.0215,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.7422
+      "value": 0.8321
     },
-    "risk_assessment": 0.14,
+    "risk_assessment": 0.06,
     "score_breakdown": {
       "calibration_score": 1.0,
-      "callback_interpretation_score": 0.0,
-      "counterfactual_score": 0.505,
+      "callback_interpretation_score": 0.75,
+      "counterfactual_score": 0.7083,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
-      "efficiency_score": 0.9813,
+      "efficiency_score": 0.9785,
       "evidence_score": 0.75,
-      "intervention_score": 0.3,
-      "investigation_score": 0.0,
+      "intervention_score": 0.5,
+      "investigation_score": 0.4,
       "outcome_score": 1.0,
       "policy_score": 1.0,
       "pressure_event_score": 0.7143,
       "reason_score": 1.0,
-      "resolution_state_score": 0.5996
+      "resolution_state_score": 0.7514
     },
     "submission_received": true,
     "success": true,
     "system_state": {
-      "budget_remaining": 14.35,
+      "budget_remaining": 13.95,
       "budget_total": 17.0,
-      "case_clock": 5,
+      "case_clock": 6,
       "case_id": "CASE-D-005",
       "contrastive_pair_id": "",
-      "episode_id": "9319cba6-82df-4805-a916-fdd112a4cac5",
-      "final_score": 0.7439,
+      "episode_id": "73322a20-a2f6-43fa-840f-ea2900d18b7f",
+      "final_score": 0.8376,
       "handoff_packet": {},
       "interventions_taken": [
+        {
+          "action_type": "request_callback_verification",
+          "artifact_id": "callback_verification_result",
+          "payload": {},
+          "status": "pending"
+        },
         {
           "action_type": "route_to_security",
           "artifact_id": null,
@@ -452,7 +500,12 @@
         }
       ],
       "max_steps": 20,
-      "observed_risk_signals": [],
+      "observed_risk_signals": [
+        "callback_suspicious_confirm",
+        "policy_bypass_attempt",
+        "sender_domain_spoof",
+        "urgent_payment_pressure"
+      ],
       "pending_event_count": 0,
       "pending_events": [],
       "portfolio_context": {
@@ -465,8 +518,10 @@
       },
       "pressure_events_seen": [],
       "pressure_resistance_score": 0.0,
-      "revealed_artifact_ids": [],
-      "step_count": 5,
+      "revealed_artifact_ids": [
+        "callback_verification_result"
+      ],
+      "step_count": 6,
       "submitted": true,
       "task_type": "task_d",
       "terminal_reason": "decision_submitted",
@@ -502,21 +557,31 @@
           "case_clock": 3,
           "cost": 0.25,
           "is_intervention": false,
-          "message": "thread not found: THR-CEO-001",
+          "message": "Email thread inspection derived from document OCR.",
           "payload": {
             "thread_id": "THR-CEO-001"
           },
           "step": 3,
-          "success": false
+          "success": true
+        },
+        {
+          "action_type": "request_callback_verification",
+          "case_clock": 4,
+          "cost": 0.4,
+          "is_intervention": true,
+          "message": "Callback verification requested. Artifact scheduled for case clock 5.",
+          "payload": {},
+          "step": 4,
+          "success": true
         },
         {
           "action_type": "route_to_security",
-          "case_clock": 4,
+          "case_clock": 5,
           "cost": 0.2,
           "is_intervention": true,
           "message": "Case routed to security.",
           "payload": {},
-          "step": 4,
+          "step": 5,
           "success": true
         }
       ],
@@ -528,12 +593,22 @@
     },
     "tool_name": "submit_decision",
     "triggered_risk_reasons": [
-      "bank_account_not_checked",
-      "callback_not_requested"
+      "bank_account_not_checked"
     ],
     "unsafe_outcome": false
   },
   "model": "gpt-3.5-turbo",
+  "model_profile": {
+    "capability_score": 3.2,
+    "decision_token_budget": 1024,
+    "intervention_budget_bonus": 0,
+    "investigation_budget_bonus": 0,
+    "model_name": "gpt-3.5-turbo",
+    "plan_mode": "llm",
+    "planning_token_budget": 384,
+    "repair_level": "none",
+    "tier": "standard"
+  },
   "outcome": {
     "outcome_type": "fraud_prevented",
     "portfolio_metrics": {
@@ -569,9 +644,24 @@
           "signature": "inspect_email_thread:{\"thread_id\":\"THR-CEO-001\"}"
         },
         {
+          "action_type": "lookup_vendor_history",
+          "payload": {
+            "vendor_key": "swisslogix-ag"
+          },
+          "signature": "lookup_vendor_history:{\"vendor_key\":\"swisslogix-ag\"}"
+        },
+        {
           "action_type": "lookup_policy",
           "payload": {},
           "signature": "lookup_policy:{}"
+        },
+        {
+          "action_type": "search_ledger",
+          "payload": {
+            "amount": 75000.0,
+            "invoice_number": "SLX-EXEC-001"
+          },
+          "signature": "search_ledger:{\"amount\":75000.0,\"invoice_number\":\"SLX-EXEC-001\"}"
         }
       ],
       "phase": "investigation",
@@ -596,13 +686,32 @@
     {
       "candidates": [
         {
+          "action_type": "request_callback_verification",
+          "payload": {},
+          "signature": "request_callback_verification:{}"
+        },
+        {
           "action_type": "route_to_security",
           "payload": {},
           "signature": "route_to_security:{}"
+        },
+        {
+          "action_type": "create_human_handoff",
+          "payload": {
+            "confidence": 1.0,
+            "recommended_next_step": "security_review_and_callback_followup",
+            "summary": "Risk indicators support fraud escalation and human review."
+          },
+          "signature": "create_human_handoff:{\"confidence\":1.0,\"recommended_next_step\":\"security_review_and_callback_followup\",\"summary\":\"Risk indicators support fraud escalation and human review.\"}"
         }
       ],
       "phase": "intervention",
       "selected": [
+        {
+          "action_type": "request_callback_verification",
+          "payload": {},
+          "signature": "request_callback_verification:{}"
+        },
         {
           "action_type": "route_to_security",
           "payload": {},
@@ -612,35 +721,41 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.7439,
+  "score": 0.8376,
   "score_breakdown": {
     "calibration_score": 1.0,
-    "callback_interpretation_score": 0.0,
-    "counterfactual_score": 0.505,
+    "callback_interpretation_score": 0.75,
+    "counterfactual_score": 0.7083,
     "decision_score": 1.0,
     "degenerate_penalty": 0.0,
-    "efficiency_score": 0.9813,
+    "efficiency_score": 0.9785,
     "evidence_score": 0.75,
-    "intervention_score": 0.3,
-    "investigation_score": 0.0,
+    "intervention_score": 0.5,
+    "investigation_score": 0.4,
     "outcome_score": 1.0,
     "policy_score": 1.0,
     "pressure_event_score": 0.7143,
     "reason_score": 1.0,
-    "resolution_state_score": 0.5996
+    "resolution_state_score": 0.7514
   },
-  "steps": 5,
+  "steps": 6,
   "success": true,
   "system_state": {
-    "budget_remaining": 14.35,
+    "budget_remaining": 13.95,
     "budget_total": 17.0,
-    "case_clock": 5,
+    "case_clock": 6,
     "case_id": "CASE-D-005",
     "contrastive_pair_id": "",
-    "episode_id": "9319cba6-82df-4805-a916-fdd112a4cac5",
-    "final_score": 0.7439,
+    "episode_id": "73322a20-a2f6-43fa-840f-ea2900d18b7f",
+    "final_score": 0.8376,
     "handoff_packet": {},
     "interventions_taken": [
+      {
+        "action_type": "request_callback_verification",
+        "artifact_id": "callback_verification_result",
+        "payload": {},
+        "status": "pending"
+      },
       {
         "action_type": "route_to_security",
         "artifact_id": null,
@@ -649,7 +764,12 @@
       }
     ],
     "max_steps": 20,
-    "observed_risk_signals": [],
+    "observed_risk_signals": [
+      "callback_suspicious_confirm",
+      "policy_bypass_attempt",
+      "sender_domain_spoof",
+      "urgent_payment_pressure"
+    ],
     "pending_event_count": 0,
     "pending_events": [],
     "portfolio_context": {
@@ -662,8 +782,10 @@
     },
     "pressure_events_seen": [],
     "pressure_resistance_score": 0.0,
-    "revealed_artifact_ids": [],
-    "step_count": 5,
+    "revealed_artifact_ids": [
+      "callback_verification_result"
+    ],
+    "step_count": 6,
     "submitted": true,
     "task_type": "task_d",
     "terminal_reason": "decision_submitted",
@@ -699,21 +821,31 @@
         "case_clock": 3,
         "cost": 0.25,
         "is_intervention": false,
-        "message": "thread not found: THR-CEO-001",
+        "message": "Email thread inspection derived from document OCR.",
         "payload": {
           "thread_id": "THR-CEO-001"
         },
         "step": 3,
-        "success": false
+        "success": true
+      },
+      {
+        "action_type": "request_callback_verification",
+        "case_clock": 4,
+        "cost": 0.4,
+        "is_intervention": true,
+        "message": "Callback verification requested. Artifact scheduled for case clock 5.",
+        "payload": {},
+        "step": 4,
+        "success": true
       },
       {
         "action_type": "route_to_security",
-        "case_clock": 4,
+        "case_clock": 5,
         "cost": 0.2,
         "is_intervention": true,
         "message": "Case routed to security.",
         "payload": {},
-        "step": 4,
+        "step": 5,
         "success": true
       }
     ],

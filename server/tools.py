@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import re
 from typing import Any
 
 from .schema import bbox_iou, fuzzy_numeric_similarity, normalize_id, normalize_text, prefix_domain, safe_float
@@ -53,6 +54,181 @@ def _token_text_preview(tokens: list[dict[str, Any]], limit: int = 6) -> list[st
         if text:
             preview.append(text)
     return preview
+
+
+def _doc_vendor_name(case: dict[str, Any]) -> str:
+    for doc in case.get("documents", []):
+        if normalize_text(doc.get("doc_type")) != "invoice":
+            continue
+        for token in _scoped_tokens(doc, mode="accurate"):
+            text = str(token.get("text", "")).strip()
+            if text:
+                return text
+    return ""
+
+
+def _infer_sender_domain_alignment(sender: str, *, expected_domain: str, vendor_name: str) -> str:
+    from_domain = prefix_domain(sender)
+    expected = prefix_domain(expected_domain)
+    if expected and from_domain:
+        return "mismatch" if expected != from_domain else "aligned"
+    if not from_domain:
+        return "aligned"
+
+    stop_words = {
+        "ag",
+        "co",
+        "company",
+        "components",
+        "corp",
+        "gmbh",
+        "group",
+        "holdings",
+        "industrial",
+        "llc",
+        "llp",
+        "limited",
+        "ltd",
+        "manufacturing",
+        "pvt",
+        "supplies",
+    }
+    vendor_tokens = {
+        chunk
+        for chunk in re.split(r"[^a-z0-9]+", normalize_text(vendor_name))
+        if len(chunk) > 2 and chunk not in stop_words
+    }
+    domain_tokens = {
+        chunk
+        for chunk in re.split(r"[^a-z0-9]+", normalize_text(from_domain))
+        if len(chunk) > 2
+    }
+    if vendor_tokens and domain_tokens and vendor_tokens & domain_tokens:
+        return "aligned"
+    return "mismatch" if vendor_tokens else "aligned"
+
+
+def _build_thread_payload(
+    *,
+    thread_id: str,
+    vendor_key: str,
+    sender: str,
+    subject: str,
+    body: str,
+    expected_domain: str = "",
+    vendor_name: str = "",
+) -> dict[str, Any]:
+    subject_norm = normalize_text(subject)
+    body_norm = normalize_text(body)
+    sender_norm = normalize_text(sender)
+    from_domain = prefix_domain(sender_norm)
+    expected = prefix_domain(expected_domain)
+
+    urgency_language = any(
+        phrase in subject_norm or phrase in body_norm
+        for phrase in {"urgent", "asap", "immediately", "today"}
+    )
+    explicit_no_change = any(
+        phrase in body_norm
+        for phrase in {
+            "no bank change",
+            "no bank changes",
+            "no change to bank",
+            "approved remittance instructions already on file",
+        }
+    )
+    bank_change_language = (
+        "bank" in body_norm and ("change" in body_norm or "update" in body_norm or "override" in body_norm)
+        and not explicit_no_change
+    )
+    bypass_phrases = {
+        "skip callback",
+        "do not call",
+        "don't call",
+        "ignore standard workflow",
+        "override policy",
+        "bypass policy",
+        "do not verify",
+        "treat this email as the source of truth",
+        "portal is offline",
+        "avoid reapproval",
+        "skip normal review",
+        "personally approved",
+    }
+    callback_discouraged = any(
+        phrase in body_norm
+        for phrase in {"skip callback", "do not call", "don't call", "do not verify"}
+    )
+    policy_override_language = any(phrase in body_norm for phrase in bypass_phrases)
+    quoted_directives: list[str] = []
+    if bank_change_language:
+        quoted_directives.append("bank or remittance instructions changed in email body")
+    if callback_discouraged:
+        quoted_directives.append("email discourages callback verification")
+    if policy_override_language:
+        quoted_directives.append("email pressures agent to override standard workflow")
+    if urgency_language:
+        quoted_directives.append("message uses urgency language")
+
+    return {
+        "thread_id": thread_id,
+        "vendor_key": vendor_key,
+        "sender": sender,
+        "subject": subject,
+        "body": body,
+        "message_count": max(1, len([line for line in body.splitlines() if line.strip()])),
+        "sender_profile": {
+            "from_domain": from_domain,
+            "expected_domain": expected,
+            "domain_alignment": _infer_sender_domain_alignment(
+                sender_norm,
+                expected_domain=expected,
+                vendor_name=vendor_name,
+            ),
+        },
+        "request_signals": {
+            "bank_change_language": bank_change_language,
+            "urgency_language": urgency_language,
+            "callback_discouraged": callback_discouraged,
+            "policy_override_language": policy_override_language,
+        },
+        "quoted_directives": quoted_directives,
+    }
+
+
+def _thread_from_email_document(case: dict[str, Any], thread_id: str, doc: dict[str, Any]) -> dict[str, Any] | None:
+    if normalize_text(doc.get("doc_type")) != "email":
+        return None
+
+    lines = [
+        str(token.get("text", "")).strip()
+        for token in _scoped_tokens(doc, mode="accurate")
+        if str(token.get("text", "")).strip()
+    ]
+    if not lines:
+        return None
+
+    sender = ""
+    subject = ""
+    body_lines: list[str] = []
+    for line in lines:
+        lower = line.lower()
+        if lower.startswith("from:"):
+            sender = line.split(":", 1)[-1].strip()
+            continue
+        if lower.startswith("subject:"):
+            subject = line.split(":", 1)[-1].strip()
+            continue
+        body_lines.append(line)
+
+    return _build_thread_payload(
+        thread_id=thread_id,
+        vendor_key="",
+        sender=sender,
+        subject=subject,
+        body="\n".join(body_lines),
+        vendor_name=_doc_vendor_name(case),
+    )
 
 
 def zoom_tool(case: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
@@ -261,7 +437,10 @@ def search_ledger_tool(ledger_index: list[dict[str, Any]], payload: dict[str, An
 
 def inspect_email_thread_tool(case: dict[str, Any], email_threads: list[dict[str, Any]], payload: dict[str, Any]) -> dict[str, Any]:
     thread_id = payload.get("thread_id")
+    email_doc = None
     for doc in case.get("documents", []):
+        if doc.get("doc_id") == thread_id:
+            email_doc = doc
         if doc.get("doc_id") == thread_id and isinstance(doc.get("thread_data"), dict):
             row = doc.get("thread_data") or {}
             break
@@ -275,74 +454,23 @@ def inspect_email_thread_tool(case: dict[str, Any], email_threads: list[dict[str
                 break
 
     if row is None:
+        if email_doc is not None:
+            inferred = _thread_from_email_document(case, str(thread_id), email_doc)
+            if inferred is not None:
+                return {
+                    "thread": inferred,
+                    "message": "Email thread inspection derived from document OCR.",
+                }
         return {"error": f"thread not found: {thread_id}"}
 
-    subject = normalize_text(row.get("subject"))
-    body = normalize_text(row.get("body") or " ".join(row.get("messages", [])))
-    sender = normalize_text(row.get("sender"))
-    from_domain = prefix_domain(sender)
-    expected_domain = prefix_domain(row.get("expected_domain") or row.get("vendor_domain"))
-
-    urgency_language = "urgent" in subject or "urgent" in body or "asap" in body
-    domain_alignment = "mismatch" if expected_domain and from_domain and expected_domain != from_domain else "aligned"
-
-    explicit_no_change = any(
-        phrase in body
-        for phrase in {
-            "no bank change",
-            "no bank changes",
-            "no change to bank",
-            "approved remittance instructions already on file",
-        }
+    thread = _build_thread_payload(
+        thread_id=str(row.get("thread_id") or thread_id),
+        vendor_key=str(row.get("vendor_key") or ""),
+        sender=str(row.get("sender") or row.get("from") or ""),
+        subject=str(row.get("subject") or ""),
+        body=str(row.get("body") or " ".join(row.get("messages", []))),
+        expected_domain=str(row.get("expected_domain") or row.get("vendor_domain") or ""),
     )
-    bank_change_language = (
-        "bank" in body and ("change" in body or "update" in body or "override" in body) and not explicit_no_change
-    )
-
-    bypass_phrases = {
-        "skip callback",
-        "do not call",
-        "don't call",
-        "ignore standard workflow",
-        "override policy",
-        "bypass policy",
-        "do not verify",
-        "treat this email as the source of truth",
-        "portal is offline",
-        "avoid reapproval",
-    }
-    callback_discouraged = any(phrase in body for phrase in {"skip callback", "do not call", "don't call", "do not verify"})
-    policy_override_language = any(phrase in body for phrase in bypass_phrases)
-    quoted_directives: list[str] = []
-    if bank_change_language:
-        quoted_directives.append("bank or remittance instructions changed in email body")
-    if callback_discouraged:
-        quoted_directives.append("email discourages callback verification")
-    if policy_override_language:
-        quoted_directives.append("email pressures agent to override standard workflow")
-    if urgency_language:
-        quoted_directives.append("message uses urgency language")
-
-    thread = {
-        "thread_id": row.get("thread_id"),
-        "vendor_key": row.get("vendor_key"),
-        "sender": row.get("sender") or row.get("from"),
-        "subject": row.get("subject", ""),
-        "body": row.get("body", ""),
-        "message_count": max(1, len(row.get("messages", []) or [])),
-        "sender_profile": {
-            "from_domain": from_domain,
-            "expected_domain": expected_domain,
-            "domain_alignment": domain_alignment,
-        },
-        "request_signals": {
-            "bank_change_language": bank_change_language,
-            "urgency_language": urgency_language,
-            "callback_discouraged": callback_discouraged,
-            "policy_override_language": policy_override_language,
-        },
-        "quoted_directives": quoted_directives,
-    }
     return {
         "thread": thread,
         "message": "Email thread inspection complete.",

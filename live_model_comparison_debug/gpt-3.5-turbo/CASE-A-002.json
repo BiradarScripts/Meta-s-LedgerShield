@@ -237,6 +237,7 @@
     "observed_risk_signals": [],
     "pending_event_count": 0,
     "revealed_artifacts": [],
+    "tool_failures": {},
     "vendor": {
       "approved_domains": null,
       "vendor_key": null
@@ -293,7 +294,7 @@
       "case_clock": 3,
       "case_id": "CASE-A-002",
       "contrastive_pair_id": "",
-      "episode_id": "7943a0dc-3c97-4489-9965-76ca642a7a80",
+      "episode_id": "5361276f-292e-4e2e-a350-863951708006",
       "final_score": 0.99,
       "handoff_packet": {},
       "interventions_taken": [],
@@ -575,7 +576,7 @@
       "case_clock": 3,
       "case_id": "CASE-A-002",
       "contrastive_pair_id": "",
-      "episode_id": "7943a0dc-3c97-4489-9965-76ca642a7a80",
+      "episode_id": "5361276f-292e-4e2e-a350-863951708006",
       "final_score": 0.99,
       "handoff_packet": {},
       "interventions_taken": [],
@@ -641,6 +642,17 @@
     "unsafe_outcome": false
   },
   "model": "gpt-3.5-turbo",
+  "model_profile": {
+    "capability_score": 3.2,
+    "decision_token_budget": 1024,
+    "intervention_budget_bonus": 0,
+    "investigation_budget_bonus": 0,
+    "model_name": "gpt-3.5-turbo",
+    "plan_mode": "llm",
+    "planning_token_budget": 384,
+    "repair_level": "none",
+    "tier": "standard"
+  },
   "outcome": {
     "outcome_type": "false_positive_operational_delay",
     "portfolio_metrics": {
@@ -677,7 +689,7 @@
     "case_clock": 3,
     "case_id": "CASE-A-002",
     "contrastive_pair_id": "",
-    "episode_id": "7943a0dc-3c97-4489-9965-76ca642a7a80",
+    "episode_id": "5361276f-292e-4e2e-a350-863951708006",
     "final_score": 0.99,
     "handoff_packet": {},
     "interventions_taken": [],

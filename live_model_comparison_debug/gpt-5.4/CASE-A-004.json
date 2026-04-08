@@ -217,6 +217,7 @@
     "observed_risk_signals": [],
     "pending_event_count": 0,
     "revealed_artifacts": [],
+    "tool_failures": {},
     "vendor": {
       "approved_domains": null,
       "vendor_key": null
@@ -273,7 +274,7 @@
       "case_clock": 3,
       "case_id": "CASE-A-004",
       "contrastive_pair_id": "",
-      "episode_id": "b8a57c83-65df-4c3c-b25f-7ecdea25103f",
+      "episode_id": "1a84e78a-f96d-4614-9d16-073a1e5a5481",
       "final_score": 0.9604,
       "handoff_packet": {},
       "interventions_taken": [],
@@ -535,7 +536,7 @@
       "case_clock": 3,
       "case_id": "CASE-A-004",
       "contrastive_pair_id": "",
-      "episode_id": "b8a57c83-65df-4c3c-b25f-7ecdea25103f",
+      "episode_id": "1a84e78a-f96d-4614-9d16-073a1e5a5481",
       "final_score": 0.9604,
       "handoff_packet": {},
       "interventions_taken": [],
@@ -601,6 +602,17 @@
     "unsafe_outcome": false
   },
   "model": "gpt-5.4",
+  "model_profile": {
+    "capability_score": 5.4,
+    "decision_token_budget": 1536,
+    "intervention_budget_bonus": 2,
+    "investigation_budget_bonus": 2,
+    "model_name": "gpt-5.4",
+    "plan_mode": "coverage",
+    "planning_token_budget": 640,
+    "repair_level": "grounded",
+    "tier": "elite"
+  },
   "outcome": {
     "outcome_type": "false_positive_operational_delay",
     "portfolio_metrics": {
@@ -637,7 +649,7 @@
     "case_clock": 3,
     "case_id": "CASE-A-004",
     "contrastive_pair_id": "",
-    "episode_id": "b8a57c83-65df-4c3c-b25f-7ecdea25103f",
+    "episode_id": "1a84e78a-f96d-4614-9d16-073a1e5a5481",
     "final_score": 0.9604,
     "handoff_packet": {},
     "interventions_taken": [],

@@ -1,131 +1,140 @@
 # API Reference
 
-Complete reference for the LedgerShield REST API.
+LedgerShield exposes an OpenEnv-compatible HTTP API backed by FastAPI. This page documents the endpoints, action payloads, response envelope, and the key object shapes an agent needs to handle.
 
 ## Base URL
 
-```
-http://localhost:8000
-```
-
-## Content Type
-
-All requests and responses use JSON:
-
-```
-Content-Type: application/json
+```text
+http://127.0.0.1:8000
 ```
 
-## Endpoints
+## Response Envelope
 
-### Health Check
-
-Check if the server is running.
-
-```http
-GET /health
-```
-
-**Response:**
+`POST /reset` and `POST /step` return a common top-level envelope:
 
 ```json
 {
-  "status": "healthy",
-  "timestamp": "2026-04-07T10:30:00Z"
+  "observation": {},
+  "reward": 0.0,
+  "done": false,
+  "truncated": false,
+  "terminated": false,
+  "info": {}
 }
 ```
 
-**Status Codes:**
-- `200` - Server is healthy
-- `503` - Server is unavailable
+### Semantics
 
----
+- `done`: the episode has ended for any reason
+- `terminated`: a true terminal condition, currently a successful `submit_decision`
+- `truncated`: the episode ended because of budget exhaustion or max-step exhaustion
+- `info.reward_model`: structured reward breakdown for the last action
 
-### Reset Episode
+## Endpoints
 
-Initialize a new episode with the specified case.
+### `GET /`
 
-```http
-POST /reset
-```
+Basic service probe.
 
-**Request Body:**
+Example response:
 
 ```json
 {
+  "status": "ok",
+  "service": "LedgerShield OpenEnv"
+}
+```
+
+### `GET /health`
+
+Health check used by local smoke tests, Docker smoke tests, and CI.
+
+Example response:
+
+```json
+{
+  "status": "ok"
+}
+```
+
+### `POST /reset`
+
+Start a new episode or load a specific case.
+
+Request body:
+
+```json
+{
+  "seed": 42,
   "case_id": "CASE-D-001"
 }
 ```
 
-**Parameters:**
+Fields:
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `case_id` | string | Yes | Case identifier (e.g., "CASE-D-001") |
-| `seed` | integer | No | Random seed for reproducibility |
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `seed` | integer | no | used for random case selection |
+| `case_id` | string | no | when provided, loads that specific case |
 
-**Response:**
+Example response:
 
 ```json
 {
-  "case_id": "CASE-D-001",
-  "task_type": "task_d",
-  "instruction": "Investigate this AP inbox incident...",
-  "visible_documents": [
-    {
-      "doc_id": "INV-D-001",
-      "doc_type": "invoice",
-      "thumbnail": "thumbnail::INV-D-001",
-      "page_count": 1,
-      "language": "en",
-      "available_views": ["thumbnail", "zoom", "get_doc_crop", "ocr_fast", "ocr_accurate"]
-    }
-  ],
-  "revealed_artifacts": [],
-  "pending_events": [],
-  "budget_remaining": 16.0,
-  "budget_total": 16.0,
-  "step_count": 0,
-  "max_steps": 18,
-  "case_clock": 0,
-  "risk_snapshot": {
-    "risk_level": "medium",
-    "observed_signals": []
+  "observation": {
+    "case_id": "CASE-D-001",
+    "task_type": "task_d",
+    "instruction": "Act as an AP analyst...",
+    "visible_documents": [
+      {
+        "doc_id": "INV-D-001",
+        "doc_type": "invoice",
+        "thumbnail": "thumbnail::INV-D-001",
+        "page_count": 1,
+        "language": "en",
+        "available_views": [
+          "thumbnail",
+          "zoom",
+          "get_doc_crop",
+          "ocr_fast",
+          "ocr_accurate"
+        ]
+      }
+    ],
+    "revealed_artifacts": [],
+    "pending_events": [],
+    "budget_remaining": 16.0,
+    "budget_total": 16.0,
+    "step_count": 0,
+    "max_steps": 18,
+    "case_clock": 0,
+    "risk_snapshot": {},
+    "investigation_status": {},
+    "last_tool_result": {},
+    "messages": ["Loaded case CASE-D-001"],
+    "allowed_actions": ["zoom", "get_doc_crop", "ocr", "submit_decision"],
+    "available_interventions": ["request_callback_verification", "route_to_security"],
+    "case_metadata": {
+      "task_label": "AP inbox incident triage",
+      "due_date_days": 30
+    },
+    "portfolio_context": {}
   },
-  "investigation_status": {
-    "tools_used": 0,
-    "interventions_taken": 0,
-    "artifacts_revealed": 0,
-    "budget_used": 0.0
-  },
-  "last_tool_result": {},
-  "messages": ["Loaded case CASE-D-001"],
-  "allowed_actions": ["zoom", "get_doc_crop", "ocr", ...],
-  "available_interventions": ["request_callback_verification", "freeze_vendor_profile", ...],
-  "case_metadata": {
-    "task_label": "ap_inbox_triage",
-    "due_date_days": 7
-  },
-  "portfolio_context": {}
+  "reward": 0.0,
+  "done": false,
+  "truncated": false,
+  "terminated": false,
+  "info": {
+    "case_id": "CASE-D-001"
+  }
 }
 ```
 
-**Status Codes:**
-- `200` - Episode initialized successfully
-- `400` - Invalid case_id
-- `500` - Server error
+### `POST /step`
 
----
+Execute one action.
 
-### Execute Action
-
-Execute an action in the current episode.
-
-```http
-POST /step
-```
-
-**Request Body:**
+Request body:
 
 ```json
 {
@@ -137,200 +146,161 @@ POST /step
 }
 ```
 
-**Parameters:**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `action_type` | string | Yes | Action to execute (see [Action Types](#action-types)) |
-| `payload` | object | Yes | Action-specific parameters |
-
-**Response:**
+Example response:
 
 ```json
 {
   "observation": {
     "case_id": "CASE-D-001",
-    "task_type": "task_d",
-    "instruction": "Investigate this AP inbox incident...",
-    "visible_documents": [...],
-    "revealed_artifacts": [],
-    "pending_events": [],
-    "budget_remaining": 14.9,
-    "budget_total": 16.0,
     "step_count": 1,
-    "max_steps": 18,
-    "case_clock": 1,
-    "risk_snapshot": {
-      "risk_level": "medium",
-      "observed_signals": []
-    },
-    "investigation_status": {
-      "tools_used": 1,
-      "interventions_taken": 0,
-      "artifacts_revealed": 0,
-      "budget_used": 1.1
-    },
+    "budget_remaining": 14.9,
     "last_tool_result": {
       "tool_name": "ocr",
       "success": true,
       "doc_id": "INV-D-001",
       "mode": "accurate",
       "scope": "document",
-      "tokens": [...],
-      "text_preview": "Invoice #...",
-      "message": "Returned accurate OCR.",
+      "text_preview": "Invoice ...",
       "cost": 1.1,
       "reward_model": {
         "value": -0.055,
         "terminal": false,
         "components": {
-          "cost_penalty": -0.055
+          "cost_penalty": -0.055,
+          "info_gain_bonus": 0.0,
+          "potential_delta": 0.0
         },
         "metadata": {
           "action_type": "ocr",
           "success": true
         }
       }
-    },
-    "messages": ["Returned accurate OCR."],
-    "allowed_actions": [...],
-    "available_interventions": [...],
-    "case_metadata": {...},
-    "portfolio_context": {}
+    }
   },
   "reward": -0.055,
   "done": false,
+  "truncated": false,
+  "terminated": false,
   "info": {
     "tool_name": "ocr",
     "success": true,
-    "reward_model": {...}
+    "reward_model": {
+      "value": -0.055,
+      "terminal": false
+    }
   }
 }
 ```
 
-**Status Codes:**
-- `200` - Action executed successfully
-- `400` - Invalid action or payload
-- `409` - Episode not initialized (call /reset first)
-- `500` - Server error
+### `GET /state`
 
----
+Return the current public environment state, not the full hidden system state.
 
-### Get State
+Key fields:
 
-Retrieve the current environment state.
+| Field | Meaning |
+|---|---|
+| `episode_id` | current episode UUID |
+| `case_id` | current case |
+| `task_type` | task family |
+| `budget_total`, `budget_remaining` | budget accounting |
+| `step_count`, `case_clock`, `max_steps` | episode progress |
+| `trajectory` | public action history |
+| `interventions_taken` | public intervention log |
+| `observed_risk_signals` | only signals the agent has revealed |
+| `pending_events` | delayed artifacts waiting to resolve |
+| `pressure_events_seen` | injected pressure events already observed |
+| `terminal_reason` | why the episode ended if it ended |
 
-```http
-GET /state
-```
+### `GET /leaderboard`
 
-**Response:**
+Returns leaderboard entries if a leaderboard artifact exists, otherwise derives a minimal payload from the latest benchmark report artifact.
 
-Returns the same observation structure as `/reset` and `/step`.
-
----
-
-### Get Leaderboard
-
-Retrieve the latest benchmark results.
-
-```http
-GET /leaderboard
-```
-
-**Response:**
-
-```json
-{
-  "benchmark": "ledgershield",
-  "timestamp": "2026-04-07T10:30:00Z",
-  "results": [
-    {
-      "case_id": "CASE-A-001",
-      "task_type": "task_a",
-      "score": 0.998,
-      "steps": 5,
-      "success": true
-    },
-    ...
-  ],
-  "summary": {
-    "mean_score": 0.969,
-    "total_cases": 12,
-    "pass_rate": 1.0
-  }
-}
-```
-
----
-
-### Get Benchmark Report
-
-Retrieve detailed benchmark report.
-
-```http
-GET /benchmark-report
-```
-
-**Response:**
+Typical response shape:
 
 ```json
 {
   "benchmark": "ledgershield-v3",
-  "generated_at": "2026-04-07T10:30:00Z",
-  "public_cases": {
-    "mean_score": 0.9688,
-    "pass_at_threshold": 1.0
-  },
-  "holdout_cases": {
-    "mean_score": 0.6621,
-    "pass_at_threshold": 0.619
-  },
-  "case_results": [...]
+  "generated_at": "2026-04-08T12:00:00+00:00",
+  "entries": [
+    {
+      "model": "openai/gpt-4.1-mini",
+      "type": "deterministic-policy",
+      "public_mean": 0.9674,
+      "holdout_mean": 0.6649,
+      "holdout_pass_k_consistent": 0.619
+    }
+  ]
 }
 ```
 
-## Action Types
+### `GET /benchmark-report`
 
-### Investigation Actions
+Returns the latest benchmark report artifact if present. If none exists yet, the endpoint returns a placeholder note telling you to run `benchmark_report.py`.
 
-| Action | Description | Cost | Payload |
-|--------|-------------|------|---------|
-| `zoom` | Inspect document region | 0.20 | `{"doc_id": "...", "page": 1, "bbox": [x1, y1, x2, y2]}` |
-| `get_doc_crop` | Get cropped region | 0.20 | `{"doc_id": "...", "page": 1, "bbox": [x1, y1, x2, y2]}` |
-| `ocr` | Extract text from document | 0.45 (fast) / 1.10 (accurate) | `{"doc_id": "...", "mode": "fast"\|"accurate", "page"?: int, "bbox"?: [...]}` |
-| `lookup_vendor` | Query vendor master | 0.20 | `{"vendor_key": "..."}` |
-| `lookup_vendor_history` | Get vendor change history | 0.25 | `{"vendor_key": "..."}` |
-| `lookup_policy` | Retrieve policy rules | 0.15 | `{}` or `{"policy_id": "..."}` |
-| `lookup_po` | Load purchase order | 0.20 | `{"po_id": "..."}` |
-| `lookup_receipt` | Load goods receipt | 0.20 | `{"receipt_id": "..."}` |
-| `search_ledger` | Search for duplicates | 0.35 | `{"vendor_key": "...", "invoice_number": "...", "amount": float}` |
-| `inspect_email_thread` | Analyze email thread | 0.25 | `{"thread_id": "..."}` |
-| `compare_bank_account` | Validate bank account | 0.15 | `{"vendor_key": "...", "proposed_bank_account": "..."}` |
+## Observation Shape
 
-### Intervention Actions
+The observation returned by `/reset` and `/step` includes:
 
-| Action | Description | Cost | Payload |
-|--------|-------------|------|---------|
-| `request_callback_verification` | Request vendor callback | 0.40 | `{}` |
-| `freeze_vendor_profile` | Freeze vendor account | 0.20 | `{}` |
-| `request_bank_change_approval_chain` | Request bank change approval | 0.30 | `{}` |
-| `request_po_reconciliation` | Request PO reconciliation | 0.30 | `{}` |
-| `request_additional_receipt_evidence` | Request additional receipts | 0.25 | `{}` |
-| `route_to_procurement` | Route to procurement | 0.15 | `{}` |
-| `route_to_security` | Route to security | 0.20 | `{}` |
-| `flag_duplicate_cluster_review` | Flag for duplicate review | 0.25 | `{}` |
-| `create_human_handoff` | Create handoff packet | 0.20 | `{"summary": "...", "recommended_next_step": "...", "confidence": float}` |
+| Field | Type | Notes |
+|---|---|---|
+| `case_id` | string | current case ID |
+| `task_type` | string | one of `task_a`..`task_e` |
+| `instruction` | string | natural-language episode instruction |
+| `visible_documents` | list | document catalog entries only, not raw OCR |
+| `revealed_artifacts` | list | artifacts unlocked by interventions |
+| `pending_events` | list | future artifact events not yet resolved |
+| `budget_remaining` | float | current remaining budget |
+| `budget_total` | float | episode budget |
+| `step_count` | integer | executed step count |
+| `max_steps` | integer | episode cap |
+| `case_clock` | integer | logical clock used by delayed events |
+| `risk_snapshot` | object | summarized public risk signals |
+| `investigation_status` | object | tool/intervention/reveal counts |
+| `last_tool_result` | object | payload from the most recent action |
+| `messages` | list[string] | user-facing environment messages |
+| `allowed_actions` | list[string] | investigation + intervention + final action names |
+| `available_interventions` | list[string] | intervention subset |
+| `case_metadata` | object | task label and due-date info |
+| `portfolio_context` | object | cross-invoice/campaign context when relevant |
 
-### Terminal Action
+## Action Taxonomy
 
-| Action | Description | Cost | Payload |
-|--------|-------------|------|---------|
-| `submit_decision` | Submit final decision | 0.0 | See [Decision Payload](#decision-payload) |
+### Investigation actions
 
-## Decision Payload
+| Action | Required payload |
+|---|---|
+| `zoom` | `doc_id`, optional `page`, `bbox` |
+| `get_doc_crop` | `doc_id`, optional `page`, `bbox` |
+| `ocr` | `doc_id`, optional `mode`, `page`, `bbox` |
+| `lookup_vendor` | `vendor_key` |
+| `lookup_vendor_history` | `vendor_key` |
+| `lookup_policy` | optional `rule_id` |
+| `lookup_po` | `po_id` |
+| `lookup_receipt` | `receipt_id` |
+| `search_ledger` | optional `vendor_key`, `invoice_number`, `amount` |
+| `inspect_email_thread` | `thread_id` |
+| `compare_bank_account` | `vendor_key`, `proposed_bank_account` |
 
-When submitting a decision via `submit_decision`:
+### Intervention actions
+
+| Action | Typical use |
+|---|---|
+| `request_callback_verification` | verify vendor identity or remittance changes |
+| `freeze_vendor_profile` | contain high-risk vendor state |
+| `request_bank_change_approval_chain` | unlock approval-chain artifact |
+| `request_po_reconciliation` | unlock PO reconciliation artifact |
+| `request_additional_receipt_evidence` | unlock receipt reconciliation artifact |
+| `route_to_procurement` | route operationally |
+| `route_to_security` | escalate suspicious incidents |
+| `flag_duplicate_cluster_review` | request duplicate cluster artifact |
+| `create_human_handoff` | create structured handoff packet |
+
+### Final decision action
+
+`submit_decision` carries the structured task output.
+
+Minimal example:
 
 ```json
 {
@@ -338,229 +308,40 @@ When submitting a decision via `submit_decision`:
   "payload": {
     "decision": "ESCALATE_FRAUD",
     "confidence": 0.95,
-    "extracted_fields": {
-      "vendor_name": "Acme Corp",
-      "invoice_number": "INV-001",
-      "invoice_date": "2026-04-01",
-      "total": 5000.00,
-      "currency": "USD"
-    },
-    "line_items": [
-      {
-        "description": "Consulting services",
-        "qty": 10,
-        "unit_price": 500.00,
-        "line_total": 5000.00
-      }
-    ],
-    "discrepancies": ["price_mismatch"],
-    "duplicate_links": ["LED-001"],
-    "fraud_flags": ["bank_override_attempt", "sender_domain_spoof"],
-    "reason_codes": ["bank_override_attempt", "approval_threshold_evasion"],
+    "reason_codes": ["sender_domain_spoof", "bank_override_attempt"],
     "policy_checks": {
-      "three_way_match": "fail",
-      "bank_change_verification": "fail",
-      "duplicate_check": "fail",
-      "approval_threshold_check": "fail"
+      "bank_change_verification": "fail"
     },
-    "evidence_map": {
-      "bank_override_attempt": {
-        "doc_id": "INV-D-001",
-        "page": 1,
-        "bbox": [100, 200, 300, 250],
-        "token_ids": ["tok_1", "tok_2"]
-      }
-    },
-    "counterfactual": "Would PAY if sender domain matched and bank account was verified.",
-    "notes": "Multiple risk signals detected.",
-    "recommended_next_action": "manual_review",
-    "handoff_packet": {
-      "summary": "High-risk case with multiple fraud indicators.",
-      "recommended_next_step": "fraud_investigation",
-      "confidence": 0.95
-    },
-    "intervention_log": [
-      {"action": "request_callback_verification", "step": 5}
-    ],
-    "campaign_signals": ["shared_bank_account", "coordinated_timing"],
-    "cross_invoice_links": ["INV-D-001", "INV-D-002"]
+    "evidence_map": {}
   }
 }
 ```
 
-**Decision Values:**
-- `PAY` - Release payment
-- `HOLD` - Hold for review
-- `NEEDS_REVIEW` - Escalate for human review
-- `ESCALATE_FRAUD` - Escalate as potential fraud
+## Reward Model
 
-## Data Models
+Every step may include `info.reward_model` and `observation.last_tool_result.reward_model` with:
 
-### LedgerShieldObservation
+| Field | Meaning |
+|---|---|
+| `value` | scalar reward emitted for the step |
+| `terminal` | whether the reward ended the episode |
+| `components` | shaping/cost/outcome breakdown |
+| `metadata` | action type, success flag, terminal reason, and other step context |
 
-```python
-@dataclass
-class LedgerShieldObservation:
-    case_id: str                    # Case identifier
-    task_type: str                  # Task family (task_a..task_e)
-    instruction: str                # Task instructions
-    visible_documents: List[dict]   # Available documents
-    revealed_artifacts: List[dict]  # Unlocked artifacts
-    pending_events: List[dict]      # Scheduled events
-    budget_remaining: float         # Remaining budget
-    budget_total: float             # Initial budget
-    step_count: int                 # Current step
-    max_steps: int                  # Step limit
-    case_clock: int                 # Case time counter
-    risk_snapshot: dict             # Risk telemetry
-    investigation_status: dict      # Investigation metrics
-    last_tool_result: dict          # Last action result
-    messages: List[str]             # Status messages
-    allowed_actions: List[str]      # Available actions
-    available_interventions: List[str]  # Available interventions
-    case_metadata: dict             # Case metadata
-    portfolio_context: dict         # Campaign context
-```
+The environment currently combines:
 
-### LedgerShieldAction
+- action cost penalties
+- PBRS shaping delta
+- information-gain bonus
+- milestone rewards
+- terminal score on `submit_decision`
 
-```python
-@dataclass
-class LedgerShieldAction:
-    action_type: str        # Action name
-    payload: dict          # Action parameters
-```
+## Python API Notes
 
-### LedgerShieldReward
+The HTTP API is the main integration path, but the Python environment class also exposes:
 
-```python
-class LedgerShieldReward(BaseModel):
-    value: float           # Reward value
-    terminal: bool         # Is terminal reward
-    components: dict       # Reward breakdown
-    metadata: dict         # Context
-```
+- `LedgerShieldEnvironment.action_space()`
+- `LedgerShieldEnvironment.observation_space()`
+- `LedgerShieldEnvironment.render(mode="text")`
 
-### StepResult
-
-```python
-@dataclass
-class StepResult:
-    observation: LedgerShieldObservation
-    reward: float
-    done: bool
-    info: dict
-```
-
-## Error Handling
-
-### Error Responses
-
-All errors follow this format:
-
-```json
-{
-  "error": {
-    "code": "INVALID_ACTION",
-    "message": "Action type 'invalid_action' is not allowed",
-    "details": {}
-  }
-}
-```
-
-### Common Error Codes
-
-| Code | HTTP Status | Description |
-|------|-------------|-------------|
-| `INVALID_CASE_ID` | 400 | Case not found |
-| `INVALID_ACTION` | 400 | Action not in allowed list |
-| `INVALID_DECISION` | 400 | Decision not in allowed values |
-| `EPISODE_NOT_INITIALIZED` | 409 | Call /reset first |
-| `BUDGET_EXHAUSTED` | 400 | No budget remaining |
-| `MAX_STEPS_REACHED` | 400 | Step limit exceeded |
-| `INTERNAL_ERROR` | 500 | Server error |
-
-## Rate Limiting
-
-The API does not implement rate limiting, but each episode has:
-- **Budget limit**: Total investigation budget per case
-- **Step limit**: Maximum actions per episode
-
-## Example Usage
-
-### Complete Episode Flow
-
-```python
-import requests
-
-BASE_URL = "http://localhost:8000"
-
-# 1. Reset episode
-response = requests.post(f"{BASE_URL}/reset", json={"case_id": "CASE-D-001"})
-obs = response.json()
-
-# 2. Get invoice document ID
-invoice_doc = next(d for d in obs["visible_documents"] if d["doc_type"] == "invoice")
-doc_id = invoice_doc["doc_id"]
-
-# 3. OCR the invoice
-response = requests.post(f"{BASE_URL}/step", json={
-    "action_type": "ocr",
-    "payload": {"doc_id": doc_id, "mode": "accurate"}
-})
-result = response.json()
-obs = result["observation"]
-
-# 4. Inspect email thread
-email_doc = next(d for d in obs["visible_documents"] if d["doc_type"] == "email")
-response = requests.post(f"{BASE_URL}/step", json={
-    "action_type": "inspect_email_thread",
-    "payload": {"thread_id": email_doc["doc_id"]}
-})
-
-# 5. Request callback verification
-response = requests.post(f"{BASE_URL}/step", json={
-    "action_type": "request_callback_verification",
-    "payload": {}
-})
-
-# 6. Submit decision
-response = requests.post(f"{BASE_URL}/step", json={
-    "action_type": "submit_decision",
-    "payload": {
-        "decision": "ESCALATE_FRAUD",
-        "confidence": 0.95,
-        "reason_codes": ["bank_override_attempt", "sender_domain_spoof"],
-        "evidence_map": {...}
-    }
-})
-final = response.json()
-print(f"Final score: {final['observation']['last_tool_result']['final_score']}")
-```
-
-## WebSocket Support
-
-Currently, LedgerShield uses HTTP REST API only. WebSocket support is not implemented.
-
-## Authentication
-
-The LedgerShield environment server does not require authentication. Authentication is handled at the client level when calling LLM APIs (e.g., Hugging Face, OpenAI).
-
-## Versioning
-
-API version is tied to the LedgerShield package version. The current version is available in the `/health` endpoint response.
-
-## OpenEnv Compatibility
-
-LedgerShield implements the OpenEnv standard API:
-
-- `POST /reset` - Initialize episode
-- `POST /step` - Execute action
-- `GET /state` - Get current state
-- `GET /health` - Health check
-
-Additional endpoints:
-- `GET /leaderboard` - Benchmark results
-- `GET /benchmark-report` - Detailed report
-
-See [OpenEnv Specification](https://github.com/openenv/spec) for standard compliance details.
+These are useful for local experiments and Gymnasium-style tooling, but they are not separate REST endpoints.

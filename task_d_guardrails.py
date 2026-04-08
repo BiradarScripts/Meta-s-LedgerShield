@@ -27,13 +27,24 @@ def derive_email_thread_signals(thread: dict[str, Any]) -> set[str]:
         if normalize_text(flag)
     }
 
-    if normalize_text(sender_profile.get("domain_alignment")) == "mismatch":
+    domain_mismatch = normalize_text(sender_profile.get("domain_alignment")) == "mismatch"
+    bank_change_language = bool(request_signals.get("bank_change_language"))
+    callback_discouraged = bool(request_signals.get("callback_discouraged"))
+    policy_override_language = bool(request_signals.get("policy_override_language"))
+    urgency_language = bool(request_signals.get("urgency_language"))
+    suspicious_bank_change = bank_change_language and (
+        domain_mismatch or callback_discouraged or policy_override_language or urgency_language
+    )
+
+    if domain_mismatch:
         signals.add("sender_domain_spoof")
-    if bool(request_signals.get("bank_change_language")):
+    if suspicious_bank_change:
         signals.add("bank_override_attempt")
-    if bool(request_signals.get("callback_discouraged")) or bool(request_signals.get("policy_override_language")):
+    else:
+        signals.discard("bank_override_attempt")
+    if callback_discouraged or policy_override_language:
         signals.add("policy_bypass_attempt")
-    if bool(request_signals.get("urgency_language")):
+    if urgency_language:
         signals.add("urgent_payment_pressure")
 
     return signals
@@ -56,6 +67,44 @@ def make_task_d_counterfactual(candidate: Any) -> str:
         "Would PAY if the sender domain matched approved vendor records, "
         "the bank account matched vendor master, and no duplicate cluster existed."
     )
+
+
+def _clean_pay_evidence(collected: dict[str, Any], primary_record: dict[str, Any]) -> dict[str, Any]:
+    evidence_map: dict[str, Any] = {}
+    primary_evidence = primary_record.get("evidence", {}) or {}
+    email_evidence = collected.get("email_evidence", {}) or {}
+    email_thread = collected.get("email_thread") or {}
+    ledger_search = collected.get("ledger_search") or {}
+    ledger_hits = collected.get("ledger_hits", []) or []
+    bank_compares = collected.get("bank_compares") or (
+        [collected.get("bank_compare")] if collected.get("bank_compare") else []
+    )
+
+    if any(compare and bool(compare.get("matched")) for compare in bank_compares):
+        bank_evidence = primary_evidence.get("bank_account")
+        if bank_evidence:
+            evidence_map["bank_account_verified"] = bank_evidence
+
+    sender_alignment = normalize_text((email_thread.get("sender_profile", {}) or {}).get("domain_alignment"))
+    if sender_alignment in {"aligned", "match"} and "from_header" in email_evidence:
+        evidence_map["sender_domain_verified"] = email_evidence["from_header"]
+
+    duplicate_detected = bool(ledger_hits) or int(ledger_search.get("exact_duplicate_count", 0) or 0) > 0
+    if not duplicate_detected:
+        duplicate_evidence = primary_evidence.get("invoice_number") or email_evidence.get("subject_header")
+        if duplicate_evidence:
+            evidence_map["duplicate_check_cleared"] = duplicate_evidence
+
+    if not evidence_map:
+        fallback = (
+            primary_evidence.get("invoice_number")
+            or primary_evidence.get("bank_account")
+            or email_evidence.get("from_header")
+        )
+        if fallback:
+            evidence_map["case_reviewed"] = fallback
+
+    return evidence_map
 
 
 def _task_d_findings(collected: dict[str, Any]) -> dict[str, Any]:
@@ -160,13 +209,13 @@ def _task_d_findings(collected: dict[str, Any]) -> dict[str, Any]:
 
 def grounded_task_d_submission(collected: dict[str, Any], *, counterfactual: Any = "") -> dict[str, Any]:
     findings = _task_d_findings(collected)
-    if not findings["suspicious"]:
+    if not findings["suspicious"] or not findings["reason_codes"]:
         return {
             "decision": "PAY",
             "confidence": 0.88,
             "reason_codes": [],
             "policy_checks": policy_check_payload("pass", "pass", "pass"),
-            "evidence_map": {},
+            "evidence_map": _clean_pay_evidence(collected, findings["primary_record"]),
             "counterfactual": (
                 "Would HOLD if the sender domain changed, the bank account mismatched "
                 "vendor master, or a duplicate cluster appeared in ledger history."
@@ -223,9 +272,11 @@ def sanitize_task_d_submission(candidate: dict[str, Any], collected: dict[str, A
         candidate_ref = candidate_evidence.get(reason)
         evidence_map[reason] = candidate_ref if _looks_like_token_ref(candidate_ref) else grounded_evidence.get(reason)
 
+    grounded_is_pay = normalize_text(grounded.get("decision")) == "pay"
+
     if decision != "ESCALATE_FRAUD":
         candidate_reason_codes = []
-        evidence_map = {}
+        evidence_map = dict(grounded.get("evidence_map", {}) or {}) if grounded_is_pay else {}
 
     return {
         "decision": decision,

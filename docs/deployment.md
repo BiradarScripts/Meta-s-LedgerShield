@@ -1,684 +1,206 @@
 # Deployment Guide
 
-Guide for deploying LedgerShield in various environments.
+This guide explains how to run LedgerShield locally, in Docker, or as a Docker-backed Hugging Face Space, and documents the runtime environment variables that control benchmark behavior.
 
-## Table of Contents
+## Deployment Modes
 
-- [Local Deployment](#local-deployment)
-- [Docker Deployment](#docker-deployment)
-- [Hugging Face Spaces](#hugging-face-spaces)
-- [Production Deployment](#production-deployment)
-- [Environment Variables](#environment-variables)
-- [Monitoring and Logging](#monitoring-and-logging)
-- [Troubleshooting](#troubleshooting)
+### Local Python process
 
-## Local Deployment
-
-### Quick Start
+Best for development and testing.
 
 ```bash
-# 1. Clone repository
-git clone https://github.com/BiradarScripts/Meta-s-LedgerShield.git
-cd Meta-s-LedgerShield
-
-# 2. Create virtual environment
 python -m venv .venv
 source .venv/bin/activate
-
-# 3. Install dependencies
 pip install -e .
 pip install -r requirements.txt
-
-# 4. Run server
 python -m server.app
 ```
 
-The server will start on `http://localhost:8000`.
+Default bind:
 
-### Systemd Service (Linux)
+- host: `0.0.0.0`
+- port: `8000`
 
-Create a systemd service for production use:
-
-```ini
-# /etc/systemd/system/ledgershield.service
-[Unit]
-Description=LedgerShield Environment Server
-After=network.target
-
-[Service]
-Type=simple
-User=ledgershield
-WorkingDirectory=/opt/ledgershield
-Environment=PYTHONPATH=/opt/ledgershield
-Environment=PORT=8000
-Environment=HOST=0.0.0.0
-ExecStart=/opt/ledgershield/.venv/bin/python -m server.app
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Enable and start:
+Health check:
 
 ```bash
-sudo systemctl daemon-reload
-sudo systemctl enable ledgershield
-sudo systemctl start ledgershield
-sudo systemctl status ledgershield
+curl http://127.0.0.1:8000/health
 ```
 
-### PM2 (Node.js Process Manager)
+### Docker
 
-```json
-// ecosystem.config.js
-module.exports = {
-  apps: [{
-    name: 'ledgershield',
-    cwd: '/opt/ledgershield',
-    script: '.venv/bin/python',
-    args: '-m server.app',
-    env: {
-      PYTHONPATH: '/opt/ledgershield',
-      PORT: 8000,
-      HOST: '0.0.0.0'
-    },
-    instances: 1,
-    autorestart: true,
-    watch: false,
-    max_memory_restart: '1G'
-  }]
-}
-```
+The repo ships with a ready-to-build [`../Dockerfile`](../Dockerfile).
 
-Start with PM2:
-
-```bash
-pm2 start ecosystem.config.js
-pm2 save
-pm2 startup
-```
-
-## Docker Deployment
-
-### Build Image
+Build:
 
 ```bash
 docker build -t ledgershield:latest .
 ```
 
-### Run Container
+Run:
 
 ```bash
-docker run -d \
-  --name ledgershield \
-  -p 8000:8000 \
-  --restart unless-stopped \
-  ledgershield:latest
+docker run --rm -p 8000:8000 ledgershield:latest
 ```
 
-### Docker Compose
-
-```yaml
-# docker-compose.yml
-version: '3.8'
-
-services:
-  ledgershield:
-    build: .
-    container_name: ledgershield
-    ports:
-      - "8000:8000"
-    environment:
-      - PORT=8000
-      - HOST=0.0.0.0
-      - LEDGERSHIELD_INCLUDE_HOLDOUT=0
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-```
-
-Deploy:
+Smoke test:
 
 ```bash
-docker-compose up -d
+curl http://127.0.0.1:8000/health
 ```
 
-### Multi-Stage Build (Optimized)
+### Hugging Face Spaces
 
-```dockerfile
-# Dockerfile.optimized
-FROM python:3.11-slim as builder
+The root `README.md` includes Docker Space front matter, and `openenv.yaml` describes the benchmark metadata. For a Docker Space deployment:
 
-WORKDIR /app
-RUN pip install --user --no-cache-dir \
-    fastapi uvicorn pydantic requests pyyaml httpx
+1. create a new Hugging Face Space using the Docker SDK
+2. push this repo contents to the Space
+3. ensure the Space exposes port `8000`
+4. verify `/health`, `/reset`, and `/step`
 
-FROM python:3.11-slim
+### CI-backed validation
 
-WORKDIR /app
-COPY --from=builder /root/.local /root/.local
-COPY . .
+GitHub Actions already validates:
 
-ENV PATH=/root/.local/bin:$PATH
-ENV PYTHONPATH=/app
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+- Python test runs
+- Docker build and container smoke test
+- `openenv.yaml` integrity
 
-EXPOSE 8000
+See [`../.github/workflows/ci.yml`](../.github/workflows/ci.yml).
 
-CMD ["python", "-m", "uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", "8000"]
-```
+## Runtime Environment Variables
 
-### Kubernetes Deployment
+### Server bind settings
 
-```yaml
-# k8s-deployment.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: ledgershield
-  labels:
-    app: ledgershield
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: ledgershield
-  template:
-    metadata:
-      labels:
-        app: ledgershield
-    spec:
-      containers:
-      - name: ledgershield
-        image: ledgershield:latest
-        ports:
-        - containerPort: 8000
-        env:
-        - name: PORT
-          value: "8000"
-        - name: HOST
-          value: "0.0.0.0"
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "250m"
-          limits:
-            memory: "1Gi"
-            cpu: "500m"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8000
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 8000
-          initialDelaySeconds: 5
-          periodSeconds: 5
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: ledgershield-service
-spec:
-  selector:
-    app: ledgershield
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 8000
-  type: ClusterIP
-```
+| Variable | Default | Meaning |
+|---|---|---|
+| `HOST` | `0.0.0.0` | bind host used by `server.app:main` |
+| `PORT` | `8000` | bind port used by `server.app:main` |
 
-Apply:
+### Case-loader controls
+
+These are read by [`../server/data_loader.py`](../server/data_loader.py).
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `LEDGERSHIELD_INCLUDE_CHALLENGE` | `true` | include generated challenge variants in the loaded case pool |
+| `LEDGERSHIELD_CHALLENGE_VARIANTS` | `2` | number of generated challenge variants per hard case |
+| `LEDGERSHIELD_CHALLENGE_SEED` | `2026` | RNG seed for challenge generation |
+| `LEDGERSHIELD_INCLUDE_HOLDOUT` | `false` | include generated holdout cases in the loaded case pool |
+| `LEDGERSHIELD_HOLDOUT_VARIANTS` | `1` | holdout variants per hard case |
+| `LEDGERSHIELD_HOLDOUT_SEED` | `31415` | RNG seed for holdout generation |
+| `LEDGERSHIELD_INCLUDE_TWINS` | `false` | include benign contrastive twins in the loaded case pool |
+
+### Agent-side variables
+
+Common variables used by `inference.py` and related scripts:
+
+| Variable | Typical use |
+|---|---|
+| `API_BASE_URL` | OpenAI-compatible API endpoint |
+| `MODEL_NAME` | model name for inference |
+| `HF_TOKEN` | token used by the submission-safe agent |
+| `OPENAI_API_KEY` | credential for live comparison scripts |
+| `ENV_URL` | environment server base URL |
+| `LOCAL_IMAGE_NAME` | optional Docker image name for local environment use |
+
+## Operational Checks
+
+### Basic API checks
 
 ```bash
-kubectl apply -f k8s-deployment.yaml
+curl http://127.0.0.1:8000/health
+curl http://127.0.0.1:8000/
 ```
 
-## Hugging Face Spaces
-
-### Setup
-
-1. **Create a new Space** on Hugging Face:
-   - Select "Docker" as SDK
-   - Name it (e.g., "ledgershield")
-
-2. **Clone the Space**:
+### Reset a known case
 
 ```bash
-git clone https://huggingface.co/spaces/YOUR_USERNAME/ledgershield
+curl -X POST http://127.0.0.1:8000/reset \
+  -H 'Content-Type: application/json' \
+  -d '{"case_id":"CASE-A-001"}'
 ```
 
-3. **Push the code**:
+### Run benchmark report generation locally
 
 ```bash
-cd Meta-s-LedgerShield
-# Copy all files to the Space repo
-cp -r * /path/to/ledgershield/
-cd /path/to/ledgershield
-git add .
-git commit -m "Initial commit"
-git push
+python benchmark_report.py --format markdown
 ```
 
-4. **Configure Secrets** in Space Settings:
-   - `API_BASE_URL`: `https://api.openai.com/v1`
-   - `MODEL_NAME`: `gpt-5.4`
-   - `HF_TOKEN`: Your API token
+Generated artifacts land under `artifacts/` when written.
 
-5. **Add OpenEnv tag** to Space metadata
+## Recommended Deployment Profiles
 
-### Space Configuration
+### Minimal benchmark server
 
-Ensure `openenv.yaml` is in the root:
-
-```yaml
-spec_version: 1
-name: ledgershield
-type: space
-runtime: fastapi
-app: server.app:app
-port: 8000
-metadata:
-  formal_model: pomdp
-  horizon: finite
-  observation: partial
-```
-
-### README Frontmatter
-
-```markdown
----
-title: LedgerShield
-emoji: 🛡️
-colorFrom: blue
-colorTo: green
-sdk: docker
-app_port: 8000
-pinned: false
-tags:
-  - openenv
-  - fastapi
-  - agents
-  - finance
----
-```
-
-## Production Deployment
-
-### Reverse Proxy (Nginx)
-
-```nginx
-# /etc/nginx/sites-available/ledgershield
-server {
-    listen 80;
-    server_name ledgershield.example.com;
-
-    location / {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-        
-        # Timeouts
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 60s;
-        proxy_read_timeout 60s;
-    }
-}
-```
-
-Enable:
+Use this when you only need the curated benchmark and generated challenge variants:
 
 ```bash
-sudo ln -s /etc/nginx/sites-available/ledgershield /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl reload nginx
+HOST=0.0.0.0 PORT=8000 python -m server.app
 ```
 
-### SSL/TLS (Let's Encrypt)
+### Public benchmark only
+
+Disable generated challenge variants:
 
 ```bash
-sudo apt install certbot python3-certbot-nginx
-sudo certbot --nginx -d ledgershield.example.com
+LEDGERSHIELD_INCLUDE_CHALLENGE=0 python -m server.app
 ```
 
-### Load Balancing
-
-For multiple instances:
-
-```nginx
-upstream ledgershield {
-    least_conn;
-    server 127.0.0.1:8000;
-    server 127.0.0.1:8001;
-    server 127.0.0.1:8002;
-}
-
-server {
-    location / {
-        proxy_pass http://ledgershield;
-        # ... proxy settings
-    }
-}
-```
-
-## Environment Variables
-
-### Required Variables
-
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `PORT` | Server port | `8000` | No |
-| `HOST` | Bind address | `0.0.0.0` | No |
-
-### Optional Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `LEDGERSHIELD_DEBUG` | Enable debug mode | `0` |
-| `LEDGERSHIELD_INCLUDE_HOLDOUT` | Include holdout cases | `0` |
-| `LEDGERSHIELD_HOLDOUT_SEED` | Holdout generation seed | `31415` |
-| `LEDGERSHIELD_HOLDOUT_VARIANTS` | Variants per holdout case | `1` |
-| `LEDGERSHIELD_INCLUDE_CHALLENGE` | Include challenge variants | `0` |
-| `LEDGERSHIELD_CHALLENGE_SEED` | Challenge generation seed | `42` |
-| `LEDGERSHIELD_INCLUDE_TWINS` | Include benign twins | `0` |
-
-### Client Variables (for inference.py)
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `API_BASE_URL` | LLM API base URL | Yes |
-| `MODEL_NAME` | Model identifier | Yes |
-| `HF_TOKEN` | Hugging Face token | Yes |
-| `OPENAI_API_KEY` | OpenAI API key (fallback) | No |
-| `ENV_URL` | Environment server URL | Yes |
-
-### Example .env File
+### Holdout-enabled evaluation server
 
 ```bash
-# Server configuration
-PORT=8000
-HOST=0.0.0.0
-
-# Debug mode
-LEDGERSHIELD_DEBUG=0
-
-# Case generation
-LEDGERSHIELD_INCLUDE_HOLDOUT=0
-LEDGERSHIELD_INCLUDE_CHALLENGE=0
-
-# Client configuration (for inference)
-API_BASE_URL=https://api.openai.com/v1
-MODEL_NAME=gpt-5.4
-HF_TOKEN=your_api_token_here
-ENV_URL=http://localhost:8000
-```
-
-## Monitoring and Logging
-
-### Structured Logging
-
-```python
-# server/logging_config.py
-import logging
-import sys
-from pythonjsonlogger import jsonlogger
-
-def setup_logging():
-    logHandler = logging.StreamHandler(sys.stdout)
-    formatter = jsonlogger.JsonFormatter(
-        '%(timestamp)s %(level)s %(name)s %(message)s'
-    )
-    logHandler.setFormatter(formatter)
-    
-    logger = logging.getLogger()
-    logger.addHandler(logHandler)
-    logger.setLevel(logging.INFO)
-```
-
-### Health Checks
-
-```python
-@app.get("/health")
-def health_check():
-    return {
-        "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat(),
-        "version": "1.0.0",
-        "cases_loaded": len(env.db["cases"]),
-        "active_episodes": active_count
-    }
-```
-
-### Metrics (Prometheus)
-
-```python
-from prometheus_client import Counter, Histogram, generate_latest
-
-# Metrics
-REQUEST_COUNT = Counter('ledgershield_requests_total', 'Total requests')
-REQUEST_LATENCY = Histogram('ledgershield_request_duration_seconds', 'Request latency')
-EPISODE_COUNT = Counter('ledgershield_episodes_total', 'Total episodes')
-
-@app.get("/metrics")
-def metrics():
-    return generate_latest()
-```
-
-### Log Aggregation
-
-Send logs to centralized system:
-
-```yaml
-# docker-compose.logging.yml
-version: '3.8'
-
-services:
-  ledgershield:
-    logging:
-      driver: "fluentd"
-      options:
-        fluentd-address: localhost:24224
-        tag: docker.ledgershield
-```
-
-## Troubleshooting
-
-### Server Won't Start
-
-**Check logs:**
-
-```bash
-# Docker
-docker logs ledgershield
-
-# Systemd
-sudo journalctl -u ledgershield -f
-
-# Manual
-python -m server.app 2>&1 | tee server.log
-```
-
-**Common causes:**
-- Port already in use: Change `PORT` environment variable
-- Missing dependencies: Run `pip install -e .`
-- Permission errors: Check file permissions
-
-### High Memory Usage
-
-**Solutions:**
-- Reduce concurrent episodes
-- Enable garbage collection
-- Use process pool instead of threads
-
-```python
-# Limit memory
-import resource
-resource.setrlimit(resource.RLIMIT_AS, (2 * 1024 * 1024 * 1024, -1))  # 2GB
-```
-
-### Slow Response Times
-
-**Check:**
-- CPU usage: `htop`
-- Disk I/O: `iostat`
-- Network latency: `ping`
-
-**Optimizations:**
-- Use connection pooling
-- Enable response caching
-- Add load balancer
-
-### Case Not Found
-
-```bash
-# Verify fixtures are loaded
-python -c "from server.data_loader import load_all; db = load_all(); print(len(db['cases']), 'cases loaded')"
-```
-
-### API Errors
-
-**Enable debug mode:**
-
-```bash
-export LEDGERSHIELD_DEBUG=1
+LEDGERSHIELD_INCLUDE_HOLDOUT=1 \
+LEDGERSHIELD_HOLDOUT_VARIANTS=1 \
 python -m server.app
 ```
 
-**Test endpoints:**
+### Calibration-heavy server with twins
 
 ```bash
-# Health check
-curl http://localhost:8000/health
-
-# Reset episode
-curl -X POST http://localhost:8000/reset \
-  -H "Content-Type: application/json" \
-  -d '{"case_id": "CASE-A-001"}'
+LEDGERSHIELD_INCLUDE_TWINS=1 python -m server.app
 ```
 
-## Security Considerations
+## Production Notes
 
-### Network Security
+LedgerShield is still a benchmark, not a payment system. For production-like hosting:
 
-- Use firewall rules to restrict access
-- Deploy behind reverse proxy with SSL
-- Use VPN for internal deployments
+- terminate TLS outside the app
+- health-check `/health`
+- treat the service as stateless and restartable
+- version-control `openenv.yaml` and benchmark artifacts
+- avoid mixing benchmark servers with live finance systems
 
-### Application Security
+## Troubleshooting
 
-```python
-# Rate limiting
-from slowapi import Limiter
+### Server starts but endpoints fail
 
-limiter = Limiter(key_func=get_remote_address)
-app.state.limiter = limiter
+Check:
 
-@app.post("/reset")
-@limiter.limit("10/minute")
-def reset(request: Request, ...):
-    ...
-```
+- port `8000` is not already in use
+- dependencies from `requirements.txt` are installed
+- you are running from the repo root so fixture paths resolve correctly
 
-### Data Security
+### Docker container builds but health check fails
 
-- No sensitive data in fixtures (use synthetic data)
-- No logging of PII
-- Encrypt environment variables
+Check:
 
-## Backup and Recovery
+- `curl http://localhost:8000/health`
+- container logs for import/path issues
+- whether your host already has something bound to `8000`
 
-### Backup Fixtures
+### Unexpected case counts
+
+Remember that the loader includes challenge variants by default. If you expect only the curated 21-case benchmark, set:
 
 ```bash
-# Create backup
-tar -czf ledgershield-backup-$(date +%Y%m%d).tar.gz server/fixtures/
-
-# Restore
-tar -xzf ledgershield-backup-20260407.tar.gz
+LEDGERSHIELD_INCLUDE_CHALLENGE=0
 ```
 
-### Database Backup (if using external DB)
+### Missing benchmark report endpoint data
+
+`/benchmark-report` and `/leaderboard` only return rich artifacts after report generation. Run:
 
 ```bash
-# MongoDB example
-mongodump --db ledgershield --out /backup/
-
-# Restore
-mongorestore --db ledgershield /backup/ledgershield/
+python benchmark_report.py --format json
 ```
-
-## Scaling
-
-### Horizontal Scaling
-
-Deploy multiple instances behind load balancer:
-
-```
-Load Balancer
-    ├── Instance 1 (Port 8000)
-    ├── Instance 2 (Port 8001)
-    └── Instance 3 (Port 8002)
-```
-
-### Vertical Scaling
-
-Increase resources:
-
-```yaml
-# docker-compose.yml
-services:
-  ledgershield:
-    deploy:
-      resources:
-        limits:
-          cpus: '2.0'
-          memory: 2G
-```
-
-## Maintenance
-
-### Regular Tasks
-
-- Update dependencies monthly
-- Review logs weekly
-- Monitor disk space
-- Check SSL certificate expiration
-
-### Updates
-
-```bash
-# Update code
-git pull origin main
-
-# Update dependencies
-pip install -r requirements.txt --upgrade
-
-# Restart service
-sudo systemctl restart ledgershield
-```
-
-## Support
-
-For deployment issues:
-
-1. Check [Troubleshooting](#troubleshooting) section
-2. Review server logs
-3. Search [GitHub Issues](https://github.com/BiradarScripts/Meta-s-LedgerShield/issues)
-4. Create new issue with deployment details

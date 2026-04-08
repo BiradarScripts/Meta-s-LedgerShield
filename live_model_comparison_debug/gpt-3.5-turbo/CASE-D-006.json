@@ -48,7 +48,34 @@
         "confidence": 1.0,
         "counterfactual": "What conditions would make this PAY instead of ESCALATE? No fraud indicators present.",
         "decision": "PAY",
-        "evidence_map": {},
+        "evidence_map": {
+          "duplicate_check_cleared": {
+            "bbox": [
+              10,
+              30,
+              180,
+              40
+            ],
+            "doc_id": "INV-D-006",
+            "page": 1,
+            "token_ids": [
+              "d72"
+            ]
+          },
+          "sender_domain_verified": {
+            "bbox": [
+              10,
+              10,
+              220,
+              20
+            ],
+            "doc_id": "THR-LEGIT-001",
+            "page": 1,
+            "token_ids": [
+              "el1"
+            ]
+          }
+        },
         "policy_checks": {
           "approval_threshold_check": "pass",
           "bank_change_verification": "pass",
@@ -58,7 +85,7 @@
         "reason_codes": []
       },
       "phase": "submit",
-      "reward": 0.7187242222222223,
+      "reward": 0.7687242222222223,
       "step": 4,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -71,12 +98,8 @@
     "case_instruction": "Vendor has submitted a routine bank update through proper channels. Verify and process.",
     "email_ocr_loaded": true,
     "email_thread": {
-      "derived_flags": [
-        "bank_override_attempt"
-      ],
-      "flags": [
-        "bank_override_attempt"
-      ],
+      "derived_flags": [],
+      "flags": [],
       "request_signals": {
         "bank_change_language": true,
         "callback_discouraged": false,
@@ -109,6 +132,7 @@
     "observed_risk_signals": [],
     "pending_event_count": 0,
     "revealed_artifacts": [],
+    "tool_failures": {},
     "vendor": {
       "approved_domains": [
         "bluepeak.example.com"
@@ -119,7 +143,7 @@
   },
   "error": "",
   "final_info": {
-    "final_score": 0.7224,
+    "final_score": 0.7724,
     "outcome": {
       "outcome_type": "safe_payment_cleared",
       "portfolio_metrics": {
@@ -139,7 +163,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.7224,
+        "final_score": 0.7724,
         "potential_delta": -0.0037
       },
       "metadata": {
@@ -150,14 +174,14 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.7187
+      "value": 0.7687
     },
     "score_breakdown": {
       "calibration_score": 1.0,
       "callback_interpretation_score": 0.5,
       "counterfactual_score": 0.69,
       "decision_score": 1.0,
-      "degenerate_penalty": -0.09,
+      "degenerate_penalty": -0.04,
       "efficiency_score": 0.982,
       "evidence_score": 1.0,
       "intervention_score": 0.45,
@@ -174,8 +198,8 @@
       "case_clock": 4,
       "case_id": "CASE-D-006",
       "contrastive_pair_id": "",
-      "episode_id": "1304468f-ba79-4553-be07-47f3defd0cd3",
-      "final_score": 0.7224,
+      "episode_id": "05d563d7-156c-40a4-8209-cfbb677750a9",
+      "final_score": 0.7724,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 18,
@@ -251,7 +275,34 @@
     "confidence": 1.0,
     "counterfactual": "What conditions would make this PAY instead of ESCALATE? No fraud indicators present.",
     "decision": "PAY",
-    "evidence_map": {},
+    "evidence_map": {
+      "duplicate_check_cleared": {
+        "bbox": [
+          10,
+          30,
+          180,
+          40
+        ],
+        "doc_id": "INV-D-006",
+        "page": 1,
+        "token_ids": [
+          "d72"
+        ]
+      },
+      "sender_domain_verified": {
+        "bbox": [
+          10,
+          10,
+          220,
+          20
+        ],
+        "doc_id": "THR-LEGIT-001",
+        "page": 1,
+        "token_ids": [
+          "el1"
+        ]
+      }
+    },
     "policy_checks": {
       "approval_threshold_check": "pass",
       "bank_change_verification": "pass",
@@ -263,7 +314,7 @@
   "final_tool_result": {
     "cost": 0.0,
     "decision": "PAY",
-    "final_score": 0.7224,
+    "final_score": 0.7724,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "safe_payment_cleared",
@@ -284,7 +335,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.7224,
+        "final_score": 0.7724,
         "potential_delta": -0.0037
       },
       "metadata": {
@@ -295,7 +346,7 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.7187
+      "value": 0.7687
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
@@ -303,7 +354,7 @@
       "callback_interpretation_score": 0.5,
       "counterfactual_score": 0.69,
       "decision_score": 1.0,
-      "degenerate_penalty": -0.09,
+      "degenerate_penalty": -0.04,
       "efficiency_score": 0.982,
       "evidence_score": 1.0,
       "intervention_score": 0.45,
@@ -322,8 +373,8 @@
       "case_clock": 4,
       "case_id": "CASE-D-006",
       "contrastive_pair_id": "",
-      "episode_id": "1304468f-ba79-4553-be07-47f3defd0cd3",
-      "final_score": 0.7224,
+      "episode_id": "05d563d7-156c-40a4-8209-cfbb677750a9",
+      "final_score": 0.7724,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 18,
@@ -396,6 +447,17 @@
     "unsafe_outcome": false
   },
   "model": "gpt-3.5-turbo",
+  "model_profile": {
+    "capability_score": 3.2,
+    "decision_token_budget": 1024,
+    "intervention_budget_bonus": 0,
+    "investigation_budget_bonus": 0,
+    "model_name": "gpt-3.5-turbo",
+    "plan_mode": "llm",
+    "planning_token_budget": 384,
+    "repair_level": "none",
+    "tier": "standard"
+  },
   "outcome": {
     "outcome_type": "safe_payment_cleared",
     "portfolio_metrics": {
@@ -493,13 +555,13 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.7224,
+  "score": 0.7724,
   "score_breakdown": {
     "calibration_score": 1.0,
     "callback_interpretation_score": 0.5,
     "counterfactual_score": 0.69,
     "decision_score": 1.0,
-    "degenerate_penalty": -0.09,
+    "degenerate_penalty": -0.04,
     "efficiency_score": 0.982,
     "evidence_score": 1.0,
     "intervention_score": 0.45,
@@ -518,8 +580,8 @@
     "case_clock": 4,
     "case_id": "CASE-D-006",
     "contrastive_pair_id": "",
-    "episode_id": "1304468f-ba79-4553-be07-47f3defd0cd3",
-    "final_score": 0.7224,
+    "episode_id": "05d563d7-156c-40a4-8209-cfbb677750a9",
+    "final_score": 0.7724,
     "handoff_packet": {},
     "interventions_taken": [],
     "max_steps": 18,

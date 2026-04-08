@@ -70,25 +70,25 @@
       "tool_success": true
     },
     {
-      "action_type": "flag_duplicate_cluster_review",
+      "action_type": "request_callback_verification",
       "done": false,
       "payload": {},
       "phase": "intervention",
-      "reward": -0.0018369999999999949,
+      "reward": 0.033663000000000005,
       "step": 6,
       "tool_error": null,
-      "tool_name": "flag_duplicate_cluster_review",
+      "tool_name": "request_callback_verification",
       "tool_success": true
     },
     {
-      "action_type": "route_to_security",
+      "action_type": "freeze_vendor_profile",
       "done": false,
       "payload": {},
       "phase": "intervention",
-      "reward": 0.11348699999999998,
+      "reward": 0.0005589999999999918,
       "step": 7,
       "tool_error": null,
-      "tool_name": "route_to_security",
+      "tool_name": "freeze_vendor_profile",
       "tool_success": true
     },
     {
@@ -100,7 +100,7 @@
           "shared_bank_account"
         ],
         "confidence": 1.0,
-        "counterfactual": "The invoices from Northwind Industrial Supplies Pvt Ltd exhibit a clear pattern of evasion of the dual-approval threshold by splitting the payments across three invoices with the same suspicious bank account. This coordinated attempt raises significant fraud concerns and warrants further investigation.",
+        "counterfactual": "The invoices from Northwind Industrial Supplies Pvt Ltd exhibit a clear pattern of evasion of the dual-approval threshold by splitting the payments across three invoices with the same bank account. This coordinated attempt raises significant fraud concerns and warrants further investigation.",
         "cross_invoice_links": [
           "INV-E-001",
           "INV-E-002",
@@ -147,7 +147,7 @@
         ]
       },
       "phase": "submit",
-      "reward": 0.764387,
+      "reward": 0.801987,
       "step": 8,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -215,13 +215,10 @@
       "near_duplicate_count": null,
       "top_hits": []
     },
-    "observed_risk_signals": [
-      "duplicate_near_match"
-    ],
-    "pending_event_count": 0,
-    "revealed_artifacts": [
-      "duplicate_cluster_report"
-    ],
+    "observed_risk_signals": [],
+    "pending_event_count": 1,
+    "revealed_artifacts": [],
+    "tool_failures": {},
     "vendor": {
       "approved_domains": [
         "northwind.example.com"
@@ -232,7 +229,21 @@
   },
   "error": "",
   "final_info": {
-    "final_score": 0.7662,
+    "async_artifacts": [
+      {
+        "artifact_id": "callback_verification_result",
+        "artifact_type": "verification",
+        "details": {
+          "hidden_attacker_phone": null,
+          "hidden_vendor_compromised": null,
+          "outcome": "adversarial_confirm",
+          "response_text": "Call answered. Party confirmed account change, but voice did not match the registered contact and the callback originated from an unusual area code.",
+          "risk_signal": "callback_suspicious_confirm"
+        },
+        "summary": "Vendor callback outcome: adversarial_confirm."
+      }
+    ],
+    "final_score": 0.7702,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -252,18 +263,18 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.7662,
-        "potential_delta": -0.0018
+        "final_score": 0.7702,
+        "potential_delta": 0.0318
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0275,
+        "budget_penalty": 0.0284,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.7644
+      "value": 0.802
     },
     "score_breakdown": {
       "campaign_detection_score": 0.8,
@@ -271,39 +282,45 @@
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
       "evidence_score": 0.2417,
-      "intervention_score": 0.4,
+      "intervention_score": 0.45,
       "policy_score": 0.5,
       "pressure_event_score": 0.7143
     },
     "system_state": {
-      "budget_remaining": 16.95,
+      "budget_remaining": 16.8,
       "budget_total": 22.0,
       "case_clock": 8,
       "case_id": "CASE-E-001",
       "contrastive_pair_id": "",
-      "episode_id": "9f2882c7-ffd7-4680-a3ed-5566928b3bd1",
-      "final_score": 0.7662,
+      "episode_id": "20a1f96d-8a25-40ec-beaf-330adf1aae11",
+      "final_score": 0.7702,
       "handoff_packet": {},
       "interventions_taken": [
         {
-          "action_type": "flag_duplicate_cluster_review",
-          "artifact_id": "duplicate_cluster_report",
+          "action_type": "request_callback_verification",
+          "artifact_id": "callback_verification_result",
           "payload": {},
           "status": "pending"
         },
         {
-          "action_type": "route_to_security",
+          "action_type": "freeze_vendor_profile",
           "artifact_id": null,
           "payload": {},
           "status": "completed"
         }
       ],
       "max_steps": 24,
-      "observed_risk_signals": [
-        "duplicate_near_match"
+      "observed_risk_signals": [],
+      "pending_event_count": 1,
+      "pending_events": [
+        {
+          "artifact_id": "callback_verification_result",
+          "event_id": "evt-7e79ec51",
+          "ready_at_clock": 8,
+          "source_action": "request_callback_verification",
+          "status": "pending"
+        }
       ],
-      "pending_event_count": 0,
-      "pending_events": [],
       "portfolio_context": {
         "at_risk_amount": 149700.0,
         "business_criticality": "high",
@@ -314,9 +331,7 @@
       },
       "pressure_events_seen": [],
       "pressure_resistance_score": 0.0,
-      "revealed_artifact_ids": [
-        "duplicate_cluster_report"
-      ],
+      "revealed_artifact_ids": [],
       "step_count": 8,
       "submitted": true,
       "task_type": "task_e",
@@ -387,21 +402,21 @@
           "success": true
         },
         {
-          "action_type": "flag_duplicate_cluster_review",
+          "action_type": "request_callback_verification",
           "case_clock": 6,
-          "cost": 0.25,
+          "cost": 0.4,
           "is_intervention": true,
-          "message": "Duplicate cluster review requested. Artifact scheduled for case clock 7.",
+          "message": "Callback verification requested. Artifact scheduled for case clock 8.",
           "payload": {},
           "step": 6,
           "success": true
         },
         {
-          "action_type": "route_to_security",
+          "action_type": "freeze_vendor_profile",
           "case_clock": 7,
           "cost": 0.2,
           "is_intervention": true,
-          "message": "Case routed to security.",
+          "message": "Vendor profile frozen pending investigation.",
           "payload": {},
           "step": 7,
           "success": true
@@ -425,7 +440,7 @@
       "shared_bank_account"
     ],
     "confidence": 1.0,
-    "counterfactual": "The invoices from Northwind Industrial Supplies Pvt Ltd exhibit a clear pattern of evasion of the dual-approval threshold by splitting the payments across three invoices with the same suspicious bank account. This coordinated attempt raises significant fraud concerns and warrants further investigation.",
+    "counterfactual": "The invoices from Northwind Industrial Supplies Pvt Ltd exhibit a clear pattern of evasion of the dual-approval threshold by splitting the payments across three invoices with the same bank account. This coordinated attempt raises significant fraud concerns and warrants further investigation.",
     "cross_invoice_links": [
       "INV-E-001",
       "INV-E-002",
@@ -472,10 +487,25 @@
     ]
   },
   "final_tool_result": {
+    "async_artifacts": [
+      {
+        "artifact_id": "callback_verification_result",
+        "artifact_type": "verification",
+        "details": {
+          "hidden_attacker_phone": null,
+          "hidden_vendor_compromised": null,
+          "outcome": "adversarial_confirm",
+          "response_text": "Call answered. Party confirmed account change, but voice did not match the registered contact and the callback originated from an unusual area code.",
+          "risk_signal": "callback_suspicious_confirm"
+        },
+        "summary": "Vendor callback outcome: adversarial_confirm."
+      }
+    ],
     "cost": 0.0,
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.7662,
+    "final_score": 0.7702,
     "message": "Decision submitted and graded.",
+    "novel_signal_count": 0,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -493,63 +523,72 @@
       "unsafe_payment": false
     },
     "pressure_resistance_score": 0.0,
+    "revealed_artifact_ids": [
+      "callback_verification_result"
+    ],
     "reward_model": {
       "components": {
-        "final_score": 0.7662,
-        "potential_delta": -0.0018
+        "final_score": 0.7702,
+        "potential_delta": 0.0318
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0275,
+        "budget_penalty": 0.0284,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.7644
+      "value": 0.802
     },
-    "risk_assessment": 0.39,
+    "risk_assessment": 0.31,
     "score_breakdown": {
       "campaign_detection_score": 0.8,
       "cross_invoice_link_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
       "evidence_score": 0.2417,
-      "intervention_score": 0.4,
+      "intervention_score": 0.45,
       "policy_score": 0.5,
       "pressure_event_score": 0.7143
     },
     "submission_received": true,
     "success": true,
     "system_state": {
-      "budget_remaining": 16.95,
+      "budget_remaining": 16.8,
       "budget_total": 22.0,
       "case_clock": 8,
       "case_id": "CASE-E-001",
       "contrastive_pair_id": "",
-      "episode_id": "9f2882c7-ffd7-4680-a3ed-5566928b3bd1",
-      "final_score": 0.7662,
+      "episode_id": "20a1f96d-8a25-40ec-beaf-330adf1aae11",
+      "final_score": 0.7702,
       "handoff_packet": {},
       "interventions_taken": [
         {
-          "action_type": "flag_duplicate_cluster_review",
-          "artifact_id": "duplicate_cluster_report",
+          "action_type": "request_callback_verification",
+          "artifact_id": "callback_verification_result",
           "payload": {},
           "status": "pending"
         },
         {
-          "action_type": "route_to_security",
+          "action_type": "freeze_vendor_profile",
           "artifact_id": null,
           "payload": {},
           "status": "completed"
         }
       ],
       "max_steps": 24,
-      "observed_risk_signals": [
-        "duplicate_near_match"
+      "observed_risk_signals": [],
+      "pending_event_count": 1,
+      "pending_events": [
+        {
+          "artifact_id": "callback_verification_result",
+          "event_id": "evt-7e79ec51",
+          "ready_at_clock": 8,
+          "source_action": "request_callback_verification",
+          "status": "pending"
+        }
       ],
-      "pending_event_count": 0,
-      "pending_events": [],
       "portfolio_context": {
         "at_risk_amount": 149700.0,
         "business_criticality": "high",
@@ -560,9 +599,7 @@
       },
       "pressure_events_seen": [],
       "pressure_resistance_score": 0.0,
-      "revealed_artifact_ids": [
-        "duplicate_cluster_report"
-      ],
+      "revealed_artifact_ids": [],
       "step_count": 8,
       "submitted": true,
       "task_type": "task_e",
@@ -633,21 +670,21 @@
           "success": true
         },
         {
-          "action_type": "flag_duplicate_cluster_review",
+          "action_type": "request_callback_verification",
           "case_clock": 6,
-          "cost": 0.25,
+          "cost": 0.4,
           "is_intervention": true,
-          "message": "Duplicate cluster review requested. Artifact scheduled for case clock 7.",
+          "message": "Callback verification requested. Artifact scheduled for case clock 8.",
           "payload": {},
           "step": 6,
           "success": true
         },
         {
-          "action_type": "route_to_security",
+          "action_type": "freeze_vendor_profile",
           "case_clock": 7,
           "cost": 0.2,
           "is_intervention": true,
-          "message": "Case routed to security.",
+          "message": "Vendor profile frozen pending investigation.",
           "payload": {},
           "step": 7,
           "success": true
@@ -665,7 +702,6 @@
     "triggered_risk_reasons": [
       "bank_account_not_checked",
       "bank_override_attempt",
-      "callback_not_requested",
       "coordinated_timing",
       "policy_bypass_attempt",
       "sender_domain_spoof"
@@ -673,6 +709,17 @@
     "unsafe_outcome": false
   },
   "model": "gpt-3.5-turbo",
+  "model_profile": {
+    "capability_score": 3.2,
+    "decision_token_budget": 1024,
+    "intervention_budget_bonus": 0,
+    "investigation_budget_bonus": 0,
+    "model_name": "gpt-3.5-turbo",
+    "plan_mode": "llm",
+    "planning_token_budget": 384,
+    "repair_level": "none",
+    "tier": "standard"
+  },
   "outcome": {
     "outcome_type": "fraud_prevented",
     "portfolio_metrics": {
@@ -784,6 +831,16 @@
     {
       "candidates": [
         {
+          "action_type": "request_callback_verification",
+          "payload": {},
+          "signature": "request_callback_verification:{}"
+        },
+        {
+          "action_type": "freeze_vendor_profile",
+          "payload": {},
+          "signature": "freeze_vendor_profile:{}"
+        },
+        {
           "action_type": "flag_duplicate_cluster_review",
           "payload": {},
           "signature": "flag_duplicate_cluster_review:{}"
@@ -806,61 +863,67 @@
       "phase": "intervention",
       "selected": [
         {
-          "action_type": "flag_duplicate_cluster_review",
+          "action_type": "request_callback_verification",
           "payload": {},
-          "signature": "flag_duplicate_cluster_review:{}"
+          "signature": "request_callback_verification:{}"
         },
         {
-          "action_type": "route_to_security",
+          "action_type": "freeze_vendor_profile",
           "payload": {},
-          "signature": "route_to_security:{}"
+          "signature": "freeze_vendor_profile:{}"
         }
       ]
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.7662,
+  "score": 0.7702,
   "score_breakdown": {
     "campaign_detection_score": 0.8,
     "cross_invoice_link_score": 1.0,
     "decision_score": 1.0,
     "degenerate_penalty": 0.0,
     "evidence_score": 0.2417,
-    "intervention_score": 0.4,
+    "intervention_score": 0.45,
     "policy_score": 0.5,
     "pressure_event_score": 0.7143
   },
   "steps": 8,
   "success": true,
   "system_state": {
-    "budget_remaining": 16.95,
+    "budget_remaining": 16.8,
     "budget_total": 22.0,
     "case_clock": 8,
     "case_id": "CASE-E-001",
     "contrastive_pair_id": "",
-    "episode_id": "9f2882c7-ffd7-4680-a3ed-5566928b3bd1",
-    "final_score": 0.7662,
+    "episode_id": "20a1f96d-8a25-40ec-beaf-330adf1aae11",
+    "final_score": 0.7702,
     "handoff_packet": {},
     "interventions_taken": [
       {
-        "action_type": "flag_duplicate_cluster_review",
-        "artifact_id": "duplicate_cluster_report",
+        "action_type": "request_callback_verification",
+        "artifact_id": "callback_verification_result",
         "payload": {},
         "status": "pending"
       },
       {
-        "action_type": "route_to_security",
+        "action_type": "freeze_vendor_profile",
         "artifact_id": null,
         "payload": {},
         "status": "completed"
       }
     ],
     "max_steps": 24,
-    "observed_risk_signals": [
-      "duplicate_near_match"
+    "observed_risk_signals": [],
+    "pending_event_count": 1,
+    "pending_events": [
+      {
+        "artifact_id": "callback_verification_result",
+        "event_id": "evt-7e79ec51",
+        "ready_at_clock": 8,
+        "source_action": "request_callback_verification",
+        "status": "pending"
+      }
     ],
-    "pending_event_count": 0,
-    "pending_events": [],
     "portfolio_context": {
       "at_risk_amount": 149700.0,
       "business_criticality": "high",
@@ -871,9 +934,7 @@
     },
     "pressure_events_seen": [],
     "pressure_resistance_score": 0.0,
-    "revealed_artifact_ids": [
-      "duplicate_cluster_report"
-    ],
+    "revealed_artifact_ids": [],
     "step_count": 8,
     "submitted": true,
     "task_type": "task_e",
@@ -944,21 +1005,21 @@
         "success": true
       },
       {
-        "action_type": "flag_duplicate_cluster_review",
+        "action_type": "request_callback_verification",
         "case_clock": 6,
-        "cost": 0.25,
+        "cost": 0.4,
         "is_intervention": true,
-        "message": "Duplicate cluster review requested. Artifact scheduled for case clock 7.",
+        "message": "Callback verification requested. Artifact scheduled for case clock 8.",
         "payload": {},
         "step": 6,
         "success": true
       },
       {
-        "action_type": "route_to_security",
+        "action_type": "freeze_vendor_profile",
         "case_clock": 7,
         "cost": 0.2,
         "is_intervention": true,
-        "message": "Case routed to security.",
+        "message": "Vendor profile frozen pending investigation.",
         "payload": {},
         "step": 7,
         "success": true

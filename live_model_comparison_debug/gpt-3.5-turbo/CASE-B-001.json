@@ -146,6 +146,7 @@
     "revealed_artifacts": [
       "po_reconciliation_report"
     ],
+    "tool_failures": {},
     "vendor": {
       "approved_domains": null,
       "vendor_key": null
@@ -219,7 +220,7 @@
       "case_clock": 6,
       "case_id": "CASE-B-001",
       "contrastive_pair_id": "",
-      "episode_id": "0aa309a3-b355-42ff-8b1d-41173ce48a00",
+      "episode_id": "be71d174-fe3e-460e-a6a3-b7d143922309",
       "final_score": 0.8964,
       "handoff_packet": {},
       "interventions_taken": [
@@ -242,7 +243,7 @@
       "pending_events": [
         {
           "artifact_id": "receipt_reconciliation_report",
-          "event_id": "evt-4704f760",
+          "event_id": "evt-ea33479a",
           "ready_at_clock": 6,
           "source_action": "request_additional_receipt_evidence",
           "status": "pending"
@@ -449,7 +450,7 @@
       "case_clock": 6,
       "case_id": "CASE-B-001",
       "contrastive_pair_id": "",
-      "episode_id": "0aa309a3-b355-42ff-8b1d-41173ce48a00",
+      "episode_id": "be71d174-fe3e-460e-a6a3-b7d143922309",
       "final_score": 0.8964,
       "handoff_packet": {},
       "interventions_taken": [
@@ -472,7 +473,7 @@
       "pending_events": [
         {
           "artifact_id": "receipt_reconciliation_report",
-          "event_id": "evt-4704f760",
+          "event_id": "evt-ea33479a",
           "ready_at_clock": 6,
           "source_action": "request_additional_receipt_evidence",
           "status": "pending"
@@ -565,6 +566,17 @@
     "unsafe_outcome": false
   },
   "model": "gpt-3.5-turbo",
+  "model_profile": {
+    "capability_score": 3.2,
+    "decision_token_budget": 1024,
+    "intervention_budget_bonus": 0,
+    "investigation_budget_bonus": 0,
+    "model_name": "gpt-3.5-turbo",
+    "plan_mode": "llm",
+    "planning_token_budget": 384,
+    "repair_level": "none",
+    "tier": "standard"
+  },
   "outcome": {
     "outcome_type": "manual_review_created",
     "portfolio_metrics": {
@@ -675,7 +687,7 @@
     "case_clock": 6,
     "case_id": "CASE-B-001",
     "contrastive_pair_id": "",
-    "episode_id": "0aa309a3-b355-42ff-8b1d-41173ce48a00",
+    "episode_id": "be71d174-fe3e-460e-a6a3-b7d143922309",
     "final_score": 0.8964,
     "handoff_packet": {},
     "interventions_taken": [
@@ -698,7 +710,7 @@
     "pending_events": [
       {
         "artifact_id": "receipt_reconciliation_report",
-        "event_id": "evt-4704f760",
+        "event_id": "evt-ea33479a",
         "ready_at_clock": 6,
         "source_action": "request_additional_receipt_evidence",
         "status": "pending"

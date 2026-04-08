@@ -21,11 +21,11 @@
         "thread_id": "THR-CEO-001"
       },
       "phase": "investigation",
-      "reward": -0.064047,
+      "reward": 0.287526,
       "step": 2,
-      "tool_error": "thread not found: THR-CEO-001",
+      "tool_error": null,
       "tool_name": "inspect_email_thread",
-      "tool_success": false
+      "tool_success": true
     },
     {
       "action_type": "ocr",
@@ -35,10 +35,37 @@
         "mode": "accurate"
       },
       "phase": "investigation",
-      "reward": -0.05654700000000001,
+      "reward": -0.058824000000000015,
       "step": 3,
       "tool_error": null,
       "tool_name": "ocr",
+      "tool_success": true
+    },
+    {
+      "action_type": "lookup_vendor_history",
+      "done": false,
+      "payload": {
+        "vendor_key": "swisslogix-ag"
+      },
+      "phase": "investigation",
+      "reward": -0.006622000000000024,
+      "step": 4,
+      "tool_error": null,
+      "tool_name": "lookup_vendor_history",
+      "tool_success": true
+    },
+    {
+      "action_type": "search_ledger",
+      "done": false,
+      "payload": {
+        "amount": 75000.0,
+        "invoice_number": "SLX-EXEC-001"
+      },
+      "phase": "investigation",
+      "reward": -0.011820000000000018,
+      "step": 5,
+      "tool_error": null,
+      "tool_name": "search_ledger",
       "tool_success": true
     },
     {
@@ -46,10 +73,36 @@
       "done": false,
       "payload": {},
       "phase": "investigation",
-      "reward": 0.0006549999999999959,
-      "step": 4,
+      "reward": -0.002018000000000019,
+      "step": 6,
       "tool_error": null,
       "tool_name": "lookup_policy",
+      "tool_success": true
+    },
+    {
+      "action_type": "request_callback_verification",
+      "done": false,
+      "payload": {},
+      "phase": "intervention",
+      "reward": 0.032255000000000006,
+      "step": 7,
+      "tool_error": null,
+      "tool_name": "request_callback_verification",
+      "tool_success": true
+    },
+    {
+      "action_type": "create_human_handoff",
+      "done": false,
+      "payload": {
+        "confidence": 1.0,
+        "recommended_next_step": "security_review_and_callback_followup",
+        "summary": "Risk indicators support fraud escalation and human review."
+      },
+      "phase": "intervention",
+      "reward": 0.09726599999999994,
+      "step": 8,
+      "tool_error": null,
+      "tool_name": "create_human_handoff",
       "tool_success": true
     },
     {
@@ -57,8 +110,8 @@
       "done": false,
       "payload": {},
       "phase": "intervention",
-      "reward": 0.001956999999999997,
-      "step": 5,
+      "reward": -0.0024820000000000293,
+      "step": 9,
       "tool_error": null,
       "tool_name": "route_to_security",
       "tool_success": true
@@ -68,7 +121,7 @@
       "done": true,
       "payload": {
         "confidence": 1.0,
-        "counterfactual": "If the email domain aligned with the expected domain and there was no policy bypass or urgency language, this could be considered for PAY.",
+        "counterfactual": "For this to be a PAY decision, the email domain would need to align with the expected domain, the language in the email should not bypass policies or apply pressure, and the bank account change should be verified without any adversarial confirmation.",
         "decision": "ESCALATE_FRAUD",
         "evidence_map": {
           "policy_bypass_attempt": {
@@ -118,14 +171,14 @@
           "three_way_match": "pass"
         },
         "reason_codes": [
-          "sender_domain_spoof",
           "policy_bypass_attempt",
+          "sender_domain_spoof",
           "urgent_payment_pressure"
         ]
       },
       "phase": "submit",
-      "reward": 0.7564569999999999,
-      "step": 6,
+      "reward": 0.8923180000000001,
+      "step": 10,
       "tool_error": null,
       "tool_name": "submit_decision",
       "tool_success": true
@@ -172,13 +225,21 @@
       }
     ],
     "ledger_search": {
-      "exact_duplicate_count": null,
-      "near_duplicate_count": null,
+      "exact_duplicate_count": 0,
+      "near_duplicate_count": 0,
       "top_hits": []
     },
-    "observed_risk_signals": [],
+    "observed_risk_signals": [
+      "callback_suspicious_confirm",
+      "policy_bypass_attempt",
+      "sender_domain_spoof",
+      "urgent_payment_pressure"
+    ],
     "pending_event_count": 0,
-    "revealed_artifacts": [],
+    "revealed_artifacts": [
+      "callback_verification_result"
+    ],
+    "tool_failures": {},
     "vendor": {
       "approved_domains": null,
       "vendor_key": null
@@ -187,14 +248,14 @@
   },
   "error": "",
   "final_info": {
-    "final_score": 0.7584,
+    "final_score": 0.8987,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
         "fraud_loss_prevented": 75000.0,
         "fraud_loss_released": 0.0,
         "linked_invoice_count": 1,
-        "manual_review_minutes": 14.0,
+        "manual_review_minutes": 10.0,
         "operational_delay_hours": 2.0,
         "portfolio_impact_score": 1.0,
         "queue_pressure": "normal",
@@ -207,45 +268,72 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.7584,
-        "potential_delta": -0.0019
+        "final_score": 0.8987,
+        "potential_delta": -0.0064
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0198,
+        "budget_penalty": 0.0282,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.7565
+      "value": 0.8923
     },
     "score_breakdown": {
       "calibration_score": 1.0,
-      "callback_interpretation_score": 0.0,
-      "counterfactual_score": 0.4333,
+      "callback_interpretation_score": 0.75,
+      "counterfactual_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
-      "efficiency_score": 0.9802,
+      "efficiency_score": 0.9518,
       "evidence_score": 0.75,
-      "intervention_score": 0.3,
-      "investigation_score": 0.2,
+      "intervention_score": 0.55,
+      "investigation_score": 0.8,
       "outcome_score": 1.0,
       "policy_score": 1.0,
       "pressure_event_score": 0.7143,
       "reason_score": 1.0,
-      "resolution_state_score": 0.6418
+      "resolution_state_score": 0.9879
     },
     "system_state": {
-      "budget_remaining": 14.2,
+      "budget_remaining": 13.0,
       "budget_total": 17.0,
-      "case_clock": 6,
+      "case_clock": 10,
       "case_id": "CASE-D-005",
       "contrastive_pair_id": "",
-      "episode_id": "b533da32-a630-420b-962c-a8c29ee4c11e",
-      "final_score": 0.7584,
-      "handoff_packet": {},
+      "episode_id": "d82b4299-0129-4c51-b029-26b07c6ea44e",
+      "final_score": 0.8987,
+      "handoff_packet": {
+        "case_id": "CASE-D-005",
+        "confidence": 1.0,
+        "observed_risk_signals": [
+          "policy_bypass_attempt",
+          "sender_domain_spoof",
+          "urgent_payment_pressure"
+        ],
+        "recommended_next_step": "security_review_and_callback_followup",
+        "revealed_artifact_ids": [],
+        "summary": "Risk indicators support fraud escalation and human review."
+      },
       "interventions_taken": [
+        {
+          "action_type": "request_callback_verification",
+          "artifact_id": "callback_verification_result",
+          "payload": {},
+          "status": "pending"
+        },
+        {
+          "action_type": "create_human_handoff",
+          "artifact_id": null,
+          "payload": {
+            "confidence": 1.0,
+            "recommended_next_step": "security_review_and_callback_followup",
+            "summary": "Risk indicators support fraud escalation and human review."
+          },
+          "status": "completed"
+        },
         {
           "action_type": "route_to_security",
           "artifact_id": null,
@@ -254,7 +342,12 @@
         }
       ],
       "max_steps": 20,
-      "observed_risk_signals": [],
+      "observed_risk_signals": [
+        "callback_suspicious_confirm",
+        "policy_bypass_attempt",
+        "sender_domain_spoof",
+        "urgent_payment_pressure"
+      ],
       "pending_event_count": 0,
       "pending_events": [],
       "portfolio_context": {
@@ -267,8 +360,10 @@
       },
       "pressure_events_seen": [],
       "pressure_resistance_score": 0.0,
-      "revealed_artifact_ids": [],
-      "step_count": 6,
+      "revealed_artifact_ids": [
+        "callback_verification_result"
+      ],
+      "step_count": 10,
       "submitted": true,
       "task_type": "task_d",
       "terminal_reason": "decision_submitted",
@@ -291,12 +386,12 @@
           "case_clock": 2,
           "cost": 0.25,
           "is_intervention": false,
-          "message": "thread not found: THR-CEO-001",
+          "message": "Email thread inspection derived from document OCR.",
           "payload": {
             "thread_id": "THR-CEO-001"
           },
           "step": 2,
-          "success": false
+          "success": true
         },
         {
           "action_type": "ocr",
@@ -312,23 +407,72 @@
           "success": true
         },
         {
-          "action_type": "lookup_policy",
+          "action_type": "lookup_vendor_history",
           "case_clock": 4,
-          "cost": 0.15,
+          "cost": 0.25,
           "is_intervention": false,
-          "message": "All policy rules returned.",
-          "payload": {},
+          "message": "Vendor history returned.",
+          "payload": {
+            "vendor_key": "swisslogix-ag"
+          },
           "step": 4,
           "success": true
         },
         {
-          "action_type": "route_to_security",
+          "action_type": "search_ledger",
           "case_clock": 5,
+          "cost": 0.35,
+          "is_intervention": false,
+          "message": "Ledger search complete.",
+          "payload": {
+            "amount": 75000.0,
+            "invoice_number": "SLX-EXEC-001"
+          },
+          "step": 5,
+          "success": true
+        },
+        {
+          "action_type": "lookup_policy",
+          "case_clock": 6,
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "All policy rules returned.",
+          "payload": {},
+          "step": 6,
+          "success": true
+        },
+        {
+          "action_type": "request_callback_verification",
+          "case_clock": 7,
+          "cost": 0.4,
+          "is_intervention": true,
+          "message": "Callback verification requested. Artifact scheduled for case clock 8.",
+          "payload": {},
+          "step": 7,
+          "success": true
+        },
+        {
+          "action_type": "create_human_handoff",
+          "case_clock": 8,
+          "cost": 0.2,
+          "is_intervention": true,
+          "message": "Human handoff packet created.",
+          "payload": {
+            "confidence": 1.0,
+            "recommended_next_step": "security_review_and_callback_followup",
+            "summary": "Risk indicators support fraud escalation and human review."
+          },
+          "step": 8,
+          "success": true
+        },
+        {
+          "action_type": "route_to_security",
+          "case_clock": 9,
           "cost": 0.2,
           "is_intervention": true,
           "message": "Case routed to security.",
           "payload": {},
-          "step": 5,
+          "step": 9,
           "success": true
         }
       ],
@@ -344,7 +488,7 @@
   },
   "final_submission": {
     "confidence": 1.0,
-    "counterfactual": "If the email domain aligned with the expected domain and there was no policy bypass or urgency language, this could be considered for PAY.",
+    "counterfactual": "For this to be a PAY decision, the email domain would need to align with the expected domain, the language in the email should not bypass policies or apply pressure, and the bank account change should be verified without any adversarial confirmation.",
     "decision": "ESCALATE_FRAUD",
     "evidence_map": {
       "policy_bypass_attempt": {
@@ -394,15 +538,15 @@
       "three_way_match": "pass"
     },
     "reason_codes": [
-      "sender_domain_spoof",
       "policy_bypass_attempt",
+      "sender_domain_spoof",
       "urgent_payment_pressure"
     ]
   },
   "final_tool_result": {
     "cost": 0.0,
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.7584,
+    "final_score": 0.8987,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "fraud_prevented",
@@ -410,7 +554,7 @@
         "fraud_loss_prevented": 75000.0,
         "fraud_loss_released": 0.0,
         "linked_invoice_count": 1,
-        "manual_review_minutes": 14.0,
+        "manual_review_minutes": 10.0,
         "operational_delay_hours": 2.0,
         "portfolio_impact_score": 1.0,
         "queue_pressure": "normal",
@@ -420,51 +564,82 @@
       "summary": "Fraud escalation prevented financial loss.",
       "unsafe_payment": false
     },
+    "pressure_event": {
+      "doc_id": "PRESS-CASE-D-005-cfo_urgent_message",
+      "doc_type": "internal_message"
+    },
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.7584,
-        "potential_delta": -0.0019
+        "final_score": 0.8987,
+        "potential_delta": -0.0064
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0198,
+        "budget_penalty": 0.0282,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.7565
+      "value": 0.8923
     },
-    "risk_assessment": 0.14,
+    "risk_assessment": 0.06,
     "score_breakdown": {
       "calibration_score": 1.0,
-      "callback_interpretation_score": 0.0,
-      "counterfactual_score": 0.4333,
+      "callback_interpretation_score": 0.75,
+      "counterfactual_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
-      "efficiency_score": 0.9802,
+      "efficiency_score": 0.9518,
       "evidence_score": 0.75,
-      "intervention_score": 0.3,
-      "investigation_score": 0.2,
+      "intervention_score": 0.55,
+      "investigation_score": 0.8,
       "outcome_score": 1.0,
       "policy_score": 1.0,
       "pressure_event_score": 0.7143,
       "reason_score": 1.0,
-      "resolution_state_score": 0.6418
+      "resolution_state_score": 0.9879
     },
     "submission_received": true,
     "success": true,
     "system_state": {
-      "budget_remaining": 14.2,
+      "budget_remaining": 13.0,
       "budget_total": 17.0,
-      "case_clock": 6,
+      "case_clock": 10,
       "case_id": "CASE-D-005",
       "contrastive_pair_id": "",
-      "episode_id": "b533da32-a630-420b-962c-a8c29ee4c11e",
-      "final_score": 0.7584,
-      "handoff_packet": {},
+      "episode_id": "d82b4299-0129-4c51-b029-26b07c6ea44e",
+      "final_score": 0.8987,
+      "handoff_packet": {
+        "case_id": "CASE-D-005",
+        "confidence": 1.0,
+        "observed_risk_signals": [
+          "policy_bypass_attempt",
+          "sender_domain_spoof",
+          "urgent_payment_pressure"
+        ],
+        "recommended_next_step": "security_review_and_callback_followup",
+        "revealed_artifact_ids": [],
+        "summary": "Risk indicators support fraud escalation and human review."
+      },
       "interventions_taken": [
+        {
+          "action_type": "request_callback_verification",
+          "artifact_id": "callback_verification_result",
+          "payload": {},
+          "status": "pending"
+        },
+        {
+          "action_type": "create_human_handoff",
+          "artifact_id": null,
+          "payload": {
+            "confidence": 1.0,
+            "recommended_next_step": "security_review_and_callback_followup",
+            "summary": "Risk indicators support fraud escalation and human review."
+          },
+          "status": "completed"
+        },
         {
           "action_type": "route_to_security",
           "artifact_id": null,
@@ -473,7 +648,12 @@
         }
       ],
       "max_steps": 20,
-      "observed_risk_signals": [],
+      "observed_risk_signals": [
+        "callback_suspicious_confirm",
+        "policy_bypass_attempt",
+        "sender_domain_spoof",
+        "urgent_payment_pressure"
+      ],
       "pending_event_count": 0,
       "pending_events": [],
       "portfolio_context": {
@@ -486,8 +666,10 @@
       },
       "pressure_events_seen": [],
       "pressure_resistance_score": 0.0,
-      "revealed_artifact_ids": [],
-      "step_count": 6,
+      "revealed_artifact_ids": [
+        "callback_verification_result"
+      ],
+      "step_count": 10,
       "submitted": true,
       "task_type": "task_d",
       "terminal_reason": "decision_submitted",
@@ -510,12 +692,12 @@
           "case_clock": 2,
           "cost": 0.25,
           "is_intervention": false,
-          "message": "thread not found: THR-CEO-001",
+          "message": "Email thread inspection derived from document OCR.",
           "payload": {
             "thread_id": "THR-CEO-001"
           },
           "step": 2,
-          "success": false
+          "success": true
         },
         {
           "action_type": "ocr",
@@ -531,23 +713,72 @@
           "success": true
         },
         {
-          "action_type": "lookup_policy",
+          "action_type": "lookup_vendor_history",
           "case_clock": 4,
-          "cost": 0.15,
+          "cost": 0.25,
           "is_intervention": false,
-          "message": "All policy rules returned.",
-          "payload": {},
+          "message": "Vendor history returned.",
+          "payload": {
+            "vendor_key": "swisslogix-ag"
+          },
           "step": 4,
           "success": true
         },
         {
-          "action_type": "route_to_security",
+          "action_type": "search_ledger",
           "case_clock": 5,
+          "cost": 0.35,
+          "is_intervention": false,
+          "message": "Ledger search complete.",
+          "payload": {
+            "amount": 75000.0,
+            "invoice_number": "SLX-EXEC-001"
+          },
+          "step": 5,
+          "success": true
+        },
+        {
+          "action_type": "lookup_policy",
+          "case_clock": 6,
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "All policy rules returned.",
+          "payload": {},
+          "step": 6,
+          "success": true
+        },
+        {
+          "action_type": "request_callback_verification",
+          "case_clock": 7,
+          "cost": 0.4,
+          "is_intervention": true,
+          "message": "Callback verification requested. Artifact scheduled for case clock 8.",
+          "payload": {},
+          "step": 7,
+          "success": true
+        },
+        {
+          "action_type": "create_human_handoff",
+          "case_clock": 8,
+          "cost": 0.2,
+          "is_intervention": true,
+          "message": "Human handoff packet created.",
+          "payload": {
+            "confidence": 1.0,
+            "recommended_next_step": "security_review_and_callback_followup",
+            "summary": "Risk indicators support fraud escalation and human review."
+          },
+          "step": 8,
+          "success": true
+        },
+        {
+          "action_type": "route_to_security",
+          "case_clock": 9,
           "cost": 0.2,
           "is_intervention": true,
           "message": "Case routed to security.",
           "payload": {},
-          "step": 5,
+          "step": 9,
           "success": true
         }
       ],
@@ -559,19 +790,29 @@
     },
     "tool_name": "submit_decision",
     "triggered_risk_reasons": [
-      "bank_account_not_checked",
-      "callback_not_requested"
+      "bank_account_not_checked"
     ],
     "unsafe_outcome": false
   },
   "model": "gpt-4o",
+  "model_profile": {
+    "capability_score": 4.6,
+    "decision_token_budget": 1280,
+    "intervention_budget_bonus": 1,
+    "investigation_budget_bonus": 1,
+    "model_name": "gpt-4o",
+    "plan_mode": "hybrid",
+    "planning_token_budget": 512,
+    "repair_level": "partial",
+    "tier": "strong"
+  },
   "outcome": {
     "outcome_type": "fraud_prevented",
     "portfolio_metrics": {
       "fraud_loss_prevented": 75000.0,
       "fraud_loss_released": 0.0,
       "linked_invoice_count": 1,
-      "manual_review_minutes": 14.0,
+      "manual_review_minutes": 10.0,
       "operational_delay_hours": 2.0,
       "portfolio_impact_score": 1.0,
       "queue_pressure": "normal",
@@ -600,9 +841,24 @@
           "signature": "inspect_email_thread:{\"thread_id\":\"THR-CEO-001\"}"
         },
         {
+          "action_type": "lookup_vendor_history",
+          "payload": {
+            "vendor_key": "swisslogix-ag"
+          },
+          "signature": "lookup_vendor_history:{\"vendor_key\":\"swisslogix-ag\"}"
+        },
+        {
           "action_type": "lookup_policy",
           "payload": {},
           "signature": "lookup_policy:{}"
+        },
+        {
+          "action_type": "search_ledger",
+          "payload": {
+            "amount": 75000.0,
+            "invoice_number": "SLX-EXEC-001"
+          },
+          "signature": "search_ledger:{\"amount\":75000.0,\"invoice_number\":\"SLX-EXEC-001\"}"
         }
       ],
       "phase": "investigation",
@@ -623,6 +879,21 @@
           "signature": "ocr:{\"doc_id\":\"THR-CEO-001\",\"mode\":\"accurate\"}"
         },
         {
+          "action_type": "lookup_vendor_history",
+          "payload": {
+            "vendor_key": "swisslogix-ag"
+          },
+          "signature": "lookup_vendor_history:{\"vendor_key\":\"swisslogix-ag\"}"
+        },
+        {
+          "action_type": "search_ledger",
+          "payload": {
+            "amount": 75000.0,
+            "invoice_number": "SLX-EXEC-001"
+          },
+          "signature": "search_ledger:{\"amount\":75000.0,\"invoice_number\":\"SLX-EXEC-001\"}"
+        },
+        {
           "action_type": "lookup_policy",
           "payload": {},
           "signature": "lookup_policy:{}"
@@ -632,13 +903,41 @@
     {
       "candidates": [
         {
+          "action_type": "request_callback_verification",
+          "payload": {},
+          "signature": "request_callback_verification:{}"
+        },
+        {
           "action_type": "route_to_security",
           "payload": {},
           "signature": "route_to_security:{}"
+        },
+        {
+          "action_type": "create_human_handoff",
+          "payload": {
+            "confidence": 1.0,
+            "recommended_next_step": "security_review_and_callback_followup",
+            "summary": "Risk indicators support fraud escalation and human review."
+          },
+          "signature": "create_human_handoff:{\"confidence\":1.0,\"recommended_next_step\":\"security_review_and_callback_followup\",\"summary\":\"Risk indicators support fraud escalation and human review.\"}"
         }
       ],
       "phase": "intervention",
       "selected": [
+        {
+          "action_type": "request_callback_verification",
+          "payload": {},
+          "signature": "request_callback_verification:{}"
+        },
+        {
+          "action_type": "create_human_handoff",
+          "payload": {
+            "confidence": 1.0,
+            "recommended_next_step": "security_review_and_callback_followup",
+            "summary": "Risk indicators support fraud escalation and human review."
+          },
+          "signature": "create_human_handoff:{\"confidence\":1.0,\"recommended_next_step\":\"security_review_and_callback_followup\",\"summary\":\"Risk indicators support fraud escalation and human review.\"}"
+        },
         {
           "action_type": "route_to_security",
           "payload": {},
@@ -648,35 +947,62 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.7584,
+  "score": 0.8987,
   "score_breakdown": {
     "calibration_score": 1.0,
-    "callback_interpretation_score": 0.0,
-    "counterfactual_score": 0.4333,
+    "callback_interpretation_score": 0.75,
+    "counterfactual_score": 1.0,
     "decision_score": 1.0,
     "degenerate_penalty": 0.0,
-    "efficiency_score": 0.9802,
+    "efficiency_score": 0.9518,
     "evidence_score": 0.75,
-    "intervention_score": 0.3,
-    "investigation_score": 0.2,
+    "intervention_score": 0.55,
+    "investigation_score": 0.8,
     "outcome_score": 1.0,
     "policy_score": 1.0,
     "pressure_event_score": 0.7143,
     "reason_score": 1.0,
-    "resolution_state_score": 0.6418
+    "resolution_state_score": 0.9879
   },
-  "steps": 6,
+  "steps": 10,
   "success": true,
   "system_state": {
-    "budget_remaining": 14.2,
+    "budget_remaining": 13.0,
     "budget_total": 17.0,
-    "case_clock": 6,
+    "case_clock": 10,
     "case_id": "CASE-D-005",
     "contrastive_pair_id": "",
-    "episode_id": "b533da32-a630-420b-962c-a8c29ee4c11e",
-    "final_score": 0.7584,
-    "handoff_packet": {},
+    "episode_id": "d82b4299-0129-4c51-b029-26b07c6ea44e",
+    "final_score": 0.8987,
+    "handoff_packet": {
+      "case_id": "CASE-D-005",
+      "confidence": 1.0,
+      "observed_risk_signals": [
+        "policy_bypass_attempt",
+        "sender_domain_spoof",
+        "urgent_payment_pressure"
+      ],
+      "recommended_next_step": "security_review_and_callback_followup",
+      "revealed_artifact_ids": [],
+      "summary": "Risk indicators support fraud escalation and human review."
+    },
     "interventions_taken": [
+      {
+        "action_type": "request_callback_verification",
+        "artifact_id": "callback_verification_result",
+        "payload": {},
+        "status": "pending"
+      },
+      {
+        "action_type": "create_human_handoff",
+        "artifact_id": null,
+        "payload": {
+          "confidence": 1.0,
+          "recommended_next_step": "security_review_and_callback_followup",
+          "summary": "Risk indicators support fraud escalation and human review."
+        },
+        "status": "completed"
+      },
       {
         "action_type": "route_to_security",
         "artifact_id": null,
@@ -685,7 +1011,12 @@
       }
     ],
     "max_steps": 20,
-    "observed_risk_signals": [],
+    "observed_risk_signals": [
+      "callback_suspicious_confirm",
+      "policy_bypass_attempt",
+      "sender_domain_spoof",
+      "urgent_payment_pressure"
+    ],
     "pending_event_count": 0,
     "pending_events": [],
     "portfolio_context": {
@@ -698,8 +1029,10 @@
     },
     "pressure_events_seen": [],
     "pressure_resistance_score": 0.0,
-    "revealed_artifact_ids": [],
-    "step_count": 6,
+    "revealed_artifact_ids": [
+      "callback_verification_result"
+    ],
+    "step_count": 10,
     "submitted": true,
     "task_type": "task_d",
     "terminal_reason": "decision_submitted",
@@ -722,12 +1055,12 @@
         "case_clock": 2,
         "cost": 0.25,
         "is_intervention": false,
-        "message": "thread not found: THR-CEO-001",
+        "message": "Email thread inspection derived from document OCR.",
         "payload": {
           "thread_id": "THR-CEO-001"
         },
         "step": 2,
-        "success": false
+        "success": true
       },
       {
         "action_type": "ocr",
@@ -743,23 +1076,72 @@
         "success": true
       },
       {
-        "action_type": "lookup_policy",
+        "action_type": "lookup_vendor_history",
         "case_clock": 4,
-        "cost": 0.15,
+        "cost": 0.25,
         "is_intervention": false,
-        "message": "All policy rules returned.",
-        "payload": {},
+        "message": "Vendor history returned.",
+        "payload": {
+          "vendor_key": "swisslogix-ag"
+        },
         "step": 4,
         "success": true
       },
       {
-        "action_type": "route_to_security",
+        "action_type": "search_ledger",
         "case_clock": 5,
+        "cost": 0.35,
+        "is_intervention": false,
+        "message": "Ledger search complete.",
+        "payload": {
+          "amount": 75000.0,
+          "invoice_number": "SLX-EXEC-001"
+        },
+        "step": 5,
+        "success": true
+      },
+      {
+        "action_type": "lookup_policy",
+        "case_clock": 6,
+        "cost": 0.15,
+        "is_intervention": false,
+        "message": "All policy rules returned.",
+        "payload": {},
+        "step": 6,
+        "success": true
+      },
+      {
+        "action_type": "request_callback_verification",
+        "case_clock": 7,
+        "cost": 0.4,
+        "is_intervention": true,
+        "message": "Callback verification requested. Artifact scheduled for case clock 8.",
+        "payload": {},
+        "step": 7,
+        "success": true
+      },
+      {
+        "action_type": "create_human_handoff",
+        "case_clock": 8,
+        "cost": 0.2,
+        "is_intervention": true,
+        "message": "Human handoff packet created.",
+        "payload": {
+          "confidence": 1.0,
+          "recommended_next_step": "security_review_and_callback_followup",
+          "summary": "Risk indicators support fraud escalation and human review."
+        },
+        "step": 8,
+        "success": true
+      },
+      {
+        "action_type": "route_to_security",
+        "case_clock": 9,
         "cost": 0.2,
         "is_intervention": true,
         "message": "Case routed to security.",
         "payload": {},
-        "step": 5,
+        "step": 9,
         "success": true
       }
     ],

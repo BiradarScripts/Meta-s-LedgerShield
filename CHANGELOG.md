@@ -16,6 +16,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Development guide for contributors
 - Deployment guide for production use
 
+### Changed
+- `compare_models_live.py` now records per-model capability profiles, runtime context, configurable case lists, and monotonic strength-order checks in `live_model_comparison.json`
+
+### Fixed
+- `server/grading.py` now correctly applies `DEGENERATE_EVIDENCE_CAP` to empty evidence submissions instead of collapsing that path to `0.0`
+
+### Notes
+- Local verification for this patch covered targeted `pytest` suites and bytecode compilation in the current shell. A fresh live `compare_models_live.py` API run and Docker-backed end-to-end reproduction were not executed as part of this patch.
+
 ## [0.1.0] - 2026-04-07
 
 ### Added

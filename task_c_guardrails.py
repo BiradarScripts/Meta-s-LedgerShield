@@ -61,6 +61,37 @@ def _looks_like_token_ref(value: Any) -> bool:
     return isinstance(value, dict) and {"doc_id", "page", "bbox", "token_ids"} <= set(value)
 
 
+def _clean_pay_evidence(collected: dict[str, Any]) -> dict[str, Any]:
+    invoice_evidence = _invoice_evidence(collected)
+    ledger_search = collected.get("ledger_search") or {}
+    bank_compare = collected.get("bank_compare") or {}
+    bank_compares = collected.get("bank_compares") or ([bank_compare] if bank_compare else [])
+    duplicate_detected = (
+        bool(_duplicate_links(collected))
+        or int(ledger_search.get("exact_duplicate_count", 0) or 0) > 0
+        or int(ledger_search.get("near_duplicate_count", 0) or 0) > 0
+    )
+
+    evidence_map: dict[str, Any] = {}
+    if any(compare and bool(compare.get("matched")) for compare in bank_compares):
+        bank_evidence = invoice_evidence.get("bank_account")
+        if bank_evidence:
+            evidence_map["bank_account_verified"] = bank_evidence
+    if not duplicate_detected:
+        ledger_evidence = invoice_evidence.get("invoice_number") or invoice_evidence.get("total")
+        if ledger_evidence:
+            evidence_map["duplicate_check_cleared"] = ledger_evidence
+    if not evidence_map:
+        fallback = (
+            invoice_evidence.get("invoice_number")
+            or invoice_evidence.get("bank_account")
+            or invoice_evidence.get("total")
+        )
+        if fallback:
+            evidence_map["invoice_reviewed"] = fallback
+    return evidence_map
+
+
 def grounded_task_c_submission(collected: dict[str, Any]) -> dict[str, Any]:
     invoice_evidence = _invoice_evidence(collected)
     ledger_search = collected.get("ledger_search") or {}
@@ -98,21 +129,26 @@ def grounded_task_c_submission(collected: dict[str, Any]) -> dict[str, Any]:
         },
     )
     total = _invoice_total(collected)
+    coordinated_timing_signal = coordinated_campaign_hint and (
+        duplicate_cluster_detected or duplicate_detected
+    )
+    shared_bank_signal = bank_mismatch and coordinated_timing_signal
     approval_threshold_signal = approval_threshold_hint or (
-        duplicate_cluster_detected
+        not coordinated_campaign_hint
+        and duplicate_cluster_detected
         and _is_near_approval_threshold(total)
     )
-    shared_bank_signal = bank_mismatch and coordinated_campaign_hint
-    coordinated_timing_signal = coordinated_campaign_hint and (bank_mismatch or duplicate_detected)
+    standalone_bank_override = bank_mismatch and not shared_bank_signal
+    standalone_duplicate_signal = duplicate_detected and not coordinated_timing_signal
 
     evidence_map: dict[str, Any] = {}
     fraud_flags: list[str] = []
 
-    if bank_mismatch and "bank_account" in invoice_evidence:
+    if standalone_bank_override and "bank_account" in invoice_evidence:
         evidence_map["bank_override_attempt"] = invoice_evidence["bank_account"]
         fraud_flags.append("bank_override_attempt")
 
-    if duplicate_detected and "invoice_number" in invoice_evidence:
+    if standalone_duplicate_signal and "invoice_number" in invoice_evidence:
         evidence_map["duplicate_near_match"] = invoice_evidence["invoice_number"]
         fraud_flags.append("duplicate_near_match")
 
@@ -138,6 +174,7 @@ def grounded_task_c_submission(collected: dict[str, Any]) -> dict[str, Any]:
     if not fraud_flags:
         decision = "PAY"
         confidence = 0.87
+        evidence_map = _clean_pay_evidence(collected)
     elif set(fraud_flags) <= {"approval_threshold_evasion"}:
         decision = "NEEDS_REVIEW"
         confidence = 0.9
@@ -152,7 +189,7 @@ def grounded_task_c_submission(collected: dict[str, Any]) -> dict[str, Any]:
         "fraud_flags": fraud_flags,
         # Task C grading penalizes empty discrepancies even though it does not score them directly.
         "discrepancies": list(fraud_flags),
-        "evidence_map": evidence_map if decision != "PAY" else {},
+        "evidence_map": evidence_map,
     }
 
 
@@ -202,10 +239,12 @@ def sanitize_task_c_submission(candidate: dict[str, Any], collected: dict[str, A
         raw_discrepancies = []
     discrepancies = canonical_reason_codes(raw_discrepancies) or list(fraud_flags)
 
+    grounded_is_pay = normalize_text(grounded.get("decision")) == "pay"
+
     if decision == "PAY":
         fraud_flags = []
         duplicate_links = []
-        evidence_map = {}
+        evidence_map = dict(grounded.get("evidence_map", {}) or {}) if grounded_is_pay else {}
         discrepancies = []
 
     return {

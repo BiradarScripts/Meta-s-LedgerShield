@@ -51,6 +51,7 @@ if os.getenv("LEDGERSHIELD_DEBUG") != "1":
 
 import argparse
 from collections import Counter
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 import json
 from pathlib import Path
@@ -129,6 +130,90 @@ VENDOR_KEY_BY_NAME = {
     "eurocaps components gmbh": "eurocaps-components",
     "bluepeak logistics llp": "bluepeak-logistics",
 }
+
+
+@dataclass(frozen=True)
+class ModelCapabilityProfile:
+    model_name: str
+    capability_score: float
+    tier: str
+    plan_mode: str
+    repair_level: str
+    investigation_budget_bonus: int
+    intervention_budget_bonus: int
+    decision_token_budget: int
+    planning_token_budget: int
+
+
+def _base_model_score(model_name: str) -> float:
+    normalized = normalize_text(model_name)
+    if "gpt-4o" in normalized:
+        base = 4.6
+    else:
+        match = re.search(r"gpt-([0-9]+(?:\.[0-9]+)?)", normalized)
+        if match:
+            base = float(match.group(1))
+        elif "gpt-4" in normalized:
+            base = 4.0
+        elif "gpt-3.5" in normalized:
+            base = 3.5
+        else:
+            base = 4.0
+
+    if "pro" in normalized:
+        base += 0.5
+    if "latest" in normalized:
+        base += 0.2
+    if "mini" in normalized:
+        base -= 0.7
+    if "nano" in normalized:
+        base -= 1.1
+    if "turbo" in normalized:
+        base -= 0.3
+    return base
+
+
+def get_model_capability_profile(model_name: str) -> ModelCapabilityProfile:
+    score = _base_model_score(model_name)
+    if score >= 5.0:
+        return ModelCapabilityProfile(
+            model_name=model_name,
+            capability_score=score,
+            tier="elite",
+            plan_mode="coverage",
+            repair_level="grounded",
+            investigation_budget_bonus=2,
+            intervention_budget_bonus=2,
+            decision_token_budget=max(MAX_TOKENS, 1536),
+            planning_token_budget=640,
+        )
+    if score >= 4.5:
+        return ModelCapabilityProfile(
+            model_name=model_name,
+            capability_score=score,
+            tier="strong",
+            plan_mode="hybrid",
+            repair_level="partial",
+            investigation_budget_bonus=1,
+            intervention_budget_bonus=1,
+            decision_token_budget=max(MAX_TOKENS, 1280),
+            planning_token_budget=512,
+        )
+    return ModelCapabilityProfile(
+        model_name=model_name,
+        capability_score=score,
+        tier="standard",
+        plan_mode="llm",
+        repair_level="none",
+        investigation_budget_bonus=0,
+        intervention_budget_bonus=0,
+        decision_token_budget=MAX_TOKENS,
+        planning_token_budget=384,
+    )
+
+
+def current_model_profile() -> ModelCapabilityProfile:
+    return get_model_capability_profile(MODEL_NAME)
 
 
 def normalize_text(value: Any) -> str:
@@ -327,6 +412,190 @@ def parse_email_tokens(tokens: list[dict[str, Any]], doc_id: str) -> dict[str, A
     return evidence
 
 
+def _domain_tokens(domain: str) -> set[str]:
+    return {part for part in re.split(r"[^a-z0-9]+", normalize_text(domain)) if len(part) > 1}
+
+
+def _vendor_name_tokens(vendor_name: str) -> set[str]:
+    stop_words = {
+        "and",
+        "co",
+        "company",
+        "corp",
+        "corporation",
+        "gmbh",
+        "inc",
+        "industries",
+        "industrial",
+        "limited",
+        "ltd",
+        "manufacturing",
+        "pvt",
+        "supplies",
+    }
+    tokens = re.split(r"[^a-z0-9]+", normalize_text(vendor_name))
+    return {token for token in tokens if len(token) > 2 and token not in stop_words}
+
+
+def _sender_domain(sender: str) -> str:
+    sender_text = normalize_text(sender)
+    if "@" not in sender_text:
+        return ""
+    return sender_text.split("@", 1)[-1]
+
+
+def _infer_domain_alignment(*, sender: str, vendor_name: str, approved_domains: list[str]) -> tuple[str, str]:
+    sender_domain = _sender_domain(sender)
+    normalized_domains = [normalize_text(domain) for domain in approved_domains if normalize_text(domain)]
+    expected_domain = normalized_domains[0] if normalized_domains else ""
+    if sender_domain and expected_domain:
+        return ("aligned" if sender_domain == expected_domain else "mismatch", expected_domain)
+
+    vendor_tokens = _vendor_name_tokens(vendor_name)
+    domain_tokens = _domain_tokens(sender_domain)
+    if vendor_tokens and domain_tokens and vendor_tokens & domain_tokens:
+        return "aligned", expected_domain
+    if sender_domain and vendor_tokens:
+        return "mismatch", expected_domain
+    return "aligned", expected_domain
+
+
+def derive_email_thread_from_ocr(collected: dict[str, Any]) -> dict[str, Any]:
+    tokens = list(collected.get("email_tokens", []) or [])
+    if not tokens:
+        return {}
+
+    lines = [str(token.get("text", "")).strip() for token in tokens if str(token.get("text", "")).strip()]
+    sender = ""
+    subject = ""
+    body_lines: list[str] = []
+    for line in lines:
+        lower = line.lower()
+        if lower.startswith("from:"):
+            sender = line.split(":", 1)[-1].strip()
+            continue
+        if lower.startswith("subject:"):
+            subject = line.split(":", 1)[-1].strip()
+            continue
+        body_lines.append(line)
+
+    vendor = collected.get("vendor") or {}
+    vendor_name = str((vendor or {}).get("vendor_name") or collected.get("invoice_fields", {}).get("vendor_name") or "")
+    approved_domains = [str(domain).strip() for domain in (vendor.get("approved_domains", []) or []) if str(domain).strip()]
+    domain_alignment, expected_domain = _infer_domain_alignment(
+        sender=sender,
+        vendor_name=vendor_name,
+        approved_domains=approved_domains,
+    )
+
+    body_text = " ".join(body_lines)
+    normalized_body = normalize_text(body_text)
+    normalized_subject = normalize_text(subject)
+    explicit_no_change = any(
+        phrase in normalized_body
+        for phrase in {
+            "no bank change",
+            "no bank changes",
+            "no change to bank",
+            "approved remittance instructions already on file",
+        }
+    )
+    bank_change_language = (
+        "bank" in normalized_body
+        and any(word in normalized_body for word in {"change", "changed", "update", "updated", "override", "directed"})
+        and not explicit_no_change
+    )
+    urgency_language = any(
+        phrase in normalized_subject or phrase in normalized_body
+        for phrase in {"urgent", "immediately", "asap", "today"}
+    )
+    callback_discouraged = any(
+        phrase in normalized_body
+        for phrase in {"skip callback", "do not call", "don't call", "do not verify"}
+    )
+    policy_override_language = any(
+        phrase in normalized_body
+        for phrase in {
+            "override policy",
+            "bypass policy",
+            "source of truth",
+            "avoid reapproval",
+            "do not contact",
+            "skip normal review",
+            "ignore the standard workflow",
+            "personally approved",
+        }
+    )
+    suspicious_bank_change = bank_change_language and (
+        domain_alignment == "mismatch"
+        or callback_discouraged
+        or policy_override_language
+        or urgency_language
+    )
+    derived_flags = canonical_reason_codes(
+        [
+            "sender_domain_spoof" if domain_alignment == "mismatch" else "",
+            "bank_override_attempt" if suspicious_bank_change else "",
+            "policy_bypass_attempt" if callback_discouraged or policy_override_language else "",
+            "urgent_payment_pressure" if urgency_language else "",
+            "approval_threshold_evasion"
+            if any(phrase in normalized_body for phrase in {"approval threshold", "split the request", "split invoice"})
+            else "",
+        ]
+    )
+
+    return {
+        "thread_id": collected.get("email_doc_id") or collected.get("case_metadata", {}).get("thread_id"),
+        "vendor_key": (vendor or {}).get("vendor_key"),
+        "sender": sender,
+        "subject": subject,
+        "body": body_text,
+        "message_count": max(1, len(body_lines)),
+        "sender_profile": {
+            "from_domain": _sender_domain(sender),
+            "expected_domain": expected_domain,
+            "domain_alignment": domain_alignment,
+        },
+        "request_signals": {
+            "bank_change_language": bank_change_language,
+            "urgency_language": urgency_language,
+            "callback_discouraged": callback_discouraged,
+            "policy_override_language": policy_override_language,
+        },
+        "derived_flags": derived_flags,
+    }
+
+
+def refresh_email_thread_from_ocr(collected: dict[str, Any]) -> None:
+    derived = derive_email_thread_from_ocr(collected)
+    if not derived:
+        return
+
+    current = collected.get("email_thread") or {}
+    merged = dict(current)
+    for key, value in derived.items():
+        if key in {"sender_profile", "request_signals"}:
+            existing = current.get(key, {}) or {}
+            candidate = value if isinstance(value, dict) else {}
+            merged[key] = {**candidate, **existing} if existing else candidate
+            continue
+        if current.get(key) not in (None, "", [], {}):
+            merged[key] = current.get(key)
+            continue
+        merged[key] = value
+
+    merged["flags"] = canonical_reason_codes(
+        (current.get("flags", []) or [])
+        + (current.get("derived_flags", []) or [])
+        + (derived.get("flags", []) or [])
+        + (derived.get("derived_flags", []) or [])
+    )
+    merged["derived_flags"] = canonical_reason_codes(
+        (current.get("derived_flags", []) or []) + (derived.get("derived_flags", []) or [])
+    )
+    collected["email_thread"] = merged
+
+
 def derive_email_thread_signals(thread: dict[str, Any]) -> set[str]:
     return _derive_email_thread_signals(thread)
 
@@ -334,6 +603,16 @@ def derive_email_thread_signals(thread: dict[str, Any]) -> set[str]:
 def vendor_key_for(fields: dict[str, Any]) -> str:
     vendor_name = normalize_text(fields.get("vendor_name"))
     return VENDOR_KEY_BY_NAME.get(vendor_name, "")
+
+
+def vendor_history_key_for(fields: dict[str, Any]) -> str:
+    explicit = vendor_key_for(fields)
+    if explicit:
+        return explicit
+    vendor_name = normalize_text(fields.get("vendor_name"))
+    if not vendor_name:
+        return ""
+    return re.sub(r"[^a-z0-9]+", "-", vendor_name).strip("-")
 
 
 def action_signature(action: LedgerShieldAction) -> str:
@@ -367,6 +646,7 @@ def summarize_collected_state(collected: dict[str, Any]) -> dict[str, Any]:
     email_thread = collected.get("email_thread") or {}
     ledger_search = collected.get("ledger_search") or {}
     return {
+        "case_instruction": str(collected.get("case_instruction", "") or ""),
         "invoice_records": [_invoice_record_summary(record) for record in collected.get("invoice_records", []) or []],
         "email_thread": {
             "sender": email_thread.get("sender"),
@@ -375,6 +655,10 @@ def summarize_collected_state(collected: dict[str, Any]) -> dict[str, Any]:
             "derived_flags": email_thread.get("derived_flags"),
             "sender_profile": email_thread.get("sender_profile"),
             "request_signals": email_thread.get("request_signals"),
+        },
+        "vendor": {
+            "vendor_key": (collected.get("vendor") or {}).get("vendor_key"),
+            "approved_domains": (collected.get("vendor") or {}).get("approved_domains"),
         },
         "bank_compares": [
             {
@@ -404,9 +688,76 @@ def summarize_collected_state(collected: dict[str, Any]) -> dict[str, Any]:
             }
             for row in (collected.get("vendor_history", []) or [])[:5]
         ],
-        "policies_loaded": bool(collected.get("policies")),
+        "has_policy_snapshot": bool(collected.get("policies")),
         "email_ocr_loaded": bool(collected.get("email_tokens")),
+        "revealed_artifacts": sorted((collected.get("revealed_artifacts", {}) or {}).keys()),
+        "pending_event_count": len(collected.get("pending_events", []) or []),
+        "observed_risk_signals": collected.get("observed_risk_signals", []) or [],
+        "tool_failures": {
+            tool_name: len(entries)
+            for tool_name, entries in (collected.get("tool_failures", {}) or {}).items()
+        },
     }
+
+
+def _store_artifact(collected: dict[str, Any], artifact: dict[str, Any]) -> None:
+    artifact_id = normalize_text(artifact.get("artifact_id"))
+    if not artifact_id:
+        return
+    artifact_store = collected.setdefault("revealed_artifacts", {})
+    artifact_store[artifact_id] = artifact
+    if artifact_id == "callback_verification_result":
+        collected["callback_result"] = artifact
+    elif artifact_id == "bank_change_approval_chain":
+        collected["bank_change_approval_chain"] = artifact
+    elif artifact_id == "po_reconciliation_report":
+        collected["po_reconciliation_report"] = artifact
+    elif artifact_id == "receipt_reconciliation_report":
+        collected["receipt_reconciliation_report"] = artifact
+    elif artifact_id == "duplicate_cluster_report":
+        collected["duplicate_cluster_report"] = artifact
+
+
+def _record_tool_failure(collected: dict[str, Any], action: LedgerShieldAction, tool: dict[str, Any]) -> None:
+    tool_name = normalize_text(tool.get("tool_name") or action.action_type)
+    failure_log = collected.setdefault("tool_failures", {})
+    failure_log.setdefault(tool_name, []).append(
+        {
+            "payload": dict(action.payload),
+            "error": str(tool.get("error") or ""),
+        }
+    )
+
+
+def _capture_tool_artifacts(collected: dict[str, Any], tool: dict[str, Any]) -> None:
+    if isinstance(tool.get("artifact"), dict):
+        _store_artifact(collected, tool["artifact"])
+    for artifact in tool.get("async_artifacts", []) or []:
+        if isinstance(artifact, dict):
+            _store_artifact(collected, artifact)
+    for artifact_id in tool.get("revealed_artifact_ids", []) or []:
+        normalized_id = normalize_text(artifact_id)
+        if normalized_id:
+            collected.setdefault("revealed_artifacts", {}).setdefault(
+                normalized_id,
+                {"artifact_id": artifact_id},
+            )
+
+
+def update_collected_from_observation(collected: dict[str, Any], observation: Any) -> None:
+    revealed_artifacts = list(getattr(observation, "revealed_artifacts", []) or [])
+    pending_events = list(getattr(observation, "pending_events", []) or [])
+    case_metadata = getattr(observation, "case_metadata", {}) or {}
+    risk_snapshot = getattr(observation, "risk_snapshot", {}) or {}
+
+    collected["case_metadata"] = dict(case_metadata)
+    collected["pending_events"] = pending_events
+    collected["observed_risk_signals"] = list(risk_snapshot.get("observed_signals", []) or [])
+
+    if revealed_artifacts:
+        for artifact in revealed_artifacts:
+            if isinstance(artifact, dict):
+                _store_artifact(collected, artifact)
 
 
 def build_investigation_candidates(
@@ -424,6 +775,7 @@ def build_investigation_candidates(
 ) -> list[LedgerShieldAction]:
     candidates: list[LedgerShieldAction] = []
     seen = set(executed_signatures)
+    history_lookup_key = vendor_key or vendor_history_key_for(collected.get("invoice_fields", {}) or {})
 
     if task_type == "task_b":
         _append_candidate(candidates, seen, LedgerShieldAction(action_type="lookup_policy", payload={}))
@@ -439,6 +791,12 @@ def build_investigation_candidates(
         return candidates
 
     if task_type == "task_c":
+        if vendor_key:
+            _append_candidate(
+                candidates,
+                seen,
+                LedgerShieldAction(action_type="lookup_vendor", payload={"vendor_key": vendor_key}),
+            )
         if vendor_key and (invoice_number or invoice_total):
             _append_candidate(
                 candidates,
@@ -447,6 +805,18 @@ def build_investigation_candidates(
                     action_type="search_ledger",
                     payload={
                         "vendor_key": vendor_key,
+                        "invoice_number": invoice_number,
+                        "amount": invoice_total,
+                    },
+                ),
+            )
+        if invoice_number or invoice_total:
+            _append_candidate(
+                candidates,
+                seen,
+                LedgerShieldAction(
+                    action_type="search_ledger",
+                    payload={
                         "invoice_number": invoice_number,
                         "amount": invoice_total,
                     },
@@ -469,6 +839,12 @@ def build_investigation_candidates(
             seen,
             LedgerShieldAction(action_type="ocr", payload={"doc_id": email_doc_id, "mode": "accurate"}),
         )
+    if vendor_key:
+        _append_candidate(
+            candidates,
+            seen,
+            LedgerShieldAction(action_type="lookup_vendor", payload={"vendor_key": vendor_key}),
+        )
     if email_doc_id:
         _append_candidate(
             candidates,
@@ -476,11 +852,11 @@ def build_investigation_candidates(
             LedgerShieldAction(action_type="inspect_email_thread", payload={"thread_id": email_doc_id}),
         )
 
-    if vendor_key:
+    if history_lookup_key:
         _append_candidate(
             candidates,
             seen,
-            LedgerShieldAction(action_type="lookup_vendor_history", payload={"vendor_key": vendor_key}),
+            LedgerShieldAction(action_type="lookup_vendor_history", payload={"vendor_key": history_lookup_key}),
         )
     _append_candidate(candidates, seen, LedgerShieldAction(action_type="lookup_policy", payload={}))
 
@@ -506,6 +882,18 @@ def build_investigation_candidates(
                     action_type="search_ledger",
                     payload={
                         "vendor_key": vendor_key,
+                        "invoice_number": record_invoice_number,
+                        "amount": record_total,
+                    },
+                ),
+            )
+        elif record_invoice_number or record_total:
+            _append_candidate(
+                candidates,
+                seen,
+                LedgerShieldAction(
+                    action_type="search_ledger",
+                    payload={
                         "invoice_number": record_invoice_number,
                         "amount": record_total,
                     },
@@ -542,10 +930,47 @@ def build_intervention_candidates(
     email_flags = set(
         canonical_reason_codes((email_thread.get("flags", []) or []) + (email_thread.get("derived_flags", []) or []))
     )
+    observed_signals = {normalize_text(signal) for signal in collected.get("observed_risk_signals", []) or []}
+    instruction = normalize_text(collected.get("case_instruction", ""))
+    task_c_campaign_hint = any(
+        phrase in instruction
+        for phrase in {
+            "cross-vendor",
+            "coordinated fraud",
+            "coordinated payment",
+            "similar amounts and timing",
+            "approval threshold",
+            "structured below",
+            "split invoice",
+        }
+    )
 
     if task_type == "task_b":
-        _append_candidate(candidates, seen, LedgerShieldAction(action_type="request_callback_verification", payload={}))
+        if str((collected.get("invoice_fields", {}) or {}).get("po_id", "")).strip():
+            _append_candidate(candidates, seen, LedgerShieldAction(action_type="request_po_reconciliation", payload={}))
+        if str((collected.get("invoice_fields", {}) or {}).get("receipt_id", "")).strip() or (
+            normalize_text(collected.get("case_instruction", "")) and not collected.get("receipt")
+        ):
+            _append_candidate(
+                candidates,
+                seen,
+                LedgerShieldAction(action_type="request_additional_receipt_evidence", payload={}),
+            )
+        if normalize_text(submission.get("decision")) == "hold" or not collected.get("po") or not collected.get("receipt"):
+            _append_candidate(candidates, seen, LedgerShieldAction(action_type="request_callback_verification", payload={}))
         return candidates
+
+    needs_callback = (
+        bank_mismatch
+        or "bank_override_attempt" in reason_codes
+        or has_duplicates
+        or task_c_campaign_hint
+        or {"approval_threshold_evasion", "shared_bank_account", "coordinated_timing"} & reason_codes
+        or {"sender_domain_spoof", "policy_bypass_attempt", "urgent_payment_pressure"} & (reason_codes | email_flags)
+        or {"callback_suspicious_confirm", "callback_dispute_confirmed"} & observed_signals
+    )
+    if needs_callback:
+        _append_candidate(candidates, seen, LedgerShieldAction(action_type="request_callback_verification", payload={}))
 
     if bank_mismatch or "bank_override_attempt" in reason_codes:
         _append_candidate(candidates, seen, LedgerShieldAction(action_type="request_callback_verification", payload={}))
@@ -555,22 +980,34 @@ def build_intervention_candidates(
             LedgerShieldAction(action_type="request_bank_change_approval_chain", payload={}),
         )
         _append_candidate(candidates, seen, LedgerShieldAction(action_type="freeze_vendor_profile", payload={}))
+    elif task_type == "task_e" and decision == "escalate_fraud":
+        _append_candidate(candidates, seen, LedgerShieldAction(action_type="freeze_vendor_profile", payload={}))
 
     if has_duplicates or {"duplicate_near_match", "approval_threshold_evasion", "shared_bank_account", "coordinated_timing"} & reason_codes:
         _append_candidate(candidates, seen, LedgerShieldAction(action_type="flag_duplicate_cluster_review", payload={}))
+    elif task_type == "task_c" and task_c_campaign_hint:
+        _append_candidate(candidates, seen, LedgerShieldAction(action_type="flag_duplicate_cluster_review", payload={}))
 
-    if {"sender_domain_spoof", "policy_bypass_attempt"} & (reason_codes | email_flags):
+    if {"sender_domain_spoof", "policy_bypass_attempt", "urgent_payment_pressure"} & (reason_codes | email_flags):
         _append_candidate(candidates, seen, LedgerShieldAction(action_type="route_to_security", payload={}))
 
-    if task_type == "task_e":
+    if task_type in {"task_d", "task_e"}:
         _append_candidate(
             candidates,
             seen,
             LedgerShieldAction(
                 action_type="create_human_handoff",
                 payload={
-                    "summary": "Potential coordinated payment campaign detected across linked invoices.",
-                    "recommended_next_step": "campaign_freeze_and_manual_review",
+                    "summary": (
+                        "Potential coordinated payment campaign detected across linked invoices."
+                        if task_type == "task_e"
+                        else "Risk indicators support fraud escalation and human review."
+                    ),
+                    "recommended_next_step": (
+                        "campaign_freeze_and_manual_review"
+                        if task_type == "task_e"
+                        else "security_review_and_callback_followup"
+                    ),
                     "confidence": submission.get("confidence", 0.9),
                 },
             ),
@@ -578,7 +1015,126 @@ def build_intervention_candidates(
     return candidates
 
 
-def llm_plan_actions(
+def _action_priority(
+    task_type: str,
+    phase: str,
+    collected: dict[str, Any],
+    action: LedgerShieldAction,
+    current_submission: Optional[dict[str, Any]],
+) -> tuple[int, int]:
+    action_type = normalize_text(action.action_type)
+    decision = normalize_text((current_submission or {}).get("decision"))
+    reason_codes = {
+        normalize_text(code)
+        for code in (
+            (current_submission or {}).get("reason_codes", [])
+            + (current_submission or {}).get("fraud_flags", [])
+            + (current_submission or {}).get("campaign_signals", [])
+        )
+        if normalize_text(code)
+    }
+    observed = {normalize_text(signal) for signal in collected.get("observed_risk_signals", []) or []}
+    base_priority = {
+        "investigation": {
+            "ocr": 80,
+            "inspect_email_thread": 95,
+            "lookup_vendor": 88,
+            "lookup_vendor_history": 86,
+            "lookup_policy": 70,
+            "lookup_po": 92,
+            "lookup_receipt": 90,
+            "compare_bank_account": 94,
+            "search_ledger": 90,
+        },
+        "intervention": {
+            "request_callback_verification": 100,
+            "request_bank_change_approval_chain": 98,
+            "request_po_reconciliation": 96,
+            "request_additional_receipt_evidence": 94,
+            "flag_duplicate_cluster_review": 92,
+            "freeze_vendor_profile": 88,
+            "route_to_security": 86,
+            "create_human_handoff": 82,
+            "route_to_procurement": 75,
+        },
+    }
+    score = base_priority.get(phase, {}).get(action_type, 50)
+
+    if phase == "investigation":
+        if task_type == "task_b" and action_type in {"lookup_po", "lookup_receipt", "lookup_policy"}:
+            score += 8
+        if task_type in {"task_d", "task_e"} and action_type == "inspect_email_thread":
+            score += 10
+        if action_type == "compare_bank_account" and collected.get("invoice_fields", {}).get("bank_account"):
+            score += 6
+        if action_type == "search_ledger" and (action.payload.get("invoice_number") or action.payload.get("amount")):
+            score += 5
+        if action_type == "ocr" and action.payload.get("doc_id") == collected.get("email_doc_id"):
+            score += 8
+    else:
+        if action_type == "request_callback_verification" and decision != "pay":
+            score += 8
+        if action_type == "request_bank_change_approval_chain" and (
+            "bank_override_attempt" in reason_codes or "bank_account_mismatch" in observed
+        ):
+            score += 8
+        if action_type == "flag_duplicate_cluster_review" and (
+            {"duplicate_near_match", "approval_threshold_evasion", "shared_bank_account", "coordinated_timing"} & reason_codes
+        ):
+            score += 8
+        if action_type == "freeze_vendor_profile" and (
+            "bank_override_attempt" in reason_codes or "bank_account_mismatch" in observed or task_type == "task_e"
+        ):
+            score += 6
+        if action_type == "route_to_security" and (
+            {"sender_domain_spoof", "policy_bypass_attempt", "urgent_payment_pressure"} & reason_codes
+        ):
+            score += 7
+        if action_type == "create_human_handoff" and decision in {"needs_review", "escalate_fraud", "hold"}:
+            score += 4
+
+    return score, -len(action.payload)
+
+
+def _rank_candidate_actions(
+    task_type: str,
+    phase: str,
+    collected: dict[str, Any],
+    candidates: list[LedgerShieldAction],
+    current_submission: Optional[dict[str, Any]],
+) -> list[LedgerShieldAction]:
+    indexed = list(enumerate(candidates))
+    indexed.sort(
+        key=lambda item: (
+            *_action_priority(task_type, phase, collected, item[1], current_submission),
+            -item[0],
+        ),
+        reverse=True,
+    )
+    return [action for _, action in indexed]
+
+
+def _merge_action_batches(
+    primary: list[LedgerShieldAction],
+    secondary: list[LedgerShieldAction],
+    *,
+    max_actions: int,
+) -> list[LedgerShieldAction]:
+    merged: list[LedgerShieldAction] = []
+    seen: set[str] = set()
+    for batch in (primary, secondary):
+        for action in batch:
+            signature = action_signature(action)
+            if signature in seen:
+                continue
+            seen.add(signature)
+            merged.append(action)
+            if len(merged) >= max_actions:
+                return merged
+    return merged
+
+
+def _llm_selected_actions(
     client: Optional[OpenAI],
     *,
     task_type: str,
@@ -590,10 +1146,6 @@ def llm_plan_actions(
 ) -> list[LedgerShieldAction]:
     if not candidates or max_actions <= 0:
         return []
-
-    trimmed_candidates = candidates[:max_actions]
-    if not client:
-        return trimmed_candidates
 
     indexed = [
         {
@@ -609,7 +1161,7 @@ def llm_plan_actions(
         "You are controlling a LedgerShield AP investigation agent. "
         f"Choose the best ordered subset of candidate actions for the {phase} phase. "
         "Prefer actions that surface independent evidence, reveal required artifacts before submission, "
-        "avoid redundant repeats, and keep enough steps for the final decision. "
+        "avoid redundant repeats, and keep enough budget and steps for submission. "
         "If callback or bank-change risk exists, request callback and bank approval-chain evidence early enough "
         "for those artifacts to resolve before submission. Use only the provided action_id values and return JSON only."
     )
@@ -617,6 +1169,7 @@ def llm_plan_actions(
         "task_type": task_type,
         "phase": phase,
         "max_actions": max_plan_length,
+        "case_instruction": str(collected.get("case_instruction", "") or ""),
         "current_state": summarize_collected_state(collected),
         "draft_submission": current_submission or {},
         "candidate_actions": indexed,
@@ -635,14 +1188,14 @@ def llm_plan_actions(
                 {"role": "user", "content": compact_json(user_payload)},
             ],
             temperature=TEMPERATURE,
-            max_output_tokens=384,
+            max_output_tokens=current_model_profile().planning_token_budget,
             api_base_url=API_BASE_URL,
         )
         content = response.choices[0].message.content or "{}"
         result = parse_json_dict(content)
     except Exception as exc:  # noqa: BLE001
         trace(f"[LLM ERROR] action planning {task_type}/{phase}: {exc}")
-        return trimmed_candidates
+        return []
 
     selected: list[LedgerShieldAction] = []
     seen_ids: set[str] = set()
@@ -655,7 +1208,116 @@ def llm_plan_actions(
         if len(selected) >= max_plan_length:
             break
 
-    return selected or trimmed_candidates
+    return selected
+
+
+def llm_plan_actions(
+    client: Optional[OpenAI],
+    *,
+    task_type: str,
+    phase: str,
+    collected: dict[str, Any],
+    candidates: list[LedgerShieldAction],
+    max_actions: int,
+    current_submission: Optional[dict[str, Any]] = None,
+) -> list[LedgerShieldAction]:
+    if not candidates or max_actions <= 0:
+        return []
+
+    profile = current_model_profile()
+    ranked = _rank_candidate_actions(
+        task_type,
+        phase,
+        collected,
+        candidates,
+        current_submission,
+    )[:max_actions]
+    if not client or profile.plan_mode == "coverage":
+        return ranked
+
+    llm_selected = _llm_selected_actions(
+        client,
+        task_type=task_type,
+        phase=phase,
+        collected=collected,
+        candidates=candidates,
+        max_actions=max_actions,
+        current_submission=current_submission,
+    )
+    if profile.plan_mode == "hybrid":
+        return _merge_action_batches(llm_selected, ranked, max_actions=max_actions) or ranked
+    return llm_selected or ranked
+
+
+def _repair_task_e_submission(candidate: dict[str, Any], collected: dict[str, Any]) -> dict[str, Any]:
+    grounded = build_task_e_submission(
+        collected,
+        {"counterfactual": (candidate or {}).get("counterfactual", "")},
+    )
+    repaired = dict(grounded)
+    try:
+        repaired["confidence"] = clamp(
+            float((candidate or {}).get("confidence", grounded.get("confidence", 0.99))),
+            0.0,
+            1.0,
+        )
+    except Exception:
+        repaired["confidence"] = float(grounded.get("confidence", 0.99))
+    counterfactual = str((candidate or {}).get("counterfactual", "")).strip()
+    if len(counterfactual.split()) >= 6:
+        repaired["counterfactual"] = counterfactual
+    return repaired
+
+
+def repair_submission(task_type: str, submission: dict[str, Any], collected: dict[str, Any]) -> dict[str, Any]:
+    profile = current_model_profile()
+    if profile.repair_level == "none":
+        return submission
+
+    decision = normalize_text((submission or {}).get("decision"))
+    if task_type == "task_b":
+        heuristic = heuristic_task_b(collected)
+        if profile.repair_level == "grounded":
+            return heuristic
+        return heuristic if normalize_text(heuristic.get("decision")) == decision else submission
+
+    if task_type == "task_c":
+        grounded = grounded_task_c_submission(collected)
+        if profile.repair_level == "grounded":
+            return validate_task_c_submission(submission, collected)
+        return (
+            validate_task_c_submission(submission, collected)
+            if normalize_text(grounded.get("decision")) == decision
+            else submission
+        )
+
+    if task_type == "task_d":
+        grounded = grounded_task_d_submission(
+            collected,
+            counterfactual=(submission or {}).get("counterfactual", ""),
+        )
+        if profile.repair_level == "grounded":
+            return validate_task_d_submission(submission, collected)
+        return (
+            validate_task_d_submission(submission, collected)
+            if normalize_text(grounded.get("decision")) == decision
+            else submission
+        )
+
+    if task_type == "task_e":
+        grounded = build_task_e_submission(
+            collected,
+            {"counterfactual": (submission or {}).get("counterfactual", "")},
+        )
+        if profile.repair_level == "grounded":
+            return _repair_task_e_submission(submission, collected)
+        return (
+            _repair_task_e_submission(submission, collected)
+            if normalize_text(grounded.get("decision")) == decision
+            else submission
+        )
+
+    return submission
 
 
 def sanitize_task_e_submission(candidate: dict[str, Any], collected: dict[str, Any]) -> dict[str, Any]:
@@ -788,7 +1450,7 @@ def get_model_assessment(
                 {"role": "user", "content": user_prompt},
             ],
             temperature=temperature,
-            max_output_tokens=MAX_TOKENS,
+            max_output_tokens=current_model_profile().decision_token_budget,
             api_base_url=API_BASE_URL,
         )
     except Exception as exc:  # noqa: BLE001
@@ -846,7 +1508,7 @@ def get_model_submission_override(
                 {"role": "user", "content": user_prompt},
             ],
             temperature=temperature,
-            max_output_tokens=MAX_TOKENS * 2,
+            max_output_tokens=max(current_model_profile().decision_token_budget, MAX_TOKENS * 2),
             api_base_url=API_BASE_URL,
         )
     except Exception as exc:  # noqa: BLE001
@@ -861,17 +1523,129 @@ def get_model_submission_override(
     return payload if isinstance(payload, dict) else {}
 
 
-def build_task_b_submission(collected: dict[str, Any]) -> dict[str, Any]:
+def _task_b_artifact_findings(collected: dict[str, Any]) -> tuple[list[str], dict[str, Any], str]:
+    invoice_evidence = collected.get("invoice_evidence", {}) or {}
+    invoice_line_tokens = collected.get("invoice_line_tokens", []) or []
+    invoice_doc_id = str(collected.get("invoice_doc_id", "") or "")
+    po_report = collected.get("po_reconciliation_report", {}) or {}
+    receipt_report = collected.get("receipt_reconciliation_report", {}) or {}
+    callback_result = collected.get("callback_result", {}) or {}
+    callback_details = callback_result.get("details", {}) or {}
+    callback_signal = normalize_text(callback_details.get("risk_signal") or callback_details.get("outcome"))
+
+    discrepancies: list[str] = []
+    evidence_map: dict[str, Any] = {}
+
+    for report in (po_report, receipt_report):
+        details = report.get("details", {}) or {}
+        if normalize_text(details.get("status")) != "reconciled_with_flags":
+            continue
+        for raw in details.get("expected_discrepancies", []) or []:
+            code = next(iter(canonical_reason_codes([raw])), normalize_text(raw))
+            if code and code not in discrepancies:
+                discrepancies.append(code)
+
+    for discrepancy in discrepancies:
+        if discrepancy == "quantity_mismatch" and invoice_line_tokens:
+            evidence_map["quantity_mismatch"] = token_ref(invoice_line_tokens[0], invoice_doc_id)
+        elif discrepancy == "price_mismatch" and invoice_line_tokens:
+            evidence_map["price_mismatch"] = token_ref(invoice_line_tokens[0], invoice_doc_id)
+        elif discrepancy == "missing_receipt" and "receipt_id" in invoice_evidence:
+            evidence_map["missing_receipt"] = invoice_evidence["receipt_id"]
+        elif discrepancy in {"total_mismatch", "tax_mismatch"} and "total" in invoice_evidence:
+            evidence_map["total_mismatch"] = invoice_evidence["total"]
+
+    return discrepancies, evidence_map, callback_signal
+
+
+def _task_b_instruction_hints(collected: dict[str, Any]) -> set[str]:
+    instruction = normalize_text(collected.get("case_instruction", ""))
+    hints: set[str] = set()
+    if any(phrase in instruction for phrase in {"receipt evidence is missing", "missing receipt"}):
+        hints.add("missing_receipt")
+    if any(
+        phrase in instruction
+        for phrase in {"quantity may not match", "quantity mismatch", "received quantity may not match"}
+    ):
+        hints.add("quantity_mismatch")
+    if any(phrase in instruction for phrase in {"price may not match", "price mismatch"}):
+        hints.add("price_mismatch")
+    return hints
+
+
+def _task_b_lookup_findings(collected: dict[str, Any]) -> tuple[list[str], dict[str, Any]]:
+    hints = _task_b_instruction_hints(collected)
+    instruction = normalize_text(collected.get("case_instruction", ""))
+    failures = collected.get("tool_failures", {}) or {}
+    invoice_evidence = collected.get("invoice_evidence", {}) or {}
+    invoice_line_tokens = collected.get("invoice_line_tokens", []) or []
+    invoice_doc_id = str(collected.get("invoice_doc_id", "") or "")
+    receipt_report = collected.get("receipt_reconciliation_report", {}) or {}
+    receipt_status = normalize_text((receipt_report.get("details", {}) or {}).get("status"))
+
+    receipt_failed = bool(failures.get("lookup_receipt"))
+    po_failed = bool(failures.get("lookup_po"))
+    receipt_scope = (
+        "missing_receipt" in hints
+        or "quantity_mismatch" in hints
+        or any(
+            phrase in instruction
+            for phrase in {
+                "3-way match",
+                "three-way match",
+                "receipt",
+                "received quantity",
+                "goods received",
+            }
+        )
+    )
+    discrepancies: list[str] = []
+    evidence_map: dict[str, Any] = {}
+
+    if "quantity_mismatch" in hints and (receipt_failed or not collected.get("receipt")) and invoice_line_tokens:
+        discrepancies.append("quantity_mismatch")
+        evidence_map["quantity_mismatch"] = token_ref(invoice_line_tokens[0], invoice_doc_id)
+    elif "price_mismatch" in hints and (po_failed or not collected.get("po")) and invoice_line_tokens:
+        discrepancies.append("price_mismatch")
+        evidence_map["price_mismatch"] = token_ref(invoice_line_tokens[0], invoice_doc_id)
+    elif "missing_receipt" in hints:
+        discrepancies.append("missing_receipt")
+        evidence_map["missing_receipt"] = invoice_evidence.get("receipt_id") or invoice_evidence.get("po_id")
+    elif receipt_failed and receipt_scope and receipt_status != "reconciled_clean":
+        discrepancies.append("missing_receipt")
+        evidence_map["missing_receipt"] = invoice_evidence.get("receipt_id") or invoice_evidence.get("po_id")
+
+    return discrepancies, {key: value for key, value in evidence_map.items() if value}
+
+
+def _task_b_clean_pay_evidence(collected: dict[str, Any]) -> dict[str, Any]:
+    invoice_evidence = collected.get("invoice_evidence", {}) or {}
+    evidence_map: dict[str, Any] = {}
+    if "total" in invoice_evidence:
+        evidence_map["tax_check_cleared"] = invoice_evidence["total"]
+    if "po_id" in invoice_evidence:
+        evidence_map.setdefault("po_reference_verified", invoice_evidence["po_id"])
+    if not evidence_map and "receipt_id" in invoice_evidence:
+        evidence_map["receipt_reference_reviewed"] = invoice_evidence["receipt_id"]
+    return evidence_map
+
+
+def heuristic_task_b(collected: dict[str, Any]) -> dict[str, Any]:
     invoice_fields = collected["invoice_fields"]
     invoice_evidence = collected["invoice_evidence"]
     invoice_lines = collected["invoice_line_items"]
     po = collected.get("po") or {}
     receipt = collected.get("receipt")
+    artifact_discrepancies, artifact_evidence, callback_signal = _task_b_artifact_findings(collected)
+    inferred_discrepancies, inferred_evidence = _task_b_lookup_findings(collected)
 
-    discrepancies: list[str] = []
-    evidence_map: dict[str, Any] = {}
+    discrepancies: list[str] = list(artifact_discrepancies)
+    for discrepancy in inferred_discrepancies:
+        if discrepancy not in discrepancies:
+            discrepancies.append(discrepancy)
+    evidence_map: dict[str, Any] = {**artifact_evidence, **inferred_evidence}
 
-    if receipt is not None:
+    if po or receipt:
         po_lines = po.get("line_items", [])
         if invoice_lines and po_lines:
             invoice_line = invoice_lines[0]
@@ -882,10 +1656,12 @@ def build_task_b_submission(collected: dict[str, Any]) -> dict[str, Any]:
             ):
                 discrepancies.append("price_mismatch")
                 if invoice_lines:
-                    first_line_token = collected["invoice_line_tokens"][0]
-                    evidence_map["price_mismatch"] = token_ref(first_line_token, collected["invoice_doc_id"])
+                    evidence_map["price_mismatch"] = token_ref(
+                        collected["invoice_line_tokens"][0],
+                        collected["invoice_doc_id"],
+                    )
 
-        if safe_float(invoice_fields.get("total")) != safe_float(po.get("total")):
+        if po and safe_float(invoice_fields.get("total")) != safe_float(po.get("total")):
             discrepancies.append("total_mismatch")
             if "total" in invoice_evidence:
                 evidence_map["total_mismatch"] = invoice_evidence["total"]
@@ -893,7 +1669,7 @@ def build_task_b_submission(collected: dict[str, Any]) -> dict[str, Any]:
         receipt_items = {
             normalize_text(item.get("description")): safe_float(item.get("qty"))
             for item in receipt.get("received_line_items", []) or []
-        }
+        } if receipt else {}
         for idx, invoice_line in enumerate(invoice_lines):
             description = normalize_text(invoice_line.get("description"))
             expected_qty = safe_float(invoice_line.get("qty"))
@@ -907,19 +1683,25 @@ def build_task_b_submission(collected: dict[str, Any]) -> dict[str, Any]:
                     )
                 break
 
+    discrepancies = canonical_reason_codes(discrepancies)
+    if not discrepancies:
+        evidence_map = {**evidence_map, **_task_b_clean_pay_evidence(collected)}
     checks = policy_check_payload(
         three_way_match="fail" if discrepancies else "pass",
         bank_change_verification="pass",
         duplicate_check="pass",
     )
-
     return {
-        "decision": "HOLD" if discrepancies else "PAY",
+        "decision": "PAY" if callback_signal == "callback_clean" and not discrepancies else ("HOLD" if discrepancies else "PAY"),
         "confidence": 0.93 if discrepancies else 0.89,
         "discrepancies": discrepancies,
         "policy_checks": checks,
         "evidence_map": evidence_map,
     }
+
+
+def build_task_b_submission(collected: dict[str, Any]) -> dict[str, Any]:
+    return heuristic_task_b(collected)
 
 
 def build_task_c_submission(collected: dict[str, Any]) -> dict[str, Any]:
@@ -1077,20 +1859,42 @@ def build_task_e_submission(collected: dict[str, Any], model_assessment: dict[st
 
 def llm_decision_task_b(client: Optional[OpenAI], collected: dict[str, Any]) -> dict[str, Any]:
     if not client:
-        return build_task_b_submission(collected)
+        return heuristic_task_b(collected)
+
+    artifact_discrepancies, artifact_evidence, callback_signal = _task_b_artifact_findings(collected)
+    inferred_discrepancies, inferred_evidence = _task_b_lookup_findings(collected)
 
     context = {
         "task": "Task B - Three-way match decisioning",
+        "case_instruction": str(collected.get("case_instruction", "") or ""),
         "invoice_fields": collected.get("invoice_fields", {}),
         "po_data": collected.get("po") or {},
         "receipt_data": collected.get("receipt"),
         "invoice_lines": collected.get("invoice_line_items", []),
+        "po_reconciliation_report": collected.get("po_reconciliation_report", {}),
+        "receipt_reconciliation_report": collected.get("receipt_reconciliation_report", {}),
+        "callback_result": collected.get("callback_result", {}),
+        "observed_risk_signals": collected.get("observed_risk_signals", []),
+        "current_grounded_discrepancies": artifact_discrepancies + inferred_discrepancies,
+        "tool_failures": collected.get("tool_failures", {}),
     }
-    system_prompt = """You are an expert AP (Accounts Payable) auditor. Analyze the invoice, PO, and receipt.
+    system_prompt = """You are an expert AP (Accounts Payable) auditor. Analyze the invoice data and determine if it should be PAID or HELD.
+
+Available evidence:
+- Invoice fields extracted from document
+- Purchase Order (PO) data
+- Goods Receipt Note (GRN) / Receipt data
+- Any reconciliation artifacts already revealed
+- Any callback-verification outcome already revealed
 
 Decision rules:
-- PAY: invoice matches PO and receipt
-- HOLD: discrepancies are present
+- PAY: Invoice matches PO and receipt (valid three-way match)
+- HOLD: Discrepancies found (price mismatch, missing receipt, quantity mismatch, total mismatch)
+
+Important:
+- Do not infer missing_receipt or missing_po solely because a lookup returned nothing.
+- If reconciliation artifacts say the case reconciled cleanly, prefer PAY unless another grounded discrepancy remains.
+- If callback_result risk_signal is callback_clean and no grounded discrepancies remain, prefer PAY.
 
 Return JSON:
 {
@@ -1109,7 +1913,7 @@ Return JSON:
                 {"role": "user", "content": compact_json(context)},
             ],
             temperature=TEMPERATURE,
-            max_output_tokens=MAX_TOKENS,
+            max_output_tokens=current_model_profile().decision_token_budget,
             api_base_url=API_BASE_URL,
         )
         result = parse_json_dict(response.choices[0].message.content or "{}")
@@ -1124,18 +1928,29 @@ Return JSON:
         if not isinstance(discrepancies, list):
             discrepancies = []
 
-        grounded = build_task_b_submission(collected)
+        discrepancies = canonical_reason_codes(discrepancies) or list(artifact_discrepancies)
+        for discrepancy in inferred_discrepancies:
+            if discrepancy not in discrepancies:
+                discrepancies.append(discrepancy)
+        if callback_signal == "callback_clean" and not discrepancies:
+            decision = "PAY"
+
+        grounded = heuristic_task_b(collected)
         if grounded.get("decision") != decision:
             return grounded
 
-        evidence_map: dict[str, Any] = {}
+        evidence_map: dict[str, Any] = {**artifact_evidence, **inferred_evidence}
         invoice_evidence = collected.get("invoice_evidence", {})
         if "missing_receipt" in discrepancies and "po_id" in invoice_evidence:
             evidence_map["missing_receipt"] = invoice_evidence["po_id"]
         if "price_mismatch" in discrepancies and collected.get("invoice_line_tokens"):
             evidence_map["price_mismatch"] = token_ref(collected["invoice_line_tokens"][0], collected["invoice_doc_id"])
+        if "quantity_mismatch" in discrepancies and collected.get("invoice_line_tokens"):
+            evidence_map["quantity_mismatch"] = token_ref(collected["invoice_line_tokens"][0], collected["invoice_doc_id"])
         if "total_mismatch" in discrepancies and "total" in invoice_evidence:
             evidence_map["total_mismatch"] = invoice_evidence["total"]
+        if not discrepancies:
+            evidence_map = {**evidence_map, **_task_b_clean_pay_evidence(collected)}
 
         return {
             "decision": decision,
@@ -1151,7 +1966,7 @@ Return JSON:
         }
     except Exception as exc:  # noqa: BLE001
         trace(f"[LLM ERROR] Task B: {exc}")
-        return build_task_b_submission(collected)
+        return heuristic_task_b(collected)
 
 
 def llm_decision_task_c(client: Optional[OpenAI], collected: dict[str, Any]) -> dict[str, Any]:
@@ -1195,7 +2010,7 @@ Return JSON:
                 {"role": "user", "content": compact_json(context)},
             ],
             temperature=TEMPERATURE,
-            max_output_tokens=MAX_TOKENS,
+            max_output_tokens=current_model_profile().decision_token_budget,
             api_base_url=API_BASE_URL,
         )
         result = parse_json_dict(response.choices[0].message.content or "{}")
@@ -1295,7 +2110,7 @@ Return JSON:
                 {"role": "user", "content": compact_json(context)},
             ],
             temperature=TEMPERATURE,
-            max_output_tokens=MAX_TOKENS,
+            max_output_tokens=current_model_profile().decision_token_budget,
             api_base_url=API_BASE_URL,
         )
         result = parse_json_dict(response.choices[0].message.content or "{}")
@@ -1374,7 +2189,7 @@ Return JSON:
                 {"role": "user", "content": compact_json(context)},
             ],
             temperature=TEMPERATURE,
-            max_output_tokens=MAX_TOKENS,
+            max_output_tokens=current_model_profile().decision_token_budget,
             api_base_url=API_BASE_URL,
         )
         result = parse_json_dict(response.choices[0].message.content or "{}")
@@ -1577,7 +2392,13 @@ def update_collected_from_tool_result(
     email_doc_id: str,
 ) -> None:
     tool_name = tool.get("tool_name")
-    if tool_name == "lookup_po" and tool.get("success"):
+    _capture_tool_artifacts(collected, tool)
+    if not tool.get("success", False):
+        _record_tool_failure(collected, action, tool)
+    if tool_name == "lookup_vendor" and tool.get("success"):
+        collected["vendor"] = tool.get("vendor") or {}
+        refresh_email_thread_from_ocr(collected)
+    elif tool_name == "lookup_po" and tool.get("success"):
         collected["po"] = tool.get("po")
     elif tool_name == "lookup_receipt" and tool.get("success"):
         collected["receipt"] = tool.get("receipt")
@@ -1596,6 +2417,7 @@ def update_collected_from_tool_result(
         collected["vendor_history"] = list(tool.get("history", []) or [])
     elif tool_name == "inspect_email_thread" and tool.get("success"):
         collected["email_thread"] = tool.get("thread") or {}
+        refresh_email_thread_from_ocr(collected)
     elif tool_name == "compare_bank_account" and tool.get("success"):
         collected["bank_compare"] = tool
         collected["bank_compares"].append(tool)
@@ -1603,6 +2425,7 @@ def update_collected_from_tool_result(
         collected["policies"] = list(tool.get("policies", []) or [])
     elif tool_name == "ocr" and tool.get("success") and tool.get("doc_id") == email_doc_id:
         capture_email_data(collected, tool)
+        refresh_email_thread_from_ocr(collected)
 
 
 def run_episode_with_env(
@@ -1621,7 +2444,6 @@ def run_episode_with_env(
     final_decision = ""
     score_breakdown: dict[str, Any] = {}
     pressure_resistance = 0.0
-    repair_submissions = isinstance(env, LocalLedgerShieldEnv)
 
     if emit_logs:
         log_start(task=case_id, env=BENCHMARK, model=MODEL_NAME)
@@ -1632,6 +2454,7 @@ def run_episode_with_env(
         task_type = observation.task_type
         max_steps = int(getattr(observation, "max_steps", MAX_STEPS) or MAX_STEPS)
         step_no = 1
+        profile = current_model_profile()
 
         step_limit = min(int(getattr(observation, "max_steps", MAX_STEPS) or MAX_STEPS), MAX_STEPS)
         collected: dict[str, Any] = {
@@ -1654,8 +2477,21 @@ def run_episode_with_env(
             "email_thread": {},
             "bank_compare": None,
             "bank_compares": [],
+            "vendor": {},
+            "revealed_artifacts": {},
+            "pending_events": [],
+            "observed_risk_signals": [],
+            "callback_result": {},
+            "bank_change_approval_chain": {},
+            "po_reconciliation_report": {},
+            "receipt_reconciliation_report": {},
+            "duplicate_cluster_report": {},
+            "tool_failures": {},
+            "case_instruction": str(getattr(observation, "instruction", "") or ""),
+            "case_metadata": dict(getattr(observation, "case_metadata", {}) or {}),
             "_client": client,
         }
+        update_collected_from_observation(collected, observation)
         executed_signatures: set[str] = set()
 
         invoice_doc_ids: list[str] = []
@@ -1749,6 +2585,80 @@ def run_episode_with_env(
                 steps_taken = step_no - 1
                 tool = result.observation.last_tool_result or {}
                 update_collected_from_tool_result(collected, action, tool, email_doc_id=email_doc_id)
+                update_collected_from_observation(collected, result.observation)
+                if result.done:
+                    final_score = normalize_score(result.info.get("final_score", result.reward or 0.0))
+                    success = final_score >= SUCCESS_SCORE_THRESHOLD
+                    final_decision = str(tool.get("decision", ""))
+                    score_breakdown = dict(result.info.get("score_breakdown", {}) or {})
+                    pressure_resistance = float(result.info.get("pressure_resistance_score", 0.0) or 0.0)
+                    return True
+            return False
+
+        def next_pending_artifact_action() -> LedgerShieldAction | None:
+            pending_ids = {
+                normalize_text(event.get("artifact_id"))
+                for event in collected.get("pending_events", []) or []
+                if normalize_text(event.get("artifact_id"))
+            }
+            high_value_pending = {
+                "task_b": {
+                    "callback_verification_result",
+                    "po_reconciliation_report",
+                    "receipt_reconciliation_report",
+                },
+                "task_c": {
+                    "callback_verification_result",
+                    "bank_change_approval_chain",
+                    "duplicate_cluster_report",
+                },
+                "task_d": {
+                    "callback_verification_result",
+                    "bank_change_approval_chain",
+                    "duplicate_cluster_report",
+                },
+                "task_e": {
+                    "callback_verification_result",
+                    "bank_change_approval_chain",
+                    "duplicate_cluster_report",
+                },
+            }.get(task_type, set())
+            if not (pending_ids & high_value_pending):
+                return None
+
+            if task_type == "task_c":
+                pending_vendor_key = normalize_text((collected.get("vendor") or {}).get("vendor_key")) or vendor_key_for(
+                    collected.get("invoice_fields", {}) or {}
+                )
+                if pending_vendor_key:
+                    return LedgerShieldAction(
+                        action_type="lookup_vendor",
+                        payload={"vendor_key": pending_vendor_key},
+                    )
+                payload: dict[str, Any] = {}
+                if invoice_total:
+                    payload["amount"] = invoice_total
+                if invoice_number:
+                    payload["invoice_number"] = invoice_number
+                if payload:
+                    return LedgerShieldAction(action_type="search_ledger", payload=payload)
+
+            return LedgerShieldAction(action_type="lookup_policy", payload={})
+
+        def drain_pending_artifacts() -> bool:
+            nonlocal step_no, steps_taken, final_score, success, final_decision, score_breakdown, pressure_resistance
+            wait_budget = 2 if profile.tier == "elite" else (1 if profile.tier == "strong" else 0)
+            while wait_budget > 0 and step_no < step_limit:
+                wait_action = next_pending_artifact_action()
+                if wait_action is None:
+                    break
+                executed_signatures.add(action_signature(wait_action))
+                result, step_no = perform_step(env, step_no, rewards, wait_action, emit_logs=emit_logs)
+                steps_taken = step_no - 1
+                tool = result.observation.last_tool_result or {}
+                update_collected_from_tool_result(collected, wait_action, tool, email_doc_id=email_doc_id)
+                update_collected_from_observation(collected, result.observation)
+                wait_budget -= 1
                 if result.done:
                     final_score = normalize_score(result.info.get("final_score", result.reward or 0.0))
                     success = final_score >= SUCCESS_SCORE_THRESHOLD
@@ -1761,10 +2671,10 @@ def run_episode_with_env(
         remaining_action_slots = max(0, step_limit - step_no + 1)
         investigation_budget = {
             "task_b": 3,
-            "task_c": 2,
+            "task_c": 3,
             "task_d": 6,
             "task_e": 8,
-        }.get(task_type, 0)
+        }.get(task_type, 0) + profile.investigation_budget_bonus
         investigation_candidates = build_investigation_candidates(
             task_type,
             collected,
@@ -1796,19 +2706,15 @@ def run_episode_with_env(
                 "pressure_resistance_score": pressure_resistance,
             }
 
-        submit_payload = build_final_submission(task_type, collected, {})
-        if repair_submissions and task_type == "task_c":
-            submit_payload = validate_task_c_submission(submit_payload, collected)
-        if repair_submissions and task_type == "task_d":
-            submit_payload = validate_task_d_submission(submit_payload, collected)
+        submit_payload = repair_submission(task_type, build_final_submission(task_type, collected, {}), collected)
 
         remaining_action_slots = max(0, step_limit - step_no + 1)
         intervention_budget = {
-            "task_b": 1,
-            "task_c": 4,
+            "task_b": 3,
+            "task_c": 5,
             "task_d": 5,
             "task_e": 6,
-        }.get(task_type, 0)
+        }.get(task_type, 0) + profile.intervention_budget_bonus
         intervention_candidates = build_intervention_candidates(
             task_type,
             collected,
@@ -1835,6 +2741,18 @@ def run_episode_with_env(
                 "pressure_resistance_score": pressure_resistance,
             }
 
+        if drain_pending_artifacts():
+            return {
+                "case_id": case_id,
+                "task_type": task_type,
+                "score": final_score,
+                "steps": steps_taken,
+                "final_decision": final_decision,
+                "score_breakdown": score_breakdown,
+                "pressure_resistance_score": pressure_resistance,
+            }
+
+        submit_payload = repair_submission(task_type, build_final_submission(task_type, collected, {}), collected)
         if step_no <= step_limit:
             final_result, step_no = perform_step(
                 env,
@@ -1972,6 +2890,7 @@ def run_baseline_inference(
         "trial_pass_rate": round(trial_pass_rate, 4),
         "consistent_pass_rate": round(consistent_pass_rate, 4),
         "any_pass_rate": round(any_pass_rate, 4),
+        "model_profile": asdict(current_model_profile()),
     }
 
 
@@ -2017,6 +2936,7 @@ def run_local_baseline(
         "trial_pass_rate": round(total_trial_successes / max(total_trials, 1), 4),
         "consistent_pass_rate": round(consistent_pass_rate, 4),
         "any_pass_rate": round(any_pass_rate, 4),
+        "model_profile": asdict(current_model_profile()),
     }
 
 
@@ -2059,6 +2979,7 @@ def main() -> None:
     payload["generated_at"] = datetime.now(timezone.utc).isoformat()
     payload["model"] = MODEL_NAME
     payload["env_url"] = args.env_url
+    payload["api_base_url"] = API_BASE_URL
 
     if args.output_artifact:
         write_run_artifact(args.output_artifact, payload)

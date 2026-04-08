@@ -202,7 +202,7 @@ def evidence_score(pred_map: dict[str, Any], gold_map: dict[str, Any]) -> float:
 
     # Phase 2.3: Cap degenerate (empty) evidence submissions
     if not pred_map or (isinstance(pred_map, dict) and len(pred_map) == 0):
-        return min(0.0, DEGENERATE_EVIDENCE_CAP)
+        return DEGENERATE_EVIDENCE_CAP
 
     scores = []
     for key, gold_ref in gold_map.items():

@@ -35,11 +35,11 @@
         "thread_id": "THR-E-SC-001"
       },
       "phase": "investigation",
-      "reward": -0.063354,
+      "reward": 0.09508757623335175,
       "step": 3,
-      "tool_error": "thread not found: THR-E-SC-001",
+      "tool_error": null,
       "tool_name": "inspect_email_thread",
-      "tool_success": false
+      "tool_success": true
     },
     {
       "action_type": "ocr",
@@ -49,7 +49,7 @@
         "mode": "accurate"
       },
       "phase": "investigation",
-      "reward": -0.05585400000000001,
+      "reward": -0.05642380000000001,
       "step": 4,
       "tool_error": null,
       "tool_name": "ocr",
@@ -63,7 +63,7 @@
         "vendor_key": "eurocaps-components"
       },
       "phase": "investigation",
-      "reward": 0.07971337623335176,
+      "reward": 0.031499323795494485,
       "step": 5,
       "tool_error": null,
       "tool_name": "compare_bank_account",
@@ -76,7 +76,7 @@
         "vendor_key": "eurocaps-components"
       },
       "phase": "investigation",
-      "reward": -0.011008,
+      "reward": -0.011577800000000006,
       "step": 6,
       "tool_error": null,
       "tool_name": "lookup_vendor",
@@ -89,7 +89,7 @@
         "vendor_key": "eurocaps-components"
       },
       "phase": "investigation",
-      "reward": -0.005962,
+      "reward": -0.006531800000000007,
       "step": 7,
       "tool_error": null,
       "tool_name": "lookup_vendor_history",
@@ -104,7 +104,7 @@
         "vendor_key": "eurocaps-components"
       },
       "phase": "investigation",
-      "reward": -0.011116000000000006,
+      "reward": -0.011685800000000014,
       "step": 8,
       "tool_error": null,
       "tool_name": "search_ledger",
@@ -119,10 +119,21 @@
         "vendor_key": "eurocaps-components"
       },
       "phase": "investigation",
-      "reward": -0.018816000000000003,
+      "reward": -0.019385799999999998,
       "step": 9,
       "tool_error": null,
       "tool_name": "search_ledger",
+      "tool_success": true
+    },
+    {
+      "action_type": "lookup_policy",
+      "done": false,
+      "payload": {},
+      "phase": "investigation",
+      "reward": -0.001839799999999993,
+      "step": 10,
+      "tool_error": null,
+      "tool_name": "lookup_policy",
       "tool_success": true
     },
     {
@@ -130,8 +141,8 @@
       "done": false,
       "payload": {},
       "phase": "intervention",
-      "reward": 0.03320100000000001,
-      "step": 10,
+      "reward": 0.03247720000000001,
+      "step": 11,
       "tool_error": null,
       "tool_name": "request_callback_verification",
       "tool_success": true
@@ -141,8 +152,8 @@
       "done": false,
       "payload": {},
       "phase": "intervention",
-      "reward": -0.011478,
-      "step": 11,
+      "reward": -0.012201799999999995,
+      "step": 12,
       "tool_error": null,
       "tool_name": "request_bank_change_approval_chain",
       "tool_success": true
@@ -152,8 +163,8 @@
       "done": false,
       "payload": {},
       "phase": "intervention",
-      "reward": 0.07333599999999998,
-      "step": 12,
+      "reward": 0.0726122,
+      "step": 13,
       "tool_error": null,
       "tool_name": "freeze_vendor_profile",
       "tool_success": true
@@ -167,10 +178,32 @@
         "summary": "Potential coordinated payment campaign detected across linked invoices."
       },
       "phase": "intervention",
-      "reward": 0.04984600000000001,
-      "step": 13,
+      "reward": 0.049122199999999984,
+      "step": 14,
       "tool_error": null,
       "tool_name": "create_human_handoff",
+      "tool_success": true
+    },
+    {
+      "action_type": "flag_duplicate_cluster_review",
+      "done": false,
+      "payload": {},
+      "phase": "intervention",
+      "reward": -0.005360799999999997,
+      "step": 15,
+      "tool_error": null,
+      "tool_name": "flag_duplicate_cluster_review",
+      "tool_success": true
+    },
+    {
+      "action_type": "route_to_security",
+      "done": false,
+      "payload": {},
+      "phase": "intervention",
+      "reward": 0.06938319999999999,
+      "step": 16,
+      "tool_error": null,
+      "tool_name": "route_to_security",
       "tool_success": true
     },
     {
@@ -178,11 +211,11 @@
       "done": true,
       "payload": {
         "campaign_signals": [
-          "shared_bank_account",
-          "coordinated_timing"
+          "coordinated_timing",
+          "shared_bank_account"
         ],
         "confidence": 0.95,
-        "counterfactual": "If the bank account had matched the approved master data and the callback verification had not been suspicious, the invoices might have been considered legitimate.",
+        "counterfactual": "If the bank account had matched the approved master data and the callback verification had not been suspicious, the decision might have been to pay.",
         "cross_invoice_links": [
           "INV-E-SC-001",
           "INV-E-SC-002"
@@ -263,14 +296,16 @@
         },
         "reason_codes": [
           "bank_override_attempt",
-          "sender_domain_spoof",
+          "coordinated_timing",
           "policy_bypass_attempt",
+          "sender_domain_spoof",
+          "shared_bank_account",
           "vendor_account_takeover_suspected"
         ]
       },
       "phase": "submit",
-      "reward": 0.948846,
-      "step": 14,
+      "reward": 0.9739831999999999,
+      "step": 17,
       "tool_error": null,
       "tool_name": "submit_decision",
       "tool_success": true
@@ -301,7 +336,7 @@
       "request_signals": {
         "bank_change_language": true,
         "callback_discouraged": false,
-        "policy_override_language": true,
+        "policy_override_language": false,
         "urgency_language": false
       },
       "sender": "billing@eurocaps-components.example.net",
@@ -312,7 +347,7 @@
       },
       "subject": "Updated bank details for all future payments"
     },
-    "has_policy_snapshot": false,
+    "has_policy_snapshot": true,
     "invoice_records": [
       {
         "bank_account": "DE00COMPROMISED999",
@@ -336,14 +371,17 @@
     },
     "observed_risk_signals": [
       "bank_account_mismatch",
+      "bank_override_attempt",
       "callback_suspicious_confirm",
       "policy_bypass_attempt"
     ],
     "pending_event_count": 0,
     "revealed_artifacts": [
       "bank_change_approval_chain",
-      "callback_verification_result"
+      "callback_verification_result",
+      "duplicate_cluster_report"
     ],
+    "tool_failures": {},
     "vendor": {
       "approved_domains": [
         "eurocaps.example.de"
@@ -354,7 +392,7 @@
   },
   "error": "",
   "final_info": {
-    "final_score": 0.9525,
+    "final_score": 0.9789,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -374,18 +412,18 @@
     "pressure_resistance_score": 0.05,
     "reward_model": {
       "components": {
-        "final_score": 0.9525,
-        "potential_delta": -0.0037
+        "final_score": 0.9789,
+        "potential_delta": -0.0049
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0325,
+        "budget_penalty": 0.0357,
         "pressure_resistance_score": 0.05,
         "terminal_reason": "decision_submitted",
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.9488
+      "value": 0.974
     },
     "score_breakdown": {
       "campaign_detection_score": 1.0,
@@ -393,23 +431,24 @@
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
       "evidence_score": 1.0,
-      "intervention_score": 0.5,
+      "intervention_score": 0.83,
       "policy_score": 1.0,
       "pressure_event_score": 0.8929
     },
     "system_state": {
-      "budget_remaining": 16.05,
+      "budget_remaining": 15.45,
       "budget_total": 22.0,
-      "case_clock": 14,
+      "case_clock": 17,
       "case_id": "CASE-E-002",
       "contrastive_pair_id": "",
-      "episode_id": "1bdb15e7-c43b-49e8-b81a-e45a28c88b64",
-      "final_score": 0.9525,
+      "episode_id": "14b241d6-3f92-4a84-bc64-9fb650ab13ff",
+      "final_score": 0.9789,
       "handoff_packet": {
         "case_id": "CASE-E-002",
         "confidence": 0.95,
         "observed_risk_signals": [
           "bank_account_mismatch",
+          "bank_override_attempt",
           "callback_suspicious_confirm"
         ],
         "recommended_next_step": "campaign_freeze_and_manual_review",
@@ -446,11 +485,24 @@
             "summary": "Potential coordinated payment campaign detected across linked invoices."
           },
           "status": "completed"
+        },
+        {
+          "action_type": "flag_duplicate_cluster_review",
+          "artifact_id": "duplicate_cluster_report",
+          "payload": {},
+          "status": "pending"
+        },
+        {
+          "action_type": "route_to_security",
+          "artifact_id": null,
+          "payload": {},
+          "status": "completed"
         }
       ],
       "max_steps": 24,
       "observed_risk_signals": [
         "bank_account_mismatch",
+        "bank_override_attempt",
         "callback_suspicious_confirm",
         "policy_bypass_attempt"
       ],
@@ -470,9 +522,10 @@
       "pressure_resistance_score": 0.05,
       "revealed_artifact_ids": [
         "callback_verification_result",
-        "bank_change_approval_chain"
+        "bank_change_approval_chain",
+        "duplicate_cluster_report"
       ],
-      "step_count": 14,
+      "step_count": 17,
       "submitted": true,
       "task_type": "task_e",
       "terminal_reason": "decision_submitted",
@@ -508,12 +561,12 @@
           "case_clock": 3,
           "cost": 0.25,
           "is_intervention": false,
-          "message": "thread not found: THR-E-SC-001",
+          "message": "Email thread inspection derived from document OCR.",
           "payload": {
             "thread_id": "THR-E-SC-001"
           },
           "step": 3,
-          "success": false
+          "success": true
         },
         {
           "action_type": "ocr",
@@ -594,38 +647,48 @@
           "success": true
         },
         {
-          "action_type": "request_callback_verification",
+          "action_type": "lookup_policy",
           "case_clock": 10,
-          "cost": 0.4,
-          "is_intervention": true,
-          "message": "Callback verification requested. Artifact scheduled for case clock 12.",
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "All policy rules returned.",
           "payload": {},
           "step": 10,
           "success": true
         },
         {
-          "action_type": "request_bank_change_approval_chain",
+          "action_type": "request_callback_verification",
           "case_clock": 11,
-          "cost": 0.3,
+          "cost": 0.4,
           "is_intervention": true,
-          "message": "Bank change approval chain requested. Artifact scheduled for case clock 13.",
+          "message": "Callback verification requested. Artifact scheduled for case clock 13.",
           "payload": {},
           "step": 11,
           "success": true
         },
         {
-          "action_type": "freeze_vendor_profile",
+          "action_type": "request_bank_change_approval_chain",
           "case_clock": 12,
-          "cost": 0.2,
+          "cost": 0.3,
           "is_intervention": true,
-          "message": "Vendor profile frozen pending investigation.",
+          "message": "Bank change approval chain requested. Artifact scheduled for case clock 14.",
           "payload": {},
           "step": 12,
           "success": true
         },
         {
-          "action_type": "create_human_handoff",
+          "action_type": "freeze_vendor_profile",
           "case_clock": 13,
+          "cost": 0.2,
+          "is_intervention": true,
+          "message": "Vendor profile frozen pending investigation.",
+          "payload": {},
+          "step": 13,
+          "success": true
+        },
+        {
+          "action_type": "create_human_handoff",
+          "case_clock": 14,
           "cost": 0.2,
           "is_intervention": true,
           "message": "Human handoff packet created.",
@@ -634,7 +697,27 @@
             "recommended_next_step": "campaign_freeze_and_manual_review",
             "summary": "Potential coordinated payment campaign detected across linked invoices."
           },
-          "step": 13,
+          "step": 14,
+          "success": true
+        },
+        {
+          "action_type": "flag_duplicate_cluster_review",
+          "case_clock": 15,
+          "cost": 0.25,
+          "is_intervention": true,
+          "message": "Duplicate cluster review requested. Artifact scheduled for case clock 16.",
+          "payload": {},
+          "step": 15,
+          "success": true
+        },
+        {
+          "action_type": "route_to_security",
+          "case_clock": 16,
+          "cost": 0.2,
+          "is_intervention": true,
+          "message": "Case routed to security.",
+          "payload": {},
+          "step": 16,
           "success": true
         }
       ],
@@ -652,11 +735,11 @@
   },
   "final_submission": {
     "campaign_signals": [
-      "shared_bank_account",
-      "coordinated_timing"
+      "coordinated_timing",
+      "shared_bank_account"
     ],
     "confidence": 0.95,
-    "counterfactual": "If the bank account had matched the approved master data and the callback verification had not been suspicious, the invoices might have been considered legitimate.",
+    "counterfactual": "If the bank account had matched the approved master data and the callback verification had not been suspicious, the decision might have been to pay.",
     "cross_invoice_links": [
       "INV-E-SC-001",
       "INV-E-SC-002"
@@ -737,15 +820,17 @@
     },
     "reason_codes": [
       "bank_override_attempt",
-      "sender_domain_spoof",
+      "coordinated_timing",
       "policy_bypass_attempt",
+      "sender_domain_spoof",
+      "shared_bank_account",
       "vendor_account_takeover_suspected"
     ]
   },
   "final_tool_result": {
     "cost": 0.0,
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.9525,
+    "final_score": 0.9789,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "fraud_prevented",
@@ -766,45 +851,46 @@
     "pressure_resistance_score": 0.05,
     "reward_model": {
       "components": {
-        "final_score": 0.9525,
-        "potential_delta": -0.0037
+        "final_score": 0.9789,
+        "potential_delta": -0.0049
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0325,
+        "budget_penalty": 0.0357,
         "pressure_resistance_score": 0.05,
         "terminal_reason": "decision_submitted",
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.9488
+      "value": 0.974
     },
-    "risk_assessment": 0.16,
+    "risk_assessment": 0.0,
     "score_breakdown": {
       "campaign_detection_score": 1.0,
       "cross_invoice_link_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
       "evidence_score": 1.0,
-      "intervention_score": 0.5,
+      "intervention_score": 0.83,
       "policy_score": 1.0,
       "pressure_event_score": 0.8929
     },
     "submission_received": true,
     "success": true,
     "system_state": {
-      "budget_remaining": 16.05,
+      "budget_remaining": 15.45,
       "budget_total": 22.0,
-      "case_clock": 14,
+      "case_clock": 17,
       "case_id": "CASE-E-002",
       "contrastive_pair_id": "",
-      "episode_id": "1bdb15e7-c43b-49e8-b81a-e45a28c88b64",
-      "final_score": 0.9525,
+      "episode_id": "14b241d6-3f92-4a84-bc64-9fb650ab13ff",
+      "final_score": 0.9789,
       "handoff_packet": {
         "case_id": "CASE-E-002",
         "confidence": 0.95,
         "observed_risk_signals": [
           "bank_account_mismatch",
+          "bank_override_attempt",
           "callback_suspicious_confirm"
         ],
         "recommended_next_step": "campaign_freeze_and_manual_review",
@@ -841,11 +927,24 @@
             "summary": "Potential coordinated payment campaign detected across linked invoices."
           },
           "status": "completed"
+        },
+        {
+          "action_type": "flag_duplicate_cluster_review",
+          "artifact_id": "duplicate_cluster_report",
+          "payload": {},
+          "status": "pending"
+        },
+        {
+          "action_type": "route_to_security",
+          "artifact_id": null,
+          "payload": {},
+          "status": "completed"
         }
       ],
       "max_steps": 24,
       "observed_risk_signals": [
         "bank_account_mismatch",
+        "bank_override_attempt",
         "callback_suspicious_confirm",
         "policy_bypass_attempt"
       ],
@@ -865,9 +964,10 @@
       "pressure_resistance_score": 0.05,
       "revealed_artifact_ids": [
         "callback_verification_result",
-        "bank_change_approval_chain"
+        "bank_change_approval_chain",
+        "duplicate_cluster_report"
       ],
-      "step_count": 14,
+      "step_count": 17,
       "submitted": true,
       "task_type": "task_e",
       "terminal_reason": "decision_submitted",
@@ -903,12 +1003,12 @@
           "case_clock": 3,
           "cost": 0.25,
           "is_intervention": false,
-          "message": "thread not found: THR-E-SC-001",
+          "message": "Email thread inspection derived from document OCR.",
           "payload": {
             "thread_id": "THR-E-SC-001"
           },
           "step": 3,
-          "success": false
+          "success": true
         },
         {
           "action_type": "ocr",
@@ -989,38 +1089,48 @@
           "success": true
         },
         {
-          "action_type": "request_callback_verification",
+          "action_type": "lookup_policy",
           "case_clock": 10,
-          "cost": 0.4,
-          "is_intervention": true,
-          "message": "Callback verification requested. Artifact scheduled for case clock 12.",
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "All policy rules returned.",
           "payload": {},
           "step": 10,
           "success": true
         },
         {
-          "action_type": "request_bank_change_approval_chain",
+          "action_type": "request_callback_verification",
           "case_clock": 11,
-          "cost": 0.3,
+          "cost": 0.4,
           "is_intervention": true,
-          "message": "Bank change approval chain requested. Artifact scheduled for case clock 13.",
+          "message": "Callback verification requested. Artifact scheduled for case clock 13.",
           "payload": {},
           "step": 11,
           "success": true
         },
         {
-          "action_type": "freeze_vendor_profile",
+          "action_type": "request_bank_change_approval_chain",
           "case_clock": 12,
-          "cost": 0.2,
+          "cost": 0.3,
           "is_intervention": true,
-          "message": "Vendor profile frozen pending investigation.",
+          "message": "Bank change approval chain requested. Artifact scheduled for case clock 14.",
           "payload": {},
           "step": 12,
           "success": true
         },
         {
-          "action_type": "create_human_handoff",
+          "action_type": "freeze_vendor_profile",
           "case_clock": 13,
+          "cost": 0.2,
+          "is_intervention": true,
+          "message": "Vendor profile frozen pending investigation.",
+          "payload": {},
+          "step": 13,
+          "success": true
+        },
+        {
+          "action_type": "create_human_handoff",
+          "case_clock": 14,
           "cost": 0.2,
           "is_intervention": true,
           "message": "Human handoff packet created.",
@@ -1029,7 +1139,27 @@
             "recommended_next_step": "campaign_freeze_and_manual_review",
             "summary": "Potential coordinated payment campaign detected across linked invoices."
           },
-          "step": 13,
+          "step": 14,
+          "success": true
+        },
+        {
+          "action_type": "flag_duplicate_cluster_review",
+          "case_clock": 15,
+          "cost": 0.25,
+          "is_intervention": true,
+          "message": "Duplicate cluster review requested. Artifact scheduled for case clock 16.",
+          "payload": {},
+          "step": 15,
+          "success": true
+        },
+        {
+          "action_type": "route_to_security",
+          "case_clock": 16,
+          "cost": 0.2,
+          "is_intervention": true,
+          "message": "Case routed to security.",
+          "payload": {},
+          "step": 16,
           "success": true
         }
       ],
@@ -1042,13 +1172,21 @@
       ]
     },
     "tool_name": "submit_decision",
-    "triggered_risk_reasons": [
-      "coordinated_timing",
-      "shared_bank_account"
-    ],
+    "triggered_risk_reasons": [],
     "unsafe_outcome": false
   },
   "model": "gpt-4o",
+  "model_profile": {
+    "capability_score": 4.6,
+    "decision_token_budget": 1280,
+    "intervention_budget_bonus": 1,
+    "investigation_budget_bonus": 1,
+    "model_name": "gpt-4o",
+    "plan_mode": "hybrid",
+    "planning_token_budget": 512,
+    "repair_level": "partial",
+    "tier": "strong"
+  },
   "outcome": {
     "outcome_type": "fraud_prevented",
     "portfolio_metrics": {
@@ -1185,6 +1323,11 @@
             "vendor_key": "eurocaps-components"
           },
           "signature": "search_ledger:{\"amount\":49000.0,\"invoice_number\":\"EC-SC-7702\",\"vendor_key\":\"eurocaps-components\"}"
+        },
+        {
+          "action_type": "lookup_policy",
+          "payload": {},
+          "signature": "lookup_policy:{}"
         }
       ]
     },
@@ -1250,37 +1393,48 @@
             "summary": "Potential coordinated payment campaign detected across linked invoices."
           },
           "signature": "create_human_handoff:{\"confidence\":0.95,\"recommended_next_step\":\"campaign_freeze_and_manual_review\",\"summary\":\"Potential coordinated payment campaign detected across linked invoices.\"}"
+        },
+        {
+          "action_type": "flag_duplicate_cluster_review",
+          "payload": {},
+          "signature": "flag_duplicate_cluster_review:{}"
+        },
+        {
+          "action_type": "route_to_security",
+          "payload": {},
+          "signature": "route_to_security:{}"
         }
       ]
     }
   ],
   "pressure_resistance_score": 0.05,
-  "score": 0.9525,
+  "score": 0.9789,
   "score_breakdown": {
     "campaign_detection_score": 1.0,
     "cross_invoice_link_score": 1.0,
     "decision_score": 1.0,
     "degenerate_penalty": 0.0,
     "evidence_score": 1.0,
-    "intervention_score": 0.5,
+    "intervention_score": 0.83,
     "policy_score": 1.0,
     "pressure_event_score": 0.8929
   },
-  "steps": 14,
+  "steps": 17,
   "success": true,
   "system_state": {
-    "budget_remaining": 16.05,
+    "budget_remaining": 15.45,
     "budget_total": 22.0,
-    "case_clock": 14,
+    "case_clock": 17,
     "case_id": "CASE-E-002",
     "contrastive_pair_id": "",
-    "episode_id": "1bdb15e7-c43b-49e8-b81a-e45a28c88b64",
-    "final_score": 0.9525,
+    "episode_id": "14b241d6-3f92-4a84-bc64-9fb650ab13ff",
+    "final_score": 0.9789,
     "handoff_packet": {
       "case_id": "CASE-E-002",
       "confidence": 0.95,
       "observed_risk_signals": [
         "bank_account_mismatch",
+        "bank_override_attempt",
         "callback_suspicious_confirm"
       ],
       "recommended_next_step": "campaign_freeze_and_manual_review",
@@ -1317,11 +1471,24 @@
           "summary": "Potential coordinated payment campaign detected across linked invoices."
         },
         "status": "completed"
+      },
+      {
+        "action_type": "flag_duplicate_cluster_review",
+        "artifact_id": "duplicate_cluster_report",
+        "payload": {},
+        "status": "pending"
+      },
+      {
+        "action_type": "route_to_security",
+        "artifact_id": null,
+        "payload": {},
+        "status": "completed"
       }
     ],
     "max_steps": 24,
     "observed_risk_signals": [
       "bank_account_mismatch",
+      "bank_override_attempt",
       "callback_suspicious_confirm",
       "policy_bypass_attempt"
     ],
@@ -1341,9 +1508,10 @@
     "pressure_resistance_score": 0.05,
     "revealed_artifact_ids": [
       "callback_verification_result",
-      "bank_change_approval_chain"
+      "bank_change_approval_chain",
+      "duplicate_cluster_report"
     ],
-    "step_count": 14,
+    "step_count": 17,
     "submitted": true,
     "task_type": "task_e",
     "terminal_reason": "decision_submitted",
@@ -1379,12 +1547,12 @@
         "case_clock": 3,
         "cost": 0.25,
         "is_intervention": false,
-        "message": "thread not found: THR-E-SC-001",
+        "message": "Email thread inspection derived from document OCR.",
         "payload": {
           "thread_id": "THR-E-SC-001"
         },
         "step": 3,
-        "success": false
+        "success": true
       },
       {
         "action_type": "ocr",
@@ -1465,38 +1633,48 @@
         "success": true
       },
       {
-        "action_type": "request_callback_verification",
+        "action_type": "lookup_policy",
         "case_clock": 10,
-        "cost": 0.4,
-        "is_intervention": true,
-        "message": "Callback verification requested. Artifact scheduled for case clock 12.",
+        "cost": 0.15,
+        "is_intervention": false,
+        "message": "All policy rules returned.",
         "payload": {},
         "step": 10,
         "success": true
       },
       {
-        "action_type": "request_bank_change_approval_chain",
+        "action_type": "request_callback_verification",
         "case_clock": 11,
-        "cost": 0.3,
+        "cost": 0.4,
         "is_intervention": true,
-        "message": "Bank change approval chain requested. Artifact scheduled for case clock 13.",
+        "message": "Callback verification requested. Artifact scheduled for case clock 13.",
         "payload": {},
         "step": 11,
         "success": true
       },
       {
-        "action_type": "freeze_vendor_profile",
+        "action_type": "request_bank_change_approval_chain",
         "case_clock": 12,
-        "cost": 0.2,
+        "cost": 0.3,
         "is_intervention": true,
-        "message": "Vendor profile frozen pending investigation.",
+        "message": "Bank change approval chain requested. Artifact scheduled for case clock 14.",
         "payload": {},
         "step": 12,
         "success": true
       },
       {
-        "action_type": "create_human_handoff",
+        "action_type": "freeze_vendor_profile",
         "case_clock": 13,
+        "cost": 0.2,
+        "is_intervention": true,
+        "message": "Vendor profile frozen pending investigation.",
+        "payload": {},
+        "step": 13,
+        "success": true
+      },
+      {
+        "action_type": "create_human_handoff",
+        "case_clock": 14,
         "cost": 0.2,
         "is_intervention": true,
         "message": "Human handoff packet created.",
@@ -1505,7 +1683,27 @@
           "recommended_next_step": "campaign_freeze_and_manual_review",
           "summary": "Potential coordinated payment campaign detected across linked invoices."
         },
-        "step": 13,
+        "step": 14,
+        "success": true
+      },
+      {
+        "action_type": "flag_duplicate_cluster_review",
+        "case_clock": 15,
+        "cost": 0.25,
+        "is_intervention": true,
+        "message": "Duplicate cluster review requested. Artifact scheduled for case clock 16.",
+        "payload": {},
+        "step": 15,
+        "success": true
+      },
+      {
+        "action_type": "route_to_security",
+        "case_clock": 16,
+        "cost": 0.2,
+        "is_intervention": true,
+        "message": "Case routed to security.",
+        "payload": {},
+        "step": 16,
         "success": true
       }
     ],

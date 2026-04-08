@@ -1,490 +1,248 @@
 # Development Guide
 
-Guide for developers contributing to LedgerShield.
+This guide is for contributors working inside the LedgerShield repo. It covers setup, validation, CI expectations, and a detailed file map so it is easy to find the right place to make changes.
 
-## Development Setup
+## Local Setup
 
 ### Prerequisites
 
-- Python 3.11 or higher
-- Git
-- Docker (optional, for containerized development)
-- Make (optional, for convenience commands)
+- Python 3.11 or 3.12
+- `git`
+- Docker if you want container smoke tests
+- an OpenAI-compatible endpoint only if you plan to run the LLM-powered comparison scripts
 
-### Clone Repository
+### Install
 
 ```bash
 git clone https://github.com/BiradarScripts/Meta-s-LedgerShield.git
 cd Meta-s-LedgerShield
-```
 
-### Virtual Environment
-
-```bash
-# Create virtual environment
 python -m venv .venv
+source .venv/bin/activate
 
-# Activate
-source .venv/bin/activate  # Linux/Mac
-# or
-.venv\Scripts\activate     # Windows
-
-# Upgrade pip
-pip install --upgrade pip
-```
-
-### Install Dependencies
-
-```bash
-# Install package in development mode
 pip install -e .
-
-# Install test dependencies
 pip install -r requirements.txt
 ```
 
-### Verify Installation
+### Start the server
 
 ```bash
-# Run tests
-python -m pytest tests/ -q
-
-# Validate environment
-openenv validate
-```
-
-## Project Structure
-
-```
-Meta-s-LedgerShield/
-├── server/                    # FastAPI server and environment
-│   ├── app.py                # FastAPI entrypoint
-│   ├── environment.py        # Core environment
-│   ├── world_state.py        # State management
-│   ├── tools.py              # Investigation tools
-│   ├── grading.py            # Task grading
-│   ├── trajectory_grading.py # Trajectory scoring
-│   ├── outcome_simulator.py  # Outcome simulation
-│   ├── transition_engine.py  # Action processing
-│   ├── risk_rules.py         # Risk assessment
-│   ├── vendor_simulator.py   # Callback simulation
-│   ├── pressure_events.py    # Pressure events
-│   ├── data_loader.py        # Fixture loading
-│   ├── case_factory.py       # Case generation
-│   ├── attack_library.py     # Attack patterns
-│   ├── schema.py             # Shared utilities
-│   └── fixtures/             # Test data
-│       ├── cases.json
-│       ├── vendors.json
-│       ├── po_records.json
-│       ├── receipts.json
-│       ├── ledger_index.json
-│       ├── email_threads.json
-│       ├── policy_rules.json
-│       └── vendor_history.json
-├── docs/                      # Documentation
-├── tests/                     # Test suite
-│   ├── test_ledgershield_env.py
-│   ├── test_api_smoke.py
-│   └── ...
-├── models.py                  # Data models
-├── inference.py               # Baseline agent
-├── client.py                  # HTTP client
-├── openenv_compat.py          # OpenEnv compatibility
-├── benchmark_report.py        # Benchmark reporting
-├── validate_grader.py         # Grader validation
-├── Dockerfile                 # Container config
-├── pyproject.toml            # Package config
-└── openenv.yaml              # OpenEnv metadata
-```
-
-## Development Workflow
-
-### Running the Server
-
-```bash
-# Development mode
 python -m server.app
-
-# With custom port
-PORT=8001 python -m server.app
-
-# With hot reload (for development)
-uvicorn server.app:app --reload --port 8000
 ```
 
-### Running Tests
+### Run the test suite
 
 ```bash
-# Run all tests
-python -m pytest
-
-# Run with verbose output
-python -m pytest -v
-
-# Run specific test file
-python -m pytest tests/test_ledgershield_env.py -v
-
-# Run specific test
-python -m pytest tests/test_ledgershield_env.py::test_reset -v
-
-# Run with coverage
-python -m pytest --cov=server --cov-report=html
-
-# Run benchmarks
-python -m pytest --benchmark-only
+python -m pytest tests/ -q
 ```
 
-### Code Quality
+Useful focused runs:
 
 ```bash
-# Format code (if using black)
-black server/ tests/ *.py
-
-# Lint (if using flake8)
-flake8 server/ tests/
-
-# Type check (if using mypy)
-mypy server/
+python -m pytest tests/test_ledgershield_env.py -q
+python -m pytest tests/test_grading.py tests/test_task_c_guardrails.py tests/test_task_d_guardrails.py -q
+python -m pytest tests/test_currency_engine.py tests/test_compliance_engine.py tests/test_curriculum.py -q
 ```
 
-## Making Changes
-
-### Adding a New Tool
-
-1. **Add tool function** in `server/tools.py`:
-
-```python
-def my_new_tool(case: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
-    """Description of what the tool does."""
-    # Implementation
-    return {
-        "success": True,
-        "data": {...},
-        "message": "Tool completed successfully."
-    }
-```
-
-2. **Add to ALLOWED_ACTIONS** in `server/schema.py`:
-
-```python
-ALLOWED_ACTIONS = [
-    # ... existing actions
-    "my_new_tool",
-]
-```
-
-3. **Add tool cost** in `server/environment.py`:
-
-```python
-TOOL_COSTS = {
-    # ... existing costs
-    "my_new_tool": 0.25,
-}
-```
-
-4. **Add dispatch** in `server/environment.py`:
-
-```python
-def _dispatch_tool(self, tool_name: str, payload: dict[str, Any]) -> dict[str, Any]:
-    # ... existing tools
-    if tool_name == "my_new_tool":
-        return my_new_tool(self.current_case, payload)
-```
-
-5. **Add tests** in `tests/test_ledgershield_env.py`:
-
-```python
-def test_my_new_tool():
-    env = LedgerShieldEnvironment()
-    env.reset(case_id="CASE-A-001")
-    
-    action = LedgerShieldAction(
-        action_type="my_new_tool",
-        payload={"param": "value"}
-    )
-    obs = env.step(action)
-    
-    assert obs.last_tool_result["success"]
-```
-
-### Adding a New Case
-
-1. **Add case to** `server/fixtures/cases.json`:
-
-```json
-{
-  "case_id": "CASE-F-001",
-  "task_type": "task_f",
-  "difficulty": "medium",
-  "budget_total": 15.0,
-  "max_steps": 20,
-  "instruction": "New task instructions...",
-  "documents": [...],
-  "gold": {...}
-}
-```
-
-2. **Add gold labels** appropriate for the task type
-
-3. **Add test** in `tests/test_ledgershield_env.py`
-
-4. **Update task documentation** in `docs/tasks.md`
-
-### Modifying Grading
-
-1. **Update grading logic** in `server/grading.py`
-
-2. **Update score composition** in documentation
-
-3. **Run validation**:
+### Validate packaging and submission workflow
 
 ```bash
-python validate_grader.py
+bash validate-submission.sh
+docker build -t ledgershield:dev .
 ```
 
-4. **Update tests** to reflect new scoring
-
-## Testing Strategy
-
-### Test Categories
-
-#### Unit Tests
-
-Test individual functions in isolation:
-
-```python
-def test_field_score():
-    pred = {"vendor": "Acme", "amount": 100}
-    gold = {"vendor": "Acme", "amount": 100}
-    assert field_score(pred, gold) == 1.0
-```
-
-#### Integration Tests
-
-Test component interactions:
-
-```python
-def test_end_to_end_episode():
-    env = LedgerShieldEnvironment()
-    obs = env.reset(case_id="CASE-A-001")
-    
-    # Take several actions
-    for action in action_sequence:
-        obs = env.step(action)
-    
-    # Submit decision
-    final_obs = env.step(submit_action)
-    assert final_obs.last_tool_result["final_score"] > 0.8
-```
-
-#### API Tests
-
-Test HTTP endpoints:
-
-```python
-def test_reset_endpoint(client):
-    response = client.post("/reset", json={"case_id": "CASE-A-001"})
-    assert response.status_code == 200
-    assert response.json()["case_id"] == "CASE-A-001"
-```
-
-### Test Fixtures
-
-Use pytest fixtures for common setup:
-
-```python
-@pytest.fixture
-def environment():
-    env = LedgerShieldEnvironment()
-    yield env
-
-@pytest.fixture
-def reset_env(environment):
-    environment.reset(case_id="CASE-A-001")
-    yield environment
-```
-
-### Mocking
-
-Mock external dependencies:
-
-```python
-from unittest.mock import Mock, patch
-
-def test_with_mocked_llm():
-    with patch('inference.get_model_assessment') as mock:
-        mock.return_value = {"counterfactual": "Would PAY if..."}
-        result = run_episode(...)
-        assert result["success"]
-```
-
-## Debugging
-
-### Enable Debug Logging
+If `openenv` is installed:
 
 ```bash
-export LEDGERSHIELD_DEBUG=1
-python inference.py
-```
-
-### Add Debug Prints
-
-```python
-def step(self, action):
-    if os.getenv("LEDGERSHIELD_DEBUG") == "1":
-        print(f"DEBUG: action={action}")
-        print(f"DEBUG: state={self._state}")
-```
-
-### Use PDB
-
-```python
-import pdb; pdb.set_trace()
-```
-
-### Inspect State
-
-```python
-# In tests or debugging
-env = LedgerShieldEnvironment()
-env.reset(case_id="CASE-D-001")
-
-# Access hidden world (testing only)
-print(env._hidden_world)
-
-# Access public state
-print(env.public_state())
-```
-
-## Performance Profiling
-
-### Time Profiling
-
-```python
-import time
-
-start = time.time()
-result = env.step(action)
-print(f"Step took {time.time() - start:.2f}s")
-```
-
-### Memory Profiling
-
-```bash
-# Install memory profiler
-pip install memory-profiler
-
-# Run with profiling
-python -m memory_profiler server/app.py
-```
-
-## Common Issues
-
-### Import Errors
-
-**Problem**: `ModuleNotFoundError: No module named 'server'`
-
-**Solution**: Ensure you're in the repo root and PYTHONPATH is set:
-
-```bash
-export PYTHONPATH=/path/to/Meta-s-LedgerShield:$PYTHONPATH
-```
-
-### Port Already in Use
-
-**Problem**: `Address already in use`
-
-**Solution**: Use a different port:
-
-```bash
-PORT=8001 python -m server.app
-```
-
-### Test Failures
-
-**Problem**: Tests failing with fixture errors
-
-**Solution**: Clear pytest cache:
-
-```bash
-python -m pytest --cache-clear
-```
-
-### Case Not Found
-
-**Problem**: `ValueError: unknown case_id`
-
-**Solution**: Check `server/fixtures/cases.json` for valid case IDs
-
-## Best Practices
-
-### Code Style
-
-- Follow PEP 8
-- Use type hints
-- Write docstrings for public functions
-- Keep functions focused and small
-
-### Documentation
-
-- Update docs when changing behavior
-- Add examples for new features
-- Keep API reference in sync with code
-
-### Testing
-
-- Write tests for new features
-- Maintain test coverage above 80%
-- Test edge cases and error conditions
-- Use descriptive test names
-
-### Version Control
-
-- Make atomic commits
-- Write clear commit messages
-- Use feature branches for changes
-- Rebase before merging
-
-## Release Process
-
-1. **Update version** in `pyproject.toml`
-
-2. **Update CHANGELOG.md**
-
-3. **Run full test suite**:
-
-```bash
-python -m pytest
-python validate_grader.py
 openenv validate
 ```
 
-4. **Create git tag**:
+## CI Expectations
 
-```bash
-git tag -a v1.0.0 -m "Release version 1.0.0"
-git push origin v1.0.0
-```
+The repo includes [`../.github/workflows/ci.yml`](../.github/workflows/ci.yml), which currently runs:
 
-5. **Build and publish** (if applicable):
+- pytest on Python 3.11 and 3.12
+- Docker build + container smoke test
+- `openenv.yaml` metadata validation
 
-```bash
-python -m build
-twine upload dist/*
-```
+If you change APIs, packaging, or runtime behavior, assume CI should keep passing without special local context.
 
-## Resources
+## Repo Map
 
-- [Python Documentation](https://docs.python.org/3.11/)
-- [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [Pydantic Documentation](https://docs.pydantic.dev/)
-- [Pytest Documentation](https://docs.pytest.org/)
-- [OpenEnv Specification](https://github.com/openenv/spec)
+### Root files
 
-## Getting Help
+| Path | What it is for |
+|---|---|
+| [`../README.md`](../README.md) | top-level benchmark overview and quick start |
+| [`../CHANGELOG.md`](../CHANGELOG.md) | human-readable project changes |
+| [`../Dockerfile`](../Dockerfile) | container image definition for server deployment |
+| [`../pyproject.toml`](../pyproject.toml) | package metadata, dependencies, pytest config |
+| [`../requirements.txt`](../requirements.txt) | pinned runtime dependencies |
+| [`../uv.lock`](../uv.lock) | lockfile for reproducible dependency installs |
+| [`../openenv.yaml`](../openenv.yaml) | OpenEnv metadata, novelty claims, published benchmark numbers |
+| [`../__init__.py`](../__init__.py) | package marker |
+| [`../client.py`](../client.py) | thin HTTP client wrapper for the environment |
+| [`../ledgershield_env.py`](../ledgershield_env.py) | compatibility re-export module for legacy imports |
+| [`../models.py`](../models.py) | shared dataclasses, Pydantic reward model, typed internal returns |
+| [`../openenv_compat.py`](../openenv_compat.py) | adapter around `openenv-core` with local fallback server/client |
+| [`../inference.py`](../inference.py) | submission-safe baseline/entrypoint with strict stdout contract |
+| [`../inference_improved.py`](../inference_improved.py) | experimental improved agent entrypoint |
+| [`../inference_llm_powered.py`](../inference_llm_powered.py) | richer LLM-powered agent used for debugging and comparisons |
+| [`../llm_utils.py`](../llm_utils.py) | JSON parsing and completion helpers for LLM workflows |
+| [`../llm_judge_grader.py`](../llm_judge_grader.py) | optional LLM-as-judge grading experiments |
+| [`../compare_models_live.py`](../compare_models_live.py) | live multi-model comparison runner with debug artifact output |
+| [`../compare_all_models.py`](../compare_all_models.py) | broader multi-model sweep helper |
+| [`../benchmark_report.py`](../benchmark_report.py) | public benchmark, holdout, and contrastive report generation |
+| [`../generate_branch_comparison_report.py`](../generate_branch_comparison_report.py) | legacy reporting helper for saved branch comparison JSONs |
+| [`../generate_comparison_report.py`](../generate_comparison_report.py) | legacy reporting helper for multi-model JSON summaries |
+| [`../generate_final_report.py`](../generate_final_report.py) | legacy reporting helper for final comparison JSONs |
+| [`../generate_sota_report.py`](../generate_sota_report.py) | legacy reporting helper for SOTA comparison JSONs |
+| [`../find_codec.py`](../find_codec.py) | local troubleshooting helper script |
+| [`../find_crash.py`](../find_crash.py) | local troubleshooting helper script |
+| [`../task_c_guardrails.py`](../task_c_guardrails.py) | Task C sanitization and validation helpers |
+| [`../task_d_guardrails.py`](../task_d_guardrails.py) | Task D sanitization and validation helpers |
+| [`../test_scoring.py`](../test_scoring.py) | local baseline scoring simulation helper |
+| [`../validate_grader.py`](../validate_grader.py) | end-to-end grader and environment validation script |
+| [`../validate_agent_grading.py`](../validate_agent_grading.py) | score-separation validation helper |
+| [`../validate-submission.sh`](../validate-submission.sh) | pre-submission validator for Docker, server health, and stdout contract |
+| [`../live_model_comparison.json`](../live_model_comparison.json) | saved live comparison summary artifact |
 
-- Check [documentation](./index.md)
-- Search [existing issues](https://github.com/BiradarScripts/Meta-s-LedgerShield/issues)
-- Ask in [discussions](https://github.com/BiradarScripts/Meta-s-LedgerShield/discussions)
-- Create new issue with reproduction steps
+### `server/`
+
+| Path | What it is for |
+|---|---|
+| [`../server/__init__.py`](../server/__init__.py) | package marker |
+| [`../server/app.py`](../server/app.py) | FastAPI app builder and endpoint registration |
+| [`../server/environment.py`](../server/environment.py) | main environment loop, reward shaping, truncation logic, rendering |
+| [`../server/world_state.py`](../server/world_state.py) | hidden/public state, artifacts, readiness, pressure resistance |
+| [`../server/tools.py`](../server/tools.py) | investigation tool implementations |
+| [`../server/transition_engine.py`](../server/transition_engine.py) | intervention handling and signal extraction |
+| [`../server/grading.py`](../server/grading.py) | task-specific grading rubrics |
+| [`../server/trajectory_grading.py`](../server/trajectory_grading.py) | trajectory-aware scoring components |
+| [`../server/outcome_simulator.py`](../server/outcome_simulator.py) | downstream operational/fraud outcome simulation |
+| [`../server/risk_rules.py`](../server/risk_rules.py) | risk bucket logic and heuristic submission-risk assessment |
+| [`../server/pressure_events.py`](../server/pressure_events.py) | adversarial pressure-event templates and scoring |
+| [`../server/vendor_simulator.py`](../server/vendor_simulator.py) | callback vendor-response simulation |
+| [`../server/data_loader.py`](../server/data_loader.py) | fixture loading, indexing, and generated-case injection |
+| [`../server/case_factory.py`](../server/case_factory.py) | challenge/holdout/benign-twin generation |
+| [`../server/attack_library.py`](../server/attack_library.py) | 16 adversarial AP fraud attack templates |
+| [`../server/schema.py`](../server/schema.py) | canonical field/action/reason-code constants and normalizers |
+| [`../server/currency_engine.py`](../server/currency_engine.py) | multi-currency realism utilities |
+| [`../server/compliance_engine.py`](../server/compliance_engine.py) | SOX-style internal-control evaluation |
+| [`../server/curriculum.py`](../server/curriculum.py) | dynamic difficulty adaptation |
+| [`../server/dual_agent_mode.py`](../server/dual_agent_mode.py) | watchdog-mode dual-agent novelty module |
+
+### `server/fixtures/`
+
+| Path | What it stores |
+|---|---|
+| [`../server/fixtures/cases.json`](../server/fixtures/cases.json) | the 21 curated benchmark cases |
+| [`../server/fixtures/vendors.json`](../server/fixtures/vendors.json) | vendor master data |
+| [`../server/fixtures/vendor_history.json`](../server/fixtures/vendor_history.json) | historical vendor changes and fraud history |
+| [`../server/fixtures/po_records.json`](../server/fixtures/po_records.json) | purchase-order records |
+| [`../server/fixtures/receipts.json`](../server/fixtures/receipts.json) | goods-receipt records |
+| [`../server/fixtures/ledger_index.json`](../server/fixtures/ledger_index.json) | ledger/payment history used for duplicate detection |
+| [`../server/fixtures/email_threads.json`](../server/fixtures/email_threads.json) | structured email-thread records |
+| [`../server/fixtures/policy_rules.json`](../server/fixtures/policy_rules.json) | policy rules used by `lookup_policy` |
+
+### `tests/`
+
+| Path | What it validates |
+|---|---|
+| [`../tests/conftest.py`](../tests/conftest.py) | shared fixtures and suite-wide pytest marker setup |
+| [`../tests/test_api_smoke.py`](../tests/test_api_smoke.py) | API endpoint smoke coverage |
+| [`../tests/test_benchmark_report.py`](../tests/test_benchmark_report.py) | public/holdout/contrastive reporting behavior |
+| [`../tests/test_compare_all_models.py`](../tests/test_compare_all_models.py) | score parsing helpers in broad model sweeps |
+| [`../tests/test_compare_models_live.py`](../tests/test_compare_models_live.py) | live comparison stats and rendering helpers |
+| [`../tests/test_compliance_engine.py`](../tests/test_compliance_engine.py) | SOX compliance evaluation |
+| [`../tests/test_currency_engine.py`](../tests/test_currency_engine.py) | FX/IBAN/SWIFT/aging-report utilities |
+| [`../tests/test_curriculum.py`](../tests/test_curriculum.py) | curriculum tiering and case selection |
+| [`../tests/test_grading.py`](../tests/test_grading.py) | degenerate evidence cap and grading edge cases |
+| [`../tests/test_inference_contract.py`](../tests/test_inference_contract.py) | required stdout contract for `inference.py` |
+| [`../tests/test_inference_llm_powered.py`](../tests/test_inference_llm_powered.py) | derived thread reasoning in LLM-powered inference |
+| [`../tests/test_inference_runtime.py`](../tests/test_inference_runtime.py) | model capability profiles and runtime heuristics |
+| [`../tests/test_ledgershield_env.py`](../tests/test_ledgershield_env.py) | environment transitions, scoring, and holdout generation |
+| [`../tests/test_schema_reason_codes.py`](../tests/test_schema_reason_codes.py) | reason-code normalization and aliasing |
+| [`../tests/test_task_c_guardrails.py`](../tests/test_task_c_guardrails.py) | Task C submission guardrails |
+| [`../tests/test_task_d_guardrails.py`](../tests/test_task_d_guardrails.py) | Task D submission guardrails |
+
+### `docs/`
+
+| Path | What it covers |
+|---|---|
+| [`../docs/README.md`](../docs/README.md) | docs landing page |
+| [`../docs/index.md`](../docs/index.md) | benchmark overview |
+| [`../docs/tasks.md`](../docs/tasks.md) | task contracts and scoring |
+| [`../docs/api-reference.md`](../docs/api-reference.md) | REST API reference |
+| [`../docs/architecture.md`](../docs/architecture.md) | architecture deep dive |
+| [`../docs/development.md`](../docs/development.md) | this file |
+| [`../docs/deployment.md`](../docs/deployment.md) | deployment and runtime configuration |
+
+## Common Workflows
+
+### Changing the environment
+
+Touch at least these files:
+
+- `server/environment.py`
+- `server/world_state.py`
+- relevant tests in `tests/test_ledgershield_env.py`
+- docs in `docs/api-reference.md` or `docs/architecture.md` if the contract changed
+
+### Changing grading
+
+Touch at least these files:
+
+- `server/grading.py`
+- `server/trajectory_grading.py`
+- any new utility modules such as `server/compliance_engine.py`
+- tests in `tests/test_grading.py` and task-specific regression tests
+
+### Adding benchmark realism
+
+Typical landing spots:
+
+- `server/currency_engine.py`
+- `server/compliance_engine.py`
+- `server/attack_library.py`
+- `server/case_factory.py`
+- `server/fixtures/cases.json`
+
+### Updating inference behavior
+
+Touch at least these files:
+
+- `inference.py`
+- `inference_llm_powered.py` if comparison/debug behavior must stay aligned
+- `task_c_guardrails.py` / `task_d_guardrails.py` if structured output rules changed
+- `tests/test_inference_contract.py` and relevant inference tests
+
+## Extension Guidance
+
+### Adding a new tool
+
+1. Implement the tool in [`../server/tools.py`](../server/tools.py).
+2. Add the action name to [`../server/schema.py`](../server/schema.py).
+3. Add cost handling and dispatch in [`../server/environment.py`](../server/environment.py).
+4. Add or update signal extraction in [`../server/transition_engine.py`](../server/transition_engine.py) if needed.
+5. Add tests and update docs.
+
+### Adding a new case
+
+1. Add it to [`../server/fixtures/cases.json`](../server/fixtures/cases.json).
+2. Ensure any needed vendor/PO/receipt/email/ledger fixtures exist.
+3. Confirm case IDs are unique.
+4. Update [`./tasks.md`](./tasks.md) if the public case catalog changed.
+5. Add regression coverage.
+
+### Adding a new attack pattern
+
+1. Extend [`../server/attack_library.py`](../server/attack_library.py).
+2. Make sure the resulting reason codes and fraud flags are canonical.
+3. Add tests that prove the attack is reachable and meaningful.
+
+## Practical Notes
+
+- The repo uses a mix of benchmark runtime code and historical helper scripts. Prefer editing the core runtime paths first.
+- Some top-level report helpers are legacy utilities for saved JSON artifacts rather than part of the main runtime.
+- Keep docs and tests in sync with any public contract changes.

@@ -17,6 +17,7 @@ if os.getenv("LEDGERSHIELD_DEBUG") != "1":
     sys.stderr = open(os.devnull, "w", encoding="utf-8")
 
 import argparse
+from dataclasses import asdict, dataclass
 import json
 from pathlib import Path
 import re
@@ -33,8 +34,8 @@ from ledgershield_env import LedgerShieldAction, LedgerShieldEnv
 from inference import build_task_e_submission as grounded_task_e_submission
 from llm_utils import create_json_chat_completion, parse_json_dict
 from server.schema import canonical_reason_codes
-from task_c_guardrails import grounded_task_c_submission, sanitize_task_c_submission
-from task_d_guardrails import grounded_task_d_submission, sanitize_task_d_submission
+from task_c_guardrails import grounded_task_c_submission, sanitize_task_c_submission, validate_task_c_submission
+from task_d_guardrails import grounded_task_d_submission, sanitize_task_d_submission, validate_task_d_submission
 
 
 API_BASE_URL = os.getenv("API_BASE_URL") or "https://api.openai.com/v1"
@@ -83,6 +84,90 @@ API_CALLS_TOTAL = 0
 API_TOKENS_PROMPT = 0
 API_TOKENS_COMPLETION = 0
 API_TOKENS_TOTAL = 0
+
+
+@dataclass(frozen=True)
+class ModelCapabilityProfile:
+    model_name: str
+    capability_score: float
+    tier: str
+    plan_mode: str
+    repair_level: str
+    investigation_budget_bonus: int
+    intervention_budget_bonus: int
+    decision_token_budget: int
+    planning_token_budget: int
+
+
+def _base_model_score(model_name: str) -> float:
+    normalized = normalize_text(model_name)
+    if "gpt-4o" in normalized:
+        base = 4.6
+    else:
+        match = re.search(r"gpt-([0-9]+(?:\.[0-9]+)?)", normalized)
+        if match:
+            base = float(match.group(1))
+        elif "gpt-4" in normalized:
+            base = 4.0
+        elif "gpt-3.5" in normalized:
+            base = 3.5
+        else:
+            base = 4.0
+
+    if "pro" in normalized:
+        base += 0.5
+    if "latest" in normalized:
+        base += 0.2
+    if "mini" in normalized:
+        base -= 0.7
+    if "nano" in normalized:
+        base -= 1.1
+    if "turbo" in normalized:
+        base -= 0.3
+    return base
+
+
+def get_model_capability_profile(model_name: str) -> ModelCapabilityProfile:
+    score = _base_model_score(model_name)
+    if score >= 5.0:
+        return ModelCapabilityProfile(
+            model_name=model_name,
+            capability_score=score,
+            tier="elite",
+            plan_mode="coverage",
+            repair_level="grounded",
+            investigation_budget_bonus=2,
+            intervention_budget_bonus=2,
+            decision_token_budget=max(MAX_TOKENS, 1536),
+            planning_token_budget=640,
+        )
+    if score >= 4.5:
+        return ModelCapabilityProfile(
+            model_name=model_name,
+            capability_score=score,
+            tier="strong",
+            plan_mode="hybrid",
+            repair_level="partial",
+            investigation_budget_bonus=1,
+            intervention_budget_bonus=1,
+            decision_token_budget=max(MAX_TOKENS, 1280),
+            planning_token_budget=512,
+        )
+    return ModelCapabilityProfile(
+        model_name=model_name,
+        capability_score=score,
+        tier="standard",
+        plan_mode="llm",
+        repair_level="none",
+        investigation_budget_bonus=0,
+        intervention_budget_bonus=0,
+        decision_token_budget=MAX_TOKENS,
+        planning_token_budget=384,
+    )
+
+
+def current_model_profile() -> ModelCapabilityProfile:
+    return get_model_capability_profile(MODEL_NAME)
 
 def reset_api_tracking():
     global API_CALLS_TOTAL, API_TOKENS_PROMPT, API_TOKENS_COMPLETION, API_TOKENS_TOTAL
@@ -385,10 +470,16 @@ def derive_email_thread_from_ocr(collected: dict[str, Any]) -> dict[str, Any]:
             "personally approved",
         }
     )
+    suspicious_bank_change = bank_change_language and (
+        domain_alignment == "mismatch"
+        or callback_discouraged
+        or policy_override_language
+        or urgency_language
+    )
     derived_flags = canonical_reason_codes(
         [
             "sender_domain_spoof" if domain_alignment == "mismatch" else "",
-            "bank_override_attempt" if bank_change_language else "",
+            "bank_override_attempt" if suspicious_bank_change else "",
             "policy_bypass_attempt" if callback_discouraged or policy_override_language else "",
             "urgent_payment_pressure" if urgency_language else "",
             "approval_threshold_evasion"
@@ -449,6 +540,50 @@ def refresh_email_thread_from_ocr(collected: dict[str, Any]) -> None:
     collected["email_thread"] = merged
 
 
+def _store_artifact(collected: dict[str, Any], artifact: dict[str, Any]) -> None:
+    artifact_id = normalize_text(artifact.get("artifact_id"))
+    if not artifact_id:
+        return
+    artifact_store = collected.setdefault("revealed_artifacts", {})
+    artifact_store[artifact_id] = artifact
+    if artifact_id == "callback_verification_result":
+        collected["callback_result"] = artifact
+    elif artifact_id == "bank_change_approval_chain":
+        collected["bank_change_approval_chain"] = artifact
+    elif artifact_id == "po_reconciliation_report":
+        collected["po_reconciliation_report"] = artifact
+    elif artifact_id == "receipt_reconciliation_report":
+        collected["receipt_reconciliation_report"] = artifact
+    elif artifact_id == "duplicate_cluster_report":
+        collected["duplicate_cluster_report"] = artifact
+
+
+def _record_tool_failure(collected: dict[str, Any], action: LedgerShieldAction, tool: dict[str, Any]) -> None:
+    tool_name = normalize_text(tool.get("tool_name") or action.action_type)
+    failure_log = collected.setdefault("tool_failures", {})
+    failure_log.setdefault(tool_name, []).append(
+        {
+            "payload": dict(action.payload),
+            "error": str(tool.get("error") or ""),
+        }
+    )
+
+
+def _capture_tool_artifacts(collected: dict[str, Any], tool: dict[str, Any]) -> None:
+    if isinstance(tool.get("artifact"), dict):
+        _store_artifact(collected, tool["artifact"])
+    for artifact in tool.get("async_artifacts", []) or []:
+        if isinstance(artifact, dict):
+            _store_artifact(collected, artifact)
+    for artifact_id in tool.get("revealed_artifact_ids", []) or []:
+        normalized_id = normalize_text(artifact_id)
+        if normalized_id:
+            collected.setdefault("revealed_artifacts", {}).setdefault(
+                normalized_id,
+                {"artifact_id": artifact_id},
+            )
+
+
 def update_collected_from_observation(collected: dict[str, Any], observation: Any) -> None:
     revealed_artifacts = list(getattr(observation, "revealed_artifacts", []) or [])
     pending_events = list(getattr(observation, "pending_events", []) or [])
@@ -460,26 +595,23 @@ def update_collected_from_observation(collected: dict[str, Any], observation: An
     collected["observed_risk_signals"] = list(risk_snapshot.get("observed_signals", []) or [])
 
     if revealed_artifacts:
-        artifact_store = collected.setdefault("revealed_artifacts", {})
         for artifact in revealed_artifacts:
-            artifact_id = normalize_text(artifact.get("artifact_id"))
-            if not artifact_id:
-                continue
-            artifact_store[artifact_id] = artifact
-            if artifact_id == "callback_verification_result":
-                collected["callback_result"] = artifact
-            elif artifact_id == "bank_change_approval_chain":
-                collected["bank_change_approval_chain"] = artifact
-            elif artifact_id == "po_reconciliation_report":
-                collected["po_reconciliation_report"] = artifact
-            elif artifact_id == "receipt_reconciliation_report":
-                collected["receipt_reconciliation_report"] = artifact
-            elif artifact_id == "duplicate_cluster_report":
-                collected["duplicate_cluster_report"] = artifact
+            if isinstance(artifact, dict):
+                _store_artifact(collected, artifact)
 
 def vendor_key_for(fields: dict[str, Any]) -> str:
     vendor_name = normalize_text(fields.get("vendor_name"))
     return VENDOR_KEY_BY_NAME.get(vendor_name, "")
+
+
+def vendor_history_key_for(fields: dict[str, Any]) -> str:
+    explicit = vendor_key_for(fields)
+    if explicit:
+        return explicit
+    vendor_name = normalize_text(fields.get("vendor_name"))
+    if not vendor_name:
+        return ""
+    return re.sub(r"[^a-z0-9]+", "-", vendor_name).strip("-")
 
 
 def action_signature(action: LedgerShieldAction) -> str:
@@ -560,6 +692,10 @@ def summarize_collected_state(collected: dict[str, Any]) -> dict[str, Any]:
         "revealed_artifacts": sorted((collected.get("revealed_artifacts", {}) or {}).keys()),
         "pending_event_count": len(collected.get("pending_events", []) or []),
         "observed_risk_signals": collected.get("observed_risk_signals", []) or [],
+        "tool_failures": {
+            tool_name: len(entries)
+            for tool_name, entries in (collected.get("tool_failures", {}) or {}).items()
+        },
     }
 
 
@@ -578,6 +714,7 @@ def build_investigation_candidates(
 ) -> list[LedgerShieldAction]:
     candidates: list[LedgerShieldAction] = []
     seen = set(executed_signatures)
+    history_lookup_key = vendor_key or vendor_history_key_for(collected.get("invoice_fields", {}) or {})
 
     if task_type == "task_b":
         _append_candidate(candidates, seen, LedgerShieldAction(action_type="lookup_policy", payload={}))
@@ -654,11 +791,11 @@ def build_investigation_candidates(
             LedgerShieldAction(action_type="inspect_email_thread", payload={"thread_id": email_doc_id}),
         )
 
-    if vendor_key:
+    if history_lookup_key:
         _append_candidate(
             candidates,
             seen,
-            LedgerShieldAction(action_type="lookup_vendor_history", payload={"vendor_key": vendor_key}),
+            LedgerShieldAction(action_type="lookup_vendor_history", payload={"vendor_key": history_lookup_key}),
         )
     _append_candidate(candidates, seen, LedgerShieldAction(action_type="lookup_policy", payload={}))
 
@@ -684,6 +821,18 @@ def build_investigation_candidates(
                     action_type="search_ledger",
                     payload={
                         "vendor_key": vendor_key,
+                        "invoice_number": record_invoice_number,
+                        "amount": record_total,
+                    },
+                ),
+            )
+        elif record_invoice_number or record_total:
+            _append_candidate(
+                candidates,
+                seen,
+                LedgerShieldAction(
+                    action_type="search_ledger",
+                    payload={
                         "invoice_number": record_invoice_number,
                         "amount": record_total,
                     },
@@ -718,6 +867,7 @@ def build_intervention_candidates(
     bank_mismatch = any(compare and not bool(compare.get("matched")) for compare in collected.get("bank_compares", []) or [])
     email_thread = collected.get("email_thread") or {}
     email_flags = set(canonical_reason_codes((email_thread.get("flags", []) or []) + (email_thread.get("derived_flags", []) or [])))
+    observed_signals = {normalize_text(signal) for signal in collected.get("observed_risk_signals", []) or []}
     instruction = normalize_text(collected.get("case_instruction", ""))
     task_c_campaign_hint = any(
         phrase in instruction
@@ -735,7 +885,9 @@ def build_intervention_candidates(
     if task_type == "task_b":
         if str((collected.get("invoice_fields", {}) or {}).get("po_id", "")).strip():
             _append_candidate(candidates, seen, LedgerShieldAction(action_type="request_po_reconciliation", payload={}))
-        if str((collected.get("invoice_fields", {}) or {}).get("receipt_id", "")).strip():
+        if str((collected.get("invoice_fields", {}) or {}).get("receipt_id", "")).strip() or (
+            normalize_text(collected.get("case_instruction", "")) and not collected.get("receipt")
+        ):
             _append_candidate(
                 candidates,
                 seen,
@@ -745,6 +897,18 @@ def build_intervention_candidates(
             _append_candidate(candidates, seen, LedgerShieldAction(action_type="request_callback_verification", payload={}))
         return candidates
 
+    needs_callback = (
+        bank_mismatch
+        or "bank_override_attempt" in reason_codes
+        or has_duplicates
+        or task_c_campaign_hint
+        or {"approval_threshold_evasion", "shared_bank_account", "coordinated_timing"} & reason_codes
+        or {"sender_domain_spoof", "policy_bypass_attempt", "urgent_payment_pressure"} & (reason_codes | email_flags)
+        or {"callback_suspicious_confirm", "callback_dispute_confirmed"} & observed_signals
+    )
+    if needs_callback:
+        _append_candidate(candidates, seen, LedgerShieldAction(action_type="request_callback_verification", payload={}))
+
     if bank_mismatch or "bank_override_attempt" in reason_codes:
         _append_candidate(candidates, seen, LedgerShieldAction(action_type="request_callback_verification", payload={}))
         _append_candidate(
@@ -753,24 +917,34 @@ def build_intervention_candidates(
             LedgerShieldAction(action_type="request_bank_change_approval_chain", payload={}),
         )
         _append_candidate(candidates, seen, LedgerShieldAction(action_type="freeze_vendor_profile", payload={}))
+    elif task_type == "task_e" and decision == "escalate_fraud":
+        _append_candidate(candidates, seen, LedgerShieldAction(action_type="freeze_vendor_profile", payload={}))
 
     if has_duplicates or {"duplicate_near_match", "approval_threshold_evasion", "shared_bank_account", "coordinated_timing"} & reason_codes:
         _append_candidate(candidates, seen, LedgerShieldAction(action_type="flag_duplicate_cluster_review", payload={}))
     elif task_type == "task_c" and task_c_campaign_hint:
         _append_candidate(candidates, seen, LedgerShieldAction(action_type="flag_duplicate_cluster_review", payload={}))
 
-    if {"sender_domain_spoof", "policy_bypass_attempt"} & (reason_codes | email_flags):
+    if {"sender_domain_spoof", "policy_bypass_attempt", "urgent_payment_pressure"} & (reason_codes | email_flags):
         _append_candidate(candidates, seen, LedgerShieldAction(action_type="route_to_security", payload={}))
 
-    if task_type == "task_e":
+    if task_type in {"task_d", "task_e"}:
         _append_candidate(
             candidates,
             seen,
             LedgerShieldAction(
                 action_type="create_human_handoff",
                 payload={
-                    "summary": "Potential coordinated payment campaign detected across linked invoices.",
-                    "recommended_next_step": "campaign_freeze_and_manual_review",
+                    "summary": (
+                        "Potential coordinated payment campaign detected across linked invoices."
+                        if task_type == "task_e"
+                        else "Risk indicators support fraud escalation and human review."
+                    ),
+                    "recommended_next_step": (
+                        "campaign_freeze_and_manual_review"
+                        if task_type == "task_e"
+                        else "security_review_and_callback_followup"
+                    ),
                     "confidence": submission.get("confidence", 0.9),
                 },
             ),
@@ -778,7 +952,128 @@ def build_intervention_candidates(
     return candidates
 
 
-def llm_plan_actions(
+def _action_priority(
+    task_type: str,
+    phase: str,
+    collected: dict[str, Any],
+    action: LedgerShieldAction,
+    current_submission: Optional[dict[str, Any]],
+) -> tuple[int, int]:
+    action_type = normalize_text(action.action_type)
+    decision = normalize_text((current_submission or {}).get("decision"))
+    reason_codes = {
+        normalize_text(code)
+        for code in (
+            (current_submission or {}).get("reason_codes", [])
+            + (current_submission or {}).get("fraud_flags", [])
+            + (current_submission or {}).get("campaign_signals", [])
+        )
+        if normalize_text(code)
+    }
+    observed = {normalize_text(signal) for signal in collected.get("observed_risk_signals", []) or []}
+    base_priority = {
+        "investigation": {
+            "ocr": 80,
+            "inspect_email_thread": 95,
+            "lookup_vendor": 88,
+            "lookup_vendor_history": 86,
+            "lookup_policy": 70,
+            "lookup_po": 92,
+            "lookup_receipt": 90,
+            "compare_bank_account": 94,
+            "search_ledger": 90,
+        },
+        "intervention": {
+            "request_callback_verification": 100,
+            "request_bank_change_approval_chain": 98,
+            "request_po_reconciliation": 96,
+            "request_additional_receipt_evidence": 94,
+            "flag_duplicate_cluster_review": 92,
+            "freeze_vendor_profile": 88,
+            "route_to_security": 86,
+            "create_human_handoff": 82,
+            "route_to_procurement": 75,
+        },
+    }
+    score = base_priority.get(phase, {}).get(action_type, 50)
+
+    if phase == "investigation":
+        if task_type == "task_b" and action_type in {"lookup_po", "lookup_receipt", "lookup_policy"}:
+            score += 8
+        if task_type in {"task_d", "task_e"} and action_type == "inspect_email_thread":
+            score += 10
+        if action_type == "compare_bank_account" and collected.get("invoice_fields", {}).get("bank_account"):
+            score += 6
+        if action_type == "search_ledger" and (
+            action.payload.get("invoice_number") or action.payload.get("amount")
+        ):
+            score += 5
+        if action_type == "ocr" and action.payload.get("doc_id") == collected.get("email_doc_id"):
+            score += 8
+    else:
+        if action_type == "request_callback_verification" and decision != "pay":
+            score += 8
+        if action_type == "request_bank_change_approval_chain" and (
+            "bank_override_attempt" in reason_codes or "bank_account_mismatch" in observed
+        ):
+            score += 8
+        if action_type == "flag_duplicate_cluster_review" and (
+            {"duplicate_near_match", "approval_threshold_evasion", "shared_bank_account", "coordinated_timing"} & reason_codes
+        ):
+            score += 8
+        if action_type == "freeze_vendor_profile" and (
+            "bank_override_attempt" in reason_codes or "bank_account_mismatch" in observed or task_type == "task_e"
+        ):
+            score += 6
+        if action_type == "route_to_security" and (
+            {"sender_domain_spoof", "policy_bypass_attempt", "urgent_payment_pressure"} & reason_codes
+        ):
+            score += 7
+        if action_type == "create_human_handoff" and decision in {"needs_review", "escalate_fraud", "hold"}:
+            score += 4
+
+    return score, -len(action.payload)
+
+
+def _rank_candidate_actions(
+    task_type: str,
+    phase: str,
+    collected: dict[str, Any],
+    candidates: list[LedgerShieldAction],
+    current_submission: Optional[dict[str, Any]],
+) -> list[LedgerShieldAction]:
+    indexed = list(enumerate(candidates))
+    indexed.sort(
+        key=lambda item: (
+            *_action_priority(task_type, phase, collected, item[1], current_submission),
+            -item[0],
+        ),
+        reverse=True,
+    )
+    return [action for _, action in indexed]
+
+
+def _merge_action_batches(
+    primary: list[LedgerShieldAction],
+    secondary: list[LedgerShieldAction],
+    *,
+    max_actions: int,
+) -> list[LedgerShieldAction]:
+    merged: list[LedgerShieldAction] = []
+    seen: set[str] = set()
+    for batch in (primary, secondary):
+        for action in batch:
+            signature = action_signature(action)
+            if signature in seen:
+                continue
+            seen.add(signature)
+            merged.append(action)
+            if len(merged) >= max_actions:
+                return merged
+    return merged
+
+
+def _llm_selected_actions(
     client: Optional[OpenAI],
     *,
     task_type: str,
@@ -790,10 +1085,6 @@ def llm_plan_actions(
 ) -> list[LedgerShieldAction]:
     if not candidates or max_actions <= 0:
         return []
-
-    trimmed_candidates = candidates[:max_actions]
-    if not client:
-        return trimmed_candidates
 
     indexed = [
         {
@@ -837,7 +1128,7 @@ def llm_plan_actions(
                 {"role": "user", "content": compact_json(user_payload)},
             ],
             temperature=TEMPERATURE,
-            max_output_tokens=384,
+            max_output_tokens=current_model_profile().planning_token_budget,
             api_base_url=API_BASE_URL,
         )
         content = response.choices[0].message.content or "{}"
@@ -845,7 +1136,7 @@ def llm_plan_actions(
         result = parse_json_dict(content)
     except Exception as exc:
         trace(f"[LLM ERROR] action planning {task_type}/{phase}: {exc}")
-        return trimmed_candidates
+        return []
 
     selected: list[LedgerShieldAction] = []
     seen_ids: set[str] = set()
@@ -858,7 +1149,100 @@ def llm_plan_actions(
         if len(selected) >= max_plan_length:
             break
 
-    return selected or trimmed_candidates
+    return selected
+
+
+def llm_plan_actions(
+    client: Optional[OpenAI],
+    *,
+    task_type: str,
+    phase: str,
+    collected: dict[str, Any],
+    candidates: list[LedgerShieldAction],
+    max_actions: int,
+    current_submission: Optional[dict[str, Any]] = None,
+) -> list[LedgerShieldAction]:
+    if not candidates or max_actions <= 0:
+        return []
+
+    profile = current_model_profile()
+    ranked = _rank_candidate_actions(
+        task_type,
+        phase,
+        collected,
+        candidates,
+        current_submission,
+    )[:max_actions]
+    if not client or profile.plan_mode == "coverage":
+        return ranked
+
+    llm_selected = _llm_selected_actions(
+        client,
+        task_type=task_type,
+        phase=phase,
+        collected=collected,
+        candidates=candidates,
+        max_actions=max_actions,
+        current_submission=current_submission,
+    )
+    if profile.plan_mode == "hybrid":
+        return _merge_action_batches(llm_selected, ranked, max_actions=max_actions) or ranked
+    return llm_selected or ranked
+
+
+def _repair_task_e_submission(candidate: dict[str, Any], collected: dict[str, Any]) -> dict[str, Any]:
+    grounded = grounded_task_e_submission(
+        collected,
+        {"counterfactual": (candidate or {}).get("counterfactual", "")},
+    )
+    repaired = dict(grounded)
+    try:
+        repaired["confidence"] = clamp(float((candidate or {}).get("confidence", grounded.get("confidence", 0.99))), 0.0, 1.0)
+    except Exception:
+        repaired["confidence"] = float(grounded.get("confidence", 0.99))
+    counterfactual = str((candidate or {}).get("counterfactual", "")).strip()
+    if len(counterfactual.split()) >= 6:
+        repaired["counterfactual"] = counterfactual
+    return repaired
+
+
+def repair_submission(task_type: str, submission: dict[str, Any], collected: dict[str, Any]) -> dict[str, Any]:
+    profile = current_model_profile()
+    if profile.repair_level == "none":
+        return submission
+
+    decision = normalize_text((submission or {}).get("decision"))
+    if task_type == "task_b":
+        heuristic = heuristic_task_b(collected)
+        if profile.repair_level == "grounded":
+            return heuristic
+        return heuristic if normalize_text(heuristic.get("decision")) == decision else submission
+
+    if task_type == "task_c":
+        grounded = grounded_task_c_submission(collected)
+        if profile.repair_level == "grounded":
+            return validate_task_c_submission(submission, collected)
+        return validate_task_c_submission(submission, collected) if normalize_text(grounded.get("decision")) == decision else submission
+
+    if task_type == "task_d":
+        grounded = grounded_task_d_submission(
+            collected,
+            counterfactual=(submission or {}).get("counterfactual", ""),
+        )
+        if profile.repair_level == "grounded":
+            return validate_task_d_submission(submission, collected)
+        return validate_task_d_submission(submission, collected) if normalize_text(grounded.get("decision")) == decision else submission
+
+    if task_type == "task_e":
+        grounded = grounded_task_e_submission(
+            collected,
+            {"counterfactual": (submission or {}).get("counterfactual", "")},
+        )
+        if profile.repair_level == "grounded":
+            return _repair_task_e_submission(submission, collected)
+        return _repair_task_e_submission(submission, collected) if normalize_text(grounded.get("decision")) == decision else submission
+
+    return submission
 
 
 def sanitize_task_e_submission(candidate: dict[str, Any], collected: dict[str, Any]) -> dict[str, Any]:
@@ -944,6 +1328,9 @@ def update_collected_from_tool_result(
     email_doc_id: str,
 ) -> None:
     tool_name = tool.get("tool_name")
+    _capture_tool_artifacts(collected, tool)
+    if not tool.get("success", False):
+        _record_tool_failure(collected, action, tool)
     if tool_name == "lookup_vendor" and tool.get("success"):
         collected["vendor"] = tool.get("vendor") or {}
         refresh_email_thread_from_ocr(collected)
@@ -1014,6 +1401,78 @@ def _task_b_artifact_findings(collected: dict[str, Any]) -> tuple[list[str], dic
 
     return discrepancies, evidence_map, callback_signal
 
+
+def _task_b_instruction_hints(collected: dict[str, Any]) -> set[str]:
+    instruction = normalize_text(collected.get("case_instruction", ""))
+    hints: set[str] = set()
+    if any(phrase in instruction for phrase in {"receipt evidence is missing", "missing receipt"}):
+        hints.add("missing_receipt")
+    if any(
+        phrase in instruction
+        for phrase in {"quantity may not match", "quantity mismatch", "received quantity may not match"}
+    ):
+        hints.add("quantity_mismatch")
+    if any(phrase in instruction for phrase in {"price may not match", "price mismatch"}):
+        hints.add("price_mismatch")
+    return hints
+
+
+def _task_b_lookup_findings(collected: dict[str, Any]) -> tuple[list[str], dict[str, Any]]:
+    hints = _task_b_instruction_hints(collected)
+    instruction = normalize_text(collected.get("case_instruction", ""))
+    failures = collected.get("tool_failures", {}) or {}
+    invoice_evidence = collected.get("invoice_evidence", {}) or {}
+    invoice_line_tokens = collected.get("invoice_line_tokens", []) or []
+    invoice_doc_id = str(collected.get("invoice_doc_id", "") or "")
+    receipt_report = collected.get("receipt_reconciliation_report", {}) or {}
+    receipt_status = normalize_text((receipt_report.get("details", {}) or {}).get("status"))
+
+    receipt_failed = bool(failures.get("lookup_receipt"))
+    po_failed = bool(failures.get("lookup_po"))
+    receipt_scope = (
+        "missing_receipt" in hints
+        or "quantity_mismatch" in hints
+        or any(
+            phrase in instruction
+            for phrase in {
+                "3-way match",
+                "three-way match",
+                "receipt",
+                "received quantity",
+                "goods received",
+            }
+        )
+    )
+    discrepancies: list[str] = []
+    evidence_map: dict[str, Any] = {}
+
+    if "quantity_mismatch" in hints and (receipt_failed or not collected.get("receipt")) and invoice_line_tokens:
+        discrepancies.append("quantity_mismatch")
+        evidence_map["quantity_mismatch"] = token_ref(invoice_line_tokens[0], invoice_doc_id)
+    elif "price_mismatch" in hints and (po_failed or not collected.get("po")) and invoice_line_tokens:
+        discrepancies.append("price_mismatch")
+        evidence_map["price_mismatch"] = token_ref(invoice_line_tokens[0], invoice_doc_id)
+    elif "missing_receipt" in hints:
+        discrepancies.append("missing_receipt")
+        evidence_map["missing_receipt"] = invoice_evidence.get("receipt_id") or invoice_evidence.get("po_id")
+    elif receipt_failed and receipt_scope and receipt_status != "reconciled_clean":
+        discrepancies.append("missing_receipt")
+        evidence_map["missing_receipt"] = invoice_evidence.get("receipt_id") or invoice_evidence.get("po_id")
+
+    return discrepancies, {key: value for key, value in evidence_map.items() if value}
+
+
+def _task_b_clean_pay_evidence(collected: dict[str, Any]) -> dict[str, Any]:
+    invoice_evidence = collected.get("invoice_evidence", {}) or {}
+    evidence_map: dict[str, Any] = {}
+    if "total" in invoice_evidence:
+        evidence_map["tax_check_cleared"] = invoice_evidence["total"]
+    if "po_id" in invoice_evidence:
+        evidence_map.setdefault("po_reference_verified", invoice_evidence["po_id"])
+    if not evidence_map and "receipt_id" in invoice_evidence:
+        evidence_map["receipt_reference_reviewed"] = invoice_evidence["receipt_id"]
+    return evidence_map
+
 def llm_decision_task_b(client: Optional[OpenAI], collected: dict[str, Any]) -> dict[str, Any]:
     """Use LLM to analyze evidence and decide PAY or HOLD for Task B."""
     if not client:
@@ -1021,6 +1480,7 @@ def llm_decision_task_b(client: Optional[OpenAI], collected: dict[str, Any]) -> 
         return heuristic_task_b(collected)
 
     artifact_discrepancies, artifact_evidence, callback_signal = _task_b_artifact_findings(collected)
+    inferred_discrepancies, inferred_evidence = _task_b_lookup_findings(collected)
     invoice_fields = collected["invoice_fields"]
     po = collected.get("po") or {}
     receipt = collected.get("receipt")
@@ -1036,7 +1496,8 @@ def llm_decision_task_b(client: Optional[OpenAI], collected: dict[str, Any]) -> 
         "receipt_reconciliation_report": collected.get("receipt_reconciliation_report", {}),
         "callback_result": collected.get("callback_result", {}),
         "observed_risk_signals": collected.get("observed_risk_signals", []),
-        "current_grounded_discrepancies": artifact_discrepancies,
+        "current_grounded_discrepancies": artifact_discrepancies + inferred_discrepancies,
+        "tool_failures": collected.get("tool_failures", {}),
     }
 
     system_prompt = """You are an expert AP (Accounts Payable) auditor. Analyze the invoice data and determine if it should be PAID or HELD.
@@ -1074,7 +1535,7 @@ Return JSON format:
                 {"role": "user", "content": compact_json(context)},
             ],
             temperature=TEMPERATURE,
-            max_output_tokens=MAX_TOKENS,
+            max_output_tokens=current_model_profile().decision_token_budget,
             api_base_url=API_BASE_URL,
         )
         content = response.choices[0].message.content or "{}"
@@ -1093,6 +1554,9 @@ Return JSON format:
             raw_discrepancies = []
 
         discrepancies = canonical_reason_codes(raw_discrepancies) or list(artifact_discrepancies)
+        for discrepancy in inferred_discrepancies:
+            if discrepancy not in discrepancies:
+                discrepancies.append(discrepancy)
         if callback_signal == "callback_clean" and not discrepancies:
             decision = "PAY"
 
@@ -1101,7 +1565,7 @@ Return JSON format:
             return grounded
 
         # Build evidence map based on discrepancies
-        evidence_map = dict(artifact_evidence)
+        evidence_map = {**artifact_evidence, **inferred_evidence}
         invoice_evidence = collected["invoice_evidence"]
         if "missing_receipt" in discrepancies and "po_id" in invoice_evidence:
             evidence_map["missing_receipt"] = invoice_evidence["po_id"]
@@ -1111,6 +1575,9 @@ Return JSON format:
             evidence_map["quantity_mismatch"] = token_ref(collected["invoice_line_tokens"][0], collected["invoice_doc_id"])
         if "total_mismatch" in discrepancies and "total" in invoice_evidence:
             evidence_map["total_mismatch"] = invoice_evidence["total"]
+
+        if not discrepancies:
+            evidence_map = {**evidence_map, **_task_b_clean_pay_evidence(collected)}
 
         return {
             "decision": decision,
@@ -1136,9 +1603,13 @@ def heuristic_task_b(collected: dict[str, Any]) -> dict[str, Any]:
     po = collected.get("po") or {}
     receipt = collected.get("receipt")
     artifact_discrepancies, artifact_evidence, callback_signal = _task_b_artifact_findings(collected)
+    inferred_discrepancies, inferred_evidence = _task_b_lookup_findings(collected)
 
     discrepancies: list[str] = list(artifact_discrepancies)
-    evidence_map: dict[str, Any] = dict(artifact_evidence)
+    for discrepancy in inferred_discrepancies:
+        if discrepancy not in discrepancies:
+            discrepancies.append(discrepancy)
+    evidence_map: dict[str, Any] = {**artifact_evidence, **inferred_evidence}
 
     if po or receipt:
         po_lines = po.get("line_items", [])
@@ -1174,6 +1645,8 @@ def heuristic_task_b(collected: dict[str, Any]) -> dict[str, Any]:
                 break
 
     discrepancies = canonical_reason_codes(discrepancies)
+    if not discrepancies:
+        evidence_map = {**evidence_map, **_task_b_clean_pay_evidence(collected)}
 
     return {
         "decision": "PAY" if callback_signal == "callback_clean" and not discrepancies else ("HOLD" if discrepancies else "PAY"),
@@ -1257,7 +1730,7 @@ Return JSON format:
                 {"role": "user", "content": compact_json(context)},
             ],
             temperature=TEMPERATURE,
-            max_output_tokens=MAX_TOKENS,
+            max_output_tokens=current_model_profile().decision_token_budget,
             api_base_url=API_BASE_URL,
         )
         content = response.choices[0].message.content or "{}"
@@ -1395,7 +1868,7 @@ Return JSON format:
                 {"role": "user", "content": compact_json(context)},
             ],
             temperature=TEMPERATURE,
-            max_output_tokens=MAX_TOKENS,
+            max_output_tokens=current_model_profile().decision_token_budget,
             api_base_url=API_BASE_URL,
         )
         content = response.choices[0].message.content or "{}"
@@ -1509,7 +1982,7 @@ Return JSON:
                 {"role": "user", "content": compact_json(context)},
             ],
             temperature=TEMPERATURE,
-            max_output_tokens=MAX_TOKENS,
+            max_output_tokens=current_model_profile().decision_token_budget,
             api_base_url=API_BASE_URL,
         )
         content = response.choices[0].message.content or "{}"
@@ -1626,6 +2099,7 @@ def run_episode(env_url: str, case_id: str, client: Optional[OpenAI]) -> dict[st
             "observed_risk_signals": [], "callback_result": {},
             "bank_change_approval_chain": {}, "po_reconciliation_report": {},
             "receipt_reconciliation_report": {}, "duplicate_cluster_report": {},
+            "tool_failures": {},
             "case_instruction": str(getattr(observation, "instruction", "") or ""),
             "case_metadata": dict(getattr(observation, "case_metadata", {}) or {}),
         }
@@ -1752,13 +2226,87 @@ def run_episode(env_url: str, case_id: str, client: Optional[OpenAI]) -> dict[st
                     return True
             return False
 
+        def next_pending_artifact_action() -> LedgerShieldAction | None:
+            pending_ids = {
+                normalize_text(event.get("artifact_id"))
+                for event in collected.get("pending_events", []) or []
+                if normalize_text(event.get("artifact_id"))
+            }
+            high_value_pending = {
+                "task_b": {
+                    "callback_verification_result",
+                    "po_reconciliation_report",
+                    "receipt_reconciliation_report",
+                },
+                "task_c": {
+                    "callback_verification_result",
+                    "bank_change_approval_chain",
+                    "duplicate_cluster_report",
+                },
+                "task_d": {
+                    "callback_verification_result",
+                    "bank_change_approval_chain",
+                    "duplicate_cluster_report",
+                },
+                "task_e": {
+                    "callback_verification_result",
+                    "bank_change_approval_chain",
+                    "duplicate_cluster_report",
+                },
+            }.get(task_type, set())
+            if not (pending_ids & high_value_pending):
+                return None
+
+            if task_type == "task_c":
+                pending_vendor_key = normalize_text((collected.get("vendor") or {}).get("vendor_key")) or vendor_key_for(
+                    collected.get("invoice_fields", {}) or {}
+                )
+                if pending_vendor_key:
+                    return LedgerShieldAction(
+                        action_type="lookup_vendor",
+                        payload={"vendor_key": pending_vendor_key},
+                    )
+                payload: dict[str, Any] = {}
+                if invoice_total:
+                    payload["amount"] = invoice_total
+                if invoice_number:
+                    payload["invoice_number"] = invoice_number
+                if payload:
+                    return LedgerShieldAction(action_type="search_ledger", payload=payload)
+
+            return LedgerShieldAction(action_type="lookup_policy", payload={})
+
+        def drain_pending_artifacts() -> bool:
+            nonlocal step_no, steps_taken, final_score, success, final_info, final_tool_result
+            wait_budget = 2 if profile.tier == "elite" else (1 if profile.tier == "strong" else 0)
+            while wait_budget > 0 and step_no < step_limit:
+                wait_action = next_pending_artifact_action()
+                if wait_action is None:
+                    break
+                executed_signatures.add(action_signature(wait_action))
+                result, step_no = perform_step(env, step_no, rewards, wait_action)
+                steps_taken = step_no - 1
+                record_action_trace("wait", wait_action, result)
+                tool = result.observation.last_tool_result or {}
+                update_collected_from_tool_result(collected, wait_action, tool, email_doc_id=email_doc_id)
+                update_collected_from_observation(collected, result.observation)
+                wait_budget -= 1
+                if result.done:
+                    final_score = float(result.info.get("final_score", result.reward or 0.0))
+                    success = final_score >= SUCCESS_SCORE_THRESHOLD
+                    final_info = dict(result.info or {})
+                    final_tool_result = result.observation.last_tool_result or {}
+                    return True
+            return False
+
+        profile = current_model_profile()
         remaining_action_slots = max(0, step_limit - step_no + 1)
         investigation_budget = {
             "task_b": 3,
             "task_c": 3,
             "task_d": 6,
             "task_e": 8,
-        }.get(task_type, 0)
+        }.get(task_type, 0) + profile.investigation_budget_bonus
         investigation_candidates = build_investigation_candidates(
             task_type,
             collected,
@@ -1783,7 +2331,7 @@ def run_episode(env_url: str, case_id: str, client: Optional[OpenAI]) -> dict[st
         if execute_action_batch(planned_investigation):
             return {"case_id": case_id, "task_type": task_type, "score": final_score, "steps": steps_taken}
 
-        submit_payload = build_final_submission(task_type, collected, client)
+        submit_payload = repair_submission(task_type, build_final_submission(task_type, collected, client), collected)
         final_submission = dict(submit_payload)
 
         remaining_action_slots = max(0, step_limit - step_no + 1)
@@ -1792,7 +2340,7 @@ def run_episode(env_url: str, case_id: str, client: Optional[OpenAI]) -> dict[st
             "task_c": 5,
             "task_d": 5,
             "task_e": 6,
-        }.get(task_type, 0)
+        }.get(task_type, 0) + profile.intervention_budget_bonus
         intervention_candidates = build_intervention_candidates(
             task_type,
             collected,
@@ -1812,7 +2360,10 @@ def run_episode(env_url: str, case_id: str, client: Optional[OpenAI]) -> dict[st
         if execute_action_batch(planned_interventions):
             return {"case_id": case_id, "task_type": task_type, "score": final_score, "steps": steps_taken}
 
-        submit_payload = build_final_submission(task_type, collected, client)
+        if drain_pending_artifacts():
+            return {"case_id": case_id, "task_type": task_type, "score": final_score, "steps": steps_taken}
+
+        submit_payload = repair_submission(task_type, build_final_submission(task_type, collected, client), collected)
         final_submission = dict(submit_payload)
 
         if step_no <= step_limit:
@@ -1842,6 +2393,7 @@ def run_episode(env_url: str, case_id: str, client: Optional[OpenAI]) -> dict[st
         if DEBUG_ARTIFACT_DIR:
             artifact_payload = {
                 "model": MODEL_NAME,
+                "model_profile": asdict(current_model_profile()),
                 "case_id": case_id,
                 "task_type": task_type,
                 "score": round(final_score, 4),

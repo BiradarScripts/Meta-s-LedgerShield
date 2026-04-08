@@ -171,6 +171,78 @@ def test_validate_task_d_submission_reverts_unfounded_escalation():
     assert validated["decision"] == "PAY"
     assert validated["reason_codes"] == []
     assert all(value == "pass" for value in validated["policy_checks"].values())
+    assert set(validated["evidence_map"]) == {
+        "bank_account_verified",
+        "duplicate_check_cleared",
+        "sender_domain_verified",
+    }
+
+
+def test_grounded_task_d_submission_treats_routine_verified_bank_update_as_pay():
+    grounded = grounded_task_d_submission(
+        {
+            "invoice_records": [
+                {
+                    "fields": {
+                        "invoice_number": "BLP-UPDATE-001",
+                        "total": 12500.0,
+                    },
+                    "evidence": {
+                        "invoice_number": {
+                            "doc_id": "INV-D-006",
+                            "page": 1,
+                            "bbox": [10, 30, 180, 40],
+                            "token_ids": ["d72"],
+                        },
+                        "bank_account": {
+                            "doc_id": "INV-D-006",
+                            "page": 1,
+                            "bbox": [10, 70, 160, 80],
+                            "token_ids": ["d74"],
+                        },
+                    },
+                }
+            ],
+            "email_evidence": {
+                "from_header": {
+                    "doc_id": "THR-LEGIT-001",
+                    "page": 1,
+                    "bbox": [10, 10, 220, 20],
+                    "token_ids": ["el1"],
+                },
+                "subject_header": {
+                    "doc_id": "THR-LEGIT-001",
+                    "page": 1,
+                    "bbox": [10, 30, 360, 40],
+                    "token_ids": ["el2"],
+                },
+            },
+            "email_thread": {
+                "sender_profile": {"domain_alignment": "aligned"},
+                "request_signals": {
+                    "bank_change_language": True,
+                    "callback_discouraged": False,
+                    "policy_override_language": False,
+                    "urgency_language": False,
+                },
+                "derived_flags": ["bank_override_attempt"],
+                "flags": ["bank_override_attempt"],
+            },
+            "ledger_search": {"exact_duplicate_count": 0, "near_duplicate_count": 0},
+            "ledger_hits": [],
+            "bank_compares": [{"matched": True}],
+            "vendor_history": [{"event_type": "tax_id_refresh", "status": "approved"}],
+        }
+    )
+
+    assert grounded["decision"] == "PAY"
+    assert grounded["reason_codes"] == []
+    assert all(value == "pass" for value in grounded["policy_checks"].values())
+    assert set(grounded["evidence_map"]) == {
+        "bank_account_verified",
+        "duplicate_check_cleared",
+        "sender_domain_verified",
+    }
 
 
 def test_validate_task_d_submission_repairs_missing_reasons_and_evidence():
@@ -261,6 +333,56 @@ def test_sanitize_task_d_submission_backfills_grounded_evidence_for_chosen_reaso
 
     assert sanitized["reason_codes"] == ["bank_override_attempt", "policy_bypass_attempt"]
     assert set(sanitized["evidence_map"]) == {"bank_override_attempt", "policy_bypass_attempt"}
+
+
+def test_sanitize_task_d_submission_preserves_pay_proof_evidence():
+    sanitized = sanitize_task_d_submission(
+        {
+            "decision": "PAY",
+            "confidence": 0.9,
+            "reason_codes": ["sender_domain_spoof"],
+            "policy_checks": {
+                "three_way_match": "pass",
+                "bank_change_verification": "pass",
+                "duplicate_check": "pass",
+                "approval_threshold_check": "pass",
+            },
+            "evidence_map": {},
+            "counterfactual": "Would HOLD if sender and bank checks failed.",
+        },
+        _benign_collected(),
+    )
+
+    assert sanitized["decision"] == "PAY"
+    assert sanitized["reason_codes"] == []
+    assert set(sanitized["evidence_map"]) == {
+        "bank_account_verified",
+        "duplicate_check_cleared",
+        "sender_domain_verified",
+    }
+
+
+def test_sanitize_task_d_submission_keeps_false_negative_pay_sparse():
+    sanitized = sanitize_task_d_submission(
+        {
+            "decision": "PAY",
+            "confidence": 0.74,
+            "reason_codes": [],
+            "policy_checks": {
+                "three_way_match": "pass",
+                "bank_change_verification": "pass",
+                "duplicate_check": "pass",
+                "approval_threshold_check": "pass",
+            },
+            "evidence_map": {},
+            "counterfactual": "Would HOLD if bank and sender checks failed.",
+        },
+        _risky_collected(),
+    )
+
+    assert sanitized["decision"] == "PAY"
+    assert sanitized["reason_codes"] == []
+    assert sanitized["evidence_map"] == {}
 
 
 def test_grounded_task_d_submission_includes_urgent_pressure_for_ceo_style_case():

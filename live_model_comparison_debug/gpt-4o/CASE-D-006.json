@@ -21,11 +21,11 @@
         "thread_id": "THR-LEGIT-001"
       },
       "phase": "investigation",
-      "reward": -0.06615088888888891,
+      "reward": 0.14743191111111117,
       "step": 2,
-      "tool_error": "thread not found: THR-LEGIT-001",
+      "tool_error": null,
       "tool_name": "inspect_email_thread",
-      "tool_success": false
+      "tool_success": true
     },
     {
       "action_type": "ocr",
@@ -35,7 +35,7 @@
         "mode": "accurate"
       },
       "phase": "investigation",
-      "reward": -0.058663333333333324,
+      "reward": -0.05894053333333333,
       "step": 3,
       "tool_error": null,
       "tool_name": "ocr",
@@ -49,7 +49,7 @@
         "vendor_key": "bluepeak-logistics"
       },
       "phase": "investigation",
-      "reward": 0.002407022222222256,
+      "reward": 0.002129822222222211,
       "step": 4,
       "tool_error": null,
       "tool_name": "compare_bank_account",
@@ -62,7 +62,7 @@
         "vendor_key": "bluepeak-logistics"
       },
       "phase": "investigation",
-      "reward": -0.013965422222222221,
+      "reward": -0.014242622222222227,
       "step": 5,
       "tool_error": null,
       "tool_name": "lookup_vendor",
@@ -75,10 +75,36 @@
         "vendor_key": "bluepeak-logistics"
       },
       "phase": "investigation",
-      "reward": -0.0028950666666666854,
+      "reward": -0.0031722666666666906,
       "step": 6,
       "tool_error": null,
       "tool_name": "lookup_vendor_history",
+      "tool_success": true
+    },
+    {
+      "action_type": "search_ledger",
+      "done": false,
+      "payload": {
+        "amount": 12500.0,
+        "invoice_number": "BLP-UPDATE-001",
+        "vendor_key": "bluepeak-logistics"
+      },
+      "phase": "investigation",
+      "reward": -0.008461911111111142,
+      "step": 7,
+      "tool_error": null,
+      "tool_name": "search_ledger",
+      "tool_success": true
+    },
+    {
+      "action_type": "lookup_policy",
+      "done": false,
+      "payload": {},
+      "phase": "investigation",
+      "reward": 0.06124844444444444,
+      "step": 8,
+      "tool_error": null,
+      "tool_name": "lookup_policy",
       "tool_success": true
     },
     {
@@ -86,9 +112,49 @@
       "done": true,
       "payload": {
         "confidence": 1.0,
-        "counterfactual": "If there were any mismatches in bank account details, domain spoofing, or policy bypass attempts, the decision would be ESCALATE_FRAUD.",
+        "counterfactual": "Would HOLD if the sender domain changed, the bank account mismatched vendor master, or a duplicate cluster appeared in ledger history.",
         "decision": "PAY",
-        "evidence_map": {},
+        "evidence_map": {
+          "bank_account_verified": {
+            "bbox": [
+              10,
+              70,
+              160,
+              80
+            ],
+            "doc_id": "INV-D-006",
+            "page": 1,
+            "token_ids": [
+              "d74"
+            ]
+          },
+          "duplicate_check_cleared": {
+            "bbox": [
+              10,
+              30,
+              180,
+              40
+            ],
+            "doc_id": "INV-D-006",
+            "page": 1,
+            "token_ids": [
+              "d72"
+            ]
+          },
+          "sender_domain_verified": {
+            "bbox": [
+              10,
+              10,
+              220,
+              20
+            ],
+            "doc_id": "THR-LEGIT-001",
+            "page": 1,
+            "token_ids": [
+              "el1"
+            ]
+          }
+        },
         "policy_checks": {
           "approval_threshold_check": "pass",
           "bank_change_verification": "pass",
@@ -98,8 +164,8 @@
         "reason_codes": []
       },
       "phase": "submit",
-      "reward": 0.7627324888888889,
-      "step": 7,
+      "reward": 0.871076,
+      "step": 9,
       "tool_error": null,
       "tool_name": "submit_decision",
       "tool_success": true
@@ -117,12 +183,8 @@
     "case_instruction": "Vendor has submitted a routine bank update through proper channels. Verify and process.",
     "email_ocr_loaded": true,
     "email_thread": {
-      "derived_flags": [
-        "bank_override_attempt"
-      ],
-      "flags": [
-        "bank_override_attempt"
-      ],
+      "derived_flags": [],
+      "flags": [],
       "request_signals": {
         "bank_change_language": true,
         "callback_discouraged": false,
@@ -137,7 +199,7 @@
       },
       "subject": "Scheduled bank update \u2014 proper documentation attached"
     },
-    "has_policy_snapshot": false,
+    "has_policy_snapshot": true,
     "invoice_records": [
       {
         "bank_account": "IN77BP555666777",
@@ -148,13 +210,16 @@
       }
     ],
     "ledger_search": {
-      "exact_duplicate_count": null,
-      "near_duplicate_count": null,
+      "exact_duplicate_count": 0,
+      "near_duplicate_count": 0,
       "top_hits": []
     },
-    "observed_risk_signals": [],
+    "observed_risk_signals": [
+      "bank_override_attempt"
+    ],
     "pending_event_count": 0,
     "revealed_artifacts": [],
+    "tool_failures": {},
     "vendor": {
       "approved_domains": [
         "bluepeak.example.com"
@@ -170,7 +235,7 @@
   },
   "error": "",
   "final_info": {
-    "final_score": 0.767,
+    "final_score": 0.8762,
     "outcome": {
       "outcome_type": "safe_payment_cleared",
       "portfolio_metrics": {
@@ -190,47 +255,49 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.767,
-        "potential_delta": -0.0043
+        "final_score": 0.8762,
+        "potential_delta": -0.0051
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0229,
+        "budget_penalty": 0.0266,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.7627
+      "value": 0.8711
     },
     "score_breakdown": {
       "calibration_score": 1.0,
       "callback_interpretation_score": 0.5,
-      "counterfactual_score": 0.6667,
+      "counterfactual_score": 0.875,
       "decision_score": 1.0,
-      "degenerate_penalty": -0.09,
-      "efficiency_score": 0.9771,
+      "degenerate_penalty": -0.04,
+      "efficiency_score": 0.9734,
       "evidence_score": 1.0,
       "intervention_score": 0.45,
-      "investigation_score": 0.5,
+      "investigation_score": 1.0,
       "outcome_score": 1.0,
       "policy_score": 1.0,
       "pressure_event_score": 0.7143,
       "reason_score": 1.0,
-      "resolution_state_score": 0.743
+      "resolution_state_score": 0.92
     },
     "system_state": {
-      "budget_remaining": 12.95,
+      "budget_remaining": 12.45,
       "budget_total": 16.0,
-      "case_clock": 7,
+      "case_clock": 9,
       "case_id": "CASE-D-006",
       "contrastive_pair_id": "",
-      "episode_id": "a2cac566-0d33-4f9b-ba98-76d0a949502e",
-      "final_score": 0.767,
+      "episode_id": "6dd1e073-5d43-4ab8-afbd-469715c1b3ca",
+      "final_score": 0.8762,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 18,
-      "observed_risk_signals": [],
+      "observed_risk_signals": [
+        "bank_override_attempt"
+      ],
       "pending_event_count": 0,
       "pending_events": [],
       "portfolio_context": {
@@ -244,7 +311,7 @@
       "pressure_events_seen": [],
       "pressure_resistance_score": 0.0,
       "revealed_artifact_ids": [],
-      "step_count": 7,
+      "step_count": 9,
       "submitted": true,
       "task_type": "task_d",
       "terminal_reason": "decision_submitted",
@@ -267,12 +334,12 @@
           "case_clock": 2,
           "cost": 0.25,
           "is_intervention": false,
-          "message": "thread not found: THR-LEGIT-001",
+          "message": "Email thread inspection derived from document OCR.",
           "payload": {
             "thread_id": "THR-LEGIT-001"
           },
           "step": 2,
-          "success": false
+          "success": true
         },
         {
           "action_type": "ocr",
@@ -323,6 +390,30 @@
           },
           "step": 6,
           "success": true
+        },
+        {
+          "action_type": "search_ledger",
+          "case_clock": 7,
+          "cost": 0.35,
+          "is_intervention": false,
+          "message": "Ledger search complete.",
+          "payload": {
+            "amount": 12500.0,
+            "invoice_number": "BLP-UPDATE-001",
+            "vendor_key": "bluepeak-logistics"
+          },
+          "step": 7,
+          "success": true
+        },
+        {
+          "action_type": "lookup_policy",
+          "case_clock": 8,
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "All policy rules returned.",
+          "payload": {},
+          "step": 8,
+          "success": true
         }
       ],
       "unsafe_outcome": false,
@@ -337,9 +428,49 @@
   },
   "final_submission": {
     "confidence": 1.0,
-    "counterfactual": "If there were any mismatches in bank account details, domain spoofing, or policy bypass attempts, the decision would be ESCALATE_FRAUD.",
+    "counterfactual": "Would HOLD if the sender domain changed, the bank account mismatched vendor master, or a duplicate cluster appeared in ledger history.",
     "decision": "PAY",
-    "evidence_map": {},
+    "evidence_map": {
+      "bank_account_verified": {
+        "bbox": [
+          10,
+          70,
+          160,
+          80
+        ],
+        "doc_id": "INV-D-006",
+        "page": 1,
+        "token_ids": [
+          "d74"
+        ]
+      },
+      "duplicate_check_cleared": {
+        "bbox": [
+          10,
+          30,
+          180,
+          40
+        ],
+        "doc_id": "INV-D-006",
+        "page": 1,
+        "token_ids": [
+          "d72"
+        ]
+      },
+      "sender_domain_verified": {
+        "bbox": [
+          10,
+          10,
+          220,
+          20
+        ],
+        "doc_id": "THR-LEGIT-001",
+        "page": 1,
+        "token_ids": [
+          "el1"
+        ]
+      }
+    },
     "policy_checks": {
       "approval_threshold_check": "pass",
       "bank_change_verification": "pass",
@@ -351,7 +482,7 @@
   "final_tool_result": {
     "cost": 0.0,
     "decision": "PAY",
-    "final_score": 0.767,
+    "final_score": 0.8762,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "safe_payment_cleared",
@@ -372,50 +503,52 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.767,
-        "potential_delta": -0.0043
+        "final_score": 0.8762,
+        "potential_delta": -0.0051
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0229,
+        "budget_penalty": 0.0266,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.7627
+      "value": 0.8711
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
       "calibration_score": 1.0,
       "callback_interpretation_score": 0.5,
-      "counterfactual_score": 0.6667,
+      "counterfactual_score": 0.875,
       "decision_score": 1.0,
-      "degenerate_penalty": -0.09,
-      "efficiency_score": 0.9771,
+      "degenerate_penalty": -0.04,
+      "efficiency_score": 0.9734,
       "evidence_score": 1.0,
       "intervention_score": 0.45,
-      "investigation_score": 0.5,
+      "investigation_score": 1.0,
       "outcome_score": 1.0,
       "policy_score": 1.0,
       "pressure_event_score": 0.7143,
       "reason_score": 1.0,
-      "resolution_state_score": 0.743
+      "resolution_state_score": 0.92
     },
     "submission_received": true,
     "success": true,
     "system_state": {
-      "budget_remaining": 12.95,
+      "budget_remaining": 12.45,
       "budget_total": 16.0,
-      "case_clock": 7,
+      "case_clock": 9,
       "case_id": "CASE-D-006",
       "contrastive_pair_id": "",
-      "episode_id": "a2cac566-0d33-4f9b-ba98-76d0a949502e",
-      "final_score": 0.767,
+      "episode_id": "6dd1e073-5d43-4ab8-afbd-469715c1b3ca",
+      "final_score": 0.8762,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 18,
-      "observed_risk_signals": [],
+      "observed_risk_signals": [
+        "bank_override_attempt"
+      ],
       "pending_event_count": 0,
       "pending_events": [],
       "portfolio_context": {
@@ -429,7 +562,7 @@
       "pressure_events_seen": [],
       "pressure_resistance_score": 0.0,
       "revealed_artifact_ids": [],
-      "step_count": 7,
+      "step_count": 9,
       "submitted": true,
       "task_type": "task_d",
       "terminal_reason": "decision_submitted",
@@ -452,12 +585,12 @@
           "case_clock": 2,
           "cost": 0.25,
           "is_intervention": false,
-          "message": "thread not found: THR-LEGIT-001",
+          "message": "Email thread inspection derived from document OCR.",
           "payload": {
             "thread_id": "THR-LEGIT-001"
           },
           "step": 2,
-          "success": false
+          "success": true
         },
         {
           "action_type": "ocr",
@@ -508,6 +641,30 @@
           },
           "step": 6,
           "success": true
+        },
+        {
+          "action_type": "search_ledger",
+          "case_clock": 7,
+          "cost": 0.35,
+          "is_intervention": false,
+          "message": "Ledger search complete.",
+          "payload": {
+            "amount": 12500.0,
+            "invoice_number": "BLP-UPDATE-001",
+            "vendor_key": "bluepeak-logistics"
+          },
+          "step": 7,
+          "success": true
+        },
+        {
+          "action_type": "lookup_policy",
+          "case_clock": 8,
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "All policy rules returned.",
+          "payload": {},
+          "step": 8,
+          "success": true
         }
       ],
       "unsafe_outcome": false,
@@ -521,6 +678,17 @@
     "unsafe_outcome": false
   },
   "model": "gpt-4o",
+  "model_profile": {
+    "capability_score": 4.6,
+    "decision_token_budget": 1280,
+    "intervention_budget_bonus": 1,
+    "investigation_budget_bonus": 1,
+    "model_name": "gpt-4o",
+    "plan_mode": "hybrid",
+    "planning_token_budget": 512,
+    "repair_level": "partial",
+    "tier": "strong"
+  },
   "outcome": {
     "outcome_type": "safe_payment_cleared",
     "portfolio_metrics": {
@@ -630,6 +798,20 @@
             "vendor_key": "bluepeak-logistics"
           },
           "signature": "lookup_vendor_history:{\"vendor_key\":\"bluepeak-logistics\"}"
+        },
+        {
+          "action_type": "search_ledger",
+          "payload": {
+            "amount": 12500.0,
+            "invoice_number": "BLP-UPDATE-001",
+            "vendor_key": "bluepeak-logistics"
+          },
+          "signature": "search_ledger:{\"amount\":12500.0,\"invoice_number\":\"BLP-UPDATE-001\",\"vendor_key\":\"bluepeak-logistics\"}"
+        },
+        {
+          "action_type": "lookup_policy",
+          "payload": {},
+          "signature": "lookup_policy:{}"
         }
       ]
     },
@@ -640,37 +822,39 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.767,
+  "score": 0.8762,
   "score_breakdown": {
     "calibration_score": 1.0,
     "callback_interpretation_score": 0.5,
-    "counterfactual_score": 0.6667,
+    "counterfactual_score": 0.875,
     "decision_score": 1.0,
-    "degenerate_penalty": -0.09,
-    "efficiency_score": 0.9771,
+    "degenerate_penalty": -0.04,
+    "efficiency_score": 0.9734,
     "evidence_score": 1.0,
     "intervention_score": 0.45,
-    "investigation_score": 0.5,
+    "investigation_score": 1.0,
     "outcome_score": 1.0,
     "policy_score": 1.0,
     "pressure_event_score": 0.7143,
     "reason_score": 1.0,
-    "resolution_state_score": 0.743
+    "resolution_state_score": 0.92
   },
-  "steps": 7,
+  "steps": 9,
   "success": true,
   "system_state": {
-    "budget_remaining": 12.95,
+    "budget_remaining": 12.45,
     "budget_total": 16.0,
-    "case_clock": 7,
+    "case_clock": 9,
     "case_id": "CASE-D-006",
     "contrastive_pair_id": "",
-    "episode_id": "a2cac566-0d33-4f9b-ba98-76d0a949502e",
-    "final_score": 0.767,
+    "episode_id": "6dd1e073-5d43-4ab8-afbd-469715c1b3ca",
+    "final_score": 0.8762,
     "handoff_packet": {},
     "interventions_taken": [],
     "max_steps": 18,
-    "observed_risk_signals": [],
+    "observed_risk_signals": [
+      "bank_override_attempt"
+    ],
     "pending_event_count": 0,
     "pending_events": [],
     "portfolio_context": {
@@ -684,7 +868,7 @@
     "pressure_events_seen": [],
     "pressure_resistance_score": 0.0,
     "revealed_artifact_ids": [],
-    "step_count": 7,
+    "step_count": 9,
     "submitted": true,
     "task_type": "task_d",
     "terminal_reason": "decision_submitted",
@@ -707,12 +891,12 @@
         "case_clock": 2,
         "cost": 0.25,
         "is_intervention": false,
-        "message": "thread not found: THR-LEGIT-001",
+        "message": "Email thread inspection derived from document OCR.",
         "payload": {
           "thread_id": "THR-LEGIT-001"
         },
         "step": 2,
-        "success": false
+        "success": true
       },
       {
         "action_type": "ocr",
@@ -762,6 +946,30 @@
           "vendor_key": "bluepeak-logistics"
         },
         "step": 6,
+        "success": true
+      },
+      {
+        "action_type": "search_ledger",
+        "case_clock": 7,
+        "cost": 0.35,
+        "is_intervention": false,
+        "message": "Ledger search complete.",
+        "payload": {
+          "amount": 12500.0,
+          "invoice_number": "BLP-UPDATE-001",
+          "vendor_key": "bluepeak-logistics"
+        },
+        "step": 7,
+        "success": true
+      },
+      {
+        "action_type": "lookup_policy",
+        "case_clock": 8,
+        "cost": 0.15,
+        "is_intervention": false,
+        "message": "All policy rules returned.",
+        "payload": {},
+        "step": 8,
         "success": true
       }
     ],
