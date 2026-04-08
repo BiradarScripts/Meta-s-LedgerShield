@@ -33,6 +33,38 @@ def test_sanitize_log_field_normalizes_whitespace():
     assert inference.sanitize_log_field("a  b\nc") == "a b c"
 
 
+def test_log_end_clamps_stdout_score_to_open_interval():
+    buffer = io.StringIO()
+    with redirect_stdout(buffer):
+        inference.log_end(success=False, steps=0, rewards=[], score=0.0)
+        inference.log_end(success=True, steps=1, rewards=[1.0], score=1.0)
+
+    lines = buffer.getvalue().splitlines()
+    assert lines == [
+        "[END] success=false steps=0 score=0.01 rewards=",
+        "[END] success=true steps=1 score=0.99 rewards=1.00",
+    ]
+
+
+def test_log_formatting_never_emits_negative_zero():
+    buffer = io.StringIO()
+    with redirect_stdout(buffer):
+        inference.log_step(
+            step=1,
+            action="lookup_po({})",
+            reward=-0.0001,
+            done=False,
+            error=None,
+        )
+        inference.log_end(success=True, steps=2, rewards=[-0.0001, 0.994], score=0.994)
+
+    lines = buffer.getvalue().splitlines()
+    assert lines == [
+        "[STEP] step=1 action=lookup_po({}) reward=0.00 done=false error=null",
+        "[END] success=true steps=2 score=0.99 rewards=0.00,0.99",
+    ]
+
+
 def test_default_cases_cover_clean_and_adversarial_paths():
     expected = {
         "CASE-B-003",

@@ -121,8 +121,8 @@ The server will start on `http://127.0.0.1:8000`.
 In a new terminal:
 
 ```bash
-export API_BASE_URL="https://router.huggingface.co/v1"
-export MODEL_NAME="openai/gpt-4.1-mini"
+export API_BASE_URL="https://api.openai.com/v1"
+export MODEL_NAME="gpt-5.4"
 export HF_TOKEN="your_token_here"
 export ENV_URL="http://127.0.0.1:8000"
 

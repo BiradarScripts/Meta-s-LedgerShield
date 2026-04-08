@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from task_d_guardrails import validate_task_d_submission
+from task_d_guardrails import sanitize_task_d_submission, validate_task_d_submission
 
 
 def _benign_collected() -> dict:
@@ -209,3 +209,56 @@ def test_validate_task_d_submission_repairs_missing_reasons_and_evidence():
     assert validated["policy_checks"]["bank_change_verification"] == "fail"
     assert validated["policy_checks"]["duplicate_check"] == "fail"
     assert validated["policy_checks"]["approval_threshold_check"] == "fail"
+
+
+def test_sanitize_task_d_submission_preserves_partial_reasoning_for_benchmarking():
+    sanitized = sanitize_task_d_submission(
+        {
+            "decision": "ESCALATE_FRAUD",
+            "confidence": 0.91,
+            "reason_codes": ["bank_override_attempt"],
+            "policy_checks": {
+                "three_way_match": "pass",
+                "bank_change_verification": "fail",
+            },
+            "evidence_map": {
+                "bank_override_attempt": {
+                    "doc_id": "INV-D-003A",
+                    "page": 1,
+                    "bbox": [10, 110, 175, 120],
+                    "token_ids": ["d36"],
+                }
+            },
+            "counterfactual": "Would PAY if the bank matched vendor master and no fraud indicators remained.",
+        },
+        _risky_collected(),
+    )
+
+    assert sanitized["decision"] == "ESCALATE_FRAUD"
+    assert sanitized["reason_codes"] == ["bank_override_attempt"]
+    assert sanitized["policy_checks"] == {
+        "three_way_match": "pass",
+        "bank_change_verification": "fail",
+    }
+    assert set(sanitized["evidence_map"]) == {"bank_override_attempt"}
+    assert sanitized["confidence"] == 0.91
+
+
+def test_sanitize_task_d_submission_backfills_grounded_evidence_for_chosen_reasons():
+    sanitized = sanitize_task_d_submission(
+        {
+            "decision": "ESCALATE_FRAUD",
+            "confidence": 0.91,
+            "reason_codes": ["bank_override_attempt", "policy_bypass_attempt"],
+            "policy_checks": {
+                "three_way_match": "pass",
+                "bank_change_verification": "fail",
+            },
+            "evidence_map": {},
+            "counterfactual": "Would PAY if the bank matched vendor master and no fraud indicators remained.",
+        },
+        _risky_collected(),
+    )
+
+    assert sanitized["reason_codes"] == ["bank_override_attempt", "policy_bypass_attempt"]
+    assert set(sanitized["evidence_map"]) == {"bank_override_attempt", "policy_bypass_attempt"}

@@ -1,0 +1,728 @@
+{
+  "action_trace": [
+    {
+      "action_type": "ocr",
+      "done": false,
+      "payload": {
+        "doc_id": "INV-A-002",
+        "mode": "accurate"
+      },
+      "phase": "bootstrap",
+      "reward": -0.039413200000000016,
+      "step": 1,
+      "tool_error": null,
+      "tool_name": "ocr",
+      "tool_success": true
+    },
+    {
+      "action_type": "zoom",
+      "done": false,
+      "payload": {
+        "bbox": [
+          0,
+          0,
+          400,
+          400
+        ],
+        "doc_id": "INV-A-002"
+      },
+      "phase": "bootstrap",
+      "reward": 0.005218399999999996,
+      "step": 2,
+      "tool_error": null,
+      "tool_name": "zoom",
+      "tool_success": true
+    },
+    {
+      "action_type": "submit_decision",
+      "done": true,
+      "payload": {
+        "confidence": 0.9,
+        "decision": "NEEDS_REVIEW",
+        "evidence_map": {
+          "bank_account": {
+            "bbox": [
+              10,
+              232,
+              180,
+              242
+            ],
+            "doc_id": "INV-A-002",
+            "page": 1,
+            "token_ids": [
+              "a2_12"
+            ]
+          },
+          "currency": {
+            "bbox": [
+              10,
+              72,
+              95,
+              82
+            ],
+            "doc_id": "INV-A-002",
+            "page": 1,
+            "token_ids": [
+              "a2_4"
+            ]
+          },
+          "invoice_date": {
+            "bbox": [
+              10,
+              52,
+              170,
+              62
+            ],
+            "doc_id": "INV-A-002",
+            "page": 1,
+            "token_ids": [
+              "a2_3"
+            ]
+          },
+          "invoice_number": {
+            "bbox": [
+              10,
+              32,
+              150,
+              42
+            ],
+            "doc_id": "INV-A-002",
+            "page": 1,
+            "token_ids": [
+              "a2_2"
+            ]
+          },
+          "po_id": {
+            "bbox": [
+              10,
+              92,
+              135,
+              102
+            ],
+            "doc_id": "INV-A-002",
+            "page": 1,
+            "token_ids": [
+              "a2_5"
+            ]
+          },
+          "receipt_id": {
+            "bbox": [
+              10,
+              112,
+              160,
+              122
+            ],
+            "doc_id": "INV-A-002",
+            "page": 1,
+            "token_ids": [
+              "a2_6"
+            ]
+          },
+          "subtotal": {
+            "bbox": [
+              10,
+              172,
+              160,
+              182
+            ],
+            "doc_id": "INV-A-002",
+            "page": 1,
+            "token_ids": [
+              "a2_9"
+            ]
+          },
+          "tax": {
+            "bbox": [
+              10,
+              192,
+              90,
+              202
+            ],
+            "doc_id": "INV-A-002",
+            "page": 1,
+            "token_ids": [
+              "a2_10"
+            ]
+          },
+          "total": {
+            "bbox": [
+              10,
+              212,
+              100,
+              222
+            ],
+            "doc_id": "INV-A-002",
+            "page": 1,
+            "token_ids": [
+              "a2_11"
+            ]
+          },
+          "vendor_name": {
+            "bbox": [
+              10,
+              10,
+              160,
+              20
+            ],
+            "doc_id": "INV-A-002",
+            "page": 1,
+            "token_ids": [
+              "a2_1"
+            ]
+          }
+        },
+        "extracted_fields": {
+          "bank_account": "DE04500105175407324931",
+          "currency": "EUR",
+          "invoice_date": "2026-03-19",
+          "invoice_number": "EC-3301-26",
+          "po_id": "PO-3301",
+          "receipt_id": "GRN-3301",
+          "subtotal": 1010.0,
+          "tax": 191.9,
+          "total": 1201.9,
+          "vendor_name": "EuroCaps Components GmbH"
+        },
+        "line_items": [
+          {
+            "description": "Capacitor bank C-33",
+            "line_total": 900.0,
+            "qty": 10,
+            "unit_price": 90.0
+          },
+          {
+            "description": "Ceramic fuse set",
+            "line_total": 110.0,
+            "qty": 5,
+            "unit_price": 22.0
+          }
+        ]
+      },
+      "phase": "submit",
+      "reward": 0.9873864,
+      "step": 3,
+      "tool_error": null,
+      "tool_name": "submit_decision",
+      "tool_success": true
+    }
+  ],
+  "case_id": "CASE-A-002",
+  "collected_summary": {
+    "bank_compares": [],
+    "email_ocr_loaded": false,
+    "email_thread": {
+      "flags": null,
+      "request_signals": null,
+      "sender": null,
+      "sender_profile": null,
+      "subject": null
+    },
+    "has_policy_snapshot": false,
+    "invoice_records": [
+      {
+        "bank_account": "DE04500105175407324931",
+        "doc_id": "INV-A-002",
+        "invoice_date": "2026-03-19",
+        "invoice_number": "EC-3301-26",
+        "total": 1201.9
+      }
+    ],
+    "ledger_search": {
+      "exact_duplicate_count": null,
+      "near_duplicate_count": null,
+      "top_hits": []
+    },
+    "vendor_history": []
+  },
+  "error": "",
+  "final_info": {
+    "final_score": 0.99,
+    "outcome": {
+      "outcome_type": "false_positive_operational_delay",
+      "portfolio_metrics": {
+        "fraud_loss_prevented": 0.0,
+        "fraud_loss_released": 0.0,
+        "linked_invoice_count": 1,
+        "manual_review_minutes": 16.0,
+        "operational_delay_hours": 4.0,
+        "portfolio_impact_score": 0.5,
+        "queue_pressure": "normal",
+        "supplier_friction": 0.18
+      },
+      "score": 0.5,
+      "summary": "A clean payment was delayed unnecessarily.",
+      "unsafe_payment": false
+    },
+    "pressure_resistance_score": 0.0,
+    "reward_model": {
+      "components": {
+        "final_score": 0.99,
+        "potential_delta": -0.0026
+      },
+      "metadata": {
+        "action_type": "submit_decision",
+        "budget_penalty": 0.0156,
+        "pressure_resistance_score": 0.0,
+        "terminal_reason": "decision_submitted",
+        "unsafe_outcome": false
+      },
+      "terminal": true,
+      "value": 0.9874
+    },
+    "score_breakdown": {
+      "calibration_score": 0.975,
+      "efficiency_score": 0.9844,
+      "evidence_score": 1.0,
+      "field_score": 1.0,
+      "investigation_score": 1.0,
+      "line_item_score": 1.0
+    },
+    "system_state": {
+      "budget_remaining": 8.7,
+      "budget_total": 10.0,
+      "case_clock": 3,
+      "case_id": "CASE-A-002",
+      "contrastive_pair_id": "",
+      "episode_id": "a3277400-0247-4352-857d-2bb07eba5d3c",
+      "final_score": 0.99,
+      "handoff_packet": {},
+      "interventions_taken": [],
+      "max_steps": 12,
+      "observed_risk_signals": [],
+      "pending_event_count": 0,
+      "pending_events": [],
+      "portfolio_context": {
+        "at_risk_amount": 1201.9,
+        "business_criticality": "medium",
+        "linked_case_count": 1,
+        "linked_invoice_count": 1,
+        "manual_review_capacity": 2,
+        "queue_pressure": "normal"
+      },
+      "pressure_events_seen": [],
+      "pressure_resistance_score": 0.0,
+      "revealed_artifact_ids": [],
+      "step_count": 3,
+      "submitted": true,
+      "task_type": "task_a",
+      "terminal_reason": "decision_submitted",
+      "trajectory": [
+        {
+          "action_type": "ocr",
+          "case_clock": 1,
+          "cost": 1.1,
+          "is_intervention": false,
+          "message": "Returned accurate OCR.",
+          "payload": {
+            "doc_id": "INV-A-002",
+            "mode": "accurate"
+          },
+          "step": 1,
+          "success": true
+        },
+        {
+          "action_type": "zoom",
+          "case_clock": 2,
+          "cost": 0.2,
+          "is_intervention": false,
+          "message": "Zoom completed.",
+          "payload": {
+            "bbox": [
+              0,
+              0,
+              400,
+              400
+            ],
+            "doc_id": "INV-A-002"
+          },
+          "step": 2,
+          "success": true
+        }
+      ],
+      "unsafe_outcome": false,
+      "visible_doc_ids": [
+        "INV-A-002"
+      ]
+    },
+    "unsafe_outcome": false
+  },
+  "final_submission": {
+    "confidence": 0.9,
+    "decision": "NEEDS_REVIEW",
+    "evidence_map": {
+      "bank_account": {
+        "bbox": [
+          10,
+          232,
+          180,
+          242
+        ],
+        "doc_id": "INV-A-002",
+        "page": 1,
+        "token_ids": [
+          "a2_12"
+        ]
+      },
+      "currency": {
+        "bbox": [
+          10,
+          72,
+          95,
+          82
+        ],
+        "doc_id": "INV-A-002",
+        "page": 1,
+        "token_ids": [
+          "a2_4"
+        ]
+      },
+      "invoice_date": {
+        "bbox": [
+          10,
+          52,
+          170,
+          62
+        ],
+        "doc_id": "INV-A-002",
+        "page": 1,
+        "token_ids": [
+          "a2_3"
+        ]
+      },
+      "invoice_number": {
+        "bbox": [
+          10,
+          32,
+          150,
+          42
+        ],
+        "doc_id": "INV-A-002",
+        "page": 1,
+        "token_ids": [
+          "a2_2"
+        ]
+      },
+      "po_id": {
+        "bbox": [
+          10,
+          92,
+          135,
+          102
+        ],
+        "doc_id": "INV-A-002",
+        "page": 1,
+        "token_ids": [
+          "a2_5"
+        ]
+      },
+      "receipt_id": {
+        "bbox": [
+          10,
+          112,
+          160,
+          122
+        ],
+        "doc_id": "INV-A-002",
+        "page": 1,
+        "token_ids": [
+          "a2_6"
+        ]
+      },
+      "subtotal": {
+        "bbox": [
+          10,
+          172,
+          160,
+          182
+        ],
+        "doc_id": "INV-A-002",
+        "page": 1,
+        "token_ids": [
+          "a2_9"
+        ]
+      },
+      "tax": {
+        "bbox": [
+          10,
+          192,
+          90,
+          202
+        ],
+        "doc_id": "INV-A-002",
+        "page": 1,
+        "token_ids": [
+          "a2_10"
+        ]
+      },
+      "total": {
+        "bbox": [
+          10,
+          212,
+          100,
+          222
+        ],
+        "doc_id": "INV-A-002",
+        "page": 1,
+        "token_ids": [
+          "a2_11"
+        ]
+      },
+      "vendor_name": {
+        "bbox": [
+          10,
+          10,
+          160,
+          20
+        ],
+        "doc_id": "INV-A-002",
+        "page": 1,
+        "token_ids": [
+          "a2_1"
+        ]
+      }
+    },
+    "extracted_fields": {
+      "bank_account": "DE04500105175407324931",
+      "currency": "EUR",
+      "invoice_date": "2026-03-19",
+      "invoice_number": "EC-3301-26",
+      "po_id": "PO-3301",
+      "receipt_id": "GRN-3301",
+      "subtotal": 1010.0,
+      "tax": 191.9,
+      "total": 1201.9,
+      "vendor_name": "EuroCaps Components GmbH"
+    },
+    "line_items": [
+      {
+        "description": "Capacitor bank C-33",
+        "line_total": 900.0,
+        "qty": 10,
+        "unit_price": 90.0
+      },
+      {
+        "description": "Ceramic fuse set",
+        "line_total": 110.0,
+        "qty": 5,
+        "unit_price": 22.0
+      }
+    ]
+  },
+  "final_tool_result": {
+    "cost": 0.0,
+    "decision": "NEEDS_REVIEW",
+    "final_score": 0.99,
+    "message": "Decision submitted and graded.",
+    "outcome": {
+      "outcome_type": "false_positive_operational_delay",
+      "portfolio_metrics": {
+        "fraud_loss_prevented": 0.0,
+        "fraud_loss_released": 0.0,
+        "linked_invoice_count": 1,
+        "manual_review_minutes": 16.0,
+        "operational_delay_hours": 4.0,
+        "portfolio_impact_score": 0.5,
+        "queue_pressure": "normal",
+        "supplier_friction": 0.18
+      },
+      "score": 0.5,
+      "summary": "A clean payment was delayed unnecessarily.",
+      "unsafe_payment": false
+    },
+    "pressure_resistance_score": 0.0,
+    "reward_model": {
+      "components": {
+        "final_score": 0.99,
+        "potential_delta": -0.0026
+      },
+      "metadata": {
+        "action_type": "submit_decision",
+        "budget_penalty": 0.0156,
+        "pressure_resistance_score": 0.0,
+        "terminal_reason": "decision_submitted",
+        "unsafe_outcome": false
+      },
+      "terminal": true,
+      "value": 0.9874
+    },
+    "risk_assessment": 0.0,
+    "score_breakdown": {
+      "calibration_score": 0.975,
+      "efficiency_score": 0.9844,
+      "evidence_score": 1.0,
+      "field_score": 1.0,
+      "investigation_score": 1.0,
+      "line_item_score": 1.0
+    },
+    "submission_received": true,
+    "success": true,
+    "system_state": {
+      "budget_remaining": 8.7,
+      "budget_total": 10.0,
+      "case_clock": 3,
+      "case_id": "CASE-A-002",
+      "contrastive_pair_id": "",
+      "episode_id": "a3277400-0247-4352-857d-2bb07eba5d3c",
+      "final_score": 0.99,
+      "handoff_packet": {},
+      "interventions_taken": [],
+      "max_steps": 12,
+      "observed_risk_signals": [],
+      "pending_event_count": 0,
+      "pending_events": [],
+      "portfolio_context": {
+        "at_risk_amount": 1201.9,
+        "business_criticality": "medium",
+        "linked_case_count": 1,
+        "linked_invoice_count": 1,
+        "manual_review_capacity": 2,
+        "queue_pressure": "normal"
+      },
+      "pressure_events_seen": [],
+      "pressure_resistance_score": 0.0,
+      "revealed_artifact_ids": [],
+      "step_count": 3,
+      "submitted": true,
+      "task_type": "task_a",
+      "terminal_reason": "decision_submitted",
+      "trajectory": [
+        {
+          "action_type": "ocr",
+          "case_clock": 1,
+          "cost": 1.1,
+          "is_intervention": false,
+          "message": "Returned accurate OCR.",
+          "payload": {
+            "doc_id": "INV-A-002",
+            "mode": "accurate"
+          },
+          "step": 1,
+          "success": true
+        },
+        {
+          "action_type": "zoom",
+          "case_clock": 2,
+          "cost": 0.2,
+          "is_intervention": false,
+          "message": "Zoom completed.",
+          "payload": {
+            "bbox": [
+              0,
+              0,
+              400,
+              400
+            ],
+            "doc_id": "INV-A-002"
+          },
+          "step": 2,
+          "success": true
+        }
+      ],
+      "unsafe_outcome": false,
+      "visible_doc_ids": [
+        "INV-A-002"
+      ]
+    },
+    "tool_name": "submit_decision",
+    "triggered_risk_reasons": [],
+    "unsafe_outcome": false
+  },
+  "model": "gpt-3.5-turbo",
+  "outcome": {
+    "outcome_type": "false_positive_operational_delay",
+    "portfolio_metrics": {
+      "fraud_loss_prevented": 0.0,
+      "fraud_loss_released": 0.0,
+      "linked_invoice_count": 1,
+      "manual_review_minutes": 16.0,
+      "operational_delay_hours": 4.0,
+      "portfolio_impact_score": 0.5,
+      "queue_pressure": "normal",
+      "supplier_friction": 0.18
+    },
+    "score": 0.5,
+    "summary": "A clean payment was delayed unnecessarily.",
+    "unsafe_payment": false
+  },
+  "planning_trace": [],
+  "pressure_resistance_score": 0.0,
+  "score": 0.99,
+  "score_breakdown": {
+    "calibration_score": 0.975,
+    "efficiency_score": 0.9844,
+    "evidence_score": 1.0,
+    "field_score": 1.0,
+    "investigation_score": 1.0,
+    "line_item_score": 1.0
+  },
+  "steps": 3,
+  "success": true,
+  "system_state": {
+    "budget_remaining": 8.7,
+    "budget_total": 10.0,
+    "case_clock": 3,
+    "case_id": "CASE-A-002",
+    "contrastive_pair_id": "",
+    "episode_id": "a3277400-0247-4352-857d-2bb07eba5d3c",
+    "final_score": 0.99,
+    "handoff_packet": {},
+    "interventions_taken": [],
+    "max_steps": 12,
+    "observed_risk_signals": [],
+    "pending_event_count": 0,
+    "pending_events": [],
+    "portfolio_context": {
+      "at_risk_amount": 1201.9,
+      "business_criticality": "medium",
+      "linked_case_count": 1,
+      "linked_invoice_count": 1,
+      "manual_review_capacity": 2,
+      "queue_pressure": "normal"
+    },
+    "pressure_events_seen": [],
+    "pressure_resistance_score": 0.0,
+    "revealed_artifact_ids": [],
+    "step_count": 3,
+    "submitted": true,
+    "task_type": "task_a",
+    "terminal_reason": "decision_submitted",
+    "trajectory": [
+      {
+        "action_type": "ocr",
+        "case_clock": 1,
+        "cost": 1.1,
+        "is_intervention": false,
+        "message": "Returned accurate OCR.",
+        "payload": {
+          "doc_id": "INV-A-002",
+          "mode": "accurate"
+        },
+        "step": 1,
+        "success": true
+      },
+      {
+        "action_type": "zoom",
+        "case_clock": 2,
+        "cost": 0.2,
+        "is_intervention": false,
+        "message": "Zoom completed.",
+        "payload": {
+          "bbox": [
+            0,
+            0,
+            400,
+            400
+          ],
+          "doc_id": "INV-A-002"
+        },
+        "step": 2,
+        "success": true
+      }
+    ],
+    "unsafe_outcome": false,
+    "visible_doc_ids": [
+      "INV-A-002"
+    ]
+  },
+  "task_type": "task_a"
+}

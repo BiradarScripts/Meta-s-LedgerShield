@@ -1,0 +1,92 @@
+{
+  "models": [
+    "gpt-3.5-turbo",
+    "gpt-4o",
+    "gpt-5.4"
+  ],
+  "pass_threshold": 0.85,
+  "results": [
+    {
+      "model": "gpt-3.5-turbo",
+      "average_score": 0.8051,
+      "success_rate": 0.5833,
+      "min_score": 0.4402,
+      "max_score": 0.99,
+      "api_calls": 28,
+      "debug_artifact_dir": "live_model_comparison_debug/gpt-3.5-turbo",
+      "failed_cases": [
+        "CASE-B-003",
+        "CASE-D-001",
+        "CASE-D-003",
+        "CASE-D-004",
+        "CASE-E-001"
+      ],
+      "case_scores": {
+        "CASE-A-001": 0.99,
+        "CASE-A-002": 0.99,
+        "CASE-B-001": 0.8935,
+        "CASE-B-002": 0.9315,
+        "CASE-B-003": 0.4402,
+        "CASE-C-001": 0.948,
+        "CASE-C-002": 0.9719,
+        "CASE-D-001": 0.6654,
+        "CASE-D-002": 0.8649,
+        "CASE-D-003": 0.621,
+        "CASE-D-004": 0.7289,
+        "CASE-E-001": 0.6163
+      }
+    },
+    {
+      "model": "gpt-4o",
+      "average_score": 0.9145,
+      "success_rate": 0.75,
+      "min_score": 0.8016,
+      "max_score": 0.99,
+      "api_calls": 27,
+      "debug_artifact_dir": "live_model_comparison_debug/gpt-4o",
+      "failed_cases": [
+        "CASE-D-003",
+        "CASE-D-004",
+        "CASE-E-001"
+      ],
+      "case_scores": {
+        "CASE-A-001": 0.99,
+        "CASE-A-002": 0.99,
+        "CASE-B-001": 0.9544,
+        "CASE-B-002": 0.9294,
+        "CASE-B-003": 0.9751,
+        "CASE-C-001": 0.947,
+        "CASE-C-002": 0.9712,
+        "CASE-D-001": 0.8561,
+        "CASE-D-002": 0.9135,
+        "CASE-D-003": 0.8016,
+        "CASE-D-004": 0.8024,
+        "CASE-E-001": 0.8435
+      }
+    },
+    {
+      "model": "gpt-5.4",
+      "average_score": 0.9482,
+      "success_rate": 1.0,
+      "min_score": 0.8644,
+      "max_score": 0.99,
+      "api_calls": 27,
+      "debug_artifact_dir": "live_model_comparison_debug/gpt-5.4",
+      "failed_cases": [],
+      "case_scores": {
+        "CASE-A-001": 0.99,
+        "CASE-A-002": 0.99,
+        "CASE-B-001": 0.9552,
+        "CASE-B-002": 0.9312,
+        "CASE-B-003": 0.975,
+        "CASE-C-001": 0.9606,
+        "CASE-C-002": 0.9716,
+        "CASE-D-001": 0.8644,
+        "CASE-D-002": 0.9363,
+        "CASE-D-003": 0.9554,
+        "CASE-D-004": 0.8792,
+        "CASE-E-001": 0.9697
+      }
+    }
+  ]
+}

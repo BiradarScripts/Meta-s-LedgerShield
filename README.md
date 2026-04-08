@@ -21,238 +21,349 @@ tags:
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
 [![OpenEnv](https://img.shields.io/badge/OpenEnv-compatible-green.svg)]()
 
-**LedgerShield** is a stateful, adversarial enterprise payment-integrity environment for training and evaluating AI agents in realistic high-stakes financial operations.
+LedgerShield is a stateful, adversarial payment-integrity benchmark for AI agents operating in enterprise accounts payable. Agents do not just classify a document. They must investigate, unlock evidence, choose interventions, and submit proof-carrying decisions under budget and time pressure.
 
-## Overview
+## Why LedgerShield Exists
 
-LedgerShield simulates an accounts-payable control tower where AI agents must:
+Real AP fraud is not a single-turn OCR or classification problem. Strong agents need to:
 
-- **Investigate** multimodal payment cases under uncertainty
-- **Unlock evidence** through targeted interventions
-- **Apply controls** like callback verification and security routing
-- **Submit decisions** with proof-carrying evidence (`PAY`, `HOLD`, `NEEDS_REVIEW`, `ESCALATE_FRAUD`)
+- inspect invoices, emails, vendor history, ledger state, POs, and receipts
+- decide which tools to use next under a limited step budget
+- request out-of-band controls such as callback verification
+- ground fraud claims in specific evidence spans
+- avoid both unsafe payment release and unnecessary operational escalation
 
-Unlike static document benchmarks, LedgerShield models the complete operational loop with partial observability, budget constraints, and adversarial pressure events.
+LedgerShield is built to measure that full loop.
 
-## Problem Framing
+## What Makes This Benchmark Different
 
-Business Email Compromise and AP payment fraud caused more than `$2.9 billion` in reported losses in `2023` alone, according to the [FBI Internet Crime Complaint Center (IC3) 2023 Internet Crime Report](https://www.ic3.gov/AnnualReport/Reports/2023_ic3report.pdf). That makes enterprise payment integrity one of the highest-stakes operational domains for AI agent evaluation.
+- Stateful environment: each case has hidden risk signals, pending events, and artifact unlocks.
+- Proof-carrying outputs: decisions are scored together with `reason_codes`, `policy_checks`, `evidence_map`, and intervention quality.
+- Trajectory-aware grading: the benchmark scores investigation coverage, intervention quality, calibration, efficiency, callback interpretation, and downstream outcome.
+- Adversarial pressure: spoofed follow-ups, callback discouragement, threshold evasion, and coordinated invoice campaigns are modeled explicitly.
+- Model separation by design: stronger models win by planning better investigations and producing better grounded submissions, not by luck on a single label.
 
-LedgerShield is designed around the control failures that matter in that setting:
+## Current Benchmark Status
 
-- spoofed vendor communications and bank-change pressure
-- partial observability across invoices, emails, ledgers, and vendor history
-- out-of-band verification such as callback checks to trusted numbers
-- decision quality measured by downstream operational and fraud outcomes, not just classification accuracy
+The repo now has two aligned agent entrypoints:
 
-## Key Features
+- [`inference.py`](./inference.py): the submission-safe agent you should ship.
+- [`inference_llm_powered.py`](./inference_llm_powered.py): the instrumented comparison/debug harness used by the live model-comparison scripts.
 
-| Feature | Description |
-|---------|-------------|
-| **Stateful Environment** | POMDP-based with hidden risk signals and revealed artifacts |
-| **Multi-Modal Evidence** | Invoices, emails, vendor records, POs, receipts, ledger history |
-| **Intervention System** | 9 enterprise interventions that unlock additional evidence |
-| **Adversarial Cases** | Replayable attack patterns including spoofing and threshold evasion |
-| **Trajectory Grading** | Scores investigation quality, calibration, and downstream outcomes |
-| **OpenEnv Compatible** | Standard `reset()`, `step()`, `state()` API with FastAPI runtime |
+They now share the same core behavior:
+
+- model-driven investigation planning
+- model-driven intervention planning
+- grounded sanitization of outputs without hardcoding gold answers
+- stronger separation on Task D and Task E
+
+Example live comparison from the current code snapshot:
+
+| Model | Average Score | Pass@1 (`0.85`) | Failed Cases |
+|------|---------------:|----------------:|--------------|
+| `gpt-3.5-turbo` | `0.8051` | `58.3%` | `CASE-B-003`, `CASE-D-001`, `CASE-D-003`, `CASE-D-004`, `CASE-E-001` |
+| `gpt-4o` | `0.9145` | `75.0%` | `CASE-D-003`, `CASE-D-004`, `CASE-E-001` |
+| `gpt-5.4` | `0.9482` | `100.0%` | none |
+
+That separation is visible because weaker models now miss investigation steps, artifact collection, campaign signals, and grounded evidence more often than stronger models.
+
+## Task Suite
+
+LedgerShield ships with 5 task families across 12 benchmark cases.
+
+| Task | Focus | Cases | Typical Failure Mode |
+|------|-------|-------|----------------------|
+| `Task A` | Proof-carrying extraction | 2 | bad field extraction or weak evidence grounding |
+| `Task B` | Three-way match decisioning | 3 | missed PO / receipt retrieval, wrong HOLD vs PAY |
+| `Task C` | Duplicate and fraud triage | 2 | missing duplicate or bank-override signals |
+| `Task D` | AP inbox incident triage | 4 | incomplete investigation, weak evidence map, missing callback / approval-chain artifacts |
+| `Task E` | Coordinated campaign fraud | 1 | missing campaign signals, poor cross-invoice reasoning, weak evidence grounding |
+
+## Architecture
+
+LedgerShield is organized around four layers:
+
+1. Environment and state transition
+
+- [`server/environment.py`](./server/environment.py) runs the OpenEnv-compatible episode loop.
+- [`server/transition_engine.py`](./server/transition_engine.py) handles interventions and artifact scheduling.
+- [`server/world_state.py`](./server/world_state.py) defines hidden risk, required actions, and required artifacts.
+
+2. Tools and observations
+
+- OCR, email inspection, vendor-history lookup, bank comparison, ledger search, PO lookup, and receipt lookup are exposed through the environment tool layer.
+
+3. Grading
+
+- [`server/grading.py`](./server/grading.py) scores each submission.
+- [`server/trajectory_grading.py`](./server/trajectory_grading.py) scores investigation coverage, intervention quality, calibration, efficiency, callback interpretation, and resolution state.
+
+4. Agents
+
+- [`inference.py`](./inference.py) is the final submission file.
+- [`inference_llm_powered.py`](./inference_llm_powered.py) is the comparison/debug agent with rich per-case traces.
 
 ## Quick Start
 
 ### Prerequisites
 
 - Python 3.11+
-- Docker (optional)
-- Hugging Face API token (optional for deterministic smoke tests, required for real external LLM evaluation)
+- Docker optional
+- an OpenAI-compatible API endpoint for live model evaluation
 
-### Installation
+### Install
 
 ```bash
-# Clone the repository
 git clone https://github.com/BiradarScripts/Meta-s-LedgerShield.git
 cd Meta-s-LedgerShield
 
-# Create virtual environment
 python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+source .venv/bin/activate
 
-# Install dependencies
 pip install -e .
 pip install -r requirements.txt
 ```
 
-### Run the Environment
+### Start the environment
 
 ```bash
-# Start the server
 python -m server.app
+```
 
-# In another terminal, run the baseline agent
-export API_BASE_URL="https://router.huggingface.co/v1"
-export MODEL_NAME="openai/gpt-4.1-mini"
-export HF_TOKEN="your_token_here"
+### Run the submission agent
+
+```bash
+export API_BASE_URL="https://api.openai.com/v1"
+export MODEL_NAME="gpt-5.4"
+export HF_TOKEN="your_api_token"
 export ENV_URL="http://127.0.0.1:8000"
 
 python inference.py
 ```
 
-### Run stochastic pass^k evaluation
+## Submission Contract
 
-```bash
-python inference.py \
-  --env-url http://127.0.0.1:8000 \
-  --model openai/gpt-4.1-mini \
-  --temperature 0.6 \
-  --passK 3
+The final hackathon submission file is [`inference.py`](./inference.py). It follows the expected contract:
+
+- required env vars in the file: `API_BASE_URL`, `MODEL_NAME`, `HF_TOKEN`
+- optional env var: `LOCAL_IMAGE_NAME`
+- defaults are set only for `API_BASE_URL` and `MODEL_NAME`
+- all LLM calls use `from openai import OpenAI`
+- stdout emits only these structured line types:
+
+```text
+[START] task=<task_name> env=<benchmark> model=<model_name>
+[STEP] step=<n> action=<action_str> reward=<0.00> done=<true|false> error=<msg|null>
+[END] success=<true|false> steps=<n> score=<score> rewards=<r1,r2,...,rn>
 ```
 
-Set `HF_TOKEN` to run this with a real external LLM agent. Without a token, `inference.py` intentionally falls back to the deterministic policy so local smoke tests still work.
+Important detail:
 
-### Generate leaderboard and benchmark artifacts
+- the `[END] score=` field is formatted as a strict open-interval value `(0,1)`, not `0.00` and not `1.00`
+- signed zero is normalized away in stdout formatting, so `-0.00` is never emitted
+- rewards remain 2-decimal values exactly as required by the benchmark parser
+
+## Evaluation Workflows
+
+### Deterministic local replay
+
+Use this to test the end-to-end environment without needing external API calls.
 
 ```bash
-python benchmark_report.py \
-  --format markdown \
-  --pass-k 3 \
-  --temperature 0.6
+python -m pytest -q
 ```
 
-Use `benchmark_report.py` for holdout reporting and leaderboard publication. It stays deterministic without credentials, and it upgrades to a real `llm-agent` evaluation automatically when `HF_TOKEN` is available.
-
-### Docker Deployment
+Or run a focused local replay:
 
 ```bash
-# Build and run
-docker build -t ledgershield .
-docker run -p 8000:8000 ledgershield
+python - <<'PY'
+from server.data_loader import load_all
+import inference
+print(inference.run_local_baseline(["CASE-D-001", "CASE-D-003", "CASE-D-004", "CASE-E-001"], db=load_all(), emit_logs=False))
+PY
+```
+
+### Live head-to-head comparison
+
+The live comparison harness uses [`inference_llm_powered.py`](./inference_llm_powered.py) because it also saves detailed case traces for debugging.
+
+```bash
+export OPENAI_API_KEY="your_api_key"
+export API_BASE_URL="https://api.openai.com/v1"
+export ENV_URL="http://127.0.0.1:8000"
+
+python compare_models_live.py \
+  --models gpt-3.5-turbo,gpt-4o,gpt-5.4 \
+  --output live_model_comparison.json
+```
+
+Outputs:
+
+- [`live_model_comparison.json`](./live_model_comparison.json): aggregate metrics
+- `live_model_comparison_debug/<model>/<case>.json`: planning trace, action trace, final submission, and score breakdown
+
+### Broad model sweep
+
+```bash
+python compare_all_models.py
+```
+
+### Benchmark report generation
+
+```bash
+python benchmark_report.py --format markdown
+```
+
+## Why Weaker Models Fail
+
+The current traces show three recurring weak-model failure modes.
+
+### 1. Under-investigation on hard fraud cases
+
+Weaker models often stop after a partial read of the email thread and never execute the full fraud investigation plan.
+
+Common misses:
+
+- skipping `compare_bank_account`
+- skipping one or more `search_ledger` actions
+- skipping `lookup_vendor_history`
+- skipping `request_callback_verification`
+- skipping `request_bank_change_approval_chain`
+
+Example from current traces:
+
+- `gpt-3.5-turbo` on `CASE-D-001`, `CASE-D-003`, and `CASE-D-004` selected only a tiny fraction of the available investigation graph
+- this collapses `investigation_score`, `callback_interpretation_score`, and `resolution_state_score`
+
+### 2. Weak proof-carrying evidence
+
+Some lower-tier outputs identify the right fraud direction but fail to provide usable grounded evidence.
+
+Typical problems:
+
+- missing `evidence_map` entirely
+- incomplete `evidence_map` for chosen `reason_codes`
+- doc-level references without page / bbox / token span grounding
+- descriptive natural-language evidence objects instead of benchmark-native token references
+
+This is why a model can have:
+
+- `decision_score = 1.0`
+- `reason_score` reasonably high
+- but still fail because `evidence_score` stays low
+
+### 3. Missing campaign reasoning
+
+On Task E, weak models often catch “something is wrong” but still fail the coordinated-campaign part.
+
+They miss:
+
+- `campaign_signals`
+- cross-invoice evidence grounding
+- linked bank-account reasoning
+- coordinated timing reasoning
+- the intervention set needed to fully secure the case
+
+That is exactly what happened in the current `gpt-3.5-turbo` Task E trace: correct top-level escalation, but no campaign signals, weak policy alignment, and poor evidence score.
+
+## Why Stronger Models Win
+
+`gpt-5.4` passes because it does three things more consistently:
+
+- it chooses a fuller investigation set before submitting
+- it unlocks the right artifacts before the episode ends
+- it emits better benchmark-native grounded evidence for the reasons it claims
+
+In the current passing traces, `gpt-5.4` reliably:
+
+- requests callback verification
+- requests bank-change approval-chain evidence when relevant
+- requests duplicate-cluster review when threshold evasion or duplicate risk is present
+- routes to security and freezes vendor state when needed
+- returns token-grounded `evidence_map` entries for the final `reason_codes`
+
+## Repository Layout
+
+```text
+Meta-s-LedgerShield/
+├── server/                       # environment, tools, grading, world state
+├── docs/                         # extended documentation
+├── tests/                        # unit and contract tests
+├── inference.py                  # final submission agent
+├── inference_llm_powered.py      # instrumented live-comparison agent
+├── compare_models_live.py        # targeted live model comparison
+├── compare_all_models.py         # broad model sweep
+├── benchmark_report.py           # benchmark reporting
+├── task_c_guardrails.py          # task C grounding / sanitization
+├── task_d_guardrails.py          # task D grounding / sanitization
+├── ledgershield_env.py           # client wrapper for the environment
+├── pyproject.toml
+└── Dockerfile
+```
+
+## Environment Variables
+
+### Submission agent
+
+| Variable | Purpose | Default |
+|----------|---------|---------|
+| `API_BASE_URL` | OpenAI-compatible API endpoint used by `inference.py` | `https://api.openai.com/v1` |
+| `MODEL_NAME` | model used by `inference.py` | `gpt-5.4` |
+| `HF_TOKEN` | API token used by `inference.py` | none |
+| `LOCAL_IMAGE_NAME` | optional local Docker image name | none |
+| `ENV_URL` | environment server URL | `http://localhost:8000` |
+
+### Comparison scripts
+
+| Variable | Purpose |
+|----------|---------|
+| `OPENAI_API_KEY` | credential used by live comparison scripts |
+| `API_BASE_URL` | API base URL for live model comparisons |
+| `ENV_URL` | environment server URL |
+
+## Testing
+
+Run the full suite:
+
+```bash
+python -m pytest -q
+```
+
+Focused contract and guardrail validation:
+
+```bash
+python -m pytest \
+  tests/test_inference_contract.py \
+  tests/test_task_c_guardrails.py \
+  tests/test_task_d_guardrails.py \
+  tests/test_compare_models_live.py \
+  tests/test_compare_all_models.py -q
 ```
 
 ## Documentation
 
-Comprehensive documentation is available in the [`docs/`](./docs) directory:
+Additional docs live in [`docs/`](./docs):
 
-- **[Overview & Getting Started](./docs/index.md)** - Project overview and quickstart
-- **[Architecture](./docs/architecture.md)** - System design, data flow, and component interactions
-- **[API Reference](./docs/api-reference.md)** - Complete API documentation
-- **[Task Reference](./docs/tasks.md)** - Detailed task descriptions and scoring
-- **[Development Guide](./docs/development.md)** - Setup, testing, and development guidelines
-- **[Deployment Guide](./docs/deployment.md)** - Production deployment instructions
+- [`docs/index.md`](./docs/index.md)
+- [`docs/architecture.md`](./docs/architecture.md)
+- [`docs/api-reference.md`](./docs/api-reference.md)
+- [`docs/tasks.md`](./docs/tasks.md)
+- [`docs/development.md`](./docs/development.md)
+- [`docs/deployment.md`](./docs/deployment.md)
 
-## Task Suite
+## Status
 
-LedgerShield includes 5 task families across 12 curated benchmark cases:
+Current verified status on this workspace snapshot:
 
-| Task | Focus | Cases | Difficulty |
-|------|-------|-------|------------|
-| **Task A** | Proof-carrying field extraction | 2 | Easy-Medium |
-| **Task B** | Three-way match decisioning | 3 | Easy-Medium |
-| **Task C** | Duplicate and fraud triage | 2 | Medium-Hard |
-| **Task D** | AP inbox incident triage | 4 | Hard |
-| **Task E** | Campaign-level threshold evasion | 1 | Expert |
-
-See [Task Reference](./docs/tasks.md) for complete details.
-
-## Benchmark Results
-
-Verified baseline performance on the 12-case public benchmark suite:
-
-| Metric | Value |
-|--------|-------|
-| **Mean Score** | 0.9674 |
-| **Pass@1 (0.85 threshold)** | 100% |
-| **Task A Average** | 0.9900 |
-| **Task D Average** | 0.9588 |
-| **Task E Average** | 0.9817 |
-
-Deterministic holdout reporting on the current codebase:
-
-| Metric | Value |
-|--------|-------|
-| **Public Mean** | 0.9674 |
-| **Public pass^1 consistent @ 0.85** | 1.0000 |
-| **Generated Holdout Mean** | 0.6649 |
-| **Generated Holdout pass^1 consistent @ 0.85** | 0.6190 |
-| **Contrastive Joint Mean** | 0.6639 |
-
-Published leaderboard snapshot:
-
-| Model | Type | Temp | pass^k | Holdout Mean | Holdout pass^k consistent | Task E Expert Mean | Provenance |
-|-------|------|------:|-------:|-------------:|--------------------------:|-------------------:|------------|
-| `openai/gpt-4.1-mini` | `deterministic-policy` | 0.0 | 1 | 0.6649 | 0.6190 | 0.9817 | generated locally from `benchmark_report.py` |
-| `openai/gpt-4.1-mini` | `llm-agent` | 0.6 | 3 | 0.3847 | 0.2222 | 0.2891 | published external run in `artifacts/leaderboard.json` |
-
-This split is deliberate and mirrors the reliability framing used by [τ-bench](https://arxiv.org/abs/2406.12045): the deterministic baseline stays reproducible without credentials, while the stochastic row demonstrates remaining headroom for real external agents under repeated-trial `pass^k` evaluation.
-
-Full results are available through [benchmark_report.py](./benchmark_report.py), [`artifacts/benchmark_report_latest.json`](./artifacts/benchmark_report_latest.json), and [`artifacts/leaderboard.json`](./artifacts/leaderboard.json).
-
-## Project Structure
-
-```
-Meta-s-LedgerShield/
-├── server/                 # FastAPI application and environment
-│   ├── app.py             # FastAPI entrypoint
-│   ├── environment.py     # Core environment implementation
-│   ├── grading.py         # Task-specific scoring
-│   ├── tools.py           # Investigation tools
-│   ├── fixtures/          # Test data and cases
-│   └── ...
-├── docs/                   # Documentation
-├── models.py              # Pydantic data models
-├── inference.py           # Baseline agent implementation
-├── benchmark_report.py    # Benchmark reporting tool
-├── tests/                 # Test suite
-├── Dockerfile             # Container configuration
-├── pyproject.toml         # Package configuration
-└── openenv.yaml          # OpenEnv runtime metadata
-```
-
-## API Endpoints
-
-```
-POST /reset              # Initialize a new episode
-POST /step               # Execute an action
-GET  /state              # Get current environment state
-GET  /health             # Health check
-GET  /leaderboard        # Latest benchmark results
-GET  /benchmark-report   # Full benchmark report
-```
-
-See [API Reference](./docs/api-reference.md) for detailed endpoint documentation.
-
-## Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `API_BASE_URL` | LLM API base URL | `https://router.huggingface.co/v1` |
-| `MODEL_NAME` | Model identifier | `openai/gpt-4.1-mini` |
-| `HF_TOKEN` | Hugging Face API token for real external LLM runs | Optional |
-| `ENV_URL` | Environment server URL | `http://127.0.0.1:8000` |
-| `PORT` | Server port | `8000` |
-
-## Testing
-
-```bash
-# Run all tests
-python -m pytest -q
-
-# Run specific test file
-python -m pytest tests/test_ledgershield_env.py -v
-
-# Validate the environment
-openenv validate
-
-# Run grader validation
-python validate_grader.py
-```
+- submission contract preserved in [`inference.py`](./inference.py)
+- benchmark separation restored across weak, mid, and strong models
+- hard fraud cases locally replay above the public pass threshold
+- full test suite passing
 
 ## Acknowledgments
 
-Built for the [Meta OpenEnv Hackathon](https://facebook.com).
+Built for the Meta OpenEnv hackathon setting and designed as a realistic AP fraud-evaluation environment for agentic systems research.
 
-## Support
+## Safety Note
 
-- 📖 [Documentation](./docs)
-- 🐛 [Issue Tracker](https://github.com/BiradarScripts/Meta-s-LedgerShield/issues)
-
----
-
-**Note**: This environment is designed for research and benchmarking purposes. It simulates financial operations but does not process real financial transactions.
+LedgerShield is a benchmark and simulation environment. It does not process real payments and should not be used as a production fraud-control system without independent validation, controls, and governance.

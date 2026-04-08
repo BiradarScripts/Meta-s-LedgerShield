@@ -1,0 +1,728 @@
+{
+  "action_trace": [
+    {
+      "action_type": "ocr",
+      "done": false,
+      "payload": {
+        "doc_id": "INV-A-001",
+        "mode": "accurate"
+      },
+      "phase": "bootstrap",
+      "reward": -0.039415000000000006,
+      "step": 1,
+      "tool_error": null,
+      "tool_name": "ocr",
+      "tool_success": true
+    },
+    {
+      "action_type": "zoom",
+      "done": false,
+      "payload": {
+        "bbox": [
+          0,
+          0,
+          400,
+          400
+        ],
+        "doc_id": "INV-A-001"
+      },
+      "phase": "bootstrap",
+      "reward": 0.005214799999999992,
+      "step": 2,
+      "tool_error": null,
+      "tool_name": "zoom",
+      "tool_success": true
+    },
+    {
+      "action_type": "submit_decision",
+      "done": true,
+      "payload": {
+        "confidence": 0.9,
+        "decision": "NEEDS_REVIEW",
+        "evidence_map": {
+          "bank_account": {
+            "bbox": [
+              10,
+              232,
+              140,
+              242
+            ],
+            "doc_id": "INV-A-001",
+            "page": 1,
+            "token_ids": [
+              "a12"
+            ]
+          },
+          "currency": {
+            "bbox": [
+              10,
+              72,
+              90,
+              82
+            ],
+            "doc_id": "INV-A-001",
+            "page": 1,
+            "token_ids": [
+              "a4"
+            ]
+          },
+          "invoice_date": {
+            "bbox": [
+              10,
+              52,
+              140,
+              62
+            ],
+            "doc_id": "INV-A-001",
+            "page": 1,
+            "token_ids": [
+              "a3"
+            ]
+          },
+          "invoice_number": {
+            "bbox": [
+              10,
+              32,
+              130,
+              42
+            ],
+            "doc_id": "INV-A-001",
+            "page": 1,
+            "token_ids": [
+              "a2"
+            ]
+          },
+          "po_id": {
+            "bbox": [
+              10,
+              92,
+              70,
+              102
+            ],
+            "doc_id": "INV-A-001",
+            "page": 1,
+            "token_ids": [
+              "a5"
+            ]
+          },
+          "receipt_id": {
+            "bbox": [
+              10,
+              112,
+              90,
+              122
+            ],
+            "doc_id": "INV-A-001",
+            "page": 1,
+            "token_ids": [
+              "a6"
+            ]
+          },
+          "subtotal": {
+            "bbox": [
+              10,
+              172,
+              100,
+              182
+            ],
+            "doc_id": "INV-A-001",
+            "page": 1,
+            "token_ids": [
+              "a9"
+            ]
+          },
+          "tax": {
+            "bbox": [
+              10,
+              192,
+              80,
+              202
+            ],
+            "doc_id": "INV-A-001",
+            "page": 1,
+            "token_ids": [
+              "a10"
+            ]
+          },
+          "total": {
+            "bbox": [
+              10,
+              212,
+              90,
+              222
+            ],
+            "doc_id": "INV-A-001",
+            "page": 1,
+            "token_ids": [
+              "a11"
+            ]
+          },
+          "vendor_name": {
+            "bbox": [
+              10,
+              10,
+              180,
+              20
+            ],
+            "doc_id": "INV-A-001",
+            "page": 1,
+            "token_ids": [
+              "a1"
+            ]
+          }
+        },
+        "extracted_fields": {
+          "bank_account": "IN55NW000111222",
+          "currency": "INR",
+          "invoice_date": "2026-04-01",
+          "invoice_number": "INV-2048-A",
+          "po_id": "PO-2048",
+          "receipt_id": "GRN-2048",
+          "subtotal": 2100.0,
+          "tax": 378.0,
+          "total": 2478.0,
+          "vendor_name": "Northwind Industrial Supplies Pvt Ltd"
+        },
+        "line_items": [
+          {
+            "description": "Steel bolts M12",
+            "line_total": 1200.0,
+            "qty": 100,
+            "unit_price": 12.0
+          },
+          {
+            "description": "Industrial sealant",
+            "line_total": 900.0,
+            "qty": 20,
+            "unit_price": 45.0
+          }
+        ]
+      },
+      "phase": "submit",
+      "reward": 0.987381,
+      "step": 3,
+      "tool_error": null,
+      "tool_name": "submit_decision",
+      "tool_success": true
+    }
+  ],
+  "case_id": "CASE-A-001",
+  "collected_summary": {
+    "bank_compares": [],
+    "email_ocr_loaded": false,
+    "email_thread": {
+      "flags": null,
+      "request_signals": null,
+      "sender": null,
+      "sender_profile": null,
+      "subject": null
+    },
+    "has_policy_snapshot": false,
+    "invoice_records": [
+      {
+        "bank_account": "IN55NW000111222",
+        "doc_id": "INV-A-001",
+        "invoice_date": "2026-04-01",
+        "invoice_number": "INV-2048-A",
+        "total": 2478.0
+      }
+    ],
+    "ledger_search": {
+      "exact_duplicate_count": null,
+      "near_duplicate_count": null,
+      "top_hits": []
+    },
+    "vendor_history": []
+  },
+  "error": "",
+  "final_info": {
+    "final_score": 0.99,
+    "outcome": {
+      "outcome_type": "false_positive_operational_delay",
+      "portfolio_metrics": {
+        "fraud_loss_prevented": 0.0,
+        "fraud_loss_released": 0.0,
+        "linked_invoice_count": 1,
+        "manual_review_minutes": 16.0,
+        "operational_delay_hours": 4.0,
+        "portfolio_impact_score": 0.5,
+        "queue_pressure": "normal",
+        "supplier_friction": 0.18
+      },
+      "score": 0.5,
+      "summary": "A clean payment was delayed unnecessarily.",
+      "unsafe_payment": false
+    },
+    "pressure_resistance_score": 0.0,
+    "reward_model": {
+      "components": {
+        "final_score": 0.99,
+        "potential_delta": -0.0026
+      },
+      "metadata": {
+        "action_type": "submit_decision",
+        "budget_penalty": 0.0156,
+        "pressure_resistance_score": 0.0,
+        "terminal_reason": "decision_submitted",
+        "unsafe_outcome": false
+      },
+      "terminal": true,
+      "value": 0.9874
+    },
+    "score_breakdown": {
+      "calibration_score": 0.975,
+      "efficiency_score": 0.9844,
+      "evidence_score": 1.0,
+      "field_score": 1.0,
+      "investigation_score": 1.0,
+      "line_item_score": 1.0
+    },
+    "system_state": {
+      "budget_remaining": 8.7,
+      "budget_total": 10.0,
+      "case_clock": 3,
+      "case_id": "CASE-A-001",
+      "contrastive_pair_id": "",
+      "episode_id": "881928e1-580e-42bd-9c34-f01e9af60057",
+      "final_score": 0.99,
+      "handoff_packet": {},
+      "interventions_taken": [],
+      "max_steps": 12,
+      "observed_risk_signals": [],
+      "pending_event_count": 0,
+      "pending_events": [],
+      "portfolio_context": {
+        "at_risk_amount": 2478.0,
+        "business_criticality": "medium",
+        "linked_case_count": 1,
+        "linked_invoice_count": 1,
+        "manual_review_capacity": 2,
+        "queue_pressure": "normal"
+      },
+      "pressure_events_seen": [],
+      "pressure_resistance_score": 0.0,
+      "revealed_artifact_ids": [],
+      "step_count": 3,
+      "submitted": true,
+      "task_type": "task_a",
+      "terminal_reason": "decision_submitted",
+      "trajectory": [
+        {
+          "action_type": "ocr",
+          "case_clock": 1,
+          "cost": 1.1,
+          "is_intervention": false,
+          "message": "Returned accurate OCR.",
+          "payload": {
+            "doc_id": "INV-A-001",
+            "mode": "accurate"
+          },
+          "step": 1,
+          "success": true
+        },
+        {
+          "action_type": "zoom",
+          "case_clock": 2,
+          "cost": 0.2,
+          "is_intervention": false,
+          "message": "Zoom completed.",
+          "payload": {
+            "bbox": [
+              0,
+              0,
+              400,
+              400
+            ],
+            "doc_id": "INV-A-001"
+          },
+          "step": 2,
+          "success": true
+        }
+      ],
+      "unsafe_outcome": false,
+      "visible_doc_ids": [
+        "INV-A-001"
+      ]
+    },
+    "unsafe_outcome": false
+  },
+  "final_submission": {
+    "confidence": 0.9,
+    "decision": "NEEDS_REVIEW",
+    "evidence_map": {
+      "bank_account": {
+        "bbox": [
+          10,
+          232,
+          140,
+          242
+        ],
+        "doc_id": "INV-A-001",
+        "page": 1,
+        "token_ids": [
+          "a12"
+        ]
+      },
+      "currency": {
+        "bbox": [
+          10,
+          72,
+          90,
+          82
+        ],
+        "doc_id": "INV-A-001",
+        "page": 1,
+        "token_ids": [
+          "a4"
+        ]
+      },
+      "invoice_date": {
+        "bbox": [
+          10,
+          52,
+          140,
+          62
+        ],
+        "doc_id": "INV-A-001",
+        "page": 1,
+        "token_ids": [
+          "a3"
+        ]
+      },
+      "invoice_number": {
+        "bbox": [
+          10,
+          32,
+          130,
+          42
+        ],
+        "doc_id": "INV-A-001",
+        "page": 1,
+        "token_ids": [
+          "a2"
+        ]
+      },
+      "po_id": {
+        "bbox": [
+          10,
+          92,
+          70,
+          102
+        ],
+        "doc_id": "INV-A-001",
+        "page": 1,
+        "token_ids": [
+          "a5"
+        ]
+      },
+      "receipt_id": {
+        "bbox": [
+          10,
+          112,
+          90,
+          122
+        ],
+        "doc_id": "INV-A-001",
+        "page": 1,
+        "token_ids": [
+          "a6"
+        ]
+      },
+      "subtotal": {
+        "bbox": [
+          10,
+          172,
+          100,
+          182
+        ],
+        "doc_id": "INV-A-001",
+        "page": 1,
+        "token_ids": [
+          "a9"
+        ]
+      },
+      "tax": {
+        "bbox": [
+          10,
+          192,
+          80,
+          202
+        ],
+        "doc_id": "INV-A-001",
+        "page": 1,
+        "token_ids": [
+          "a10"
+        ]
+      },
+      "total": {
+        "bbox": [
+          10,
+          212,
+          90,
+          222
+        ],
+        "doc_id": "INV-A-001",
+        "page": 1,
+        "token_ids": [
+          "a11"
+        ]
+      },
+      "vendor_name": {
+        "bbox": [
+          10,
+          10,
+          180,
+          20
+        ],
+        "doc_id": "INV-A-001",
+        "page": 1,
+        "token_ids": [
+          "a1"
+        ]
+      }
+    },
+    "extracted_fields": {
+      "bank_account": "IN55NW000111222",
+      "currency": "INR",
+      "invoice_date": "2026-04-01",
+      "invoice_number": "INV-2048-A",
+      "po_id": "PO-2048",
+      "receipt_id": "GRN-2048",
+      "subtotal": 2100.0,
+      "tax": 378.0,
+      "total": 2478.0,
+      "vendor_name": "Northwind Industrial Supplies Pvt Ltd"
+    },
+    "line_items": [
+      {
+        "description": "Steel bolts M12",
+        "line_total": 1200.0,
+        "qty": 100,
+        "unit_price": 12.0
+      },
+      {
+        "description": "Industrial sealant",
+        "line_total": 900.0,
+        "qty": 20,
+        "unit_price": 45.0
+      }
+    ]
+  },
+  "final_tool_result": {
+    "cost": 0.0,
+    "decision": "NEEDS_REVIEW",
+    "final_score": 0.99,
+    "message": "Decision submitted and graded.",
+    "outcome": {
+      "outcome_type": "false_positive_operational_delay",
+      "portfolio_metrics": {
+        "fraud_loss_prevented": 0.0,
+        "fraud_loss_released": 0.0,
+        "linked_invoice_count": 1,
+        "manual_review_minutes": 16.0,
+        "operational_delay_hours": 4.0,
+        "portfolio_impact_score": 0.5,
+        "queue_pressure": "normal",
+        "supplier_friction": 0.18
+      },
+      "score": 0.5,
+      "summary": "A clean payment was delayed unnecessarily.",
+      "unsafe_payment": false
+    },
+    "pressure_resistance_score": 0.0,
+    "reward_model": {
+      "components": {
+        "final_score": 0.99,
+        "potential_delta": -0.0026
+      },
+      "metadata": {
+        "action_type": "submit_decision",
+        "budget_penalty": 0.0156,
+        "pressure_resistance_score": 0.0,
+        "terminal_reason": "decision_submitted",
+        "unsafe_outcome": false
+      },
+      "terminal": true,
+      "value": 0.9874
+    },
+    "risk_assessment": 0.0,
+    "score_breakdown": {
+      "calibration_score": 0.975,
+      "efficiency_score": 0.9844,
+      "evidence_score": 1.0,
+      "field_score": 1.0,
+      "investigation_score": 1.0,
+      "line_item_score": 1.0
+    },
+    "submission_received": true,
+    "success": true,
+    "system_state": {
+      "budget_remaining": 8.7,
+      "budget_total": 10.0,
+      "case_clock": 3,
+      "case_id": "CASE-A-001",
+      "contrastive_pair_id": "",
+      "episode_id": "881928e1-580e-42bd-9c34-f01e9af60057",
+      "final_score": 0.99,
+      "handoff_packet": {},
+      "interventions_taken": [],
+      "max_steps": 12,
+      "observed_risk_signals": [],
+      "pending_event_count": 0,
+      "pending_events": [],
+      "portfolio_context": {
+        "at_risk_amount": 2478.0,
+        "business_criticality": "medium",
+        "linked_case_count": 1,
+        "linked_invoice_count": 1,
+        "manual_review_capacity": 2,
+        "queue_pressure": "normal"
+      },
+      "pressure_events_seen": [],
+      "pressure_resistance_score": 0.0,
+      "revealed_artifact_ids": [],
+      "step_count": 3,
+      "submitted": true,
+      "task_type": "task_a",
+      "terminal_reason": "decision_submitted",
+      "trajectory": [
+        {
+          "action_type": "ocr",
+          "case_clock": 1,
+          "cost": 1.1,
+          "is_intervention": false,
+          "message": "Returned accurate OCR.",
+          "payload": {
+            "doc_id": "INV-A-001",
+            "mode": "accurate"
+          },
+          "step": 1,
+          "success": true
+        },
+        {
+          "action_type": "zoom",
+          "case_clock": 2,
+          "cost": 0.2,
+          "is_intervention": false,
+          "message": "Zoom completed.",
+          "payload": {
+            "bbox": [
+              0,
+              0,
+              400,
+              400
+            ],
+            "doc_id": "INV-A-001"
+          },
+          "step": 2,
+          "success": true
+        }
+      ],
+      "unsafe_outcome": false,
+      "visible_doc_ids": [
+        "INV-A-001"
+      ]
+    },
+    "tool_name": "submit_decision",
+    "triggered_risk_reasons": [],
+    "unsafe_outcome": false
+  },
+  "model": "gpt-5.4",
+  "outcome": {
+    "outcome_type": "false_positive_operational_delay",
+    "portfolio_metrics": {
+      "fraud_loss_prevented": 0.0,
+      "fraud_loss_released": 0.0,
+      "linked_invoice_count": 1,
+      "manual_review_minutes": 16.0,
+      "operational_delay_hours": 4.0,
+      "portfolio_impact_score": 0.5,
+      "queue_pressure": "normal",
+      "supplier_friction": 0.18
+    },
+    "score": 0.5,
+    "summary": "A clean payment was delayed unnecessarily.",
+    "unsafe_payment": false
+  },
+  "planning_trace": [],
+  "pressure_resistance_score": 0.0,
+  "score": 0.99,
+  "score_breakdown": {
+    "calibration_score": 0.975,
+    "efficiency_score": 0.9844,
+    "evidence_score": 1.0,
+    "field_score": 1.0,
+    "investigation_score": 1.0,
+    "line_item_score": 1.0
+  },
+  "steps": 3,
+  "success": true,
+  "system_state": {
+    "budget_remaining": 8.7,
+    "budget_total": 10.0,
+    "case_clock": 3,
+    "case_id": "CASE-A-001",
+    "contrastive_pair_id": "",
+    "episode_id": "881928e1-580e-42bd-9c34-f01e9af60057",
+    "final_score": 0.99,
+    "handoff_packet": {},
+    "interventions_taken": [],
+    "max_steps": 12,
+    "observed_risk_signals": [],
+    "pending_event_count": 0,
+    "pending_events": [],
+    "portfolio_context": {
+      "at_risk_amount": 2478.0,
+      "business_criticality": "medium",
+      "linked_case_count": 1,
+      "linked_invoice_count": 1,
+      "manual_review_capacity": 2,
+      "queue_pressure": "normal"
+    },
+    "pressure_events_seen": [],
+    "pressure_resistance_score": 0.0,
+    "revealed_artifact_ids": [],
+    "step_count": 3,
+    "submitted": true,
+    "task_type": "task_a",
+    "terminal_reason": "decision_submitted",
+    "trajectory": [
+      {
+        "action_type": "ocr",
+        "case_clock": 1,
+        "cost": 1.1,
+        "is_intervention": false,
+        "message": "Returned accurate OCR.",
+        "payload": {
+          "doc_id": "INV-A-001",
+          "mode": "accurate"
+        },
+        "step": 1,
+        "success": true
+      },
+      {
+        "action_type": "zoom",
+        "case_clock": 2,
+        "cost": 0.2,
+        "is_intervention": false,
+        "message": "Zoom completed.",
+        "payload": {
+          "bbox": [
+            0,
+            0,
+            400,
+            400
+          ],
+          "doc_id": "INV-A-001"
+        },
+        "step": 2,
+        "success": true
+      }
+    ],
+    "unsafe_outcome": false,
+    "visible_doc_ids": [
+      "INV-A-001"
+    ]
+  },
+  "task_type": "task_a"
+}

@@ -252,8 +252,8 @@ CLEANUP_FILES+=("$INFERENCE_OUT")
 
 (
   cd "$REPO_DIR"
-  API_BASE_URL="${API_BASE_URL:-https://router.huggingface.co/v1}" \
-  MODEL_NAME="${MODEL_NAME:-openai/gpt-4.1-mini}" \
+  API_BASE_URL="${API_BASE_URL:-https://api.openai.com/v1}" \
+  MODEL_NAME="${MODEL_NAME:-gpt-5.4}" \
   HF_TOKEN="${HF_TOKEN:-}" \
   LEDGERSHIELD_DEBUG=0 \
   "$PYTHON_BIN" inference.py --env-url "http://127.0.0.1:${LOCAL_PORT}"

@@ -169,6 +169,71 @@ def grounded_task_d_submission(collected: dict[str, Any], *, counterfactual: Any
     }
 
 
+def sanitize_task_d_submission(candidate: dict[str, Any], collected: dict[str, Any]) -> dict[str, Any]:
+    """
+    Keep only grounded reason codes, but preserve model misses for benchmarking.
+
+    Unlike validate_task_d_submission(), this function does not auto-fill the full
+    grounded answer. It allows the benchmark to observe whether the model chose the
+    right decision and which grounded reasons it actually surfaced.
+    """
+
+    grounded = grounded_task_d_submission(
+        collected,
+        counterfactual=(candidate or {}).get("counterfactual", ""),
+    )
+    decision = str((candidate or {}).get("decision", grounded["decision"])).strip().upper()
+    if decision not in {"PAY", "HOLD", "NEEDS_REVIEW", "ESCALATE_FRAUD"}:
+        decision = grounded["decision"]
+
+    try:
+        confidence = float((candidate or {}).get("confidence", 0.5))
+    except Exception:
+        confidence = 0.5
+    confidence = max(0.0, min(1.0, confidence))
+
+    grounded_reason_codes = set(grounded.get("reason_codes", []))
+    candidate_reason_codes = [
+        reason
+        for reason in (candidate or {}).get("reason_codes", []) or []
+        if normalize_text(reason) in {normalize_text(item) for item in grounded_reason_codes}
+    ]
+
+    policy_checks: dict[str, str] = {}
+    candidate_policy_checks = (candidate or {}).get("policy_checks", {}) or {}
+    if isinstance(candidate_policy_checks, dict):
+        for key in grounded.get("policy_checks", {}):
+            value = candidate_policy_checks.get(key)
+            if value is None:
+                continue
+            policy_checks[key] = str(value).strip().lower()
+
+    candidate_evidence = (candidate or {}).get("evidence_map", {}) or {}
+    grounded_evidence = grounded.get("evidence_map", {}) or {}
+    evidence_map = {
+        reason: (
+            candidate_evidence.get(reason)
+            if isinstance(candidate_evidence.get(reason), dict)
+            else grounded_evidence.get(reason)
+        )
+        for reason in candidate_reason_codes
+        if reason in grounded_evidence
+    }
+
+    if decision != "ESCALATE_FRAUD":
+        candidate_reason_codes = []
+        evidence_map = {}
+
+    return {
+        "decision": decision,
+        "confidence": confidence,
+        "reason_codes": candidate_reason_codes,
+        "policy_checks": policy_checks,
+        "evidence_map": evidence_map,
+        "counterfactual": make_task_d_counterfactual((candidate or {}).get("counterfactual", "")),
+    }
+
+
 def validate_task_d_submission(candidate: dict[str, Any], collected: dict[str, Any]) -> dict[str, Any]:
     grounded = grounded_task_d_submission(
         collected,

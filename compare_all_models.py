@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 from typing import Any
@@ -29,6 +30,25 @@ MODEL_TIERS = [
 ]
 
 REPO_ROOT = Path(__file__).resolve().parent
+END_RE = re.compile(
+    r"^\[END\]\s+success=(true|false)\s+steps=(\d+)\s+(?:score=([0-9]+\.[0-9]+)\s+)?rewards=(.*)\s*$"
+)
+API_CALLS_RE = re.compile(r"^Total API calls:\s*(\d+)\s*$")
+
+
+def _score_from_end(score_field: str | None, rewards_field: str) -> float:
+    if score_field:
+        try:
+            return float(score_field)
+        except ValueError:
+            pass
+    parts = [part.strip() for part in rewards_field.split(",") if part.strip()]
+    if not parts:
+        return 0.0
+    try:
+        return float(parts[-1])
+    except ValueError:
+        return 0.0
 
 def run_inference(model: str, api_key: str) -> dict[str, Any]:
     """Run inference_llm_powered.py with specific model."""
@@ -53,25 +73,28 @@ def run_inference(model: str, api_key: str) -> dict[str, Any]:
         api_calls = 0
         total_tokens = 0
         
-        for line in result.stdout.split('\n'):
-            if '[END]' in line and 'rewards=' in line:
-                # Extract final reward
-                try:
-                    rewards_part = line.split('rewards=')[1].split()[0]
-                    final_reward = float(rewards_part.split(',')[-1])
-                    scores.append(final_reward)
-                except:
-                    pass
-            elif 'Total API calls:' in line:
-                try:
-                    api_calls = int(line.split(':')[1].strip())
-                except:
-                    pass
+        for raw_line in result.stdout.splitlines():
+            line = raw_line.strip()
+            end_match = END_RE.match(line)
+            if end_match:
+                scores.append(_score_from_end(end_match.group(3), end_match.group(4)))
+                continue
+            api_calls_match = API_CALLS_RE.match(line)
+            if api_calls_match:
+                api_calls = int(api_calls_match.group(1))
+                continue
             elif 'Total tokens:' in line:
                 try:
                     total_tokens = int(line.split(':')[1].strip().replace(',', ''))
                 except:
                     pass
+
+        if api_calls == 0:
+            raise RuntimeError(
+                "Run produced 0 API calls. The comparison likely fell back to heuristic logic instead of live inference."
+            )
+        if not scores:
+            raise RuntimeError("Run did not produce parseable case scores.")
         
         avg_score = sum(scores) / len(scores) if scores else 0.0
         

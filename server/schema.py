@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Any
 
 FIELD_KEYS = [
@@ -96,6 +97,28 @@ OUTCOME_TYPES = [
 ]
 
 ALL_REASON_CODES = sorted(set(DISCREPANCY_TYPES + FRAUD_TYPES))
+REASON_CODE_ALIAS_MAP = {
+    "bank mismatch": "bank_override_attempt",
+    "bank account mismatch": "bank_override_attempt",
+    "remittance override": "bank_override_attempt",
+    "bank change attempt": "bank_override_attempt",
+    "spoofed sender domain": "sender_domain_spoof",
+    "sender spoof": "sender_domain_spoof",
+    "domain spoof": "sender_domain_spoof",
+    "duplicate invoice": "duplicate_near_match",
+    "duplicate cluster": "duplicate_near_match",
+    "invoice splitting": "approval_threshold_evasion",
+    "threshold evasion": "approval_threshold_evasion",
+    "approval threshold splitting": "approval_threshold_evasion",
+    "policy bypass": "policy_bypass_attempt",
+    "callback bypass": "policy_bypass_attempt",
+    "shared bank": "shared_bank_account",
+    "same bank account": "shared_bank_account",
+    "shared remittance account": "shared_bank_account",
+    "coordinated invoice timing": "coordinated_timing",
+    "linked invoice timing": "coordinated_timing",
+    "coordinated invoices": "coordinated_timing",
+}
 
 
 def normalize_text(value: Any) -> str:
@@ -184,10 +207,28 @@ def list_unique_normalized(values: list[Any]) -> list[str]:
     return output
 
 
-def canonical_reason_codes(values: list[Any]) -> list[str]:
-    normalized = list_unique_normalized(values)
+def normalize_reason_code(value: Any) -> str:
+    text = normalize_text(value)
+    if not text:
+        return ""
+
+    slug = re.sub(r"[^a-z0-9]+", "_", text).strip("_")
     allowed = {normalize_text(x) for x in ALL_REASON_CODES}
-    return [value for value in normalized if value in allowed]
+    if slug in allowed:
+        return slug
+    return REASON_CODE_ALIAS_MAP.get(text, "")
+
+
+def canonical_reason_codes(values: list[Any]) -> list[str]:
+    seen: set[str] = set()
+    output: list[str] = []
+    for value in values:
+        canonical = normalize_reason_code(value)
+        if not canonical or canonical in seen:
+            continue
+        seen.add(canonical)
+        output.append(canonical)
+    return output
 
 
 def is_intervention_action(action_type: str) -> bool:

@@ -272,9 +272,9 @@ git push
 ```
 
 4. **Configure Secrets** in Space Settings:
-   - `API_BASE_URL`: `https://router.huggingface.co/v1`
-   - `MODEL_NAME`: `openai/gpt-4.1-mini`
-   - `HF_TOKEN`: Your Hugging Face token
+   - `API_BASE_URL`: `https://api.openai.com/v1`
+   - `MODEL_NAME`: `gpt-5.4`
+   - `HF_TOKEN`: Your API token
 
 5. **Add OpenEnv tag** to Space metadata
 
@@ -424,9 +424,9 @@ LEDGERSHIELD_INCLUDE_HOLDOUT=0
 LEDGERSHIELD_INCLUDE_CHALLENGE=0
 
 # Client configuration (for inference)
-API_BASE_URL=https://router.huggingface.co/v1
-MODEL_NAME=openai/gpt-4.1-mini
-HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxx
+API_BASE_URL=https://api.openai.com/v1
+MODEL_NAME=gpt-5.4
+HF_TOKEN=your_api_token_here
 ENV_URL=http://localhost:8000
 ```
 
