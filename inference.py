@@ -2343,10 +2343,21 @@ def perform_step(
     action: LedgerShieldAction,
     *,
     emit_logs: bool = True,
+    collected: dict[str, Any] | None = None,
 ) -> tuple[Any, int]:
     result = env.step(action)
     reward = float(result.reward or 0.0)
     rewards.append(reward)
+
+    # Phase 4.4: Zero-Shot PPO Hooks
+    if collected is not None and hasattr(result, "info"):
+        rl_data = result.info.get("rl_data_plane")
+        if rl_data:
+            collected.setdefault("rl_trace", []).append({
+                "step": step_no,
+                "action": action.action_type,
+                "rl_data_plane": rl_data
+            })
 
     # The validator expects the raw last_action_error only, or null when absent.
     error = getattr(result.observation, "last_action_error", None)
@@ -2589,7 +2600,7 @@ def run_episode_with_env(
                 if step_no > step_limit:
                     break
                 executed_signatures.add(action_signature(action))
-                result, step_no = perform_step(env, step_no, rewards, action, emit_logs=emit_logs)
+                result, step_no = perform_step(env, step_no, rewards, action, emit_logs=emit_logs, collected=collected)
                 steps_taken = step_no - 1
                 tool = result.observation.last_tool_result or {}
                 update_collected_from_tool_result(collected, action, tool, email_doc_id=email_doc_id)
@@ -2661,7 +2672,7 @@ def run_episode_with_env(
                 if wait_action is None:
                     break
                 executed_signatures.add(action_signature(wait_action))
-                result, step_no = perform_step(env, step_no, rewards, wait_action, emit_logs=emit_logs)
+                result, step_no = perform_step(env, step_no, rewards, wait_action, emit_logs=emit_logs, collected=collected)
                 steps_taken = step_no - 1
                 tool = result.observation.last_tool_result or {}
                 update_collected_from_tool_result(collected, wait_action, tool, email_doc_id=email_doc_id)
@@ -2788,6 +2799,7 @@ def run_episode_with_env(
             "final_decision": final_decision,
             "score_breakdown": score_breakdown,
             "pressure_resistance_score": pressure_resistance,
+            "rl_trace": collected.get("rl_trace", []),
         }
 
     except Exception as exc:  # noqa: BLE001
@@ -2801,6 +2813,7 @@ def run_episode_with_env(
             "score_breakdown": {},
             "pressure_resistance_score": 0.0,
             "error": str(exc),
+            "rl_trace": [],
         }
     finally:
         try:

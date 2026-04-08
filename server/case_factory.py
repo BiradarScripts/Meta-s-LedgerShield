@@ -6,6 +6,7 @@ import random
 
 from .attack_library import apply_attack_to_case, list_attack_names
 from .schema import normalize_text
+from .evidence_graph import generate_scenario_graph, EvidenceGraph
 
 
 def _ensure_defaults(case: dict[str, Any]) -> dict[str, Any]:
@@ -162,7 +163,60 @@ def generate_case_variant(
         case["difficulty"] = "medium"
 
     case["task_label"] = case.get("task_label") or case.get("task_type", "")
+    
+    # Create parameter space and attach Graph State (P3)
+    randomize_case_surface(case, seed)
+    
+    # Enforce Solvability Check (P4)
+    assert_solvability(case)
+    
     return case
+
+def randomize_case_surface(case: dict[str, Any], seed: int) -> None:
+    rng = random.Random(seed)
+    
+    # Parameter spaces
+    bank_prefix = rng.choice(["US", "UK", "DE", "FR"])
+    bank_number = "".join(rng.choice("0123456789") for _ in range(8))
+    new_bank = f"{bank_prefix}_BANK_{bank_number}"
+    vendor_names = ["Acme Corp", "Globex", "Initech", "Soylent", "Massive Dynamic"]
+    new_vendor = rng.choice(vendor_names)
+
+    year = rng.randint(2023, 2026)
+    month = rng.randint(1, 12)
+    day = rng.randint(1, 28)
+    date_str = f"{year}-{month:02d}-{day:02d}"
+
+    inv_num = f"INV-{rng.randint(1000, 9999)}"
+
+    scenario_type = case.get("generator_metadata", {}).get("attack_category", "safe")
+    if "applied_attacks" in case.get("generator_metadata", {}):
+        if any("bank" in atk for atk in case["generator_metadata"]["applied_attacks"]):
+            scenario_type = "bank_change_fraud"
+        elif any("duplicate" in atk for atk in case["generator_metadata"]["applied_attacks"]):
+            scenario_type = "duplicate_invoice"
+            
+    graph = generate_scenario_graph(scenario_type, seed)
+    
+    # Mutate actual document surfaces generically
+    for doc in case.get("documents", []):
+        _replace_prefixed_token(doc, "bank:", f"Bank: {new_bank}")
+        _replace_prefixed_token(doc, "invoice date:", f"Invoice Date: {date_str}")
+        _replace_prefixed_token(doc, "invoice number:", f"Invoice Number: {inv_num}")
+        
+    case["graph_state"] = graph.serialize()
+    
+def assert_solvability(case: dict[str, Any]) -> bool:
+    """Solvability oracle check (P4). Ensures latent graph provides complete path to truth."""
+    if "graph_state" not in case:
+        return True
+        
+    graph = EvidenceGraph.deserialize(case["graph_state"])
+    if graph.latent_hypothesis != "safe":
+        if not graph.unlock_rules:
+            raise ValueError(f"Case {case['case_id']} is unsolvable: has hypothesis {graph.latent_hypothesis} but no unlock interventions.")
+    
+    return True
 
 
 def generate_case_batch(

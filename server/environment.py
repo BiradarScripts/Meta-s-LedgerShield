@@ -580,7 +580,7 @@ class LedgerShieldEnvironment(Environment):
             "lookup_po": lambda: lookup_po_tool(self.db["po_by_id"], payload),
             "lookup_receipt": lambda: lookup_receipt_tool(self.db["receipt_by_id"], payload),
             "search_ledger": lambda: search_ledger_tool(
-                overrides.get("ledger_index", self.db["ledger_index"]), payload),
+                self.current_case, overrides.get("ledger_index", self.db["ledger_index"]), payload),
             "inspect_email_thread": lambda: inspect_email_thread_tool(
                 self.current_case, self.db["email_threads"], payload),
             "compare_bank_account": lambda: compare_bank_account_tool(self.db["vendors_by_key"], payload),
@@ -1025,6 +1025,19 @@ class LedgerShieldEnvironment(Environment):
             info["curriculum"] = curriculum_summary(self._curriculum_state)
         if ready_artifacts:
             info["async_artifacts"] = ready_artifacts
+
+        info["rl_data_plane"] = {
+            "state_vector": [
+                float(self._state.budget_remaining) / max(1.0, float(self._state.budget_total)),
+                float(self._state.step_count) / max(1.0, float(self._state.max_steps)),
+                float(len(self._state.observed_risk_signals)),
+                float(len(self._state.revealed_artifact_ids)),
+                float(len(self._state.interventions_taken)),
+            ],
+            "reward": reward,
+            "terminal": done,
+            "truncated": truncated,
+        }
 
         obs = self._observation(tool_result=result, messages=messages)
         self._last_reward = reward

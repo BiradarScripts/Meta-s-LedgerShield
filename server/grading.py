@@ -179,6 +179,8 @@ def list_f1(pred: list[str], gold: list[str]) -> float:
     return 2 * precision * recall / (precision + recall)
 
 
+from .evidence_graph import EvidenceGraph
+
 def _single_evidence_score(pred_ref: dict[str, Any], gold_ref: dict[str, Any]) -> float:
     """Score a single evidence reference against gold."""
     if not pred_ref or not gold_ref:
@@ -197,31 +199,43 @@ def evidence_score(
     gold_map: dict[str, Any],
     *,
     empty_cap: float = DEGENERATE_EVIDENCE_CAP,
+    graph_state: dict[str, Any] | None = None,
 ) -> float:
-    """Score evidence map against gold standard.
+    """Score evidence map against gold standard (Graph-Aware / Exact Grounding).
 
     Applies DEGENERATE_EVIDENCE_CAP for empty submissions (Phase 2.3).
-
-    Args:
-        pred_map: Predicted evidence map.
-        gold_map: Gold-standard evidence map.
-
-    Returns:
-        Score from 0.0 to 1.0.
+    Evaluates exact node grounding if graph_state is provided (Phase 2.1).
     """
-    if not gold_map:
+    if not gold_map and not graph_state:
         return 1.0
 
-    # Phase 2.3: Cap degenerate (empty) evidence submissions
     if not pred_map or (isinstance(pred_map, dict) and len(pred_map) == 0):
         return empty_cap
 
-    scores = []
-    for key, gold_ref in gold_map.items():
-        pred_ref = pred_map.get(key) if isinstance(pred_map, dict) else None
-        scores.append(_single_evidence_score(pred_ref or {}, gold_ref or {}))
+    base_scores = []
+    if gold_map:
+        for key, gold_ref in gold_map.items():
+            pred_ref = pred_map.get(key) if isinstance(pred_map, dict) else None
+            base_scores.append(_single_evidence_score(pred_ref or {}, gold_ref or {}))
+            
+    score = sum(base_scores) / max(len(base_scores), 1) if base_scores else 0.0
 
-    return sum(scores) / max(len(scores), 1)
+    # P2.1 Graph-Aware Exact Evidence Grounding
+    if graph_state:
+        graph = EvidenceGraph.deserialize(graph_state)
+        cited_docs = {normalize_text(v.get("doc_id")) for v in pred_map.values() if isinstance(v, dict)}
+        
+        critical_nodes = [
+            n.node_id for n in graph.nodes.values() 
+            if n.node_type in {"intervention_result", "duplicate_report", "evidence_doc"} and n.revealed
+        ]
+        
+        if critical_nodes:
+            hits = sum(1 for node_id in critical_nodes if normalize_text(node_id) in cited_docs)
+            grounding_bonus = 0.20 * (hits / len(critical_nodes))
+            score = min(1.0, score + grounding_bonus)
+            
+    return score
 
 
 def policy_score(pred: dict[str, str], gold: dict[str, str]) -> float:
@@ -256,20 +270,10 @@ def decision_score(pred: str, gold: str) -> float:
     return float(normalize_text(pred) == normalize_text(gold))
 
 
-def counterfactual_score(counterfactual: str) -> float:
+def counterfactual_score(counterfactual: str, graph_state: dict[str, Any] | None = None) -> float:
     """Multi-dimensional semantic counterfactual scoring (Phase 2.2).
 
-    Evaluates counterfactual reasoning across four dimensions:
-    - Structure: Has clear conditional structure (if/then/would).
-    - Decision language: Uses appropriate risk/fraud vocabulary.
-    - Evidence specificity: References specific documents/signals.
-    - Length/depth: Sufficient detail for actionable insight.
-
-    Args:
-        counterfactual: The counterfactual text submitted by the agent.
-
-    Returns:
-        Score from 0.0 to 1.0.
+    Evaluates counterfactual reasoning across dimensions and edge citations.
     """
     text = normalize_text(counterfactual)
     if not text or len(text.split()) < 3:
@@ -310,13 +314,33 @@ def counterfactual_score(counterfactual: str) -> float:
     else:
         dimensions["depth"] = 0.1
 
+    # Phase 2.2 Edge Citations
+    edge_citations = 0.0
+    if graph_state:
+        from .evidence_graph import EvidenceGraph
+        graph = EvidenceGraph.deserialize(graph_state)
+        for edge in graph.edges:
+            relation_markers = edge.relation.split("_")
+            if any(marker in text for marker in relation_markers if len(marker) >= 4):
+                edge_citations += 1.0
+        dimensions["edge_citations"] = min(1.0, edge_citations / max(1.0, len(graph.edges)))
+
     # Weighted combination
-    weighted = (
-        0.30 * dimensions["structure"]
-        + 0.25 * dimensions["decision_language"]
-        + 0.25 * dimensions["evidence_specificity"]
-        + 0.20 * dimensions["depth"]
-    )
+    if "edge_citations" in dimensions:
+        weighted = (
+            0.20 * dimensions["structure"]
+            + 0.20 * dimensions["decision_language"]
+            + 0.25 * dimensions["evidence_specificity"]
+            + 0.10 * dimensions["depth"]
+            + 0.25 * dimensions["edge_citations"]
+        )
+    else:
+        weighted = (
+            0.30 * dimensions["structure"]
+            + 0.25 * dimensions["decision_language"]
+            + 0.25 * dimensions["evidence_specificity"]
+            + 0.20 * dimensions["depth"]
+        )
     return max(0.0, min(1.0, weighted))
 
 
@@ -611,6 +635,7 @@ def evaluate_contrastive_pair(
 def _degenerate_submission_check(
     submitted: dict[str, Any],
     task_type: str,
+    gold: dict[str, Any] | None = None,
 ) -> float:
     """Check for degenerate (minimal-effort) submissions (Phase 2.3).
 
@@ -623,12 +648,14 @@ def _degenerate_submission_check(
     Args:
         submitted: The agent's submission dict.
         task_type: The task type.
+        gold: The gold-standard dictionary (optional, for checking if missing lists are expected).
 
     Returns:
         Negative penalty (0.0 if not degenerate).
     """
     penalty = 0.0
     task_norm = normalize_text(task_type)
+    gold = gold or {}
 
     # Empty evidence map
     if not submitted.get("evidence_map"):
@@ -644,9 +671,13 @@ def _degenerate_submission_check(
         if len(cf.split()) < 3:
             penalty -= 0.03
 
-    # No discrepancies for task_b/c
-    if task_norm in {"task_b", "task_c"} and not submitted.get("discrepancies"):
-        penalty -= 0.03
+    # No discrepancies for task_b/c. Only penalize if gold actually mandated them or if entirely missing from payload, 
+    # but don't penalize `[]` if gold also had `[]`.
+    has_disc = bool(submitted.get("discrepancies"))
+    if task_norm in {"task_b", "task_c"} and not has_disc:
+        gold_disc = bool(gold.get("discrepancies"))
+        if gold_disc or "discrepancies" not in submitted:
+            penalty -= 0.03
 
     return penalty
 
@@ -689,9 +720,11 @@ def score_submission(
     s_efficiency = efficiency_score(budget_penalty, trajectory)
     s_outcome = downstream_outcome_score(outcome)
     s_resolution = resolution_state_score(submitted, final_state, gold, outcome)
+    
+    graph_state = case_context.get("case_snapshot", {}).get("graph_state") if case_context else None
 
     # Phase 2.3: Degenerate submission penalty
-    degen_penalty = _degenerate_submission_check(submitted, task_type)
+    degen_penalty = _degenerate_submission_check(submitted, task_type, gold=gold)
 
     compute_auxiliary = compliance_result is not None or currency_validation is not None or case_context is not None
     if compute_auxiliary and compliance_result is None:
@@ -726,7 +759,7 @@ def score_submission(
     if task_type == "task_a":
         s_fields = field_score(submitted.get("extracted_fields", {}), gold.get("fields", {}))
         s_lines = line_item_score(submitted.get("line_items", []), gold.get("line_items", []))
-        s_evidence = evidence_score(submitted.get("evidence_map", {}), gold.get("evidence_targets", {}))
+        s_evidence = evidence_score(submitted.get("evidence_map", {}), gold.get("evidence_targets", {}), graph_state=graph_state)
         raw = (
             0.38 * s_fields
             + 0.25 * s_lines
@@ -754,7 +787,7 @@ def score_submission(
         s_decision = decision_score(submitted.get("decision", ""), gold.get("decision", ""))
         s_disc = list_f1(submitted.get("discrepancies", []), gold.get("discrepancies", []))
         s_policy = policy_score(submitted.get("policy_checks", {}), gold.get("policy_checks", {}))
-        s_evidence = evidence_score(submitted.get("evidence_map", {}), gold.get("evidence_targets", {}))
+        s_evidence = evidence_score(submitted.get("evidence_map", {}), gold.get("evidence_targets", {}), graph_state=graph_state)
         raw = (
             0.26 * s_decision
             + 0.17 * s_disc
@@ -766,6 +799,12 @@ def score_submission(
             + 0.05 * s_calibration
             + 0.04 * s_efficiency
         ) + degen_penalty + compliance_adjustment + currency_adjustment
+        
+        # P0 Fix: Bypass trajectory deductions for fully accurate normal submissions.
+        if (s_decision == 1.0 and s_evidence == 1.0 and s_policy == 1.0 and s_disc == 1.0 
+            and normalize_text(gold.get("decision")) == "pay"):
+            raw = 1.0
+
         return strict_task_score(raw), {
             "decision_score": round(s_decision, 4),
             "discrepancy_score": round(s_disc, 4),
@@ -788,7 +827,7 @@ def score_submission(
         s_decision = decision_score(submitted.get("decision", ""), gold.get("decision", ""))
         s_dupes = duplicate_score(submitted.get("duplicate_links", []), gold.get("duplicate_links", []))
         s_fraud = fraud_score(submitted.get("fraud_flags", []), gold.get("fraud_flags", []))
-        s_evidence = evidence_score(submitted.get("evidence_map", {}), gold.get("evidence_targets", {}))
+        s_evidence = evidence_score(submitted.get("evidence_map", {}), gold.get("evidence_targets", {}), graph_state=graph_state)
         raw = (
             0.16 * s_decision
             + 0.17 * s_dupes
@@ -829,8 +868,8 @@ def score_submission(
             canonical_reason_codes(gold.get("reason_codes", [])),
         )
         s_policy = policy_score(submitted.get("policy_checks", {}), gold.get("policy_checks", {}))
-        s_evidence = evidence_score(submitted.get("evidence_map", {}), gold.get("evidence_targets", {}))
-        s_counter = counterfactual_score(submitted.get("counterfactual", ""))
+        s_evidence = evidence_score(submitted.get("evidence_map", {}), gold.get("evidence_targets", {}), graph_state=graph_state)
+        s_counter = counterfactual_score(submitted.get("counterfactual", ""), graph_state=graph_state)
         s_pressure = pressure_event_score(final_state)
         s_callback = callback_interpretation_score(submitted, final_state, gold)
         raw = (
@@ -887,6 +926,7 @@ def score_submission(
             submitted.get("evidence_map", {}),
             gold.get("evidence_targets", {}),
             empty_cap=TASK_E_DEGENERATE_EVIDENCE_CAP,
+            graph_state=graph_state,
         )
         s_counter, counter_stats = task_e_counterfactual_score(
             submitted.get("counterfactual", ""),

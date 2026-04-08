@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import random
 import re
 from typing import Any
 
@@ -281,6 +282,26 @@ def ocr_tool(case: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
         return {"error": f"unknown doc_id: {doc_id}"}
 
     tokens = _scoped_tokens(doc, mode=mode, page=page, bbox=bbox)
+    
+    # Phase 3.1: Apply deterministic seeded noise for 'fast' mode
+    seed = case.get("generator_metadata", {}).get("seed", 0)
+    rng = random.Random(f"{seed}_{doc_id}_{page}_{bbox}_{mode}")
+    
+    if mode == "fast":
+        noisy_tokens: list[dict[str, Any]] = []
+        for t in tokens:
+            if rng.random() > 0.08:
+                t_cpy = deepcopy(t)
+                text = str(t_cpy.get("text", ""))
+                if rng.random() < 0.15 and len(text) > 3:
+                    idx = rng.randint(0, len(text) - 1)
+                    if rng.random() > 0.5 and text[idx].isdigit():
+                        t_cpy["text"] = text[:idx] + str(rng.randint(0, 9)) + text[idx+1:]
+                    elif text[idx].isalpha():
+                        t_cpy["text"] = text[:idx] + rng.choice(["e", "a", "x", "s", "n"]) + text[idx+1:]
+                noisy_tokens.append(t_cpy)
+        tokens = noisy_tokens
+
     scope = "region" if bbox else ("page" if page is not None else "document")
     text = " ".join(str(token.get("text", token)) for token in tokens[:200])
 
@@ -371,7 +392,7 @@ def lookup_receipt_tool(receipt_by_id: dict[str, dict[str, Any]], payload: dict[
     }
 
 
-def search_ledger_tool(ledger_index: list[dict[str, Any]], payload: dict[str, Any]) -> dict[str, Any]:
+def search_ledger_tool(case: dict[str, Any], ledger_index: list[dict[str, Any]], payload: dict[str, Any]) -> dict[str, Any]:
     vendor_key = normalize_text(payload.get("vendor_key"))
     invoice_number = payload.get("invoice_number")
     amount = payload.get("amount")
@@ -420,6 +441,19 @@ def search_ledger_tool(ledger_index: list[dict[str, Any]], payload: dict[str, An
             enriched = deepcopy(row)
             enriched["match_score"] = round(score, 4)
             hits.append(enriched)
+            
+    # Phase 3.1 Deterministic Noise: add phantom near-miss results
+    seed = case.get("generator_metadata", {}).get("seed", 0)
+    rng = random.Random(f"{seed}_{vendor_key}_{invoice_number}_{amount}")
+    
+    if rng.random() < 0.25 and vendor_key:
+        phantom_hit = {
+            "vendor_key": vendor_key,
+            "invoice_number": f"INV-{rng.randint(1000, 9999)}",
+            "amount": query_amount * (1.0 + (rng.random() * 0.1 - 0.05)) if query_amount else rng.uniform(100, 5000),
+            "match_score": round(rng.uniform(0.45, 0.65), 4)
+        }
+        hits.append(phantom_hit)
 
     hits.sort(key=lambda item: item.get("match_score", 0.0), reverse=True)
 
