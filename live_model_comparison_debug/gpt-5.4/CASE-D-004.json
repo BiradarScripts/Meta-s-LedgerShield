@@ -131,14 +131,13 @@
       "done": true,
       "payload": {
         "confidence": 0.99,
-        "counterfactual": "This could be PAY if the remittance account on INV-D-004 matched the approved vendor master bank account, the sender domain aligned with the approved vendor domain, the request did not instruct AP to bypass callback or standard workflow, and independent callback verification confirmed the change through the registered contact using normal controls.",
+        "counterfactual": "This could be PAY if the remittance account on INV-D-004 matched the approved vendor master bank account IN55NW000111222, the sender domain aligned with the approved domain northwind.example.com, the request did not instruct AP to bypass callback or standard workflow, and independent callback verification confirmed the change through the registered vendor contact.",
         "decision": "ESCALATE_FRAUD",
         "evidence_map": {
           "bank_override_attempt": {
             "approved_bank_account": "IN55NW000111222",
-            "bank_comparison_result": "mismatch_to_master_data",
             "callback_outcome": "adversarial_confirm",
-            "callback_signal": "callback_suspicious_confirm",
+            "comparison_summary": "mismatch_to_master_data",
             "doc_id": "INV-D-004",
             "proposed_bank_account": "IN66OVERRIDE123450000",
             "thread_id": "THR-150"
@@ -302,7 +301,7 @@
       "case_clock": 11,
       "case_id": "CASE-D-004",
       "contrastive_pair_id": "",
-      "episode_id": "1255fd1e-8721-403a-af25-7dde21f25ade",
+      "episode_id": "927aff4d-ddfa-4114-817b-4716f41e6565",
       "final_score": 0.796,
       "handoff_packet": {},
       "interventions_taken": [
@@ -337,7 +336,7 @@
       "pending_events": [
         {
           "artifact_id": "bank_change_approval_chain",
-          "event_id": "evt-91b33cc6",
+          "event_id": "evt-382704aa",
           "ready_at_clock": 11,
           "source_action": "request_bank_change_approval_chain",
           "status": "pending"
@@ -493,14 +492,13 @@
   },
   "final_submission": {
     "confidence": 0.99,
-    "counterfactual": "This could be PAY if the remittance account on INV-D-004 matched the approved vendor master bank account, the sender domain aligned with the approved vendor domain, the request did not instruct AP to bypass callback or standard workflow, and independent callback verification confirmed the change through the registered contact using normal controls.",
+    "counterfactual": "This could be PAY if the remittance account on INV-D-004 matched the approved vendor master bank account IN55NW000111222, the sender domain aligned with the approved domain northwind.example.com, the request did not instruct AP to bypass callback or standard workflow, and independent callback verification confirmed the change through the registered vendor contact.",
     "decision": "ESCALATE_FRAUD",
     "evidence_map": {
       "bank_override_attempt": {
         "approved_bank_account": "IN55NW000111222",
-        "bank_comparison_result": "mismatch_to_master_data",
         "callback_outcome": "adversarial_confirm",
-        "callback_signal": "callback_suspicious_confirm",
+        "comparison_summary": "mismatch_to_master_data",
         "doc_id": "INV-D-004",
         "proposed_bank_account": "IN66OVERRIDE123450000",
         "thread_id": "THR-150"
@@ -594,7 +592,7 @@
       "case_clock": 11,
       "case_id": "CASE-D-004",
       "contrastive_pair_id": "",
-      "episode_id": "1255fd1e-8721-403a-af25-7dde21f25ade",
+      "episode_id": "927aff4d-ddfa-4114-817b-4716f41e6565",
       "final_score": 0.796,
       "handoff_packet": {},
       "interventions_taken": [
@@ -629,7 +627,7 @@
       "pending_events": [
         {
           "artifact_id": "bank_change_approval_chain",
-          "event_id": "evt-91b33cc6",
+          "event_id": "evt-382704aa",
           "ready_at_clock": 11,
           "source_action": "request_bank_change_approval_chain",
           "status": "pending"
@@ -973,7 +971,7 @@
     "case_clock": 11,
     "case_id": "CASE-D-004",
     "contrastive_pair_id": "",
-    "episode_id": "1255fd1e-8721-403a-af25-7dde21f25ade",
+    "episode_id": "927aff4d-ddfa-4114-817b-4716f41e6565",
     "final_score": 0.796,
     "handoff_packet": {},
     "interventions_taken": [
@@ -1008,7 +1006,7 @@
     "pending_events": [
       {
         "artifact_id": "bank_change_approval_chain",
-        "event_id": "evt-91b33cc6",
+        "event_id": "evt-382704aa",
         "ready_at_clock": 11,
         "source_action": "request_bank_change_approval_chain",
         "status": "pending"

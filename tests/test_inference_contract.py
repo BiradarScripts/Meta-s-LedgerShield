@@ -211,67 +211,164 @@ def test_run_local_baseline_repairs_incomplete_task_d_fraud_submission(monkeypat
 
 
 def test_build_task_e_submission_detects_vendor_takeover_patterns():
-    submission = inference.build_task_e_submission(
-        {
-            "invoice_records": [
-                {
-                    "doc_id": "INV-E-SC-001",
-                    "fields": {"bank_account": "DE00COMPROMISED999", "total": 49500.0},
-                    "evidence": {
-                        "bank_account": {
-                            "doc_id": "INV-E-SC-001",
-                            "page": 1,
-                            "bbox": [10, 70, 190, 80],
-                            "token_ids": ["esc4"],
-                        }
-                    },
-                },
-                {
-                    "doc_id": "INV-E-SC-002",
-                    "fields": {"bank_account": "DE00COMPROMISED999", "total": 49000.0},
-                    "evidence": {
-                        "bank_account": {
-                            "doc_id": "INV-E-SC-002",
-                            "page": 1,
-                            "bbox": [10, 70, 190, 80],
-                            "token_ids": ["esc8"],
-                        }
-                    },
-                },
-            ],
-            "email_thread": {
-                "sender_profile": {"domain_alignment": "mismatch"},
-                "request_signals": {
-                    "bank_change_language": True,
-                    "callback_discouraged": True,
-                    "policy_override_language": True,
-                    "urgency_language": False,
+    collected = {
+        "invoice_records": [
+            {
+                "doc_id": "INV-E-SC-001",
+                "fields": {"bank_account": "DE00COMPROMISED999", "total": 49500.0},
+                "evidence": {
+                    "bank_account": {
+                        "doc_id": "INV-E-SC-001",
+                        "page": 1,
+                        "bbox": [10, 70, 190, 80],
+                        "token_ids": ["esc4"],
+                    }
                 },
             },
-            "email_evidence": {
-                "from_header": {
-                    "doc_id": "THR-E-SC-001",
-                    "page": 1,
-                    "bbox": [10, 10, 280, 20],
-                    "token_ids": ["eesc1"],
-                },
-                "policy_bypass_attempt": {
-                    "doc_id": "THR-E-SC-001",
-                    "page": 1,
-                    "bbox": [10, 70, 400, 80],
-                    "token_ids": ["eesc4"],
+            {
+                "doc_id": "INV-E-SC-002",
+                "fields": {"bank_account": "DE00COMPROMISED999", "total": 49000.0},
+                "evidence": {
+                    "bank_account": {
+                        "doc_id": "INV-E-SC-002",
+                        "page": 1,
+                        "bbox": [10, 70, 190, 80],
+                        "token_ids": ["esc8"],
+                    }
                 },
             },
-            "bank_compares": [{"matched": False}],
-            "ledger_hits": [],
-            "vendor_history": [],
-            "callback_result": {"details": {"risk_signal": "callback_suspicious_confirm"}},
+        ],
+        "email_thread": {
+            "sender_profile": {"domain_alignment": "mismatch"},
+            "request_signals": {
+                "bank_change_language": True,
+                "callback_discouraged": True,
+                "policy_override_language": True,
+                "urgency_language": False,
+            },
         },
-        {},
-    )
+        "email_evidence": {
+            "from_header": {
+                "doc_id": "THR-E-SC-001",
+                "page": 1,
+                "bbox": [10, 10, 280, 20],
+                "token_ids": ["eesc1"],
+            },
+            "policy_bypass_attempt": {
+                "doc_id": "THR-E-SC-001",
+                "page": 1,
+                "bbox": [10, 70, 400, 80],
+                "token_ids": ["eesc4"],
+            },
+        },
+        "bank_compares": [{"matched": False}],
+        "ledger_hits": [],
+        "vendor_history": [],
+        "callback_result": {"details": {"risk_signal": "callback_suspicious_confirm"}},
+    }
+
+    submission = inference.build_task_e_submission(collected, {})
 
     assert submission["decision"] == "ESCALATE_FRAUD"
     assert "vendor_account_takeover_suspected" in submission["reason_codes"]
     assert "sender_domain_spoof" in submission["reason_codes"]
     assert "bank_override_attempt" in submission["reason_codes"]
     assert "shared_bank_account" in submission["campaign_signals"]
+
+
+def test_sanitize_task_e_submission_recovers_grounded_refs_and_policy():
+    collected = {
+        "invoice_records": [
+            {
+                "doc_id": "INV-E-SC-001",
+                "fields": {"bank_account": "DE00COMPROMISED999", "total": 49500.0},
+                "evidence": {
+                    "bank_account": {
+                        "doc_id": "INV-E-SC-001",
+                        "page": 1,
+                        "bbox": [10, 70, 190, 80],
+                        "token_ids": ["esc4"],
+                    }
+                },
+            },
+            {
+                "doc_id": "INV-E-SC-002",
+                "fields": {"bank_account": "DE00COMPROMISED999", "total": 49000.0},
+                "evidence": {
+                    "bank_account": {
+                        "doc_id": "INV-E-SC-002",
+                        "page": 1,
+                        "bbox": [10, 70, 190, 80],
+                        "token_ids": ["esc8"],
+                    }
+                },
+            },
+        ],
+        "email_thread": {
+            "sender_profile": {"domain_alignment": "mismatch"},
+            "request_signals": {
+                "bank_change_language": True,
+                "callback_discouraged": True,
+                "policy_override_language": True,
+                "urgency_language": False,
+            },
+        },
+        "email_evidence": {
+            "from_header": {
+                "doc_id": "THR-E-SC-001",
+                "page": 1,
+                "bbox": [10, 10, 280, 20],
+                "token_ids": ["eesc1"],
+            },
+            "subject_header": {
+                "doc_id": "THR-E-SC-001",
+                "page": 1,
+                "bbox": [10, 30, 340, 40],
+                "token_ids": ["eesc2"],
+            },
+            "approval_threshold_evasion": {
+                "doc_id": "THR-E-SC-001",
+                "page": 1,
+                "bbox": [10, 70, 420, 80],
+                "token_ids": ["eesc4"],
+            },
+            "policy_bypass_attempt": {
+                "doc_id": "THR-E-SC-001",
+                "page": 1,
+                "bbox": [10, 90, 395, 100],
+                "token_ids": ["eesc5"],
+            },
+        },
+        "bank_compares": [{"matched": False}],
+        "ledger_hits": [],
+        "vendor_history": [],
+        "callback_result": {"details": {"risk_signal": "callback_suspicious_confirm"}},
+    }
+    grounded = inference.build_task_e_submission(collected, {})
+    candidate = {
+        "decision": "ESCALATE_FRAUD",
+        "confidence": 0.91,
+        "reason_codes": list(grounded["reason_codes"]),
+        "campaign_signals": list(grounded["campaign_signals"]),
+        "cross_invoice_links": list(grounded["cross_invoice_links"]),
+        "policy_checks": {
+            "three_way_match": "pass",
+            "bank_change_verification": "pass",
+            "duplicate_check": "pass",
+            "approval_threshold_check": "pass",
+        },
+        "evidence_map": {
+            "bank_override_attempt": {"doc_id": "INV-E-SC-001"},
+            "sender_domain_spoof": {"doc_id": "THR-E-SC-001"},
+            "approval_threshold_evasion": {"doc_id": "THR-E-SC-001"},
+            "policy_bypass_attempt": {"doc_id": "THR-E-SC-001"},
+            "shared_bank_account": {"doc_id": "INV-E-SC-002"},
+            "coordinated_timing": {"doc_id": "INV-E-SC-001"},
+        },
+        "counterfactual": "Would PAY if the invoices had distinct approved bank details and no coordinated campaign signals.",
+    }
+
+    sanitized = inference.sanitize_task_e_submission(candidate, collected)
+
+    assert sanitized["policy_checks"] == grounded["policy_checks"]
+    assert sanitized["evidence_map"] == grounded["evidence_map"]

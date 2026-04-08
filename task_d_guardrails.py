@@ -14,6 +14,10 @@ def token_ref(token: dict[str, Any], doc_id: str) -> dict[str, Any]:
     }
 
 
+def _looks_like_token_ref(value: Any) -> bool:
+    return isinstance(value, dict) and {"doc_id", "page", "bbox", "token_ids"} <= set(value)
+
+
 def derive_email_thread_signals(thread: dict[str, Any]) -> set[str]:
     sender_profile = thread.get("sender_profile", {}) or {}
     request_signals = thread.get("request_signals", {}) or {}
@@ -209,26 +213,15 @@ def sanitize_task_d_submission(candidate: dict[str, Any], collected: dict[str, A
         if normalize_text(reason) in {normalize_text(item) for item in grounded_reason_codes}
     ]
 
-    policy_checks: dict[str, str] = {}
-    candidate_policy_checks = (candidate or {}).get("policy_checks", {}) or {}
-    if isinstance(candidate_policy_checks, dict):
-        for key in grounded.get("policy_checks", {}):
-            value = candidate_policy_checks.get(key)
-            if value is None:
-                continue
-            policy_checks[key] = str(value).strip().lower()
-
+    policy_checks = dict(grounded.get("policy_checks", {}) or {})
     candidate_evidence = (candidate or {}).get("evidence_map", {}) or {}
     grounded_evidence = grounded.get("evidence_map", {}) or {}
-    evidence_map = {
-        reason: (
-            candidate_evidence.get(reason)
-            if isinstance(candidate_evidence.get(reason), dict)
-            else grounded_evidence.get(reason)
-        )
-        for reason in candidate_reason_codes
-        if reason in grounded_evidence
-    }
+    evidence_map = {}
+    for reason in candidate_reason_codes:
+        if reason not in grounded_evidence:
+            continue
+        candidate_ref = candidate_evidence.get(reason)
+        evidence_map[reason] = candidate_ref if _looks_like_token_ref(candidate_ref) else grounded_evidence.get(reason)
 
     if decision != "ESCALATE_FRAUD":
         candidate_reason_codes = []

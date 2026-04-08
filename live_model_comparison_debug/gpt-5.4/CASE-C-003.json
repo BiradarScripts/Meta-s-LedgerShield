@@ -281,7 +281,7 @@
       "case_clock": 8,
       "case_id": "CASE-C-003",
       "contrastive_pair_id": "",
-      "episode_id": "8138feb4-7a87-4f22-81fe-a3a15685362c",
+      "episode_id": "655cefab-dcfa-4447-b60f-f1439cebcd8b",
       "final_score": 0.6897,
       "handoff_packet": {},
       "interventions_taken": [
@@ -312,14 +312,14 @@
       "pending_events": [
         {
           "artifact_id": "bank_change_approval_chain",
-          "event_id": "evt-31d0f7d0",
+          "event_id": "evt-4c75dda3",
           "ready_at_clock": 8,
           "source_action": "request_bank_change_approval_chain",
           "status": "pending"
         },
         {
           "artifact_id": "duplicate_cluster_report",
-          "event_id": "evt-c049eac4",
+          "event_id": "evt-dc5ad238",
           "ready_at_clock": 8,
           "source_action": "flag_duplicate_cluster_review",
           "status": "pending"
@@ -581,7 +581,7 @@
       "case_clock": 8,
       "case_id": "CASE-C-003",
       "contrastive_pair_id": "",
-      "episode_id": "8138feb4-7a87-4f22-81fe-a3a15685362c",
+      "episode_id": "655cefab-dcfa-4447-b60f-f1439cebcd8b",
       "final_score": 0.6897,
       "handoff_packet": {},
       "interventions_taken": [
@@ -612,14 +612,14 @@
       "pending_events": [
         {
           "artifact_id": "bank_change_approval_chain",
-          "event_id": "evt-31d0f7d0",
+          "event_id": "evt-4c75dda3",
           "ready_at_clock": 8,
           "source_action": "request_bank_change_approval_chain",
           "status": "pending"
         },
         {
           "artifact_id": "duplicate_cluster_report",
-          "event_id": "evt-c049eac4",
+          "event_id": "evt-dc5ad238",
           "ready_at_clock": 8,
           "source_action": "flag_duplicate_cluster_review",
           "status": "pending"
@@ -882,7 +882,7 @@
     "case_clock": 8,
     "case_id": "CASE-C-003",
     "contrastive_pair_id": "",
-    "episode_id": "8138feb4-7a87-4f22-81fe-a3a15685362c",
+    "episode_id": "655cefab-dcfa-4447-b60f-f1439cebcd8b",
     "final_score": 0.6897,
     "handoff_packet": {},
     "interventions_taken": [
@@ -913,14 +913,14 @@
     "pending_events": [
       {
         "artifact_id": "bank_change_approval_chain",
-        "event_id": "evt-31d0f7d0",
+        "event_id": "evt-4c75dda3",
         "ready_at_clock": 8,
         "source_action": "request_bank_change_approval_chain",
         "status": "pending"
       },
       {
         "artifact_id": "duplicate_cluster_report",
-        "event_id": "evt-c049eac4",
+        "event_id": "evt-dc5ad238",
         "ready_at_clock": 8,
         "source_action": "flag_duplicate_cluster_review",
         "status": "pending"

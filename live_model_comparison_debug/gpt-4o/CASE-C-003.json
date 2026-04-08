@@ -270,7 +270,7 @@
       "case_clock": 8,
       "case_id": "CASE-C-003",
       "contrastive_pair_id": "",
-      "episode_id": "85bfa687-cbed-44ba-94c4-f6027e560ff2",
+      "episode_id": "97f141dc-b711-47f1-b527-fa1fc08a390f",
       "final_score": 0.6931,
       "handoff_packet": {},
       "interventions_taken": [
@@ -301,7 +301,7 @@
       "pending_events": [
         {
           "artifact_id": "bank_change_approval_chain",
-          "event_id": "evt-f7037a7b",
+          "event_id": "evt-48aa5c94",
           "ready_at_clock": 8,
           "source_action": "request_bank_change_approval_chain",
           "status": "pending"
@@ -551,7 +551,7 @@
       "case_clock": 8,
       "case_id": "CASE-C-003",
       "contrastive_pair_id": "",
-      "episode_id": "85bfa687-cbed-44ba-94c4-f6027e560ff2",
+      "episode_id": "97f141dc-b711-47f1-b527-fa1fc08a390f",
       "final_score": 0.6931,
       "handoff_packet": {},
       "interventions_taken": [
@@ -582,7 +582,7 @@
       "pending_events": [
         {
           "artifact_id": "bank_change_approval_chain",
-          "event_id": "evt-f7037a7b",
+          "event_id": "evt-48aa5c94",
           "ready_at_clock": 8,
           "source_action": "request_bank_change_approval_chain",
           "status": "pending"
@@ -845,7 +845,7 @@
     "case_clock": 8,
     "case_id": "CASE-C-003",
     "contrastive_pair_id": "",
-    "episode_id": "85bfa687-cbed-44ba-94c4-f6027e560ff2",
+    "episode_id": "97f141dc-b711-47f1-b527-fa1fc08a390f",
     "final_score": 0.6931,
     "handoff_packet": {},
     "interventions_taken": [
@@ -876,7 +876,7 @@
     "pending_events": [
       {
         "artifact_id": "bank_change_approval_chain",
-        "event_id": "evt-f7037a7b",
+        "event_id": "evt-48aa5c94",
         "ready_at_clock": 8,
         "source_action": "request_bank_change_approval_chain",
         "status": "pending"

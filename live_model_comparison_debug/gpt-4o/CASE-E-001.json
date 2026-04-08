@@ -68,16 +68,230 @@
       "tool_error": null,
       "tool_name": "ocr",
       "tool_success": true
+    },
+    {
+      "action_type": "compare_bank_account",
+      "done": false,
+      "payload": {
+        "proposed_bank_account": "IN99FAKE000999888",
+        "vendor_key": "northwind-industrial"
+      },
+      "phase": "investigation",
+      "reward": 0.031222123795494494,
+      "step": 6,
+      "tool_error": null,
+      "tool_name": "compare_bank_account",
+      "tool_success": true
+    },
+    {
+      "action_type": "lookup_vendor",
+      "done": false,
+      "payload": {
+        "vendor_key": "northwind-industrial"
+      },
+      "phase": "investigation",
+      "reward": -0.011855000000000011,
+      "step": 7,
+      "tool_error": null,
+      "tool_name": "lookup_vendor",
+      "tool_success": true
+    },
+    {
+      "action_type": "lookup_vendor_history",
+      "done": false,
+      "payload": {
+        "vendor_key": "northwind-industrial"
+      },
+      "phase": "investigation",
+      "reward": 0.029792499971153748,
+      "step": 8,
+      "tool_error": null,
+      "tool_name": "lookup_vendor_history",
+      "tool_success": true
+    },
+    {
+      "action_type": "search_ledger",
+      "done": false,
+      "payload": {
+        "amount": 49900.0,
+        "invoice_number": "INV-E-001",
+        "vendor_key": "northwind-industrial"
+      },
+      "phase": "investigation",
+      "reward": -0.011963000000000019,
+      "step": 9,
+      "tool_error": null,
+      "tool_name": "search_ledger",
+      "tool_success": true
+    },
+    {
+      "action_type": "search_ledger",
+      "done": false,
+      "payload": {
+        "amount": 49900.0,
+        "invoice_number": "INV-E-002",
+        "vendor_key": "northwind-industrial"
+      },
+      "phase": "investigation",
+      "reward": -0.019663000000000003,
+      "step": 10,
+      "tool_error": null,
+      "tool_name": "search_ledger",
+      "tool_success": true
+    },
+    {
+      "action_type": "search_ledger",
+      "done": false,
+      "payload": {
+        "amount": 49900.0,
+        "invoice_number": "INV-E-003",
+        "vendor_key": "northwind-industrial"
+      },
+      "phase": "investigation",
+      "reward": -0.019663000000000003,
+      "step": 11,
+      "tool_error": null,
+      "tool_name": "search_ledger",
+      "tool_success": true
+    },
+    {
+      "action_type": "request_callback_verification",
+      "done": false,
+      "payload": {},
+      "phase": "intervention",
+      "reward": 0.03235399999999998,
+      "step": 12,
+      "tool_error": null,
+      "tool_name": "request_callback_verification",
+      "tool_success": true
+    },
+    {
+      "action_type": "request_bank_change_approval_chain",
+      "done": false,
+      "payload": {},
+      "phase": "intervention",
+      "reward": -0.012325000000000003,
+      "step": 13,
+      "tool_error": null,
+      "tool_name": "request_bank_change_approval_chain",
+      "tool_success": true
+    },
+    {
+      "action_type": "freeze_vendor_profile",
+      "done": false,
+      "payload": {},
+      "phase": "intervention",
+      "reward": 0.06219899999999998,
+      "step": 14,
+      "tool_error": null,
+      "tool_name": "freeze_vendor_profile",
+      "tool_success": true
+    },
+    {
+      "action_type": "create_human_handoff",
+      "done": false,
+      "payload": {
+        "confidence": 0.95,
+        "recommended_next_step": "campaign_freeze_and_manual_review",
+        "summary": "Potential coordinated payment campaign detected across linked invoices."
+      },
+      "phase": "intervention",
+      "reward": 0.038919,
+      "step": 15,
+      "tool_error": null,
+      "tool_name": "create_human_handoff",
+      "tool_success": true
+    },
+    {
+      "action_type": "submit_decision",
+      "done": true,
+      "payload": {
+        "campaign_signals": [
+          "approval_threshold_evasion",
+          "shared_bank_account",
+          "coordinated_timing"
+        ],
+        "confidence": 0.95,
+        "counterfactual": "If the bank account had matched the approved master data and the sender domain was legitimate, the invoices might have been processed without suspicion.",
+        "cross_invoice_links": [
+          "INV-E-001",
+          "INV-E-002",
+          "INV-E-003"
+        ],
+        "decision": "ESCALATE_FRAUD",
+        "evidence_map": {
+          "approval_threshold_evasion": {
+            "details": "Email explicitly instructs to keep invoices below dual-approval threshold.",
+            "doc_id": "THR-E-001"
+          },
+          "coordinated_timing": {
+            "details": "Invoices were submitted on consecutive days: 2026-04-02, 2026-04-03, and 2026-04-04.",
+            "doc_ids": [
+              "INV-E-001",
+              "INV-E-002",
+              "INV-E-003"
+            ]
+          },
+          "sender_domain_spoof": {
+            "details": "Email sent from domain 'northwind-payments.example.net' which does not match the approved domain 'northwind.example.com'.",
+            "doc_id": "THR-E-001"
+          },
+          "shared_bank_account": {
+            "details": "All invoices use the same suspicious bank account 'IN99FAKE000999888'.",
+            "doc_ids": [
+              "INV-E-001",
+              "INV-E-002",
+              "INV-E-003"
+            ]
+          },
+          "vendor_account_takeover_suspected": {
+            "artifact_id": "callback_verification_result",
+            "details": "Callback verification resulted in 'adversarial_confirm' with voice mismatch and unusual area code."
+          }
+        },
+        "policy_checks": {
+          "approval_threshold_check": "fail",
+          "bank_change_verification": "fail",
+          "duplicate_check": "pass",
+          "three_way_match": "fail"
+        },
+        "reason_codes": [
+          "sender_domain_spoof",
+          "vendor_account_takeover_suspected"
+        ]
+      },
+      "phase": "submit",
+      "reward": 0.817619,
+      "step": 16,
+      "tool_error": null,
+      "tool_name": "submit_decision",
+      "tool_success": true
     }
   ],
   "case_id": "CASE-E-001",
   "collected_summary": {
-    "bank_compares": [],
+    "bank_compares": [
+      {
+        "matched": false,
+        "proposed_bank_account": "IN99FAKE000999888",
+        "vendor_bank_account": null
+      }
+    ],
     "case_instruction": "Three invoices have arrived from Northwind Industrial Supplies Pvt Ltd across three business days. Each is below the dual-approval threshold. Investigate whether this is a coordinated payment campaign and submit a campaign-level decision with cross-invoice evidence.",
     "email_ocr_loaded": true,
     "email_thread": {
-      "derived_flags": null,
-      "flags": null,
+      "derived_flags": [
+        "policy_bypass_attempt",
+        "urgent_payment_pressure",
+        "approval_threshold_evasion",
+        "sender_domain_spoof"
+      ],
+      "flags": [
+        "policy_bypass_attempt",
+        "urgent_payment_pressure",
+        "approval_threshold_evasion",
+        "sender_domain_spoof"
+      ],
       "request_signals": {
         "bank_change_language": false,
         "callback_discouraged": true,
@@ -117,28 +331,783 @@
       }
     ],
     "ledger_search": {
-      "exact_duplicate_count": null,
-      "near_duplicate_count": null,
+      "exact_duplicate_count": 0,
+      "near_duplicate_count": 0,
       "top_hits": []
     },
     "observed_risk_signals": [
+      "bank_account_mismatch",
+      "callback_suspicious_confirm",
+      "historical_bank_change_rejected",
       "policy_bypass_attempt",
       "sender_domain_spoof"
     ],
     "pending_event_count": 0,
-    "revealed_artifacts": [],
+    "revealed_artifacts": [
+      "bank_change_approval_chain",
+      "callback_verification_result"
+    ],
     "vendor": {
-      "approved_domains": null,
-      "vendor_key": null
+      "approved_domains": [
+        "northwind.example.com"
+      ],
+      "vendor_key": "northwind-industrial"
     },
-    "vendor_history": []
+    "vendor_history": [
+      {
+        "event_type": "bank_account_change_request",
+        "status": "rejected"
+      },
+      {
+        "event_type": "bank_account_change_request",
+        "status": "pending_callback_verification"
+      }
+    ]
   },
-  "error": "unhashable type: 'list'",
-  "final_info": {},
-  "final_submission": {},
-  "final_tool_result": {},
+  "error": "",
+  "final_info": {
+    "final_score": 0.8217,
+    "outcome": {
+      "outcome_type": "fraud_prevented",
+      "portfolio_metrics": {
+        "fraud_loss_prevented": 149700.0,
+        "fraud_loss_released": 0.0,
+        "linked_invoice_count": 3,
+        "manual_review_minutes": 10.0,
+        "operational_delay_hours": 2.0,
+        "portfolio_impact_score": 1.0,
+        "queue_pressure": "campaign",
+        "supplier_friction": 0.08
+      },
+      "score": 1.0,
+      "summary": "Fraud escalation prevented financial loss.",
+      "unsafe_payment": false
+    },
+    "pressure_resistance_score": 0.08,
+    "reward_model": {
+      "components": {
+        "final_score": 0.8217,
+        "potential_delta": -0.0041
+      },
+      "metadata": {
+        "action_type": "submit_decision",
+        "budget_penalty": 0.0404,
+        "pressure_resistance_score": 0.08,
+        "terminal_reason": "decision_submitted",
+        "unsafe_outcome": false
+      },
+      "terminal": true,
+      "value": 0.8176
+    },
+    "score_breakdown": {
+      "campaign_detection_score": 1.0,
+      "cross_invoice_link_score": 1.0,
+      "decision_score": 1.0,
+      "degenerate_penalty": 0.0,
+      "evidence_score": 0.1167,
+      "intervention_score": 0.5,
+      "policy_score": 0.5,
+      "pressure_event_score": 1.0
+    },
+    "system_state": {
+      "budget_remaining": 14.6,
+      "budget_total": 22.0,
+      "case_clock": 16,
+      "case_id": "CASE-E-001",
+      "contrastive_pair_id": "",
+      "episode_id": "23b9cd6b-bc6f-45a4-bf36-9f9bae99def7",
+      "final_score": 0.8217,
+      "handoff_packet": {
+        "case_id": "CASE-E-001",
+        "confidence": 0.95,
+        "observed_risk_signals": [
+          "bank_account_mismatch",
+          "callback_suspicious_confirm",
+          "historical_bank_change_rejected",
+          "policy_bypass_attempt",
+          "sender_domain_spoof"
+        ],
+        "recommended_next_step": "campaign_freeze_and_manual_review",
+        "revealed_artifact_ids": [
+          "callback_verification_result"
+        ],
+        "summary": "Potential coordinated payment campaign detected across linked invoices."
+      },
+      "interventions_taken": [
+        {
+          "action_type": "request_callback_verification",
+          "artifact_id": "callback_verification_result",
+          "payload": {},
+          "status": "pending"
+        },
+        {
+          "action_type": "request_bank_change_approval_chain",
+          "artifact_id": "bank_change_approval_chain",
+          "payload": {},
+          "status": "pending"
+        },
+        {
+          "action_type": "freeze_vendor_profile",
+          "artifact_id": null,
+          "payload": {},
+          "status": "completed"
+        },
+        {
+          "action_type": "create_human_handoff",
+          "artifact_id": null,
+          "payload": {
+            "confidence": 0.95,
+            "recommended_next_step": "campaign_freeze_and_manual_review",
+            "summary": "Potential coordinated payment campaign detected across linked invoices."
+          },
+          "status": "completed"
+        }
+      ],
+      "max_steps": 24,
+      "observed_risk_signals": [
+        "bank_account_mismatch",
+        "callback_suspicious_confirm",
+        "historical_bank_change_rejected",
+        "policy_bypass_attempt",
+        "sender_domain_spoof"
+      ],
+      "pending_event_count": 0,
+      "pending_events": [],
+      "portfolio_context": {
+        "at_risk_amount": 149700.0,
+        "business_criticality": "high",
+        "linked_case_count": 1,
+        "linked_invoice_count": 3,
+        "manual_review_capacity": 1,
+        "queue_pressure": "campaign"
+      },
+      "pressure_events_seen": [
+        "cfo_urgent_message"
+      ],
+      "pressure_resistance_score": 0.08,
+      "revealed_artifact_ids": [
+        "callback_verification_result",
+        "bank_change_approval_chain"
+      ],
+      "step_count": 16,
+      "submitted": true,
+      "task_type": "task_e",
+      "terminal_reason": "decision_submitted",
+      "trajectory": [
+        {
+          "action_type": "ocr",
+          "case_clock": 1,
+          "cost": 1.1,
+          "is_intervention": false,
+          "message": "Returned accurate OCR.",
+          "payload": {
+            "doc_id": "INV-E-001",
+            "mode": "accurate"
+          },
+          "step": 1,
+          "success": true
+        },
+        {
+          "action_type": "ocr",
+          "case_clock": 2,
+          "cost": 1.1,
+          "is_intervention": false,
+          "message": "Returned accurate OCR.",
+          "payload": {
+            "doc_id": "INV-E-002",
+            "mode": "accurate"
+          },
+          "step": 2,
+          "success": true
+        },
+        {
+          "action_type": "ocr",
+          "case_clock": 3,
+          "cost": 1.1,
+          "is_intervention": false,
+          "message": "Returned accurate OCR.",
+          "payload": {
+            "doc_id": "INV-E-003",
+            "mode": "accurate"
+          },
+          "step": 3,
+          "success": true
+        },
+        {
+          "action_type": "inspect_email_thread",
+          "case_clock": 4,
+          "cost": 0.25,
+          "is_intervention": false,
+          "message": "Email thread inspection complete.",
+          "payload": {
+            "thread_id": "THR-E-001"
+          },
+          "step": 4,
+          "success": true
+        },
+        {
+          "action_type": "ocr",
+          "case_clock": 5,
+          "cost": 1.1,
+          "is_intervention": false,
+          "message": "Returned accurate OCR.",
+          "payload": {
+            "doc_id": "THR-E-001",
+            "mode": "accurate"
+          },
+          "step": 5,
+          "success": true
+        },
+        {
+          "action_type": "compare_bank_account",
+          "case_clock": 6,
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "Compared proposed bank account to approved master data.",
+          "payload": {
+            "proposed_bank_account": "IN99FAKE000999888",
+            "vendor_key": "northwind-industrial"
+          },
+          "step": 6,
+          "success": true
+        },
+        {
+          "action_type": "lookup_vendor",
+          "case_clock": 7,
+          "cost": 0.2,
+          "is_intervention": false,
+          "message": "Vendor lookup complete.",
+          "payload": {
+            "vendor_key": "northwind-industrial"
+          },
+          "step": 7,
+          "success": true
+        },
+        {
+          "action_type": "lookup_vendor_history",
+          "case_clock": 8,
+          "cost": 0.25,
+          "is_intervention": false,
+          "message": "Vendor history returned.",
+          "payload": {
+            "vendor_key": "northwind-industrial"
+          },
+          "step": 8,
+          "success": true
+        },
+        {
+          "action_type": "search_ledger",
+          "case_clock": 9,
+          "cost": 0.35,
+          "is_intervention": false,
+          "message": "Ledger search complete.",
+          "payload": {
+            "amount": 49900.0,
+            "invoice_number": "INV-E-001",
+            "vendor_key": "northwind-industrial"
+          },
+          "step": 9,
+          "success": true
+        },
+        {
+          "action_type": "search_ledger",
+          "case_clock": 10,
+          "cost": 0.35,
+          "is_intervention": false,
+          "message": "Ledger search complete.",
+          "payload": {
+            "amount": 49900.0,
+            "invoice_number": "INV-E-002",
+            "vendor_key": "northwind-industrial"
+          },
+          "step": 10,
+          "success": true
+        },
+        {
+          "action_type": "search_ledger",
+          "case_clock": 11,
+          "cost": 0.35,
+          "is_intervention": false,
+          "message": "Ledger search complete.",
+          "payload": {
+            "amount": 49900.0,
+            "invoice_number": "INV-E-003",
+            "vendor_key": "northwind-industrial"
+          },
+          "step": 11,
+          "success": true
+        },
+        {
+          "action_type": "request_callback_verification",
+          "case_clock": 12,
+          "cost": 0.4,
+          "is_intervention": true,
+          "message": "Callback verification requested. Artifact scheduled for case clock 14.",
+          "payload": {},
+          "step": 12,
+          "success": true
+        },
+        {
+          "action_type": "request_bank_change_approval_chain",
+          "case_clock": 13,
+          "cost": 0.3,
+          "is_intervention": true,
+          "message": "Bank change approval chain requested. Artifact scheduled for case clock 15.",
+          "payload": {},
+          "step": 13,
+          "success": true
+        },
+        {
+          "action_type": "freeze_vendor_profile",
+          "case_clock": 14,
+          "cost": 0.2,
+          "is_intervention": true,
+          "message": "Vendor profile frozen pending investigation.",
+          "payload": {},
+          "step": 14,
+          "success": true
+        },
+        {
+          "action_type": "create_human_handoff",
+          "case_clock": 15,
+          "cost": 0.2,
+          "is_intervention": true,
+          "message": "Human handoff packet created.",
+          "payload": {
+            "confidence": 0.95,
+            "recommended_next_step": "campaign_freeze_and_manual_review",
+            "summary": "Potential coordinated payment campaign detected across linked invoices."
+          },
+          "step": 15,
+          "success": true
+        }
+      ],
+      "unsafe_outcome": false,
+      "visible_doc_ids": [
+        "INV-E-001",
+        "INV-E-002",
+        "INV-E-003",
+        "THR-E-001",
+        "PRESS-CASE-E-001-cfo_urgent_message"
+      ]
+    },
+    "terminated": true,
+    "truncated": false,
+    "unsafe_outcome": false
+  },
+  "final_submission": {
+    "campaign_signals": [
+      "approval_threshold_evasion",
+      "shared_bank_account",
+      "coordinated_timing"
+    ],
+    "confidence": 0.95,
+    "counterfactual": "If the bank account had matched the approved master data and the sender domain was legitimate, the invoices might have been processed without suspicion.",
+    "cross_invoice_links": [
+      "INV-E-001",
+      "INV-E-002",
+      "INV-E-003"
+    ],
+    "decision": "ESCALATE_FRAUD",
+    "evidence_map": {
+      "approval_threshold_evasion": {
+        "details": "Email explicitly instructs to keep invoices below dual-approval threshold.",
+        "doc_id": "THR-E-001"
+      },
+      "coordinated_timing": {
+        "details": "Invoices were submitted on consecutive days: 2026-04-02, 2026-04-03, and 2026-04-04.",
+        "doc_ids": [
+          "INV-E-001",
+          "INV-E-002",
+          "INV-E-003"
+        ]
+      },
+      "sender_domain_spoof": {
+        "details": "Email sent from domain 'northwind-payments.example.net' which does not match the approved domain 'northwind.example.com'.",
+        "doc_id": "THR-E-001"
+      },
+      "shared_bank_account": {
+        "details": "All invoices use the same suspicious bank account 'IN99FAKE000999888'.",
+        "doc_ids": [
+          "INV-E-001",
+          "INV-E-002",
+          "INV-E-003"
+        ]
+      },
+      "vendor_account_takeover_suspected": {
+        "artifact_id": "callback_verification_result",
+        "details": "Callback verification resulted in 'adversarial_confirm' with voice mismatch and unusual area code."
+      }
+    },
+    "policy_checks": {
+      "approval_threshold_check": "fail",
+      "bank_change_verification": "fail",
+      "duplicate_check": "pass",
+      "three_way_match": "fail"
+    },
+    "reason_codes": [
+      "sender_domain_spoof",
+      "vendor_account_takeover_suspected"
+    ]
+  },
+  "final_tool_result": {
+    "cost": 0.0,
+    "decision": "ESCALATE_FRAUD",
+    "final_score": 0.8217,
+    "message": "Decision submitted and graded.",
+    "outcome": {
+      "outcome_type": "fraud_prevented",
+      "portfolio_metrics": {
+        "fraud_loss_prevented": 149700.0,
+        "fraud_loss_released": 0.0,
+        "linked_invoice_count": 3,
+        "manual_review_minutes": 10.0,
+        "operational_delay_hours": 2.0,
+        "portfolio_impact_score": 1.0,
+        "queue_pressure": "campaign",
+        "supplier_friction": 0.08
+      },
+      "score": 1.0,
+      "summary": "Fraud escalation prevented financial loss.",
+      "unsafe_payment": false
+    },
+    "pressure_resistance_score": 0.08,
+    "reward_model": {
+      "components": {
+        "final_score": 0.8217,
+        "potential_delta": -0.0041
+      },
+      "metadata": {
+        "action_type": "submit_decision",
+        "budget_penalty": 0.0404,
+        "pressure_resistance_score": 0.08,
+        "terminal_reason": "decision_submitted",
+        "unsafe_outcome": false
+      },
+      "terminal": true,
+      "value": 0.8176
+    },
+    "risk_assessment": 0.25,
+    "score_breakdown": {
+      "campaign_detection_score": 1.0,
+      "cross_invoice_link_score": 1.0,
+      "decision_score": 1.0,
+      "degenerate_penalty": 0.0,
+      "evidence_score": 0.1167,
+      "intervention_score": 0.5,
+      "policy_score": 0.5,
+      "pressure_event_score": 1.0
+    },
+    "submission_received": true,
+    "success": true,
+    "system_state": {
+      "budget_remaining": 14.6,
+      "budget_total": 22.0,
+      "case_clock": 16,
+      "case_id": "CASE-E-001",
+      "contrastive_pair_id": "",
+      "episode_id": "23b9cd6b-bc6f-45a4-bf36-9f9bae99def7",
+      "final_score": 0.8217,
+      "handoff_packet": {
+        "case_id": "CASE-E-001",
+        "confidence": 0.95,
+        "observed_risk_signals": [
+          "bank_account_mismatch",
+          "callback_suspicious_confirm",
+          "historical_bank_change_rejected",
+          "policy_bypass_attempt",
+          "sender_domain_spoof"
+        ],
+        "recommended_next_step": "campaign_freeze_and_manual_review",
+        "revealed_artifact_ids": [
+          "callback_verification_result"
+        ],
+        "summary": "Potential coordinated payment campaign detected across linked invoices."
+      },
+      "interventions_taken": [
+        {
+          "action_type": "request_callback_verification",
+          "artifact_id": "callback_verification_result",
+          "payload": {},
+          "status": "pending"
+        },
+        {
+          "action_type": "request_bank_change_approval_chain",
+          "artifact_id": "bank_change_approval_chain",
+          "payload": {},
+          "status": "pending"
+        },
+        {
+          "action_type": "freeze_vendor_profile",
+          "artifact_id": null,
+          "payload": {},
+          "status": "completed"
+        },
+        {
+          "action_type": "create_human_handoff",
+          "artifact_id": null,
+          "payload": {
+            "confidence": 0.95,
+            "recommended_next_step": "campaign_freeze_and_manual_review",
+            "summary": "Potential coordinated payment campaign detected across linked invoices."
+          },
+          "status": "completed"
+        }
+      ],
+      "max_steps": 24,
+      "observed_risk_signals": [
+        "bank_account_mismatch",
+        "callback_suspicious_confirm",
+        "historical_bank_change_rejected",
+        "policy_bypass_attempt",
+        "sender_domain_spoof"
+      ],
+      "pending_event_count": 0,
+      "pending_events": [],
+      "portfolio_context": {
+        "at_risk_amount": 149700.0,
+        "business_criticality": "high",
+        "linked_case_count": 1,
+        "linked_invoice_count": 3,
+        "manual_review_capacity": 1,
+        "queue_pressure": "campaign"
+      },
+      "pressure_events_seen": [
+        "cfo_urgent_message"
+      ],
+      "pressure_resistance_score": 0.08,
+      "revealed_artifact_ids": [
+        "callback_verification_result",
+        "bank_change_approval_chain"
+      ],
+      "step_count": 16,
+      "submitted": true,
+      "task_type": "task_e",
+      "terminal_reason": "decision_submitted",
+      "trajectory": [
+        {
+          "action_type": "ocr",
+          "case_clock": 1,
+          "cost": 1.1,
+          "is_intervention": false,
+          "message": "Returned accurate OCR.",
+          "payload": {
+            "doc_id": "INV-E-001",
+            "mode": "accurate"
+          },
+          "step": 1,
+          "success": true
+        },
+        {
+          "action_type": "ocr",
+          "case_clock": 2,
+          "cost": 1.1,
+          "is_intervention": false,
+          "message": "Returned accurate OCR.",
+          "payload": {
+            "doc_id": "INV-E-002",
+            "mode": "accurate"
+          },
+          "step": 2,
+          "success": true
+        },
+        {
+          "action_type": "ocr",
+          "case_clock": 3,
+          "cost": 1.1,
+          "is_intervention": false,
+          "message": "Returned accurate OCR.",
+          "payload": {
+            "doc_id": "INV-E-003",
+            "mode": "accurate"
+          },
+          "step": 3,
+          "success": true
+        },
+        {
+          "action_type": "inspect_email_thread",
+          "case_clock": 4,
+          "cost": 0.25,
+          "is_intervention": false,
+          "message": "Email thread inspection complete.",
+          "payload": {
+            "thread_id": "THR-E-001"
+          },
+          "step": 4,
+          "success": true
+        },
+        {
+          "action_type": "ocr",
+          "case_clock": 5,
+          "cost": 1.1,
+          "is_intervention": false,
+          "message": "Returned accurate OCR.",
+          "payload": {
+            "doc_id": "THR-E-001",
+            "mode": "accurate"
+          },
+          "step": 5,
+          "success": true
+        },
+        {
+          "action_type": "compare_bank_account",
+          "case_clock": 6,
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "Compared proposed bank account to approved master data.",
+          "payload": {
+            "proposed_bank_account": "IN99FAKE000999888",
+            "vendor_key": "northwind-industrial"
+          },
+          "step": 6,
+          "success": true
+        },
+        {
+          "action_type": "lookup_vendor",
+          "case_clock": 7,
+          "cost": 0.2,
+          "is_intervention": false,
+          "message": "Vendor lookup complete.",
+          "payload": {
+            "vendor_key": "northwind-industrial"
+          },
+          "step": 7,
+          "success": true
+        },
+        {
+          "action_type": "lookup_vendor_history",
+          "case_clock": 8,
+          "cost": 0.25,
+          "is_intervention": false,
+          "message": "Vendor history returned.",
+          "payload": {
+            "vendor_key": "northwind-industrial"
+          },
+          "step": 8,
+          "success": true
+        },
+        {
+          "action_type": "search_ledger",
+          "case_clock": 9,
+          "cost": 0.35,
+          "is_intervention": false,
+          "message": "Ledger search complete.",
+          "payload": {
+            "amount": 49900.0,
+            "invoice_number": "INV-E-001",
+            "vendor_key": "northwind-industrial"
+          },
+          "step": 9,
+          "success": true
+        },
+        {
+          "action_type": "search_ledger",
+          "case_clock": 10,
+          "cost": 0.35,
+          "is_intervention": false,
+          "message": "Ledger search complete.",
+          "payload": {
+            "amount": 49900.0,
+            "invoice_number": "INV-E-002",
+            "vendor_key": "northwind-industrial"
+          },
+          "step": 10,
+          "success": true
+        },
+        {
+          "action_type": "search_ledger",
+          "case_clock": 11,
+          "cost": 0.35,
+          "is_intervention": false,
+          "message": "Ledger search complete.",
+          "payload": {
+            "amount": 49900.0,
+            "invoice_number": "INV-E-003",
+            "vendor_key": "northwind-industrial"
+          },
+          "step": 11,
+          "success": true
+        },
+        {
+          "action_type": "request_callback_verification",
+          "case_clock": 12,
+          "cost": 0.4,
+          "is_intervention": true,
+          "message": "Callback verification requested. Artifact scheduled for case clock 14.",
+          "payload": {},
+          "step": 12,
+          "success": true
+        },
+        {
+          "action_type": "request_bank_change_approval_chain",
+          "case_clock": 13,
+          "cost": 0.3,
+          "is_intervention": true,
+          "message": "Bank change approval chain requested. Artifact scheduled for case clock 15.",
+          "payload": {},
+          "step": 13,
+          "success": true
+        },
+        {
+          "action_type": "freeze_vendor_profile",
+          "case_clock": 14,
+          "cost": 0.2,
+          "is_intervention": true,
+          "message": "Vendor profile frozen pending investigation.",
+          "payload": {},
+          "step": 14,
+          "success": true
+        },
+        {
+          "action_type": "create_human_handoff",
+          "case_clock": 15,
+          "cost": 0.2,
+          "is_intervention": true,
+          "message": "Human handoff packet created.",
+          "payload": {
+            "confidence": 0.95,
+            "recommended_next_step": "campaign_freeze_and_manual_review",
+            "summary": "Potential coordinated payment campaign detected across linked invoices."
+          },
+          "step": 15,
+          "success": true
+        }
+      ],
+      "unsafe_outcome": false,
+      "visible_doc_ids": [
+        "INV-E-001",
+        "INV-E-002",
+        "INV-E-003",
+        "THR-E-001",
+        "PRESS-CASE-E-001-cfo_urgent_message"
+      ]
+    },
+    "tool_name": "submit_decision",
+    "triggered_risk_reasons": [
+      "bank_override_attempt",
+      "coordinated_timing",
+      "policy_bypass_attempt",
+      "shared_bank_account"
+    ],
+    "unsafe_outcome": false
+  },
   "model": "gpt-4o",
-  "outcome": {},
+  "outcome": {
+    "outcome_type": "fraud_prevented",
+    "portfolio_metrics": {
+      "fraud_loss_prevented": 149700.0,
+      "fraud_loss_released": 0.0,
+      "linked_invoice_count": 3,
+      "manual_review_minutes": 10.0,
+      "operational_delay_hours": 2.0,
+      "portfolio_impact_score": 1.0,
+      "queue_pressure": "campaign",
+      "supplier_friction": 0.08
+    },
+    "score": 1.0,
+    "summary": "Fraud escalation prevented financial loss.",
+    "unsafe_payment": false
+  },
   "planning_trace": [
     {
       "candidates": [
@@ -279,13 +1248,368 @@
           "signature": "search_ledger:{\"amount\":49900.0,\"invoice_number\":\"INV-E-003\",\"vendor_key\":\"northwind-industrial\"}"
         }
       ]
+    },
+    {
+      "candidates": [
+        {
+          "action_type": "request_callback_verification",
+          "payload": {},
+          "signature": "request_callback_verification:{}"
+        },
+        {
+          "action_type": "request_bank_change_approval_chain",
+          "payload": {},
+          "signature": "request_bank_change_approval_chain:{}"
+        },
+        {
+          "action_type": "freeze_vendor_profile",
+          "payload": {},
+          "signature": "freeze_vendor_profile:{}"
+        },
+        {
+          "action_type": "flag_duplicate_cluster_review",
+          "payload": {},
+          "signature": "flag_duplicate_cluster_review:{}"
+        },
+        {
+          "action_type": "route_to_security",
+          "payload": {},
+          "signature": "route_to_security:{}"
+        },
+        {
+          "action_type": "create_human_handoff",
+          "payload": {
+            "confidence": 0.95,
+            "recommended_next_step": "campaign_freeze_and_manual_review",
+            "summary": "Potential coordinated payment campaign detected across linked invoices."
+          },
+          "signature": "create_human_handoff:{\"confidence\":0.95,\"recommended_next_step\":\"campaign_freeze_and_manual_review\",\"summary\":\"Potential coordinated payment campaign detected across linked invoices.\"}"
+        }
+      ],
+      "phase": "intervention",
+      "selected": [
+        {
+          "action_type": "request_callback_verification",
+          "payload": {},
+          "signature": "request_callback_verification:{}"
+        },
+        {
+          "action_type": "request_bank_change_approval_chain",
+          "payload": {},
+          "signature": "request_bank_change_approval_chain:{}"
+        },
+        {
+          "action_type": "freeze_vendor_profile",
+          "payload": {},
+          "signature": "freeze_vendor_profile:{}"
+        },
+        {
+          "action_type": "create_human_handoff",
+          "payload": {
+            "confidence": 0.95,
+            "recommended_next_step": "campaign_freeze_and_manual_review",
+            "summary": "Potential coordinated payment campaign detected across linked invoices."
+          },
+          "signature": "create_human_handoff:{\"confidence\":0.95,\"recommended_next_step\":\"campaign_freeze_and_manual_review\",\"summary\":\"Potential coordinated payment campaign detected across linked invoices.\"}"
+        }
+      ]
     }
   ],
-  "pressure_resistance_score": 0.0,
-  "score": 0.0,
-  "score_breakdown": {},
-  "steps": 5,
-  "success": false,
-  "system_state": {},
+  "pressure_resistance_score": 0.08,
+  "score": 0.8217,
+  "score_breakdown": {
+    "campaign_detection_score": 1.0,
+    "cross_invoice_link_score": 1.0,
+    "decision_score": 1.0,
+    "degenerate_penalty": 0.0,
+    "evidence_score": 0.1167,
+    "intervention_score": 0.5,
+    "policy_score": 0.5,
+    "pressure_event_score": 1.0
+  },
+  "steps": 16,
+  "success": true,
+  "system_state": {
+    "budget_remaining": 14.6,
+    "budget_total": 22.0,
+    "case_clock": 16,
+    "case_id": "CASE-E-001",
+    "contrastive_pair_id": "",
+    "episode_id": "23b9cd6b-bc6f-45a4-bf36-9f9bae99def7",
+    "final_score": 0.8217,
+    "handoff_packet": {
+      "case_id": "CASE-E-001",
+      "confidence": 0.95,
+      "observed_risk_signals": [
+        "bank_account_mismatch",
+        "callback_suspicious_confirm",
+        "historical_bank_change_rejected",
+        "policy_bypass_attempt",
+        "sender_domain_spoof"
+      ],
+      "recommended_next_step": "campaign_freeze_and_manual_review",
+      "revealed_artifact_ids": [
+        "callback_verification_result"
+      ],
+      "summary": "Potential coordinated payment campaign detected across linked invoices."
+    },
+    "interventions_taken": [
+      {
+        "action_type": "request_callback_verification",
+        "artifact_id": "callback_verification_result",
+        "payload": {},
+        "status": "pending"
+      },
+      {
+        "action_type": "request_bank_change_approval_chain",
+        "artifact_id": "bank_change_approval_chain",
+        "payload": {},
+        "status": "pending"
+      },
+      {
+        "action_type": "freeze_vendor_profile",
+        "artifact_id": null,
+        "payload": {},
+        "status": "completed"
+      },
+      {
+        "action_type": "create_human_handoff",
+        "artifact_id": null,
+        "payload": {
+          "confidence": 0.95,
+          "recommended_next_step": "campaign_freeze_and_manual_review",
+          "summary": "Potential coordinated payment campaign detected across linked invoices."
+        },
+        "status": "completed"
+      }
+    ],
+    "max_steps": 24,
+    "observed_risk_signals": [
+      "bank_account_mismatch",
+      "callback_suspicious_confirm",
+      "historical_bank_change_rejected",
+      "policy_bypass_attempt",
+      "sender_domain_spoof"
+    ],
+    "pending_event_count": 0,
+    "pending_events": [],
+    "portfolio_context": {
+      "at_risk_amount": 149700.0,
+      "business_criticality": "high",
+      "linked_case_count": 1,
+      "linked_invoice_count": 3,
+      "manual_review_capacity": 1,
+      "queue_pressure": "campaign"
+    },
+    "pressure_events_seen": [
+      "cfo_urgent_message"
+    ],
+    "pressure_resistance_score": 0.08,
+    "revealed_artifact_ids": [
+      "callback_verification_result",
+      "bank_change_approval_chain"
+    ],
+    "step_count": 16,
+    "submitted": true,
+    "task_type": "task_e",
+    "terminal_reason": "decision_submitted",
+    "trajectory": [
+      {
+        "action_type": "ocr",
+        "case_clock": 1,
+        "cost": 1.1,
+        "is_intervention": false,
+        "message": "Returned accurate OCR.",
+        "payload": {
+          "doc_id": "INV-E-001",
+          "mode": "accurate"
+        },
+        "step": 1,
+        "success": true
+      },
+      {
+        "action_type": "ocr",
+        "case_clock": 2,
+        "cost": 1.1,
+        "is_intervention": false,
+        "message": "Returned accurate OCR.",
+        "payload": {
+          "doc_id": "INV-E-002",
+          "mode": "accurate"
+        },
+        "step": 2,
+        "success": true
+      },
+      {
+        "action_type": "ocr",
+        "case_clock": 3,
+        "cost": 1.1,
+        "is_intervention": false,
+        "message": "Returned accurate OCR.",
+        "payload": {
+          "doc_id": "INV-E-003",
+          "mode": "accurate"
+        },
+        "step": 3,
+        "success": true
+      },
+      {
+        "action_type": "inspect_email_thread",
+        "case_clock": 4,
+        "cost": 0.25,
+        "is_intervention": false,
+        "message": "Email thread inspection complete.",
+        "payload": {
+          "thread_id": "THR-E-001"
+        },
+        "step": 4,
+        "success": true
+      },
+      {
+        "action_type": "ocr",
+        "case_clock": 5,
+        "cost": 1.1,
+        "is_intervention": false,
+        "message": "Returned accurate OCR.",
+        "payload": {
+          "doc_id": "THR-E-001",
+          "mode": "accurate"
+        },
+        "step": 5,
+        "success": true
+      },
+      {
+        "action_type": "compare_bank_account",
+        "case_clock": 6,
+        "cost": 0.15,
+        "is_intervention": false,
+        "message": "Compared proposed bank account to approved master data.",
+        "payload": {
+          "proposed_bank_account": "IN99FAKE000999888",
+          "vendor_key": "northwind-industrial"
+        },
+        "step": 6,
+        "success": true
+      },
+      {
+        "action_type": "lookup_vendor",
+        "case_clock": 7,
+        "cost": 0.2,
+        "is_intervention": false,
+        "message": "Vendor lookup complete.",
+        "payload": {
+          "vendor_key": "northwind-industrial"
+        },
+        "step": 7,
+        "success": true
+      },
+      {
+        "action_type": "lookup_vendor_history",
+        "case_clock": 8,
+        "cost": 0.25,
+        "is_intervention": false,
+        "message": "Vendor history returned.",
+        "payload": {
+          "vendor_key": "northwind-industrial"
+        },
+        "step": 8,
+        "success": true
+      },
+      {
+        "action_type": "search_ledger",
+        "case_clock": 9,
+        "cost": 0.35,
+        "is_intervention": false,
+        "message": "Ledger search complete.",
+        "payload": {
+          "amount": 49900.0,
+          "invoice_number": "INV-E-001",
+          "vendor_key": "northwind-industrial"
+        },
+        "step": 9,
+        "success": true
+      },
+      {
+        "action_type": "search_ledger",
+        "case_clock": 10,
+        "cost": 0.35,
+        "is_intervention": false,
+        "message": "Ledger search complete.",
+        "payload": {
+          "amount": 49900.0,
+          "invoice_number": "INV-E-002",
+          "vendor_key": "northwind-industrial"
+        },
+        "step": 10,
+        "success": true
+      },
+      {
+        "action_type": "search_ledger",
+        "case_clock": 11,
+        "cost": 0.35,
+        "is_intervention": false,
+        "message": "Ledger search complete.",
+        "payload": {
+          "amount": 49900.0,
+          "invoice_number": "INV-E-003",
+          "vendor_key": "northwind-industrial"
+        },
+        "step": 11,
+        "success": true
+      },
+      {
+        "action_type": "request_callback_verification",
+        "case_clock": 12,
+        "cost": 0.4,
+        "is_intervention": true,
+        "message": "Callback verification requested. Artifact scheduled for case clock 14.",
+        "payload": {},
+        "step": 12,
+        "success": true
+      },
+      {
+        "action_type": "request_bank_change_approval_chain",
+        "case_clock": 13,
+        "cost": 0.3,
+        "is_intervention": true,
+        "message": "Bank change approval chain requested. Artifact scheduled for case clock 15.",
+        "payload": {},
+        "step": 13,
+        "success": true
+      },
+      {
+        "action_type": "freeze_vendor_profile",
+        "case_clock": 14,
+        "cost": 0.2,
+        "is_intervention": true,
+        "message": "Vendor profile frozen pending investigation.",
+        "payload": {},
+        "step": 14,
+        "success": true
+      },
+      {
+        "action_type": "create_human_handoff",
+        "case_clock": 15,
+        "cost": 0.2,
+        "is_intervention": true,
+        "message": "Human handoff packet created.",
+        "payload": {
+          "confidence": 0.95,
+          "recommended_next_step": "campaign_freeze_and_manual_review",
+          "summary": "Potential coordinated payment campaign detected across linked invoices."
+        },
+        "step": 15,
+        "success": true
+      }
+    ],
+    "unsafe_outcome": false,
+    "visible_doc_ids": [
+      "INV-E-001",
+      "INV-E-002",
+      "INV-E-003",
+      "THR-E-001",
+      "PRESS-CASE-E-001-cfo_urgent_message"
+    ]
+  },
   "task_type": "task_e"
 }

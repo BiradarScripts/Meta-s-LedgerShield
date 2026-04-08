@@ -77,7 +77,7 @@
       "action_type": "submit_decision",
       "done": true,
       "payload": {
-        "confidence": 0.91,
+        "confidence": 0.93,
         "decision": "HOLD",
         "discrepancies": [
           "quantity_mismatch"
@@ -105,7 +105,7 @@
         }
       },
       "phase": "submit",
-      "reward": 0.8683810000000001,
+      "reward": 0.868781,
       "step": 7,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -166,7 +166,7 @@
         "summary": "Receipt reconciliation completed: reconciled_clean."
       }
     ],
-    "final_score": 0.8706,
+    "final_score": 0.871,
     "outcome": {
       "outcome_type": "manual_review_created",
       "portfolio_metrics": {
@@ -186,7 +186,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.8706,
+        "final_score": 0.871,
         "potential_delta": -0.0022
       },
       "metadata": {
@@ -197,10 +197,10 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.8684
+      "value": 0.8688
     },
     "score_breakdown": {
-      "calibration_score": 0.964,
+      "calibration_score": 0.972,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
       "discrepancy_score": 1.0,
@@ -217,8 +217,8 @@
       "case_clock": 7,
       "case_id": "CASE-B-004",
       "contrastive_pair_id": "",
-      "episode_id": "b1ef4a1a-bd1b-4054-9049-2bf266f5ee1b",
-      "final_score": 0.8706,
+      "episode_id": "919c2a47-0f23-4aa8-8caf-4a3285e9208e",
+      "final_score": 0.871,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -240,7 +240,7 @@
       "pending_events": [
         {
           "artifact_id": "receipt_reconciliation_report",
-          "event_id": "evt-0c586058",
+          "event_id": "evt-7a541bba",
           "ready_at_clock": 7,
           "source_action": "request_additional_receipt_evidence",
           "status": "pending"
@@ -342,7 +342,7 @@
     "unsafe_outcome": false
   },
   "final_submission": {
-    "confidence": 0.91,
+    "confidence": 0.93,
     "decision": "HOLD",
     "discrepancies": [
       "quantity_mismatch"
@@ -385,7 +385,7 @@
     ],
     "cost": 0.0,
     "decision": "HOLD",
-    "final_score": 0.8706,
+    "final_score": 0.871,
     "message": "Decision submitted and graded.",
     "novel_signal_count": 0,
     "outcome": {
@@ -410,7 +410,7 @@
     ],
     "reward_model": {
       "components": {
-        "final_score": 0.8706,
+        "final_score": 0.871,
         "potential_delta": -0.0022
       },
       "metadata": {
@@ -421,11 +421,11 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.8684
+      "value": 0.8688
     },
     "risk_assessment": 0.14,
     "score_breakdown": {
-      "calibration_score": 0.964,
+      "calibration_score": 0.972,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
       "discrepancy_score": 1.0,
@@ -444,8 +444,8 @@
       "case_clock": 7,
       "case_id": "CASE-B-004",
       "contrastive_pair_id": "",
-      "episode_id": "b1ef4a1a-bd1b-4054-9049-2bf266f5ee1b",
-      "final_score": 0.8706,
+      "episode_id": "919c2a47-0f23-4aa8-8caf-4a3285e9208e",
+      "final_score": 0.871,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -467,7 +467,7 @@
       "pending_events": [
         {
           "artifact_id": "receipt_reconciliation_report",
-          "event_id": "evt-0c586058",
+          "event_id": "evt-7a541bba",
           "ready_at_clock": 7,
           "source_action": "request_additional_receipt_evidence",
           "status": "pending"
@@ -668,9 +668,9 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.8706,
+  "score": 0.871,
   "score_breakdown": {
-    "calibration_score": 0.964,
+    "calibration_score": 0.972,
     "decision_score": 1.0,
     "degenerate_penalty": 0.0,
     "discrepancy_score": 1.0,
@@ -689,8 +689,8 @@
     "case_clock": 7,
     "case_id": "CASE-B-004",
     "contrastive_pair_id": "",
-    "episode_id": "b1ef4a1a-bd1b-4054-9049-2bf266f5ee1b",
-    "final_score": 0.8706,
+    "episode_id": "919c2a47-0f23-4aa8-8caf-4a3285e9208e",
+    "final_score": 0.871,
     "handoff_packet": {},
     "interventions_taken": [
       {
@@ -712,7 +712,7 @@
     "pending_events": [
       {
         "artifact_id": "receipt_reconciliation_report",
-        "event_id": "evt-0c586058",
+        "event_id": "evt-7a541bba",
         "ready_at_clock": 7,
         "source_action": "request_additional_receipt_evidence",
         "status": "pending"

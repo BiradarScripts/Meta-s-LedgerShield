@@ -191,7 +191,7 @@
       "case_clock": 5,
       "case_id": "CASE-B-002",
       "contrastive_pair_id": "",
-      "episode_id": "171ea1e4-8412-4f01-bba3-0fce9256f257",
+      "episode_id": "9f4ce80c-88eb-47b0-817b-4660ac1651dc",
       "final_score": 0.8876,
       "handoff_packet": {},
       "interventions_taken": [
@@ -208,7 +208,7 @@
       "pending_events": [
         {
           "artifact_id": "po_reconciliation_report",
-          "event_id": "evt-567fef74",
+          "event_id": "evt-4b8d9ae3",
           "ready_at_clock": 5,
           "source_action": "request_po_reconciliation",
           "status": "pending"
@@ -388,7 +388,7 @@
       "case_clock": 5,
       "case_id": "CASE-B-002",
       "contrastive_pair_id": "",
-      "episode_id": "171ea1e4-8412-4f01-bba3-0fce9256f257",
+      "episode_id": "9f4ce80c-88eb-47b0-817b-4660ac1651dc",
       "final_score": 0.8876,
       "handoff_packet": {},
       "interventions_taken": [
@@ -405,7 +405,7 @@
       "pending_events": [
         {
           "artifact_id": "po_reconciliation_report",
-          "event_id": "evt-567fef74",
+          "event_id": "evt-4b8d9ae3",
           "ready_at_clock": 5,
           "source_action": "request_po_reconciliation",
           "status": "pending"
@@ -586,7 +586,7 @@
     "case_clock": 5,
     "case_id": "CASE-B-002",
     "contrastive_pair_id": "",
-    "episode_id": "171ea1e4-8412-4f01-bba3-0fce9256f257",
+    "episode_id": "9f4ce80c-88eb-47b0-817b-4660ac1651dc",
     "final_score": 0.8876,
     "handoff_packet": {},
     "interventions_taken": [
@@ -603,7 +603,7 @@
     "pending_events": [
       {
         "artifact_id": "po_reconciliation_report",
-        "event_id": "evt-567fef74",
+        "event_id": "evt-4b8d9ae3",
         "ready_at_clock": 5,
         "source_action": "request_po_reconciliation",
         "status": "pending"

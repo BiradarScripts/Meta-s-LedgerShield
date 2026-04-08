@@ -185,6 +185,10 @@ def token_ref(token: dict[str, Any], doc_id: str) -> dict[str, Any]:
         "token_ids": [str(token.get("token_id", ""))],
     }
 
+
+def _looks_like_token_ref(value: Any) -> bool:
+    return isinstance(value, dict) and {"doc_id", "page", "bbox", "token_ids"} <= set(value)
+
 def parse_invoice_tokens(tokens: list[dict[str, Any]], doc_id: str) -> tuple[dict[str, Any], dict[str, Any], list[dict[str, Any]]]:
     fields: dict[str, Any] = {}
     evidence: dict[str, Any] = {}
@@ -897,23 +901,17 @@ def sanitize_task_e_submission(candidate: dict[str, Any], collected: dict[str, A
         if str(link).strip() in allowed_links
     ]
 
-    policy_checks: dict[str, str] = {}
-    candidate_policy_checks = (candidate or {}).get("policy_checks", {}) or {}
-    if isinstance(candidate_policy_checks, dict):
-        for key in grounded.get("policy_checks", {}):
-            value = candidate_policy_checks.get(key)
-            if value is None:
-                continue
-            policy_checks[key] = str(value).strip().lower()
+    policy_checks = dict(grounded.get("policy_checks", {}) or {})
 
     candidate_evidence = (candidate or {}).get("evidence_map", {}) or {}
     grounded_evidence = grounded.get("evidence_map", {}) or {}
     evidence_keys = set(reason_codes) | set(campaign_signals)
-    evidence_map = {
-        key: candidate_evidence.get(key) if isinstance(candidate_evidence.get(key), dict) else grounded_evidence.get(key)
-        for key in evidence_keys
-        if key in grounded_evidence
-    }
+    evidence_map = {}
+    for key in evidence_keys:
+        if key not in grounded_evidence:
+            continue
+        candidate_ref = candidate_evidence.get(key)
+        evidence_map[key] = candidate_ref if _looks_like_token_ref(candidate_ref) else grounded_evidence.get(key)
 
     counterfactual = str((candidate or {}).get("counterfactual", "")).strip()
     if len(counterfactual.split()) < 6:
@@ -1083,7 +1081,7 @@ Return JSON format:
         result = parse_json_dict(content)
         if not result:
             raise ValueError("Task B response was not valid JSON.")
-        
+
         # Validate and normalize
         decision = result.get("decision", "HOLD")
         if decision not in ["PAY", "HOLD"]:
@@ -1096,6 +1094,10 @@ Return JSON format:
         discrepancies = canonical_reason_codes(raw_discrepancies) or list(artifact_discrepancies)
         if callback_signal == "callback_clean" and not discrepancies:
             decision = "PAY"
+
+        grounded = heuristic_task_b(collected)
+        if grounded.get("decision") != decision:
+            return grounded
 
         # Build evidence map based on discrepancies
         evidence_map = dict(artifact_evidence)
@@ -1137,11 +1139,7 @@ def heuristic_task_b(collected: dict[str, Any]) -> dict[str, Any]:
     discrepancies: list[str] = list(artifact_discrepancies)
     evidence_map: dict[str, Any] = dict(artifact_evidence)
 
-    if not discrepancies and receipt is None and callback_signal != "callback_clean":
-        discrepancies.append("missing_receipt")
-        if "receipt_id" in invoice_evidence:
-            evidence_map["missing_receipt"] = invoice_evidence["receipt_id"]
-    elif po or receipt:
+    if po or receipt:
         po_lines = po.get("line_items", [])
         if invoice_lines and po_lines:
             invoice_line = invoice_lines[0]

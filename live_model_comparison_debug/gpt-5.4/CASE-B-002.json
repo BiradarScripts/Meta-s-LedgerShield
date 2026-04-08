@@ -66,7 +66,7 @@
       "action_type": "submit_decision",
       "done": true,
       "payload": {
-        "confidence": 0.9,
+        "confidence": 0.93,
         "decision": "HOLD",
         "discrepancies": [
           "missing_receipt"
@@ -94,7 +94,7 @@
         }
       },
       "phase": "submit",
-      "reward": 0.9465119999999999,
+      "reward": 0.947112,
       "step": 6,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -153,7 +153,7 @@
         "summary": "PO reconciliation completed: reconciled_clean."
       }
     ],
-    "final_score": 0.8855,
+    "final_score": 0.8861,
     "outcome": {
       "outcome_type": "manual_review_created",
       "portfolio_metrics": {
@@ -173,7 +173,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.8855,
+        "final_score": 0.8861,
         "potential_delta": 0.061
       },
       "metadata": {
@@ -184,10 +184,10 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.9465
+      "value": 0.9471
     },
     "score_breakdown": {
-      "calibration_score": 0.96,
+      "calibration_score": 0.972,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
       "discrepancy_score": 1.0,
@@ -204,8 +204,8 @@
       "case_clock": 6,
       "case_id": "CASE-B-002",
       "contrastive_pair_id": "",
-      "episode_id": "1f0f5cea-9c67-4762-98d2-5997eeaacc19",
-      "final_score": 0.8855,
+      "episode_id": "88601190-f62d-46fd-bf8c-0d73d05b3f2c",
+      "final_score": 0.8861,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -221,7 +221,7 @@
       "pending_events": [
         {
           "artifact_id": "po_reconciliation_report",
-          "event_id": "evt-6032f93a",
+          "event_id": "evt-851b1e70",
           "ready_at_clock": 6,
           "source_action": "request_po_reconciliation",
           "status": "pending"
@@ -311,7 +311,7 @@
     "unsafe_outcome": false
   },
   "final_submission": {
-    "confidence": 0.9,
+    "confidence": 0.93,
     "decision": "HOLD",
     "discrepancies": [
       "missing_receipt"
@@ -354,7 +354,7 @@
     ],
     "cost": 0.0,
     "decision": "HOLD",
-    "final_score": 0.8855,
+    "final_score": 0.8861,
     "message": "Decision submitted and graded.",
     "novel_signal_count": 0,
     "outcome": {
@@ -379,7 +379,7 @@
     ],
     "reward_model": {
       "components": {
-        "final_score": 0.8855,
+        "final_score": 0.8861,
         "potential_delta": 0.061
       },
       "metadata": {
@@ -390,11 +390,11 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.9465
+      "value": 0.9471
     },
     "risk_assessment": 0.14,
     "score_breakdown": {
-      "calibration_score": 0.96,
+      "calibration_score": 0.972,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
       "discrepancy_score": 1.0,
@@ -413,8 +413,8 @@
       "case_clock": 6,
       "case_id": "CASE-B-002",
       "contrastive_pair_id": "",
-      "episode_id": "1f0f5cea-9c67-4762-98d2-5997eeaacc19",
-      "final_score": 0.8855,
+      "episode_id": "88601190-f62d-46fd-bf8c-0d73d05b3f2c",
+      "final_score": 0.8861,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -430,7 +430,7 @@
       "pending_events": [
         {
           "artifact_id": "po_reconciliation_report",
-          "event_id": "evt-6032f93a",
+          "event_id": "evt-851b1e70",
           "ready_at_clock": 6,
           "source_action": "request_po_reconciliation",
           "status": "pending"
@@ -609,9 +609,9 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.8855,
+  "score": 0.8861,
   "score_breakdown": {
-    "calibration_score": 0.96,
+    "calibration_score": 0.972,
     "decision_score": 1.0,
     "degenerate_penalty": 0.0,
     "discrepancy_score": 1.0,
@@ -630,8 +630,8 @@
     "case_clock": 6,
     "case_id": "CASE-B-002",
     "contrastive_pair_id": "",
-    "episode_id": "1f0f5cea-9c67-4762-98d2-5997eeaacc19",
-    "final_score": 0.8855,
+    "episode_id": "88601190-f62d-46fd-bf8c-0d73d05b3f2c",
+    "final_score": 0.8861,
     "handoff_packet": {},
     "interventions_taken": [
       {
@@ -647,7 +647,7 @@
     "pending_events": [
       {
         "artifact_id": "po_reconciliation_report",
-        "event_id": "evt-6032f93a",
+        "event_id": "evt-851b1e70",
         "ready_at_clock": 6,
         "source_action": "request_po_reconciliation",
         "status": "pending"

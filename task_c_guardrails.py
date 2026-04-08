@@ -57,6 +57,10 @@ def _is_near_approval_threshold(total: float) -> bool:
     return any((threshold * 0.9) <= total < threshold for threshold in _APPROVAL_THRESHOLDS)
 
 
+def _looks_like_token_ref(value: Any) -> bool:
+    return isinstance(value, dict) and {"doc_id", "page", "bbox", "token_ids"} <= set(value)
+
+
 def grounded_task_c_submission(collected: dict[str, Any]) -> dict[str, Any]:
     invoice_evidence = _invoice_evidence(collected)
     ledger_search = collected.get("ledger_search") or {}
@@ -186,15 +190,12 @@ def sanitize_task_c_submission(candidate: dict[str, Any], collected: dict[str, A
 
     candidate_evidence = (candidate or {}).get("evidence_map", {}) or {}
     grounded_evidence = grounded.get("evidence_map", {}) or {}
-    evidence_map = {
-        flag: (
-            candidate_evidence.get(flag)
-            if isinstance(candidate_evidence.get(flag), dict)
-            else grounded_evidence.get(flag)
-        )
-        for flag in fraud_flags
-        if flag in grounded_evidence
-    }
+    evidence_map = {}
+    for flag in fraud_flags:
+        if flag not in grounded_evidence:
+            continue
+        candidate_ref = candidate_evidence.get(flag)
+        evidence_map[flag] = candidate_ref if _looks_like_token_ref(candidate_ref) else grounded_evidence.get(flag)
 
     raw_discrepancies = (candidate or {}).get("discrepancies", [])
     if not isinstance(raw_discrepancies, list):

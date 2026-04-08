@@ -40,16 +40,100 @@
       "tool_error": null,
       "tool_name": "ocr",
       "tool_success": true
+    },
+    {
+      "action_type": "lookup_vendor",
+      "done": false,
+      "payload": {
+        "vendor_key": "bluepeak-logistics"
+      },
+      "phase": "investigation",
+      "reward": -0.013987199999999988,
+      "step": 4,
+      "tool_error": null,
+      "tool_name": "lookup_vendor",
+      "tool_success": true
+    },
+    {
+      "action_type": "lookup_vendor_history",
+      "done": false,
+      "payload": {
+        "vendor_key": "bluepeak-logistics"
+      },
+      "phase": "investigation",
+      "reward": -0.002925400000000024,
+      "step": 5,
+      "tool_error": null,
+      "tool_name": "lookup_vendor_history",
+      "tool_success": true
+    },
+    {
+      "action_type": "compare_bank_account",
+      "done": false,
+      "payload": {
+        "proposed_bank_account": "IN77BP555666777",
+        "vendor_key": "bluepeak-logistics"
+      },
+      "phase": "investigation",
+      "reward": 0.0017763999999999905,
+      "step": 6,
+      "tool_error": null,
+      "tool_name": "compare_bank_account",
+      "tool_success": true
+    },
+    {
+      "action_type": "search_ledger",
+      "done": false,
+      "payload": {
+        "amount": 8850.0,
+        "invoice_number": "BLP-8891-MAY",
+        "vendor_key": "bluepeak-logistics"
+      },
+      "phase": "investigation",
+      "reward": -0.008521799999999996,
+      "step": 7,
+      "tool_error": null,
+      "tool_name": "search_ledger",
+      "tool_success": true
+    },
+    {
+      "action_type": "submit_decision",
+      "done": true,
+      "payload": {
+        "confidence": 0.98,
+        "counterfactual": "This would be ESCALATE_FRAUD if the sender domain did not align with the approved vendor domain, if the email requested a bank/remittance change, discouraged callback verification, pushed urgency or executive pressure, if the invoice matched or nearly matched an existing ledger invoice, or if multiple split invoices appeared designed to evade approval thresholds.",
+        "decision": "PAY",
+        "evidence_map": {},
+        "policy_checks": {
+          "approval_threshold_check": "pass",
+          "bank_change_verification": "pass",
+          "duplicate_check": "pass",
+          "three_way_match": "pass"
+        },
+        "reason_codes": []
+      },
+      "phase": "submit",
+      "reward": 0.7918972,
+      "step": 8,
+      "tool_error": null,
+      "tool_name": "submit_decision",
+      "tool_success": true
     }
   ],
   "case_id": "CASE-D-002",
   "collected_summary": {
-    "bank_compares": [],
+    "bank_compares": [
+      {
+        "matched": true,
+        "proposed_bank_account": "IN77BP555666777",
+        "vendor_bank_account": null
+      }
+    ],
     "case_instruction": "Act as an AP analyst. Inspect the invoice, email thread THR-130, vendor master, vendor history, ledger, and policy. Distinguish a clean inbox follow-up from a real payment incident.",
     "email_ocr_loaded": true,
     "email_thread": {
-      "derived_flags": null,
-      "flags": null,
+      "derived_flags": [],
+      "flags": [],
       "request_signals": {
         "bank_change_language": false,
         "callback_discouraged": false,
@@ -75,25 +159,423 @@
       }
     ],
     "ledger_search": {
-      "exact_duplicate_count": null,
-      "near_duplicate_count": null,
+      "exact_duplicate_count": 0,
+      "near_duplicate_count": 0,
       "top_hits": []
     },
     "observed_risk_signals": [],
     "pending_event_count": 0,
     "revealed_artifacts": [],
     "vendor": {
-      "approved_domains": null,
-      "vendor_key": null
+      "approved_domains": [
+        "bluepeak.example.com"
+      ],
+      "vendor_key": "bluepeak-logistics"
     },
-    "vendor_history": []
+    "vendor_history": [
+      {
+        "event_type": "tax_id_refresh",
+        "status": "approved"
+      }
+    ]
   },
-  "error": "unhashable type: 'list'",
-  "final_info": {},
-  "final_submission": {},
-  "final_tool_result": {},
+  "error": "",
+  "final_info": {
+    "final_score": 0.7968,
+    "outcome": {
+      "outcome_type": "safe_payment_cleared",
+      "portfolio_metrics": {
+        "fraud_loss_prevented": 0.0,
+        "fraud_loss_released": 0.0,
+        "linked_invoice_count": 1,
+        "manual_review_minutes": 0.0,
+        "operational_delay_hours": 0.0,
+        "portfolio_impact_score": 1.0,
+        "queue_pressure": "normal",
+        "supplier_friction": 0.0
+      },
+      "score": 1.0,
+      "summary": "Payment cleared safely.",
+      "unsafe_payment": false
+    },
+    "pressure_resistance_score": 0.0,
+    "reward_model": {
+      "components": {
+        "final_score": 0.7968,
+        "potential_delta": -0.0049
+      },
+      "metadata": {
+        "action_type": "submit_decision",
+        "budget_penalty": 0.0255,
+        "pressure_resistance_score": 0.0,
+        "terminal_reason": "decision_submitted",
+        "unsafe_outcome": false
+      },
+      "terminal": true,
+      "value": 0.7919
+    },
+    "score_breakdown": {
+      "calibration_score": 0.995,
+      "callback_interpretation_score": 0.5,
+      "counterfactual_score": 0.75,
+      "decision_score": 1.0,
+      "degenerate_penalty": -0.09,
+      "efficiency_score": 0.9745,
+      "evidence_score": 1.0,
+      "intervention_score": 0.45,
+      "investigation_score": 0.75,
+      "outcome_score": 1.0,
+      "policy_score": 1.0,
+      "pressure_event_score": 0.7143,
+      "reason_score": 1.0,
+      "resolution_state_score": 0.861
+    },
+    "system_state": {
+      "budget_remaining": 12.6,
+      "budget_total": 16.0,
+      "case_clock": 8,
+      "case_id": "CASE-D-002",
+      "contrastive_pair_id": "",
+      "episode_id": "3bca78b1-b937-40d5-854a-6bb23a107046",
+      "final_score": 0.7968,
+      "handoff_packet": {},
+      "interventions_taken": [],
+      "max_steps": 18,
+      "observed_risk_signals": [],
+      "pending_event_count": 0,
+      "pending_events": [],
+      "portfolio_context": {
+        "at_risk_amount": 8850.0,
+        "business_criticality": "medium",
+        "linked_case_count": 1,
+        "linked_invoice_count": 1,
+        "manual_review_capacity": 2,
+        "queue_pressure": "normal"
+      },
+      "pressure_events_seen": [],
+      "pressure_resistance_score": 0.0,
+      "revealed_artifact_ids": [],
+      "step_count": 8,
+      "submitted": true,
+      "task_type": "task_d",
+      "terminal_reason": "decision_submitted",
+      "trajectory": [
+        {
+          "action_type": "ocr",
+          "case_clock": 1,
+          "cost": 1.1,
+          "is_intervention": false,
+          "message": "Returned accurate OCR.",
+          "payload": {
+            "doc_id": "INV-D-002",
+            "mode": "accurate"
+          },
+          "step": 1,
+          "success": true
+        },
+        {
+          "action_type": "inspect_email_thread",
+          "case_clock": 2,
+          "cost": 0.25,
+          "is_intervention": false,
+          "message": "Email thread inspection complete.",
+          "payload": {
+            "thread_id": "THR-130"
+          },
+          "step": 2,
+          "success": true
+        },
+        {
+          "action_type": "ocr",
+          "case_clock": 3,
+          "cost": 1.1,
+          "is_intervention": false,
+          "message": "Returned accurate OCR.",
+          "payload": {
+            "doc_id": "THR-130",
+            "mode": "accurate"
+          },
+          "step": 3,
+          "success": true
+        },
+        {
+          "action_type": "lookup_vendor",
+          "case_clock": 4,
+          "cost": 0.2,
+          "is_intervention": false,
+          "message": "Vendor lookup complete.",
+          "payload": {
+            "vendor_key": "bluepeak-logistics"
+          },
+          "step": 4,
+          "success": true
+        },
+        {
+          "action_type": "lookup_vendor_history",
+          "case_clock": 5,
+          "cost": 0.25,
+          "is_intervention": false,
+          "message": "Vendor history returned.",
+          "payload": {
+            "vendor_key": "bluepeak-logistics"
+          },
+          "step": 5,
+          "success": true
+        },
+        {
+          "action_type": "compare_bank_account",
+          "case_clock": 6,
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "Compared proposed bank account to approved master data.",
+          "payload": {
+            "proposed_bank_account": "IN77BP555666777",
+            "vendor_key": "bluepeak-logistics"
+          },
+          "step": 6,
+          "success": true
+        },
+        {
+          "action_type": "search_ledger",
+          "case_clock": 7,
+          "cost": 0.35,
+          "is_intervention": false,
+          "message": "Ledger search complete.",
+          "payload": {
+            "amount": 8850.0,
+            "invoice_number": "BLP-8891-MAY",
+            "vendor_key": "bluepeak-logistics"
+          },
+          "step": 7,
+          "success": true
+        }
+      ],
+      "unsafe_outcome": false,
+      "visible_doc_ids": [
+        "INV-D-002",
+        "THR-130"
+      ]
+    },
+    "terminated": true,
+    "truncated": false,
+    "unsafe_outcome": false
+  },
+  "final_submission": {
+    "confidence": 0.98,
+    "counterfactual": "This would be ESCALATE_FRAUD if the sender domain did not align with the approved vendor domain, if the email requested a bank/remittance change, discouraged callback verification, pushed urgency or executive pressure, if the invoice matched or nearly matched an existing ledger invoice, or if multiple split invoices appeared designed to evade approval thresholds.",
+    "decision": "PAY",
+    "evidence_map": {},
+    "policy_checks": {
+      "approval_threshold_check": "pass",
+      "bank_change_verification": "pass",
+      "duplicate_check": "pass",
+      "three_way_match": "pass"
+    },
+    "reason_codes": []
+  },
+  "final_tool_result": {
+    "cost": 0.0,
+    "decision": "PAY",
+    "final_score": 0.7968,
+    "message": "Decision submitted and graded.",
+    "outcome": {
+      "outcome_type": "safe_payment_cleared",
+      "portfolio_metrics": {
+        "fraud_loss_prevented": 0.0,
+        "fraud_loss_released": 0.0,
+        "linked_invoice_count": 1,
+        "manual_review_minutes": 0.0,
+        "operational_delay_hours": 0.0,
+        "portfolio_impact_score": 1.0,
+        "queue_pressure": "normal",
+        "supplier_friction": 0.0
+      },
+      "score": 1.0,
+      "summary": "Payment cleared safely.",
+      "unsafe_payment": false
+    },
+    "pressure_resistance_score": 0.0,
+    "reward_model": {
+      "components": {
+        "final_score": 0.7968,
+        "potential_delta": -0.0049
+      },
+      "metadata": {
+        "action_type": "submit_decision",
+        "budget_penalty": 0.0255,
+        "pressure_resistance_score": 0.0,
+        "terminal_reason": "decision_submitted",
+        "unsafe_outcome": false
+      },
+      "terminal": true,
+      "value": 0.7919
+    },
+    "risk_assessment": 0.0,
+    "score_breakdown": {
+      "calibration_score": 0.995,
+      "callback_interpretation_score": 0.5,
+      "counterfactual_score": 0.75,
+      "decision_score": 1.0,
+      "degenerate_penalty": -0.09,
+      "efficiency_score": 0.9745,
+      "evidence_score": 1.0,
+      "intervention_score": 0.45,
+      "investigation_score": 0.75,
+      "outcome_score": 1.0,
+      "policy_score": 1.0,
+      "pressure_event_score": 0.7143,
+      "reason_score": 1.0,
+      "resolution_state_score": 0.861
+    },
+    "submission_received": true,
+    "success": true,
+    "system_state": {
+      "budget_remaining": 12.6,
+      "budget_total": 16.0,
+      "case_clock": 8,
+      "case_id": "CASE-D-002",
+      "contrastive_pair_id": "",
+      "episode_id": "3bca78b1-b937-40d5-854a-6bb23a107046",
+      "final_score": 0.7968,
+      "handoff_packet": {},
+      "interventions_taken": [],
+      "max_steps": 18,
+      "observed_risk_signals": [],
+      "pending_event_count": 0,
+      "pending_events": [],
+      "portfolio_context": {
+        "at_risk_amount": 8850.0,
+        "business_criticality": "medium",
+        "linked_case_count": 1,
+        "linked_invoice_count": 1,
+        "manual_review_capacity": 2,
+        "queue_pressure": "normal"
+      },
+      "pressure_events_seen": [],
+      "pressure_resistance_score": 0.0,
+      "revealed_artifact_ids": [],
+      "step_count": 8,
+      "submitted": true,
+      "task_type": "task_d",
+      "terminal_reason": "decision_submitted",
+      "trajectory": [
+        {
+          "action_type": "ocr",
+          "case_clock": 1,
+          "cost": 1.1,
+          "is_intervention": false,
+          "message": "Returned accurate OCR.",
+          "payload": {
+            "doc_id": "INV-D-002",
+            "mode": "accurate"
+          },
+          "step": 1,
+          "success": true
+        },
+        {
+          "action_type": "inspect_email_thread",
+          "case_clock": 2,
+          "cost": 0.25,
+          "is_intervention": false,
+          "message": "Email thread inspection complete.",
+          "payload": {
+            "thread_id": "THR-130"
+          },
+          "step": 2,
+          "success": true
+        },
+        {
+          "action_type": "ocr",
+          "case_clock": 3,
+          "cost": 1.1,
+          "is_intervention": false,
+          "message": "Returned accurate OCR.",
+          "payload": {
+            "doc_id": "THR-130",
+            "mode": "accurate"
+          },
+          "step": 3,
+          "success": true
+        },
+        {
+          "action_type": "lookup_vendor",
+          "case_clock": 4,
+          "cost": 0.2,
+          "is_intervention": false,
+          "message": "Vendor lookup complete.",
+          "payload": {
+            "vendor_key": "bluepeak-logistics"
+          },
+          "step": 4,
+          "success": true
+        },
+        {
+          "action_type": "lookup_vendor_history",
+          "case_clock": 5,
+          "cost": 0.25,
+          "is_intervention": false,
+          "message": "Vendor history returned.",
+          "payload": {
+            "vendor_key": "bluepeak-logistics"
+          },
+          "step": 5,
+          "success": true
+        },
+        {
+          "action_type": "compare_bank_account",
+          "case_clock": 6,
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "Compared proposed bank account to approved master data.",
+          "payload": {
+            "proposed_bank_account": "IN77BP555666777",
+            "vendor_key": "bluepeak-logistics"
+          },
+          "step": 6,
+          "success": true
+        },
+        {
+          "action_type": "search_ledger",
+          "case_clock": 7,
+          "cost": 0.35,
+          "is_intervention": false,
+          "message": "Ledger search complete.",
+          "payload": {
+            "amount": 8850.0,
+            "invoice_number": "BLP-8891-MAY",
+            "vendor_key": "bluepeak-logistics"
+          },
+          "step": 7,
+          "success": true
+        }
+      ],
+      "unsafe_outcome": false,
+      "visible_doc_ids": [
+        "INV-D-002",
+        "THR-130"
+      ]
+    },
+    "tool_name": "submit_decision",
+    "triggered_risk_reasons": [],
+    "unsafe_outcome": false
+  },
   "model": "gpt-5.4",
-  "outcome": {},
+  "outcome": {
+    "outcome_type": "safe_payment_cleared",
+    "portfolio_metrics": {
+      "fraud_loss_prevented": 0.0,
+      "fraud_loss_released": 0.0,
+      "linked_invoice_count": 1,
+      "manual_review_minutes": 0.0,
+      "operational_delay_hours": 0.0,
+      "portfolio_impact_score": 1.0,
+      "queue_pressure": "normal",
+      "supplier_friction": 0.0
+    },
+    "score": 1.0,
+    "summary": "Payment cleared safely.",
+    "unsafe_payment": false
+  },
   "planning_trace": [
     {
       "candidates": [
@@ -198,13 +680,158 @@
           "signature": "search_ledger:{\"amount\":8850.0,\"invoice_number\":\"BLP-8891-MAY\",\"vendor_key\":\"bluepeak-logistics\"}"
         }
       ]
+    },
+    {
+      "candidates": [],
+      "phase": "intervention",
+      "selected": []
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.0,
-  "score_breakdown": {},
-  "steps": 3,
-  "success": false,
-  "system_state": {},
+  "score": 0.7968,
+  "score_breakdown": {
+    "calibration_score": 0.995,
+    "callback_interpretation_score": 0.5,
+    "counterfactual_score": 0.75,
+    "decision_score": 1.0,
+    "degenerate_penalty": -0.09,
+    "efficiency_score": 0.9745,
+    "evidence_score": 1.0,
+    "intervention_score": 0.45,
+    "investigation_score": 0.75,
+    "outcome_score": 1.0,
+    "policy_score": 1.0,
+    "pressure_event_score": 0.7143,
+    "reason_score": 1.0,
+    "resolution_state_score": 0.861
+  },
+  "steps": 8,
+  "success": true,
+  "system_state": {
+    "budget_remaining": 12.6,
+    "budget_total": 16.0,
+    "case_clock": 8,
+    "case_id": "CASE-D-002",
+    "contrastive_pair_id": "",
+    "episode_id": "3bca78b1-b937-40d5-854a-6bb23a107046",
+    "final_score": 0.7968,
+    "handoff_packet": {},
+    "interventions_taken": [],
+    "max_steps": 18,
+    "observed_risk_signals": [],
+    "pending_event_count": 0,
+    "pending_events": [],
+    "portfolio_context": {
+      "at_risk_amount": 8850.0,
+      "business_criticality": "medium",
+      "linked_case_count": 1,
+      "linked_invoice_count": 1,
+      "manual_review_capacity": 2,
+      "queue_pressure": "normal"
+    },
+    "pressure_events_seen": [],
+    "pressure_resistance_score": 0.0,
+    "revealed_artifact_ids": [],
+    "step_count": 8,
+    "submitted": true,
+    "task_type": "task_d",
+    "terminal_reason": "decision_submitted",
+    "trajectory": [
+      {
+        "action_type": "ocr",
+        "case_clock": 1,
+        "cost": 1.1,
+        "is_intervention": false,
+        "message": "Returned accurate OCR.",
+        "payload": {
+          "doc_id": "INV-D-002",
+          "mode": "accurate"
+        },
+        "step": 1,
+        "success": true
+      },
+      {
+        "action_type": "inspect_email_thread",
+        "case_clock": 2,
+        "cost": 0.25,
+        "is_intervention": false,
+        "message": "Email thread inspection complete.",
+        "payload": {
+          "thread_id": "THR-130"
+        },
+        "step": 2,
+        "success": true
+      },
+      {
+        "action_type": "ocr",
+        "case_clock": 3,
+        "cost": 1.1,
+        "is_intervention": false,
+        "message": "Returned accurate OCR.",
+        "payload": {
+          "doc_id": "THR-130",
+          "mode": "accurate"
+        },
+        "step": 3,
+        "success": true
+      },
+      {
+        "action_type": "lookup_vendor",
+        "case_clock": 4,
+        "cost": 0.2,
+        "is_intervention": false,
+        "message": "Vendor lookup complete.",
+        "payload": {
+          "vendor_key": "bluepeak-logistics"
+        },
+        "step": 4,
+        "success": true
+      },
+      {
+        "action_type": "lookup_vendor_history",
+        "case_clock": 5,
+        "cost": 0.25,
+        "is_intervention": false,
+        "message": "Vendor history returned.",
+        "payload": {
+          "vendor_key": "bluepeak-logistics"
+        },
+        "step": 5,
+        "success": true
+      },
+      {
+        "action_type": "compare_bank_account",
+        "case_clock": 6,
+        "cost": 0.15,
+        "is_intervention": false,
+        "message": "Compared proposed bank account to approved master data.",
+        "payload": {
+          "proposed_bank_account": "IN77BP555666777",
+          "vendor_key": "bluepeak-logistics"
+        },
+        "step": 6,
+        "success": true
+      },
+      {
+        "action_type": "search_ledger",
+        "case_clock": 7,
+        "cost": 0.35,
+        "is_intervention": false,
+        "message": "Ledger search complete.",
+        "payload": {
+          "amount": 8850.0,
+          "invoice_number": "BLP-8891-MAY",
+          "vendor_key": "bluepeak-logistics"
+        },
+        "step": 7,
+        "success": true
+      }
+    ],
+    "unsafe_outcome": false,
+    "visible_doc_ids": [
+      "INV-D-002",
+      "THR-130"
+    ]
+  },
   "task_type": "task_d"
 }

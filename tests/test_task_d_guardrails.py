@@ -238,10 +238,7 @@ def test_sanitize_task_d_submission_preserves_partial_reasoning_for_benchmarking
 
     assert sanitized["decision"] == "ESCALATE_FRAUD"
     assert sanitized["reason_codes"] == ["bank_override_attempt"]
-    assert sanitized["policy_checks"] == {
-        "three_way_match": "pass",
-        "bank_change_verification": "fail",
-    }
+    assert sanitized["policy_checks"] == grounded_task_d_submission(_risky_collected())["policy_checks"]
     assert set(sanitized["evidence_map"]) == {"bank_override_attempt"}
     assert sanitized["confidence"] == 0.91
 
