@@ -9,6 +9,7 @@ Run:
 
 from fastapi.testclient import TestClient
 
+import server.app as app_module
 from server.app import app
 
 client = TestClient(app)
@@ -75,6 +76,18 @@ def test_leaderboard_endpoint():
     payload = response.json()
     assert payload["benchmark"] == "ledgershield-v3"
     assert "entries" in payload
+
+
+def test_leaderboard_endpoint_degrades_gracefully_without_benchmark_report(monkeypatch):
+    monkeypatch.setattr(app_module, "_load_benchmark_report_module", lambda: None)
+    fallback_client = TestClient(app_module.build_app())
+
+    response = fallback_client.get("/leaderboard")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["benchmark"] == "ledgershield-v3"
+    assert payload["entries"] == []
+    assert "unavailable" in payload["note"]
 
 
 def test_reset_endpoint():

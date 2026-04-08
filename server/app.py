@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+import importlib
 import sys
 from typing import Any
 
@@ -17,11 +18,16 @@ from models import LedgerShieldAction, LedgerShieldObservation
 from openenv_compat import create_fastapi_app
 
 if __package__ in {None, ""}:
-    import benchmark_report
     from server.environment import LedgerShieldEnvironment
 else:
-    import benchmark_report
     from .environment import LedgerShieldEnvironment
+
+
+def _load_benchmark_report_module():
+    try:
+        return importlib.import_module("benchmark_report")
+    except ModuleNotFoundError:
+        return None
 
 
 def build_app():
@@ -30,10 +36,25 @@ def build_app():
 
     @app.get("/leaderboard")
     def leaderboard() -> dict[str, Any]:
+        benchmark_report = _load_benchmark_report_module()
+        if benchmark_report is None:
+            return {
+                "benchmark": "ledgershield-v3",
+                "generated_at": None,
+                "note": "benchmark_report.py is unavailable in this runtime image.",
+                "entries": [],
+            }
         return benchmark_report.load_leaderboard_payload()
 
     @app.get("/benchmark-report")
     def latest_benchmark_report() -> dict[str, Any]:
+        benchmark_report = _load_benchmark_report_module()
+        if benchmark_report is None:
+            return {
+                "benchmark": "ledgershield-v3",
+                "generated_at": None,
+                "note": "benchmark_report.py is unavailable in this runtime image.",
+            }
         report_path = benchmark_report.DEFAULT_REPORT_PATH
         if report_path.exists():
             return json.loads(report_path.read_text(encoding="utf-8"))

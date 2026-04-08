@@ -33,7 +33,6 @@ live_model_comparison.json
 final_corrected_comparison.json
 
 # Development scripts (not needed at runtime)
-benchmark_report.py
 compare_models_live.py
 compare_all_models.py
 generate_branch_comparison_report.py
