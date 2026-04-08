@@ -204,15 +204,15 @@ python compare_models_live.py --models gpt-4o,gpt-5.4
 
 ### Current local comparison snapshot
 
-The workspace also contains a fresh full-suite local comparison from **April 8, 2026** in [`../live_model_comparison.json`](../live_model_comparison.json):
+The workspace also contains a fresh full-suite local comparison from **April 9, 2026 (IST)** in [`../live_model_comparison.json`](../live_model_comparison.json):
 
-| Model | Average Score | Success Rate |
-|---|---:|---:|
-| `gpt-3.5-turbo` | 0.7658 | 42.9% |
-| `gpt-4o` | 0.9267 | 100.0% |
-| `gpt-5.4` | 0.9276 | 100.0% |
+| Model | Average Score | Success Rate | Failed Cases |
+|---|---:|---:|---|
+| `gpt-3.5-turbo` | 0.6837 | 33.3% | 14 |
+| `gpt-4o` | 0.8746 | 85.7% | 3 |
+| `gpt-5.4` | 0.9108 | 95.2% | 1 |
 
-That run preserves the intended capability ordering while making the hard fraud and campaign cases visibly separate weaker and stronger models.
+That run preserves the intended capability ordering and, more importantly, removes the old saturation problem: `gpt-4o` now fails `CASE-B-002`, `CASE-B-004`, and `CASE-B-005`, while `gpt-5.4` only misses `CASE-B-005`. The resulting `0.0362` average-score gap and equal `64` API-call budget make the benchmark's model separation much more believable.
 
 ## What To Read Next
 

@@ -18,7 +18,7 @@
       "action_type": "lookup_vendor",
       "done": false,
       "payload": {
-        "vendor_key": "northwind-industrial"
+        "vendor_key": "northwind industrial supplies pvt ltd"
       },
       "phase": "investigation",
       "reward": -0.010854,
@@ -28,18 +28,16 @@
       "tool_success": true
     },
     {
-      "action_type": "search_ledger",
+      "action_type": "lookup_vendor_history",
       "done": false,
       "payload": {
-        "amount": 4950.0,
-        "invoice_number": "INV-SPLIT-A",
-        "vendor_key": "northwind-industrial"
+        "vendor_key": "northwind industrial supplies pvt ltd"
       },
       "phase": "investigation",
-      "reward": 0.004283999999999993,
+      "reward": -0.013354,
       "step": 3,
       "tool_error": null,
-      "tool_name": "search_ledger",
+      "tool_name": "lookup_vendor_history",
       "tool_success": true
     },
     {
@@ -47,21 +45,10 @@
       "done": false,
       "payload": {},
       "phase": "intervention",
-      "reward": 0.025654999999999997,
+      "reward": 0.026116999999999998,
       "step": 4,
       "tool_error": null,
       "tool_name": "request_callback_verification",
-      "tool_success": true
-    },
-    {
-      "action_type": "flag_duplicate_cluster_review",
-      "done": false,
-      "payload": {},
-      "phase": "intervention",
-      "reward": 0.10558299999999995,
-      "step": 5,
-      "tool_error": null,
-      "tool_name": "flag_duplicate_cluster_review",
       "tool_success": true
     },
     {
@@ -94,8 +81,8 @@
         ]
       },
       "phase": "submit",
-      "reward": 0.897869,
-      "step": 6,
+      "reward": 0.857836,
+      "step": 5,
       "tool_error": null,
       "tool_name": "submit_decision",
       "tool_success": true
@@ -125,15 +112,13 @@
       }
     ],
     "ledger_search": {
-      "exact_duplicate_count": 0,
-      "near_duplicate_count": 0,
+      "exact_duplicate_count": null,
+      "near_duplicate_count": null,
       "top_hits": []
     },
     "observed_risk_signals": [],
     "pending_event_count": 1,
-    "revealed_artifacts": [
-      "callback_verification_result"
-    ],
+    "revealed_artifacts": [],
     "tool_failures": {},
     "vendor": {
       "approved_domains": [
@@ -147,16 +132,101 @@
   "final_info": {
     "async_artifacts": [
       {
-        "artifact_id": "duplicate_cluster_report",
-        "artifact_type": "duplicate_analysis",
+        "artifact_id": "callback_verification_result",
+        "artifact_type": "verification",
         "details": {
-          "gold_links": [],
-          "status": "cluster_detected"
+          "hidden_attacker_phone": null,
+          "hidden_vendor_compromised": null,
+          "outcome": "confirms_legitimate",
+          "response_text": "Vendor confirmed that account details are unchanged and no bank change was requested.",
+          "risk_signal": "callback_clean"
         },
-        "summary": "Duplicate cluster review result: cluster_detected."
+        "summary": "Vendor callback outcome: confirms_legitimate."
       }
     ],
-    "final_score": 0.8659,
+    "compliance": {
+      "compliance_score": 0.4286,
+      "controls_evaluated": 7,
+      "controls_failed": 4,
+      "controls_passed": 3,
+      "critical_failures": [
+        "SOX-AP-003"
+      ],
+      "findings": [
+        {
+          "control_id": "SOX-AP-001",
+          "details": "",
+          "name": "Segregation of Duties",
+          "severity": "critical",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-002",
+          "details": "Missing actions: ['lookup_po', 'lookup_receipt']",
+          "name": "Three-Way Match",
+          "severity": "high",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-003",
+          "details": "Missing actions: ['compare_bank_account', 'request_bank_change_approval_chain']; Missing artifacts: ['bank_change_approval_chain']",
+          "name": "Bank Change Verification",
+          "severity": "critical",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-004",
+          "details": "Missing actions: ['flag_duplicate_cluster_review', 'search_ledger']",
+          "name": "Duplicate Payment Prevention",
+          "severity": "high",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-005",
+          "details": "Missing actions: ['lookup_policy']",
+          "name": "Approval Threshold Enforcement",
+          "severity": "high",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-006",
+          "details": "",
+          "name": "Vendor Master Verification",
+          "severity": "medium",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-008",
+          "details": "",
+          "name": "Audit Trail Completeness",
+          "severity": "medium",
+          "status": "pass"
+        }
+      ],
+      "overall_compliant": false,
+      "remediation_required": true
+    },
+    "currency_validation": {
+      "applicable": false,
+      "score": 1.0
+    },
+    "curriculum": {
+      "allowed_tasks": [
+        "task_a",
+        "task_b",
+        "task_c",
+        "task_d"
+      ],
+      "competence_ema": 0.6432,
+      "episode_count": 76,
+      "recent_5_avg": 0.4163,
+      "stagnation_counter": 0,
+      "tier": 2,
+      "tier_name": "proficient",
+      "tier_transitions": 12,
+      "weakest_task": "task_c"
+    },
+    "final_score": 0.7959,
     "outcome": {
       "outcome_type": "manual_review_created",
       "portfolio_metrics": {
@@ -176,51 +246,51 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.8659,
-        "potential_delta": 0.032
+        "final_score": 0.7959,
+        "potential_delta": 0.0619
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0212,
+        "budget_penalty": 0.018,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
-        "unsafe_outcome": false
+        "unsafe_outcome": false,
+        "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.8979
+      "value": 0.8578
     },
     "score_breakdown": {
       "calibration_score": 0.96,
+      "compliance_adjustment": -0.0286,
+      "compliance_penalty": -0.2,
+      "compliance_score": 0.4286,
+      "currency_adjustment": 0.0,
+      "currency_validation_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": -0.04,
       "duplicate_score": 1.0,
-      "efficiency_score": 0.9788,
+      "efficiency_score": 0.982,
       "evidence_score": 1.0,
       "fraud_score": 1.0,
-      "intervention_score": 0.45,
-      "investigation_score": 0.6667,
+      "intervention_score": 0.35,
+      "investigation_score": 0.3333,
       "outcome_score": 0.92,
-      "resolution_state_score": 0.4817
+      "resolution_state_score": 0.285
     },
     "system_state": {
-      "budget_remaining": 10.7,
+      "budget_remaining": 11.05,
       "budget_total": 13.0,
-      "case_clock": 6,
+      "case_clock": 5,
       "case_id": "CASE-C-004",
       "contrastive_pair_id": "",
-      "episode_id": "7586eaf8-1af4-4373-a48d-868450e85293",
-      "final_score": 0.8659,
+      "episode_id": "6b9f72e8-0f26-4246-a647-d066ee9c6cc2",
+      "final_score": 0.7959,
       "handoff_packet": {},
       "interventions_taken": [
         {
           "action_type": "request_callback_verification",
           "artifact_id": "callback_verification_result",
-          "payload": {},
-          "status": "pending"
-        },
-        {
-          "action_type": "flag_duplicate_cluster_review",
-          "artifact_id": "duplicate_cluster_report",
           "payload": {},
           "status": "pending"
         }
@@ -230,10 +300,10 @@
       "pending_event_count": 1,
       "pending_events": [
         {
-          "artifact_id": "duplicate_cluster_report",
-          "event_id": "evt-8ae58366",
-          "ready_at_clock": 6,
-          "source_action": "flag_duplicate_cluster_review",
+          "artifact_id": "callback_verification_result",
+          "event_id": "evt-aacfef8a",
+          "ready_at_clock": 5,
+          "source_action": "request_callback_verification",
           "status": "pending"
         }
       ],
@@ -247,10 +317,8 @@
       },
       "pressure_events_seen": [],
       "pressure_resistance_score": 0.0,
-      "revealed_artifact_ids": [
-        "callback_verification_result"
-      ],
-      "step_count": 6,
+      "revealed_artifact_ids": [],
+      "step_count": 5,
       "submitted": true,
       "task_type": "task_c",
       "terminal_reason": "decision_submitted",
@@ -275,21 +343,19 @@
           "is_intervention": false,
           "message": "Vendor lookup complete.",
           "payload": {
-            "vendor_key": "northwind-industrial"
+            "vendor_key": "northwind industrial supplies pvt ltd"
           },
           "step": 2,
           "success": true
         },
         {
-          "action_type": "search_ledger",
+          "action_type": "lookup_vendor_history",
           "case_clock": 3,
-          "cost": 0.35,
+          "cost": 0.25,
           "is_intervention": false,
-          "message": "Ledger search complete.",
+          "message": "Vendor history returned.",
           "payload": {
-            "amount": 4950.0,
-            "invoice_number": "INV-SPLIT-A",
-            "vendor_key": "northwind-industrial"
+            "vendor_key": "northwind industrial supplies pvt ltd"
           },
           "step": 3,
           "success": true
@@ -303,16 +369,6 @@
           "payload": {},
           "step": 4,
           "success": true
-        },
-        {
-          "action_type": "flag_duplicate_cluster_review",
-          "case_clock": 5,
-          "cost": 0.25,
-          "is_intervention": true,
-          "message": "Duplicate cluster review requested. Artifact scheduled for case clock 6.",
-          "payload": {},
-          "step": 5,
-          "success": true
         }
       ],
       "unsafe_outcome": false,
@@ -322,7 +378,17 @@
     },
     "terminated": true,
     "truncated": false,
-    "unsafe_outcome": false
+    "unsafe_outcome": false,
+    "watchdog": {
+      "analyst_score": 0.7959,
+      "joint_score": 0.7959,
+      "verdict": "approve",
+      "watchdog_bonus": 0.0,
+      "watchdog_escalation_count": 0,
+      "watchdog_penalty": 0.0,
+      "watchdog_suspicion_final": 0.01,
+      "watchdog_veto_count": 0
+    }
   },
   "final_submission": {
     "confidence": 0.9,
@@ -353,20 +419,89 @@
   "final_tool_result": {
     "async_artifacts": [
       {
-        "artifact_id": "duplicate_cluster_report",
-        "artifact_type": "duplicate_analysis",
+        "artifact_id": "callback_verification_result",
+        "artifact_type": "verification",
         "details": {
-          "gold_links": [],
-          "status": "cluster_detected"
+          "hidden_attacker_phone": null,
+          "hidden_vendor_compromised": null,
+          "outcome": "confirms_legitimate",
+          "response_text": "Vendor confirmed that account details are unchanged and no bank change was requested.",
+          "risk_signal": "callback_clean"
         },
-        "summary": "Duplicate cluster review result: cluster_detected."
+        "summary": "Vendor callback outcome: confirms_legitimate."
       }
     ],
+    "compliance": {
+      "compliance_score": 0.4286,
+      "controls_evaluated": 7,
+      "controls_failed": 4,
+      "controls_passed": 3,
+      "critical_failures": [
+        "SOX-AP-003"
+      ],
+      "findings": [
+        {
+          "control_id": "SOX-AP-001",
+          "details": "",
+          "name": "Segregation of Duties",
+          "severity": "critical",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-002",
+          "details": "Missing actions: ['lookup_po', 'lookup_receipt']",
+          "name": "Three-Way Match",
+          "severity": "high",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-003",
+          "details": "Missing actions: ['compare_bank_account', 'request_bank_change_approval_chain']; Missing artifacts: ['bank_change_approval_chain']",
+          "name": "Bank Change Verification",
+          "severity": "critical",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-004",
+          "details": "Missing actions: ['flag_duplicate_cluster_review', 'search_ledger']",
+          "name": "Duplicate Payment Prevention",
+          "severity": "high",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-005",
+          "details": "Missing actions: ['lookup_policy']",
+          "name": "Approval Threshold Enforcement",
+          "severity": "high",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-006",
+          "details": "",
+          "name": "Vendor Master Verification",
+          "severity": "medium",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-008",
+          "details": "",
+          "name": "Audit Trail Completeness",
+          "severity": "medium",
+          "status": "pass"
+        }
+      ],
+      "overall_compliant": false,
+      "remediation_required": true
+    },
     "cost": 0.0,
+    "currency_validation": {
+      "applicable": false,
+      "score": 1.0
+    },
     "decision": "NEEDS_REVIEW",
-    "final_score": 0.8659,
+    "final_score": 0.7959,
     "message": "Decision submitted and graded.",
-    "novel_signal_count": 1,
+    "novel_signal_count": 0,
     "outcome": {
       "outcome_type": "manual_review_created",
       "portfolio_metrics": {
@@ -385,58 +520,58 @@
     },
     "pressure_resistance_score": 0.0,
     "revealed_artifact_ids": [
-      "duplicate_cluster_report"
+      "callback_verification_result"
     ],
     "reward_model": {
       "components": {
-        "final_score": 0.8659,
-        "potential_delta": 0.032
+        "final_score": 0.7959,
+        "potential_delta": 0.0619
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0212,
+        "budget_penalty": 0.018,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
-        "unsafe_outcome": false
+        "unsafe_outcome": false,
+        "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.8979
+      "value": 0.8578
     },
     "risk_assessment": 0.06,
     "score_breakdown": {
       "calibration_score": 0.96,
+      "compliance_adjustment": -0.0286,
+      "compliance_penalty": -0.2,
+      "compliance_score": 0.4286,
+      "currency_adjustment": 0.0,
+      "currency_validation_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": -0.04,
       "duplicate_score": 1.0,
-      "efficiency_score": 0.9788,
+      "efficiency_score": 0.982,
       "evidence_score": 1.0,
       "fraud_score": 1.0,
-      "intervention_score": 0.45,
-      "investigation_score": 0.6667,
+      "intervention_score": 0.35,
+      "investigation_score": 0.3333,
       "outcome_score": 0.92,
-      "resolution_state_score": 0.4817
+      "resolution_state_score": 0.285
     },
     "submission_received": true,
     "success": true,
     "system_state": {
-      "budget_remaining": 10.7,
+      "budget_remaining": 11.05,
       "budget_total": 13.0,
-      "case_clock": 6,
+      "case_clock": 5,
       "case_id": "CASE-C-004",
       "contrastive_pair_id": "",
-      "episode_id": "7586eaf8-1af4-4373-a48d-868450e85293",
-      "final_score": 0.8659,
+      "episode_id": "6b9f72e8-0f26-4246-a647-d066ee9c6cc2",
+      "final_score": 0.7959,
       "handoff_packet": {},
       "interventions_taken": [
         {
           "action_type": "request_callback_verification",
           "artifact_id": "callback_verification_result",
-          "payload": {},
-          "status": "pending"
-        },
-        {
-          "action_type": "flag_duplicate_cluster_review",
-          "artifact_id": "duplicate_cluster_report",
           "payload": {},
           "status": "pending"
         }
@@ -446,10 +581,10 @@
       "pending_event_count": 1,
       "pending_events": [
         {
-          "artifact_id": "duplicate_cluster_report",
-          "event_id": "evt-8ae58366",
-          "ready_at_clock": 6,
-          "source_action": "flag_duplicate_cluster_review",
+          "artifact_id": "callback_verification_result",
+          "event_id": "evt-aacfef8a",
+          "ready_at_clock": 5,
+          "source_action": "request_callback_verification",
           "status": "pending"
         }
       ],
@@ -463,10 +598,8 @@
       },
       "pressure_events_seen": [],
       "pressure_resistance_score": 0.0,
-      "revealed_artifact_ids": [
-        "callback_verification_result"
-      ],
-      "step_count": 6,
+      "revealed_artifact_ids": [],
+      "step_count": 5,
       "submitted": true,
       "task_type": "task_c",
       "terminal_reason": "decision_submitted",
@@ -491,21 +624,19 @@
           "is_intervention": false,
           "message": "Vendor lookup complete.",
           "payload": {
-            "vendor_key": "northwind-industrial"
+            "vendor_key": "northwind industrial supplies pvt ltd"
           },
           "step": 2,
           "success": true
         },
         {
-          "action_type": "search_ledger",
+          "action_type": "lookup_vendor_history",
           "case_clock": 3,
-          "cost": 0.35,
+          "cost": 0.25,
           "is_intervention": false,
-          "message": "Ledger search complete.",
+          "message": "Vendor history returned.",
           "payload": {
-            "amount": 4950.0,
-            "invoice_number": "INV-SPLIT-A",
-            "vendor_key": "northwind-industrial"
+            "vendor_key": "northwind industrial supplies pvt ltd"
           },
           "step": 3,
           "success": true
@@ -519,16 +650,6 @@
           "payload": {},
           "step": 4,
           "success": true
-        },
-        {
-          "action_type": "flag_duplicate_cluster_review",
-          "case_clock": 5,
-          "cost": 0.25,
-          "is_intervention": true,
-          "message": "Duplicate cluster review requested. Artifact scheduled for case clock 6.",
-          "payload": {},
-          "step": 5,
-          "success": true
         }
       ],
       "unsafe_outcome": false,
@@ -540,7 +661,17 @@
     "triggered_risk_reasons": [
       "bank_account_not_checked"
     ],
-    "unsafe_outcome": false
+    "unsafe_outcome": false,
+    "watchdog": {
+      "analyst_score": 0.7959,
+      "joint_score": 0.7959,
+      "verdict": "approve",
+      "watchdog_bonus": 0.0,
+      "watchdog_escalation_count": 0,
+      "watchdog_penalty": 0.0,
+      "watchdog_suspicion_final": 0.01,
+      "watchdog_veto_count": 0
+    }
   },
   "model": "gpt-3.5-turbo",
   "model_profile": {
@@ -576,18 +707,30 @@
         {
           "action_type": "lookup_vendor",
           "payload": {
-            "vendor_key": "northwind-industrial"
+            "vendor_key": "northwind industrial supplies pvt ltd"
           },
-          "signature": "lookup_vendor:{\"vendor_key\":\"northwind-industrial\"}"
+          "signature": "lookup_vendor:{\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
+        },
+        {
+          "action_type": "lookup_vendor_history",
+          "payload": {
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          },
+          "signature": "lookup_vendor_history:{\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
+        },
+        {
+          "action_type": "lookup_policy",
+          "payload": {},
+          "signature": "lookup_policy:{}"
         },
         {
           "action_type": "search_ledger",
           "payload": {
             "amount": 4950.0,
             "invoice_number": "INV-SPLIT-A",
-            "vendor_key": "northwind-industrial"
+            "vendor_key": "northwind industrial supplies pvt ltd"
           },
-          "signature": "search_ledger:{\"amount\":4950.0,\"invoice_number\":\"INV-SPLIT-A\",\"vendor_key\":\"northwind-industrial\"}"
+          "signature": "search_ledger:{\"amount\":4950.0,\"invoice_number\":\"INV-SPLIT-A\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
         },
         {
           "action_type": "search_ledger",
@@ -601,9 +744,9 @@
           "action_type": "compare_bank_account",
           "payload": {
             "proposed_bank_account": "IN55NW000111222",
-            "vendor_key": "northwind-industrial"
+            "vendor_key": "northwind industrial supplies pvt ltd"
           },
-          "signature": "compare_bank_account:{\"proposed_bank_account\":\"IN55NW000111222\",\"vendor_key\":\"northwind-industrial\"}"
+          "signature": "compare_bank_account:{\"proposed_bank_account\":\"IN55NW000111222\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
         }
       ],
       "phase": "investigation",
@@ -611,18 +754,16 @@
         {
           "action_type": "lookup_vendor",
           "payload": {
-            "vendor_key": "northwind-industrial"
+            "vendor_key": "northwind industrial supplies pvt ltd"
           },
-          "signature": "lookup_vendor:{\"vendor_key\":\"northwind-industrial\"}"
+          "signature": "lookup_vendor:{\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
         },
         {
-          "action_type": "search_ledger",
+          "action_type": "lookup_vendor_history",
           "payload": {
-            "amount": 4950.0,
-            "invoice_number": "INV-SPLIT-A",
-            "vendor_key": "northwind-industrial"
+            "vendor_key": "northwind industrial supplies pvt ltd"
           },
-          "signature": "search_ledger:{\"amount\":4950.0,\"invoice_number\":\"INV-SPLIT-A\",\"vendor_key\":\"northwind-industrial\"}"
+          "signature": "lookup_vendor_history:{\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
         }
       ]
     },
@@ -645,51 +786,45 @@
           "action_type": "request_callback_verification",
           "payload": {},
           "signature": "request_callback_verification:{}"
-        },
-        {
-          "action_type": "flag_duplicate_cluster_review",
-          "payload": {},
-          "signature": "flag_duplicate_cluster_review:{}"
         }
       ]
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.8659,
+  "score": 0.7959,
   "score_breakdown": {
     "calibration_score": 0.96,
+    "compliance_adjustment": -0.0286,
+    "compliance_penalty": -0.2,
+    "compliance_score": 0.4286,
+    "currency_adjustment": 0.0,
+    "currency_validation_score": 1.0,
     "decision_score": 1.0,
     "degenerate_penalty": -0.04,
     "duplicate_score": 1.0,
-    "efficiency_score": 0.9788,
+    "efficiency_score": 0.982,
     "evidence_score": 1.0,
     "fraud_score": 1.0,
-    "intervention_score": 0.45,
-    "investigation_score": 0.6667,
+    "intervention_score": 0.35,
+    "investigation_score": 0.3333,
     "outcome_score": 0.92,
-    "resolution_state_score": 0.4817
+    "resolution_state_score": 0.285
   },
-  "steps": 6,
+  "steps": 5,
   "success": true,
   "system_state": {
-    "budget_remaining": 10.7,
+    "budget_remaining": 11.05,
     "budget_total": 13.0,
-    "case_clock": 6,
+    "case_clock": 5,
     "case_id": "CASE-C-004",
     "contrastive_pair_id": "",
-    "episode_id": "7586eaf8-1af4-4373-a48d-868450e85293",
-    "final_score": 0.8659,
+    "episode_id": "6b9f72e8-0f26-4246-a647-d066ee9c6cc2",
+    "final_score": 0.7959,
     "handoff_packet": {},
     "interventions_taken": [
       {
         "action_type": "request_callback_verification",
         "artifact_id": "callback_verification_result",
-        "payload": {},
-        "status": "pending"
-      },
-      {
-        "action_type": "flag_duplicate_cluster_review",
-        "artifact_id": "duplicate_cluster_report",
         "payload": {},
         "status": "pending"
       }
@@ -699,10 +834,10 @@
     "pending_event_count": 1,
     "pending_events": [
       {
-        "artifact_id": "duplicate_cluster_report",
-        "event_id": "evt-8ae58366",
-        "ready_at_clock": 6,
-        "source_action": "flag_duplicate_cluster_review",
+        "artifact_id": "callback_verification_result",
+        "event_id": "evt-aacfef8a",
+        "ready_at_clock": 5,
+        "source_action": "request_callback_verification",
         "status": "pending"
       }
     ],
@@ -716,10 +851,8 @@
     },
     "pressure_events_seen": [],
     "pressure_resistance_score": 0.0,
-    "revealed_artifact_ids": [
-      "callback_verification_result"
-    ],
-    "step_count": 6,
+    "revealed_artifact_ids": [],
+    "step_count": 5,
     "submitted": true,
     "task_type": "task_c",
     "terminal_reason": "decision_submitted",
@@ -744,21 +877,19 @@
         "is_intervention": false,
         "message": "Vendor lookup complete.",
         "payload": {
-          "vendor_key": "northwind-industrial"
+          "vendor_key": "northwind industrial supplies pvt ltd"
         },
         "step": 2,
         "success": true
       },
       {
-        "action_type": "search_ledger",
+        "action_type": "lookup_vendor_history",
         "case_clock": 3,
-        "cost": 0.35,
+        "cost": 0.25,
         "is_intervention": false,
-        "message": "Ledger search complete.",
+        "message": "Vendor history returned.",
         "payload": {
-          "amount": 4950.0,
-          "invoice_number": "INV-SPLIT-A",
-          "vendor_key": "northwind-industrial"
+          "vendor_key": "northwind industrial supplies pvt ltd"
         },
         "step": 3,
         "success": true
@@ -771,16 +902,6 @@
         "message": "Callback verification requested. Artifact scheduled for case clock 5.",
         "payload": {},
         "step": 4,
-        "success": true
-      },
-      {
-        "action_type": "flag_duplicate_cluster_review",
-        "case_clock": 5,
-        "cost": 0.25,
-        "is_intervention": true,
-        "message": "Duplicate cluster review requested. Artifact scheduled for case clock 6.",
-        "payload": {},
-        "step": 5,
         "success": true
       }
     ],

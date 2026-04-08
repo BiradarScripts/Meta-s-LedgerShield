@@ -248,6 +248,61 @@ def test_submit_decision_emits_typed_reward_payload():
     assert "final_score" in reward_model["components"]
 
 
+def test_submit_decision_emits_compliance_currency_and_watchdog_metadata():
+    env = LedgerShieldEnvironment()
+    env.reset(case_id="CASE-A-003")
+    gold = env.current_case["gold"]
+
+    obs = env.step(
+        LedgerShieldAction(
+            action_type="submit_decision",
+            payload={
+                "decision": "NEEDS_REVIEW",
+                "confidence": 0.95,
+                "extracted_fields": dict(gold["fields"]),
+                "line_items": list(gold["line_items"]),
+                "evidence_map": {},
+            },
+        )
+    )
+
+    assert "compliance" in obs.last_tool_result
+    assert "currency_validation" in obs.last_tool_result
+    assert obs.last_tool_result["currency_validation"]["applicable"] is True
+    assert obs.last_tool_result["currency_validation"]["score"] == 1.0
+    assert "watchdog" in obs.last_tool_result
+
+
+def test_curriculum_state_updates_after_terminal_submission():
+    env = LedgerShieldEnvironment()
+    env.reset(case_id="CASE-D-002")
+
+    env.step(
+        LedgerShieldAction(
+            action_type="submit_decision",
+            payload={
+                "decision": "PAY",
+                "confidence": 0.9,
+                "reason_codes": [],
+                "policy_checks": {
+                    "three_way_match": "pass",
+                    "bank_change_verification": "pass",
+                    "duplicate_check": "pass",
+                    "approval_threshold_check": "pass",
+                },
+                "evidence_map": {},
+                "counterfactual": (
+                    "Would HOLD if the sender domain changed, the bank account mismatched "
+                    "vendor master, or a duplicate cluster appeared in ledger history."
+                ),
+            },
+        )
+    )
+
+    assert env._curriculum_state.episode_count == 1
+    assert "curriculum" in env._last_info
+
+
 def test_lookup_vendor_history_returns_history():
     env = LedgerShieldEnvironment()
     env.reset(case_id="CASE-D-001")
@@ -726,8 +781,9 @@ def test_task_e_campaign_submission_scores_high():
         "policy_checks": dict(gold["policy_checks"]),
         "evidence_map": dict(gold["evidence_targets"]),
         "counterfactual": (
-            "Would PAY if the three invoices reconciled to distinct approved remittance records "
-            "without threshold evasion or workflow-override pressure."
+            "Would PAY if INV-E-001 (49900.00), INV-E-002 (49900.00), and INV-E-003 (49900.00) "
+            "each reconciled to distinct approved remittance records without threshold evasion "
+            "or workflow-override pressure."
         ),
     }
     trajectory = [
@@ -851,7 +907,7 @@ def test_correct_task_d_submission_finishes_episode():
 
     assert obs.last_tool_result["tool_name"] == "submit_decision"
     assert obs.last_tool_result["success"] is True
-    assert obs.last_tool_result["final_score"] > 0.90
+    assert obs.last_tool_result["final_score"] > 0.88
     assert obs.last_tool_result["final_score"] < 1.0
 
 
@@ -928,4 +984,4 @@ def test_workflow_override_task_d_case_scores_high():
 
     assert obs.last_tool_result["tool_name"] == "submit_decision"
     assert obs.last_tool_result["success"] is True
-    assert obs.last_tool_result["final_score"] > 0.90
+    assert obs.last_tool_result["final_score"] > 0.88

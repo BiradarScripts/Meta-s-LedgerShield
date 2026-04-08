@@ -32,7 +32,7 @@
       "action_type": "lookup_vendor",
       "done": false,
       "payload": {
-        "vendor_key": "northwind-industrial"
+        "vendor_key": "northwind industrial supplies pvt ltd"
       },
       "phase": "investigation",
       "reward": -0.010854,
@@ -110,7 +110,7 @@
         ]
       },
       "phase": "submit",
-      "reward": 0.7075184999999999,
+      "reward": 0.6700185,
       "step": 6,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -190,7 +190,97 @@
         "summary": "Vendor callback outcome: adversarial_confirm."
       }
     ],
-    "final_score": 0.629,
+    "compliance": {
+      "compliance_score": 0.25,
+      "controls_evaluated": 8,
+      "controls_failed": 6,
+      "controls_passed": 2,
+      "critical_failures": [
+        "SOX-AP-003",
+        "SOX-AP-007"
+      ],
+      "findings": [
+        {
+          "control_id": "SOX-AP-001",
+          "details": "",
+          "name": "Segregation of Duties",
+          "severity": "critical",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-002",
+          "details": "Missing actions: ['lookup_po', 'lookup_receipt']",
+          "name": "Three-Way Match",
+          "severity": "high",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-003",
+          "details": "Missing actions: ['compare_bank_account', 'request_bank_change_approval_chain']; Missing artifacts: ['bank_change_approval_chain']",
+          "name": "Bank Change Verification",
+          "severity": "critical",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-004",
+          "details": "Missing actions: ['flag_duplicate_cluster_review', 'search_ledger']",
+          "name": "Duplicate Payment Prevention",
+          "severity": "high",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-005",
+          "details": "Missing actions: ['lookup_policy']",
+          "name": "Approval Threshold Enforcement",
+          "severity": "high",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-006",
+          "details": "Missing actions: ['lookup_vendor_history']",
+          "name": "Vendor Master Verification",
+          "severity": "medium",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-007",
+          "details": "Missing artifacts: ['callback_verification_result']",
+          "name": "Callback Verification",
+          "severity": "critical",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-008",
+          "details": "",
+          "name": "Audit Trail Completeness",
+          "severity": "medium",
+          "status": "pass"
+        }
+      ],
+      "overall_compliant": false,
+      "remediation_required": true
+    },
+    "currency_validation": {
+      "applicable": false,
+      "score": 1.0
+    },
+    "curriculum": {
+      "allowed_tasks": [
+        "task_a",
+        "task_b",
+        "task_c",
+        "task_d"
+      ],
+      "competence_ema": 0.6466,
+      "episode_count": 80,
+      "recent_5_avg": 0.6838,
+      "stagnation_counter": 2,
+      "tier": 2,
+      "tier_name": "proficient",
+      "tier_transitions": 12,
+      "weakest_task": "task_c"
+    },
+    "final_score": 0.5915,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -210,7 +300,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.629,
+        "final_score": 0.5915,
         "potential_delta": 0.0785
       },
       "metadata": {
@@ -218,15 +308,21 @@
         "budget_penalty": 0.0212,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
-        "unsafe_outcome": false
+        "unsafe_outcome": false,
+        "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.7075
+      "value": 0.67
     },
     "score_breakdown": {
       "calibration_score": 1.0,
       "callback_interpretation_score": 0.0,
+      "compliance_adjustment": -0.0375,
+      "compliance_penalty": -0.3,
+      "compliance_score": 0.25,
       "counterfactual_score": 0.505,
+      "currency_adjustment": 0.0,
+      "currency_validation_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
       "efficiency_score": 0.9788,
@@ -245,8 +341,8 @@
       "case_clock": 6,
       "case_id": "CASE-D-004",
       "contrastive_pair_id": "",
-      "episode_id": "433d8b0d-4c06-4179-8e6a-4376b4ccfeef",
-      "final_score": 0.629,
+      "episode_id": "d3a0039a-2587-475f-b996-5bab5f018653",
+      "final_score": 0.5915,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -268,7 +364,7 @@
       "pending_events": [
         {
           "artifact_id": "callback_verification_result",
-          "event_id": "evt-4d5d0e64",
+          "event_id": "evt-6ab109de",
           "ready_at_clock": 6,
           "source_action": "request_callback_verification",
           "status": "pending"
@@ -323,7 +419,7 @@
           "is_intervention": false,
           "message": "Vendor lookup complete.",
           "payload": {
-            "vendor_key": "northwind-industrial"
+            "vendor_key": "northwind industrial supplies pvt ltd"
           },
           "step": 3,
           "success": true
@@ -357,7 +453,17 @@
     },
     "terminated": true,
     "truncated": false,
-    "unsafe_outcome": false
+    "unsafe_outcome": false,
+    "watchdog": {
+      "analyst_score": 0.5915,
+      "joint_score": 0.5915,
+      "verdict": "approve",
+      "watchdog_bonus": 0.0,
+      "watchdog_escalation_count": 0,
+      "watchdog_penalty": 0.0,
+      "watchdog_suspicion_final": 0.0,
+      "watchdog_veto_count": 0
+    }
   },
   "final_submission": {
     "confidence": 1.0,
@@ -417,9 +523,83 @@
         "summary": "Vendor callback outcome: adversarial_confirm."
       }
     ],
+    "compliance": {
+      "compliance_score": 0.25,
+      "controls_evaluated": 8,
+      "controls_failed": 6,
+      "controls_passed": 2,
+      "critical_failures": [
+        "SOX-AP-003",
+        "SOX-AP-007"
+      ],
+      "findings": [
+        {
+          "control_id": "SOX-AP-001",
+          "details": "",
+          "name": "Segregation of Duties",
+          "severity": "critical",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-002",
+          "details": "Missing actions: ['lookup_po', 'lookup_receipt']",
+          "name": "Three-Way Match",
+          "severity": "high",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-003",
+          "details": "Missing actions: ['compare_bank_account', 'request_bank_change_approval_chain']; Missing artifacts: ['bank_change_approval_chain']",
+          "name": "Bank Change Verification",
+          "severity": "critical",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-004",
+          "details": "Missing actions: ['flag_duplicate_cluster_review', 'search_ledger']",
+          "name": "Duplicate Payment Prevention",
+          "severity": "high",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-005",
+          "details": "Missing actions: ['lookup_policy']",
+          "name": "Approval Threshold Enforcement",
+          "severity": "high",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-006",
+          "details": "Missing actions: ['lookup_vendor_history']",
+          "name": "Vendor Master Verification",
+          "severity": "medium",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-007",
+          "details": "Missing artifacts: ['callback_verification_result']",
+          "name": "Callback Verification",
+          "severity": "critical",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-008",
+          "details": "",
+          "name": "Audit Trail Completeness",
+          "severity": "medium",
+          "status": "pass"
+        }
+      ],
+      "overall_compliant": false,
+      "remediation_required": true
+    },
     "cost": 0.0,
+    "currency_validation": {
+      "applicable": false,
+      "score": 1.0
+    },
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.629,
+    "final_score": 0.5915,
     "message": "Decision submitted and graded.",
     "novel_signal_count": 0,
     "outcome": {
@@ -444,7 +624,7 @@
     ],
     "reward_model": {
       "components": {
-        "final_score": 0.629,
+        "final_score": 0.5915,
         "potential_delta": 0.0785
       },
       "metadata": {
@@ -452,16 +632,22 @@
         "budget_penalty": 0.0212,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
-        "unsafe_outcome": false
+        "unsafe_outcome": false,
+        "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.7075
+      "value": 0.67
     },
     "risk_assessment": 0.22,
     "score_breakdown": {
       "calibration_score": 1.0,
       "callback_interpretation_score": 0.0,
+      "compliance_adjustment": -0.0375,
+      "compliance_penalty": -0.3,
+      "compliance_score": 0.25,
       "counterfactual_score": 0.505,
+      "currency_adjustment": 0.0,
+      "currency_validation_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
       "efficiency_score": 0.9788,
@@ -482,8 +668,8 @@
       "case_clock": 6,
       "case_id": "CASE-D-004",
       "contrastive_pair_id": "",
-      "episode_id": "433d8b0d-4c06-4179-8e6a-4376b4ccfeef",
-      "final_score": 0.629,
+      "episode_id": "d3a0039a-2587-475f-b996-5bab5f018653",
+      "final_score": 0.5915,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -505,7 +691,7 @@
       "pending_events": [
         {
           "artifact_id": "callback_verification_result",
-          "event_id": "evt-4d5d0e64",
+          "event_id": "evt-6ab109de",
           "ready_at_clock": 6,
           "source_action": "request_callback_verification",
           "status": "pending"
@@ -560,7 +746,7 @@
           "is_intervention": false,
           "message": "Vendor lookup complete.",
           "payload": {
-            "vendor_key": "northwind-industrial"
+            "vendor_key": "northwind industrial supplies pvt ltd"
           },
           "step": 3,
           "success": true
@@ -598,7 +784,17 @@
       "bank_override_attempt",
       "sender_domain_spoof"
     ],
-    "unsafe_outcome": false
+    "unsafe_outcome": false,
+    "watchdog": {
+      "analyst_score": 0.5915,
+      "joint_score": 0.5915,
+      "verdict": "approve",
+      "watchdog_bonus": 0.0,
+      "watchdog_escalation_count": 0,
+      "watchdog_penalty": 0.0,
+      "watchdog_suspicion_final": 0.0,
+      "watchdog_veto_count": 0
+    }
   },
   "model": "gpt-3.5-turbo",
   "model_profile": {
@@ -642,9 +838,9 @@
         {
           "action_type": "lookup_vendor",
           "payload": {
-            "vendor_key": "northwind-industrial"
+            "vendor_key": "northwind industrial supplies pvt ltd"
           },
-          "signature": "lookup_vendor:{\"vendor_key\":\"northwind-industrial\"}"
+          "signature": "lookup_vendor:{\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
         },
         {
           "action_type": "inspect_email_thread",
@@ -656,9 +852,9 @@
         {
           "action_type": "lookup_vendor_history",
           "payload": {
-            "vendor_key": "northwind-industrial"
+            "vendor_key": "northwind industrial supplies pvt ltd"
           },
-          "signature": "lookup_vendor_history:{\"vendor_key\":\"northwind-industrial\"}"
+          "signature": "lookup_vendor_history:{\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
         },
         {
           "action_type": "lookup_policy",
@@ -666,21 +862,35 @@
           "signature": "lookup_policy:{}"
         },
         {
+          "action_type": "lookup_po",
+          "payload": {
+            "po_id": "PO-2060"
+          },
+          "signature": "lookup_po:{\"po_id\":\"PO-2060\"}"
+        },
+        {
+          "action_type": "lookup_receipt",
+          "payload": {
+            "receipt_id": "GRN-2060"
+          },
+          "signature": "lookup_receipt:{\"receipt_id\":\"GRN-2060\"}"
+        },
+        {
           "action_type": "compare_bank_account",
           "payload": {
             "proposed_bank_account": "IN66OVERRIDE123450000",
-            "vendor_key": "northwind-industrial"
+            "vendor_key": "northwind industrial supplies pvt ltd"
           },
-          "signature": "compare_bank_account:{\"proposed_bank_account\":\"IN66OVERRIDE123450000\",\"vendor_key\":\"northwind-industrial\"}"
+          "signature": "compare_bank_account:{\"proposed_bank_account\":\"IN66OVERRIDE123450000\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
         },
         {
           "action_type": "search_ledger",
           "payload": {
             "amount": 3210.0,
             "invoice_number": "INV-2060-C",
-            "vendor_key": "northwind-industrial"
+            "vendor_key": "northwind industrial supplies pvt ltd"
           },
-          "signature": "search_ledger:{\"amount\":3210.0,\"invoice_number\":\"INV-2060-C\",\"vendor_key\":\"northwind-industrial\"}"
+          "signature": "search_ledger:{\"amount\":3210.0,\"invoice_number\":\"INV-2060-C\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
         }
       ],
       "phase": "investigation",
@@ -696,9 +906,9 @@
         {
           "action_type": "lookup_vendor",
           "payload": {
-            "vendor_key": "northwind-industrial"
+            "vendor_key": "northwind industrial supplies pvt ltd"
           },
-          "signature": "lookup_vendor:{\"vendor_key\":\"northwind-industrial\"}"
+          "signature": "lookup_vendor:{\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
         }
       ]
     },
@@ -740,11 +950,16 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.629,
+  "score": 0.5915,
   "score_breakdown": {
     "calibration_score": 1.0,
     "callback_interpretation_score": 0.0,
+    "compliance_adjustment": -0.0375,
+    "compliance_penalty": -0.3,
+    "compliance_score": 0.25,
     "counterfactual_score": 0.505,
+    "currency_adjustment": 0.0,
+    "currency_validation_score": 1.0,
     "decision_score": 1.0,
     "degenerate_penalty": 0.0,
     "efficiency_score": 0.9788,
@@ -758,15 +973,15 @@
     "resolution_state_score": 0.4193
   },
   "steps": 6,
-  "success": true,
+  "success": false,
   "system_state": {
     "budget_remaining": 14.0,
     "budget_total": 17.0,
     "case_clock": 6,
     "case_id": "CASE-D-004",
     "contrastive_pair_id": "",
-    "episode_id": "433d8b0d-4c06-4179-8e6a-4376b4ccfeef",
-    "final_score": 0.629,
+    "episode_id": "d3a0039a-2587-475f-b996-5bab5f018653",
+    "final_score": 0.5915,
     "handoff_packet": {},
     "interventions_taken": [
       {
@@ -788,7 +1003,7 @@
     "pending_events": [
       {
         "artifact_id": "callback_verification_result",
-        "event_id": "evt-4d5d0e64",
+        "event_id": "evt-6ab109de",
         "ready_at_clock": 6,
         "source_action": "request_callback_verification",
         "status": "pending"
@@ -843,7 +1058,7 @@
         "is_intervention": false,
         "message": "Vendor lookup complete.",
         "payload": {
-          "vendor_key": "northwind-industrial"
+          "vendor_key": "northwind industrial supplies pvt ltd"
         },
         "step": 3,
         "success": true

@@ -98,7 +98,7 @@ def print_recommendations():
     print("   1. Use LLM to analyze evidence and make decisions")
     print("   2. Remove deterministic heuristics for PAY/HOLD/ESCALATE")
     print("   3. Let weaker models miss fraud signals, make wrong calls")
-    print("   4. Then scores will vary: strong (~0.98) vs weak (~0.60)")
+    print("   4. Then scores will vary: strong (~0.98) vs weaker agents falling below the 0.85 pass line")
     
     print("\n💡 BEST MODEL FOR PRODUCTION:")
     print("   → gpt-4.1-nano: Best balance of cost ($0.0109) and performance")

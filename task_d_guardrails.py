@@ -69,6 +69,24 @@ def make_task_d_counterfactual(candidate: Any) -> str:
     )
 
 
+def _task_d_duplicate_detected(collected: dict[str, Any]) -> bool:
+    ledger_search = collected.get("ledger_search") or {}
+    duplicate_cluster_report = collected.get("duplicate_cluster_report", {}) or {}
+    observed_signals = {
+        normalize_text(signal)
+        for signal in (collected.get("observed_risk_signals", []) or [])
+        if normalize_text(signal)
+    }
+    duplicate_cluster_detected = normalize_text((duplicate_cluster_report.get("details", {}) or {}).get("status")) == "cluster_detected"
+    return bool(
+        (collected.get("ledger_hits", []) or [])
+        or int(ledger_search.get("exact_duplicate_count", 0) or 0) > 0
+        or int(ledger_search.get("near_duplicate_count", 0) or 0) > 0
+        or duplicate_cluster_detected
+        or "duplicate_near_match" in observed_signals
+    )
+
+
 def _clean_pay_evidence(collected: dict[str, Any], primary_record: dict[str, Any]) -> dict[str, Any]:
     evidence_map: dict[str, Any] = {}
     primary_evidence = primary_record.get("evidence", {}) or {}
@@ -89,7 +107,7 @@ def _clean_pay_evidence(collected: dict[str, Any], primary_record: dict[str, Any
     if sender_alignment in {"aligned", "match"} and "from_header" in email_evidence:
         evidence_map["sender_domain_verified"] = email_evidence["from_header"]
 
-    duplicate_detected = bool(ledger_hits) or int(ledger_search.get("exact_duplicate_count", 0) or 0) > 0
+    duplicate_detected = _task_d_duplicate_detected(collected)
     if not duplicate_detected:
         duplicate_evidence = primary_evidence.get("invoice_number") or email_evidence.get("subject_header")
         if duplicate_evidence:
@@ -115,15 +133,13 @@ def _task_d_findings(collected: dict[str, Any]) -> dict[str, Any]:
     }
     email_evidence = collected.get("email_evidence", {})
     email_thread = collected.get("email_thread") or {}
-    ledger_search = collected.get("ledger_search") or {}
     bank_compares = collected.get("bank_compares") or (
         [collected.get("bank_compare")] if collected.get("bank_compare") else []
     )
     vendor_history = collected.get("vendor_history", []) or []
-    ledger_hits = collected.get("ledger_hits", []) or []
 
     email_flags = derive_email_thread_signals(email_thread)
-    duplicate_detected = bool(ledger_hits) or int(ledger_search.get("exact_duplicate_count", 0) or 0) > 0
+    duplicate_detected = _task_d_duplicate_detected(collected)
     bank_mismatch = any(compare and not bool(compare.get("matched")) for compare in bank_compares)
     invoice_totals = [safe_float(record.get("fields", {}).get("total")) for record in invoice_records]
     threshold_split = (

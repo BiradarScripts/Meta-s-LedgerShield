@@ -5,7 +5,7 @@ Key changes from baseline:
 - Uses LLM to analyze evidence and make decisions (not heuristics)
 - Removes deterministic logic for PAY/HOLD/ESCALATE decisions
 - Weaker models will miss fraud signals → lower scores
-- Creates real separation: Strong (~0.98) vs Weak (~0.60)
+- Creates real separation: Strong (~0.98) vs failing baselines below pass threshold
 """
 
 from __future__ import annotations
@@ -48,7 +48,7 @@ BENCHMARK = "ledgershield"
 MAX_STEPS = 20
 TEMPERATURE = 0.0
 MAX_TOKENS = 1024
-SUCCESS_SCORE_THRESHOLD = 0.60
+SUCCESS_SCORE_THRESHOLD = 0.85
 
 DEFAULT_CASES = [
     "CASE-A-001",
@@ -73,12 +73,6 @@ DEFAULT_CASES = [
     "CASE-E-001",
     "CASE-E-002",
 ]
-
-VENDOR_KEY_BY_NAME = {
-    "northwind industrial supplies pvt ltd": "northwind-industrial",
-    "eurocaps components gmbh": "eurocaps-components",
-    "bluepeak logistics llp": "bluepeak-logistics",
-}
 
 API_CALLS_TOTAL = 0
 API_TOKENS_PROMPT = 0
@@ -134,8 +128,8 @@ def get_model_capability_profile(model_name: str) -> ModelCapabilityProfile:
             model_name=model_name,
             capability_score=score,
             tier="elite",
-            plan_mode="coverage",
-            repair_level="grounded",
+            plan_mode="llm",
+            repair_level="partial",
             investigation_budget_bonus=2,
             intervention_budget_bonus=2,
             decision_token_budget=max(MAX_TOKENS, 1536),
@@ -600,8 +594,7 @@ def update_collected_from_observation(collected: dict[str, Any], observation: An
                 _store_artifact(collected, artifact)
 
 def vendor_key_for(fields: dict[str, Any]) -> str:
-    vendor_name = normalize_text(fields.get("vendor_name"))
-    return VENDOR_KEY_BY_NAME.get(vendor_name, "")
+    return normalize_text(fields.get("vendor_name"))
 
 
 def vendor_history_key_for(fields: dict[str, Any]) -> str:
@@ -715,6 +708,16 @@ def build_investigation_candidates(
     candidates: list[LedgerShieldAction] = []
     seen = set(executed_signatures)
     history_lookup_key = vendor_key or vendor_history_key_for(collected.get("invoice_fields", {}) or {})
+    instruction = normalize_text(collected.get("case_instruction", ""))
+    task_c_policy_hint = any(
+        phrase in instruction
+        for phrase in {
+            "approval threshold",
+            "structured below",
+            "split invoice",
+            "policy",
+        }
+    )
 
     if task_type == "task_b":
         _append_candidate(candidates, seen, LedgerShieldAction(action_type="lookup_policy", payload={}))
@@ -736,6 +739,14 @@ def build_investigation_candidates(
                 seen,
                 LedgerShieldAction(action_type="lookup_vendor", payload={"vendor_key": vendor_key}),
             )
+        if history_lookup_key:
+            _append_candidate(
+                candidates,
+                seen,
+                LedgerShieldAction(action_type="lookup_vendor_history", payload={"vendor_key": history_lookup_key}),
+            )
+        if task_c_policy_hint:
+            _append_candidate(candidates, seen, LedgerShieldAction(action_type="lookup_policy", payload={}))
         if vendor_key and (invoice_number or invoice_total):
             _append_candidate(
                 candidates,
@@ -798,6 +809,15 @@ def build_investigation_candidates(
             LedgerShieldAction(action_type="lookup_vendor_history", payload={"vendor_key": history_lookup_key}),
         )
     _append_candidate(candidates, seen, LedgerShieldAction(action_type="lookup_policy", payload={}))
+    if po_id:
+        _append_candidate(candidates, seen, LedgerShieldAction(action_type="lookup_po", payload={"po_id": po_id}))
+    resolved_receipt_id = receipt_id or (po_id.replace("PO-", "GRN-", 1) if po_id else "")
+    if resolved_receipt_id:
+        _append_candidate(
+            candidates,
+            seen,
+            LedgerShieldAction(action_type="lookup_receipt", payload={"receipt_id": resolved_receipt_id}),
+        )
 
     for record in collected.get("invoice_records", []) or []:
         fields = record.get("fields", {}) or {}
@@ -862,6 +882,7 @@ def build_intervention_candidates(
         )
     )
     ledger_search = collected.get("ledger_search") or {}
+    ledger_reviewed = bool(ledger_search)
     has_duplicates = bool(collected.get("ledger_hits")) or int(ledger_search.get("exact_duplicate_count", 0) or 0) > 0
     has_duplicates = has_duplicates or int(ledger_search.get("near_duplicate_count", 0) or 0) > 0
     bank_mismatch = any(compare and not bool(compare.get("matched")) for compare in collected.get("bank_compares", []) or [])
@@ -920,9 +941,14 @@ def build_intervention_candidates(
     elif task_type == "task_e" and decision == "escalate_fraud":
         _append_candidate(candidates, seen, LedgerShieldAction(action_type="freeze_vendor_profile", payload={}))
 
-    if has_duplicates or {"duplicate_near_match", "approval_threshold_evasion", "shared_bank_account", "coordinated_timing"} & reason_codes:
-        _append_candidate(candidates, seen, LedgerShieldAction(action_type="flag_duplicate_cluster_review", payload={}))
-    elif task_type == "task_c" and task_c_campaign_hint:
+    duplicate_review_needed = has_duplicates or bool(
+        {"duplicate_near_match", "approval_threshold_evasion", "shared_bank_account", "coordinated_timing"} & reason_codes
+    )
+    if duplicate_review_needed or task_c_campaign_hint or (
+        task_type in {"task_c", "task_d", "task_e"}
+        and decision in {"needs_review", "escalate_fraud"}
+        and ledger_reviewed
+    ):
         _append_candidate(candidates, seen, LedgerShieldAction(action_type="flag_duplicate_cluster_review", payload={}))
 
     if {"sender_domain_spoof", "policy_bypass_attempt", "urgent_payment_pressure"} & (reason_codes | email_flags):
@@ -961,6 +987,7 @@ def _action_priority(
 ) -> tuple[int, int]:
     action_type = normalize_text(action.action_type)
     decision = normalize_text((current_submission or {}).get("decision"))
+    instruction = normalize_text(collected.get("case_instruction", ""))
     reason_codes = {
         normalize_text(code)
         for code in (
@@ -1000,8 +1027,20 @@ def _action_priority(
     if phase == "investigation":
         if task_type == "task_b" and action_type in {"lookup_po", "lookup_receipt", "lookup_policy"}:
             score += 8
+        if task_type == "task_c" and action_type == "lookup_vendor":
+            score += 6
+        if task_type == "task_c" and action_type == "lookup_vendor_history":
+            score += 4
+        if task_type == "task_c" and action_type == "lookup_policy" and any(
+            phrase in instruction for phrase in {"approval threshold", "structured below", "split invoice"}
+        ):
+            score += 24
         if task_type in {"task_d", "task_e"} and action_type == "inspect_email_thread":
             score += 10
+        if task_type in {"task_d", "task_e"} and action_type in {"lookup_po", "lookup_receipt"}:
+            score += 6
+        if task_type in {"task_d", "task_e"} and action_type == "lookup_policy":
+            score += 8
         if action_type == "compare_bank_account" and collected.get("invoice_fields", {}).get("bank_account"):
             score += 6
         if action_type == "search_ledger" and (
@@ -1009,7 +1048,7 @@ def _action_priority(
         ):
             score += 5
         if action_type == "ocr" and action.payload.get("doc_id") == collected.get("email_doc_id"):
-            score += 8
+            score += 15 if task_type in {"task_d", "task_e"} else 8
     else:
         if action_type == "request_callback_verification" and decision != "pay":
             score += 8
@@ -1019,6 +1058,10 @@ def _action_priority(
             score += 8
         if action_type == "flag_duplicate_cluster_review" and (
             {"duplicate_near_match", "approval_threshold_evasion", "shared_bank_account", "coordinated_timing"} & reason_codes
+        ):
+            score += 8
+        if action_type == "flag_duplicate_cluster_review" and (
+            task_type in {"task_c", "task_d", "task_e"} and decision != "pay" and bool(collected.get("ledger_search"))
         ):
             score += 8
         if action_type == "freeze_vendor_profile" and (
@@ -1187,6 +1230,8 @@ def llm_plan_actions(
     )
     if profile.plan_mode == "hybrid":
         return _merge_action_batches(llm_selected, ranked, max_actions=max_actions) or ranked
+    if profile.tier == "elite":
+        return _merge_action_batches(llm_selected, ranked, max_actions=max_actions) or ranked
     return llm_selected or ranked
 
 
@@ -1211,36 +1256,14 @@ def repair_submission(task_type: str, submission: dict[str, Any], collected: dic
     if profile.repair_level == "none":
         return submission
 
-    decision = normalize_text((submission or {}).get("decision"))
-    if task_type == "task_b":
-        heuristic = heuristic_task_b(collected)
-        if profile.repair_level == "grounded":
-            return heuristic
-        return heuristic if normalize_text(heuristic.get("decision")) == decision else submission
-
     if task_type == "task_c":
-        grounded = grounded_task_c_submission(collected)
-        if profile.repair_level == "grounded":
-            return validate_task_c_submission(submission, collected)
-        return validate_task_c_submission(submission, collected) if normalize_text(grounded.get("decision")) == decision else submission
+        return validate_task_c_submission(submission, collected)
 
     if task_type == "task_d":
-        grounded = grounded_task_d_submission(
-            collected,
-            counterfactual=(submission or {}).get("counterfactual", ""),
-        )
-        if profile.repair_level == "grounded":
-            return validate_task_d_submission(submission, collected)
-        return validate_task_d_submission(submission, collected) if normalize_text(grounded.get("decision")) == decision else submission
+        return validate_task_d_submission(submission, collected)
 
     if task_type == "task_e":
-        grounded = grounded_task_e_submission(
-            collected,
-            {"counterfactual": (submission or {}).get("counterfactual", "")},
-        )
-        if profile.repair_level == "grounded":
-            return _repair_task_e_submission(submission, collected)
-        return _repair_task_e_submission(submission, collected) if normalize_text(grounded.get("decision")) == decision else submission
+        return sanitize_task_e_submission(submission, collected)
 
     return submission
 
@@ -1559,10 +1582,6 @@ Return JSON format:
                 discrepancies.append(discrepancy)
         if callback_signal == "callback_clean" and not discrepancies:
             decision = "PAY"
-
-        grounded = heuristic_task_b(collected)
-        if grounded.get("decision") != decision:
-            return grounded
 
         # Build evidence map based on discrepancies
         evidence_map = {**artifact_evidence, **inferred_evidence}
@@ -1942,10 +1961,7 @@ Allowed campaign_signals:
 - shared_bank_account
 - coordinated_timing
 
-For cross_invoice_links, return the exact invoice doc_ids from the provided invoice records, for example:
-- INV-E-001
-- INV-E-002
-- INV-E-003
+For cross_invoice_links, return the exact invoice doc_ids from the provided invoice records.
 
 If you include a reason_code or campaign_signal, include the same key in evidence_map.
 
@@ -1955,6 +1971,7 @@ Hard constraints:
 - If the sender says to keep invoices below approval threshold, include approval_threshold_evasion.
 - If bank details change and the sender domain is suspicious or callback evidence is suspicious, include vendor_account_takeover_suspected.
 - If you return ESCALATE_FRAUD, include every grounded campaign signal you can support from the provided evidence.
+- In counterfactual, cite the exact invoice doc_ids and amounts that would need to reconcile cleanly for a PAY outcome.
 
 Return JSON:
 {

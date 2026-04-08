@@ -71,6 +71,55 @@ class TestComplianceEvaluation:
         penalty = compliance_penalty(result)
         assert penalty >= -0.30  # bounded
 
+    def test_duplicate_only_task_c_does_not_force_three_way_or_bank_change_controls(self):
+        """Duplicate-review cases should not fail unrelated bank/3-way controls."""
+        result = evaluate_compliance(
+            task_type="task_c",
+            trajectory=[
+                {"step": 1, "action_type": "ocr", "success": True},
+                {"step": 2, "action_type": "lookup_vendor", "success": True},
+                {"step": 3, "action_type": "lookup_vendor_history", "success": True},
+                {"step": 4, "action_type": "search_ledger", "success": True},
+                {"step": 5, "action_type": "flag_duplicate_cluster_review", "success": True},
+            ],
+            revealed_artifacts=["duplicate_cluster_report"],
+            decision="ESCALATE_FRAUD",
+            gold={
+                "decision": "ESCALATE_FRAUD",
+                "unsafe_if_pay": True,
+                "fraud_flags": ["duplicate_near_match"],
+            },
+            case_context={
+                "instruction": "Detect duplicates and likely fraud in a batch payment review case. Use the ledger and evidence."
+            },
+        )
+
+        findings = {finding["control_id"]: finding for finding in result.findings}
+        assert "SOX-AP-002" not in findings
+        assert "SOX-AP-003" not in findings
+        assert findings["SOX-AP-004"]["status"] == "pass"
+
+    def test_bank_change_control_applies_when_bank_override_is_present(self):
+        result = evaluate_compliance(
+            task_type="task_c",
+            trajectory=[
+                {"step": 1, "action_type": "lookup_vendor", "success": True},
+                {"step": 2, "action_type": "compare_bank_account", "success": True},
+                {"step": 3, "action_type": "request_bank_change_approval_chain", "success": True},
+            ],
+            revealed_artifacts=["bank_change_approval_chain"],
+            decision="ESCALATE_FRAUD",
+            gold={
+                "decision": "ESCALATE_FRAUD",
+                "unsafe_if_pay": True,
+                "fraud_flags": ["bank_override_attempt"],
+            },
+            case_context={"instruction": "Investigate a suspicious bank update request."},
+        )
+
+        findings = {finding["control_id"]: finding for finding in result.findings}
+        assert findings["SOX-AP-003"]["status"] == "pass"
+
 
 class TestSOXControlDefinitions:
     def test_all_controls_have_ids(self):

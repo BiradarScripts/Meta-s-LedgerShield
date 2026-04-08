@@ -104,11 +104,11 @@ The inference agent (`inference.py`) uses a `ModelCapabilityProfile` that adapts
 
 | Tier | Capability score | Plan mode | Repair level | Budget bonus |
 |---|---|---|---|---|
-| Elite | ≥ 5.0 | coverage | grounded | +2 investigation, +2 intervention |
+| Elite | ≥ 5.0 | LLM-first | partial | +2 investigation, +2 intervention |
 | Strong | ≥ 4.5 | hybrid | partial | +1 investigation, +1 intervention |
 | Standard | < 4.5 | LLM-first | none | baseline |
 
-Weaker models get more structured guardrails and stricter evidence validation; stronger models get richer planning and repair budgets.
+The capability profile only adjusts planning depth and budget. It does not hard-snap stronger models onto a deterministic grounded policy.
 
 ### Smart signal derivation
 
@@ -153,7 +153,7 @@ LedgerShield is not just a server. It includes a full evaluation stack:
 
 ### Latest local live comparison
 
-The latest local `compare_models_live.py` snapshot in this workspace was generated on **April 8, 2026** from the full 21-case public benchmark using:
+Live comparison numbers should be treated as generated artifacts, not hardcoded documentation. Run:
 
 ```bash
 python compare_models_live.py \
@@ -161,21 +161,33 @@ python compare_models_live.py \
   --output live_model_comparison.json
 ```
 
-| Model | Tier | Capability | Average Score | Success Rate | Min | Max | API Calls | Failed Cases |
-|---|---|---:|---:|---:|---:|---:|---:|---|
-| `gpt-3.5-turbo` | `standard` | 3.2 | 0.8032 | 47.6% | 0.58 | 0.95 | 64 | 11 |
-| `gpt-4o` | `strong` | 4.6 | 0.8247 | 57.1% | 0.39 | 0.95 | 64 | 9 |
-| `gpt-5.4` | `elite` | 5.4 | 0.8849 | 81.0% | 0.82 | 0.95 | 64 | 4 |
+Then inspect:
 
-Capability ordering check: `PASS`
+- `live_model_comparison.json` for summary metrics, per-case scores, model profiles, and ordering checks
+- `live_model_comparison_debug/<model>/` for per-case traces, submissions, and score breakdowns
 
-#### Analysis and Explanation of Results
+The current workspace artifact was generated on **April 9, 2026 (IST)** from [`live_model_comparison.json`](./live_model_comparison.json):
 
-The above benchmark run ensures that all agents correctly utilize live LLM API calls via the LLM-powered inference pipeline instead of falling back to legacy baseline heuristics. 
+| Model | Tier | Capability | Average Score | Success Rate | Min Score | Max Score | API Calls |
+|---|---|---:|---:|---:|---:|---:|---:|
+| `gpt-3.5-turbo` | standard | 3.2 | 0.6837 | 33.3% | 0.0225 | 0.9632 | 63 |
+| `gpt-4o` | strong | 4.6 | 0.8746 | 85.7% | 0.5417 | 0.9632 | 64 |
+| `gpt-5.4` | elite | 5.4 | 0.9108 | 95.2% | 0.8469 | 0.9695 | 64 |
 
-- **Clear Monotonic Performance Spreads:** The benchmark yields a distinct and monotonic separation in scores corresponding exactly to the capability tiers of the tested models. `gpt-5.4` comfortably secures the highest score (88.49% average with an 81.0% success rate), maintaining its elite standing over `gpt-4o` and `gpt-3.5-turbo`. 
-- **Differentiation in Hard Tasks (Task D & E):**  The more capable models strongly pull away from the standard models on sophisticated scenarios like advanced AP inbox triage (Task D) and coordinated, multi-stage APTs (Task E). For instance, `gpt-4o` missed 9 scenarios including multiple Task D and E benchmarks, whereas `gpt-5.4` successfully mitigated all but 4 scenarios (`CASE-C-004`, `CASE-D-002`, `CASE-D-004`, `CASE-E-002`), demonstrating superior multi-hop reasoning, intervention discipline, and strict adversary isolation.
-- **Consistent Resource Usage:** Across all tested models, exactly 64 API calls were made on average. The elite models are not simply succeeding by brute-forcing a higher volume of prompt iterations, but rather by demonstrating structurally higher reasoning quality on each step and better synthesizing uncovered contexts to reliably reach the correct final outcomes.
+Failed-case summary from the same run:
+
+- `gpt-3.5-turbo`: 14 fails across the harder Task B-E cases
+- `gpt-4o`: 3 fails: `CASE-B-002`, `CASE-B-004`, `CASE-B-005`
+- `gpt-5.4`: 1 fail: `CASE-B-005`
+
+What this run shows:
+
+- The benchmark is no longer saturated. `gpt-4o` does **not** pass everything anymore, while `gpt-5.4` is clearly better on the same 21-case suite.
+- The frontier gap is meaningful: `gpt-5.4` is `+0.0362` average score and `+9.5` success-rate points ahead of `gpt-4o`.
+- The old "elite harness is shorter" concern is gone here because `gpt-4o` and `gpt-5.4` both used `64` API calls.
+- The only remaining `gpt-5.4` miss is `CASE-B-005`, and the debug traces show that case is currently a threshold-edge workflow/scoring issue rather than a broad capability collapse.
+
+The repo keeps the generated artifact and full trace folder so readers can verify the claim instead of trusting a hand-written summary.
 
 Published benchmark metadata in [`openenv.yaml`](./openenv.yaml) records meaningful public-vs-holdout separation:
 

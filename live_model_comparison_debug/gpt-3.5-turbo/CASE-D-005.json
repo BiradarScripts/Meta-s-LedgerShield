@@ -29,24 +29,24 @@
       "tool_success": true
     },
     {
-      "action_type": "inspect_email_thread",
+      "action_type": "lookup_vendor",
       "done": false,
       "payload": {
-        "thread_id": "THR-CEO-001"
+        "vendor_key": "swisslogix ag"
       },
       "phase": "investigation",
-      "reward": 0.287526,
+      "reward": -0.061547000000000004,
       "step": 3,
-      "tool_error": null,
-      "tool_name": "inspect_email_thread",
-      "tool_success": true
+      "tool_error": "vendor not found: swisslogix ag",
+      "tool_name": "lookup_vendor",
+      "tool_success": false
     },
     {
       "action_type": "request_callback_verification",
       "done": false,
       "payload": {},
       "phase": "intervention",
-      "reward": 0.032848999999999996,
+      "reward": 0.035126,
       "step": 4,
       "tool_error": null,
       "tool_name": "request_callback_verification",
@@ -57,7 +57,7 @@
       "done": false,
       "payload": {},
       "phase": "intervention",
-      "reward": 0.09246999999999994,
+      "reward": 0.14474699999999996,
       "step": 5,
       "tool_error": null,
       "tool_name": "route_to_security",
@@ -68,7 +68,7 @@
       "done": true,
       "payload": {
         "confidence": 1.0,
-        "counterfactual": "What conditions would make this PAY instead of ESCALATE? If the email did not exhibit urgency language, policy bypass attempt, and sender domain spoofing.",
+        "counterfactual": "What conditions would make this PAY instead of ESCALATE?",
         "decision": "ESCALATE_FRAUD",
         "evidence_map": {
           "policy_bypass_attempt": {
@@ -124,7 +124,7 @@
         ]
       },
       "phase": "submit",
-      "reward": 0.83212,
+      "reward": 0.7714970000000001,
       "step": 6,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -177,16 +177,15 @@
       "top_hits": []
     },
     "observed_risk_signals": [
-      "callback_suspicious_confirm",
-      "policy_bypass_attempt",
-      "sender_domain_spoof",
-      "urgent_payment_pressure"
+      "callback_suspicious_confirm"
     ],
     "pending_event_count": 0,
     "revealed_artifacts": [
       "callback_verification_result"
     ],
-    "tool_failures": {},
+    "tool_failures": {
+      "lookup_vendor": 1
+    },
     "vendor": {
       "approved_domains": null,
       "vendor_key": null
@@ -195,7 +194,96 @@
   },
   "error": "",
   "final_info": {
-    "final_score": 0.8376,
+    "compliance": {
+      "compliance_score": 0.375,
+      "controls_evaluated": 8,
+      "controls_failed": 5,
+      "controls_passed": 3,
+      "critical_failures": [
+        "SOX-AP-003"
+      ],
+      "findings": [
+        {
+          "control_id": "SOX-AP-001",
+          "details": "",
+          "name": "Segregation of Duties",
+          "severity": "critical",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-002",
+          "details": "Missing actions: ['lookup_po', 'lookup_receipt']",
+          "name": "Three-Way Match",
+          "severity": "high",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-003",
+          "details": "Missing actions: ['compare_bank_account', 'request_bank_change_approval_chain']; Missing artifacts: ['bank_change_approval_chain']",
+          "name": "Bank Change Verification",
+          "severity": "critical",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-004",
+          "details": "Missing actions: ['flag_duplicate_cluster_review', 'search_ledger']",
+          "name": "Duplicate Payment Prevention",
+          "severity": "high",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-005",
+          "details": "Missing actions: ['lookup_policy']",
+          "name": "Approval Threshold Enforcement",
+          "severity": "high",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-006",
+          "details": "Missing actions: ['lookup_vendor', 'lookup_vendor_history']",
+          "name": "Vendor Master Verification",
+          "severity": "medium",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-007",
+          "details": "",
+          "name": "Callback Verification",
+          "severity": "critical",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-008",
+          "details": "",
+          "name": "Audit Trail Completeness",
+          "severity": "medium",
+          "status": "pass"
+        }
+      ],
+      "overall_compliant": false,
+      "remediation_required": true
+    },
+    "currency_validation": {
+      "applicable": false,
+      "score": 1.0
+    },
+    "curriculum": {
+      "allowed_tasks": [
+        "task_a",
+        "task_b",
+        "task_c",
+        "task_d"
+      ],
+      "competence_ema": 0.6658,
+      "episode_count": 81,
+      "recent_5_avg": 0.6796,
+      "stagnation_counter": 0,
+      "tier": 2,
+      "tier_name": "proficient",
+      "tier_transitions": 12,
+      "weakest_task": "task_c"
+    },
+    "final_score": 0.7747,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -215,43 +303,49 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.8376,
-        "potential_delta": -0.0055
+        "final_score": 0.7747,
+        "potential_delta": -0.0032
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0215,
+        "budget_penalty": 0.0212,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
-        "unsafe_outcome": false
+        "unsafe_outcome": false,
+        "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.8321
+      "value": 0.7715
     },
     "score_breakdown": {
       "calibration_score": 1.0,
       "callback_interpretation_score": 0.75,
-      "counterfactual_score": 0.7083,
+      "compliance_adjustment": -0.0312,
+      "compliance_penalty": -0.22,
+      "compliance_score": 0.375,
+      "counterfactual_score": 0.505,
+      "currency_adjustment": 0.0,
+      "currency_validation_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
-      "efficiency_score": 0.9785,
+      "efficiency_score": 0.9788,
       "evidence_score": 0.75,
       "intervention_score": 0.5,
-      "investigation_score": 0.4,
+      "investigation_score": 0.2,
       "outcome_score": 1.0,
       "policy_score": 1.0,
       "pressure_event_score": 0.7143,
       "reason_score": 1.0,
-      "resolution_state_score": 0.7514
+      "resolution_state_score": 0.6418
     },
     "system_state": {
-      "budget_remaining": 13.95,
+      "budget_remaining": 14.0,
       "budget_total": 17.0,
       "case_clock": 6,
       "case_id": "CASE-D-005",
       "contrastive_pair_id": "",
-      "episode_id": "73322a20-a2f6-43fa-840f-ea2900d18b7f",
-      "final_score": 0.8376,
+      "episode_id": "c7d5bcf9-7c74-4bd7-b2cf-41a746395aec",
+      "final_score": 0.7747,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -269,10 +363,7 @@
       ],
       "max_steps": 20,
       "observed_risk_signals": [
-        "callback_suspicious_confirm",
-        "policy_bypass_attempt",
-        "sender_domain_spoof",
-        "urgent_payment_pressure"
+        "callback_suspicious_confirm"
       ],
       "pending_event_count": 0,
       "pending_events": [],
@@ -321,16 +412,16 @@
           "success": true
         },
         {
-          "action_type": "inspect_email_thread",
+          "action_type": "lookup_vendor",
           "case_clock": 3,
-          "cost": 0.25,
+          "cost": 0.2,
           "is_intervention": false,
-          "message": "Email thread inspection derived from document OCR.",
+          "message": "vendor not found: swisslogix ag",
           "payload": {
-            "thread_id": "THR-CEO-001"
+            "vendor_key": "swisslogix ag"
           },
           "step": 3,
-          "success": true
+          "success": false
         },
         {
           "action_type": "request_callback_verification",
@@ -361,11 +452,21 @@
     },
     "terminated": true,
     "truncated": false,
-    "unsafe_outcome": false
+    "unsafe_outcome": false,
+    "watchdog": {
+      "analyst_score": 0.7747,
+      "joint_score": 0.7747,
+      "verdict": "approve",
+      "watchdog_bonus": 0.0,
+      "watchdog_escalation_count": 0,
+      "watchdog_penalty": 0.0,
+      "watchdog_suspicion_final": 0.0,
+      "watchdog_veto_count": 0
+    }
   },
   "final_submission": {
     "confidence": 1.0,
-    "counterfactual": "What conditions would make this PAY instead of ESCALATE? If the email did not exhibit urgency language, policy bypass attempt, and sender domain spoofing.",
+    "counterfactual": "What conditions would make this PAY instead of ESCALATE?",
     "decision": "ESCALATE_FRAUD",
     "evidence_map": {
       "policy_bypass_attempt": {
@@ -421,9 +522,82 @@
     ]
   },
   "final_tool_result": {
+    "compliance": {
+      "compliance_score": 0.375,
+      "controls_evaluated": 8,
+      "controls_failed": 5,
+      "controls_passed": 3,
+      "critical_failures": [
+        "SOX-AP-003"
+      ],
+      "findings": [
+        {
+          "control_id": "SOX-AP-001",
+          "details": "",
+          "name": "Segregation of Duties",
+          "severity": "critical",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-002",
+          "details": "Missing actions: ['lookup_po', 'lookup_receipt']",
+          "name": "Three-Way Match",
+          "severity": "high",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-003",
+          "details": "Missing actions: ['compare_bank_account', 'request_bank_change_approval_chain']; Missing artifacts: ['bank_change_approval_chain']",
+          "name": "Bank Change Verification",
+          "severity": "critical",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-004",
+          "details": "Missing actions: ['flag_duplicate_cluster_review', 'search_ledger']",
+          "name": "Duplicate Payment Prevention",
+          "severity": "high",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-005",
+          "details": "Missing actions: ['lookup_policy']",
+          "name": "Approval Threshold Enforcement",
+          "severity": "high",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-006",
+          "details": "Missing actions: ['lookup_vendor', 'lookup_vendor_history']",
+          "name": "Vendor Master Verification",
+          "severity": "medium",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-007",
+          "details": "",
+          "name": "Callback Verification",
+          "severity": "critical",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-008",
+          "details": "",
+          "name": "Audit Trail Completeness",
+          "severity": "medium",
+          "status": "pass"
+        }
+      ],
+      "overall_compliant": false,
+      "remediation_required": true
+    },
     "cost": 0.0,
+    "currency_validation": {
+      "applicable": false,
+      "score": 1.0
+    },
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.8376,
+    "final_score": 0.7747,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "fraud_prevented",
@@ -444,46 +618,52 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.8376,
-        "potential_delta": -0.0055
+        "final_score": 0.7747,
+        "potential_delta": -0.0032
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0215,
+        "budget_penalty": 0.0212,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
-        "unsafe_outcome": false
+        "unsafe_outcome": false,
+        "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.8321
+      "value": 0.7715
     },
     "risk_assessment": 0.06,
     "score_breakdown": {
       "calibration_score": 1.0,
       "callback_interpretation_score": 0.75,
-      "counterfactual_score": 0.7083,
+      "compliance_adjustment": -0.0312,
+      "compliance_penalty": -0.22,
+      "compliance_score": 0.375,
+      "counterfactual_score": 0.505,
+      "currency_adjustment": 0.0,
+      "currency_validation_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
-      "efficiency_score": 0.9785,
+      "efficiency_score": 0.9788,
       "evidence_score": 0.75,
       "intervention_score": 0.5,
-      "investigation_score": 0.4,
+      "investigation_score": 0.2,
       "outcome_score": 1.0,
       "policy_score": 1.0,
       "pressure_event_score": 0.7143,
       "reason_score": 1.0,
-      "resolution_state_score": 0.7514
+      "resolution_state_score": 0.6418
     },
     "submission_received": true,
     "success": true,
     "system_state": {
-      "budget_remaining": 13.95,
+      "budget_remaining": 14.0,
       "budget_total": 17.0,
       "case_clock": 6,
       "case_id": "CASE-D-005",
       "contrastive_pair_id": "",
-      "episode_id": "73322a20-a2f6-43fa-840f-ea2900d18b7f",
-      "final_score": 0.8376,
+      "episode_id": "c7d5bcf9-7c74-4bd7-b2cf-41a746395aec",
+      "final_score": 0.7747,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -501,10 +681,7 @@
       ],
       "max_steps": 20,
       "observed_risk_signals": [
-        "callback_suspicious_confirm",
-        "policy_bypass_attempt",
-        "sender_domain_spoof",
-        "urgent_payment_pressure"
+        "callback_suspicious_confirm"
       ],
       "pending_event_count": 0,
       "pending_events": [],
@@ -553,16 +730,16 @@
           "success": true
         },
         {
-          "action_type": "inspect_email_thread",
+          "action_type": "lookup_vendor",
           "case_clock": 3,
-          "cost": 0.25,
+          "cost": 0.2,
           "is_intervention": false,
-          "message": "Email thread inspection derived from document OCR.",
+          "message": "vendor not found: swisslogix ag",
           "payload": {
-            "thread_id": "THR-CEO-001"
+            "vendor_key": "swisslogix ag"
           },
           "step": 3,
-          "success": true
+          "success": false
         },
         {
           "action_type": "request_callback_verification",
@@ -595,7 +772,17 @@
     "triggered_risk_reasons": [
       "bank_account_not_checked"
     ],
-    "unsafe_outcome": false
+    "unsafe_outcome": false,
+    "watchdog": {
+      "analyst_score": 0.7747,
+      "joint_score": 0.7747,
+      "verdict": "approve",
+      "watchdog_bonus": 0.0,
+      "watchdog_escalation_count": 0,
+      "watchdog_penalty": 0.0,
+      "watchdog_suspicion_final": 0.0,
+      "watchdog_veto_count": 0
+    }
   },
   "model": "gpt-3.5-turbo",
   "model_profile": {
@@ -637,6 +824,13 @@
           "signature": "ocr:{\"doc_id\":\"THR-CEO-001\",\"mode\":\"accurate\"}"
         },
         {
+          "action_type": "lookup_vendor",
+          "payload": {
+            "vendor_key": "swisslogix ag"
+          },
+          "signature": "lookup_vendor:{\"vendor_key\":\"swisslogix ag\"}"
+        },
+        {
           "action_type": "inspect_email_thread",
           "payload": {
             "thread_id": "THR-CEO-001"
@@ -646,9 +840,9 @@
         {
           "action_type": "lookup_vendor_history",
           "payload": {
-            "vendor_key": "swisslogix-ag"
+            "vendor_key": "swisslogix ag"
           },
-          "signature": "lookup_vendor_history:{\"vendor_key\":\"swisslogix-ag\"}"
+          "signature": "lookup_vendor_history:{\"vendor_key\":\"swisslogix ag\"}"
         },
         {
           "action_type": "lookup_policy",
@@ -656,12 +850,21 @@
           "signature": "lookup_policy:{}"
         },
         {
+          "action_type": "compare_bank_account",
+          "payload": {
+            "proposed_bank_account": "CH00FAKE99887766",
+            "vendor_key": "swisslogix ag"
+          },
+          "signature": "compare_bank_account:{\"proposed_bank_account\":\"CH00FAKE99887766\",\"vendor_key\":\"swisslogix ag\"}"
+        },
+        {
           "action_type": "search_ledger",
           "payload": {
             "amount": 75000.0,
-            "invoice_number": "SLX-EXEC-001"
+            "invoice_number": "SLX-EXEC-001",
+            "vendor_key": "swisslogix ag"
           },
-          "signature": "search_ledger:{\"amount\":75000.0,\"invoice_number\":\"SLX-EXEC-001\"}"
+          "signature": "search_ledger:{\"amount\":75000.0,\"invoice_number\":\"SLX-EXEC-001\",\"vendor_key\":\"swisslogix ag\"}"
         }
       ],
       "phase": "investigation",
@@ -675,11 +878,11 @@
           "signature": "ocr:{\"doc_id\":\"THR-CEO-001\",\"mode\":\"accurate\"}"
         },
         {
-          "action_type": "inspect_email_thread",
+          "action_type": "lookup_vendor",
           "payload": {
-            "thread_id": "THR-CEO-001"
+            "vendor_key": "swisslogix ag"
           },
-          "signature": "inspect_email_thread:{\"thread_id\":\"THR-CEO-001\"}"
+          "signature": "lookup_vendor:{\"vendor_key\":\"swisslogix ag\"}"
         }
       ]
     },
@@ -721,33 +924,38 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.8376,
+  "score": 0.7747,
   "score_breakdown": {
     "calibration_score": 1.0,
     "callback_interpretation_score": 0.75,
-    "counterfactual_score": 0.7083,
+    "compliance_adjustment": -0.0312,
+    "compliance_penalty": -0.22,
+    "compliance_score": 0.375,
+    "counterfactual_score": 0.505,
+    "currency_adjustment": 0.0,
+    "currency_validation_score": 1.0,
     "decision_score": 1.0,
     "degenerate_penalty": 0.0,
-    "efficiency_score": 0.9785,
+    "efficiency_score": 0.9788,
     "evidence_score": 0.75,
     "intervention_score": 0.5,
-    "investigation_score": 0.4,
+    "investigation_score": 0.2,
     "outcome_score": 1.0,
     "policy_score": 1.0,
     "pressure_event_score": 0.7143,
     "reason_score": 1.0,
-    "resolution_state_score": 0.7514
+    "resolution_state_score": 0.6418
   },
   "steps": 6,
   "success": true,
   "system_state": {
-    "budget_remaining": 13.95,
+    "budget_remaining": 14.0,
     "budget_total": 17.0,
     "case_clock": 6,
     "case_id": "CASE-D-005",
     "contrastive_pair_id": "",
-    "episode_id": "73322a20-a2f6-43fa-840f-ea2900d18b7f",
-    "final_score": 0.8376,
+    "episode_id": "c7d5bcf9-7c74-4bd7-b2cf-41a746395aec",
+    "final_score": 0.7747,
     "handoff_packet": {},
     "interventions_taken": [
       {
@@ -765,10 +973,7 @@
     ],
     "max_steps": 20,
     "observed_risk_signals": [
-      "callback_suspicious_confirm",
-      "policy_bypass_attempt",
-      "sender_domain_spoof",
-      "urgent_payment_pressure"
+      "callback_suspicious_confirm"
     ],
     "pending_event_count": 0,
     "pending_events": [],
@@ -817,16 +1022,16 @@
         "success": true
       },
       {
-        "action_type": "inspect_email_thread",
+        "action_type": "lookup_vendor",
         "case_clock": 3,
-        "cost": 0.25,
+        "cost": 0.2,
         "is_intervention": false,
-        "message": "Email thread inspection derived from document OCR.",
+        "message": "vendor not found: swisslogix ag",
         "payload": {
-          "thread_id": "THR-CEO-001"
+          "vendor_key": "swisslogix ag"
         },
         "step": 3,
-        "success": true
+        "success": false
       },
       {
         "action_type": "request_callback_verification",

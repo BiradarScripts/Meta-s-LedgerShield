@@ -18,7 +18,7 @@
       "action_type": "lookup_vendor",
       "done": false,
       "payload": {
-        "vendor_key": "eurocaps-components"
+        "vendor_key": "eurocaps components gmbh"
       },
       "phase": "investigation",
       "reward": -0.013666250000000007,
@@ -28,18 +28,16 @@
       "tool_success": true
     },
     {
-      "action_type": "search_ledger",
+      "action_type": "lookup_vendor_history",
       "done": false,
       "payload": {
-        "amount": 845.0,
-        "invoice_number": "EC-4402-26",
-        "vendor_key": "eurocaps-components"
+        "vendor_key": "eurocaps components gmbh"
       },
       "phase": "investigation",
-      "reward": 0.01277062499999998,
+      "reward": -0.01618637500000002,
       "step": 3,
       "tool_error": null,
-      "tool_name": "search_ledger",
+      "tool_name": "lookup_vendor_history",
       "tool_success": true
     },
     {
@@ -68,7 +66,7 @@
         "fraud_flags": []
       },
       "phase": "submit",
-      "reward": 0.8359005,
+      "reward": 0.7835935,
       "step": 4,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -99,8 +97,8 @@
       }
     ],
     "ledger_search": {
-      "exact_duplicate_count": 0,
-      "near_duplicate_count": 0,
+      "exact_duplicate_count": null,
+      "near_duplicate_count": null,
       "top_hits": []
     },
     "observed_risk_signals": [],
@@ -117,7 +115,87 @@
   },
   "error": "",
   "final_info": {
-    "final_score": 0.8403,
+    "compliance": {
+      "compliance_score": 0.8571,
+      "controls_evaluated": 7,
+      "controls_failed": 1,
+      "controls_passed": 6,
+      "critical_failures": [],
+      "findings": [
+        {
+          "control_id": "SOX-AP-001",
+          "details": "",
+          "name": "Segregation of Duties",
+          "severity": "critical",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-002",
+          "details": "",
+          "name": "Three-Way Match",
+          "severity": "high",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-003",
+          "details": "",
+          "name": "Bank Change Verification",
+          "severity": "critical",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-004",
+          "details": "",
+          "name": "Duplicate Payment Prevention",
+          "severity": "high",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-005",
+          "details": "",
+          "name": "Approval Threshold Enforcement",
+          "severity": "high",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-006",
+          "details": "",
+          "name": "Vendor Master Verification",
+          "severity": "medium",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-008",
+          "details": "Insufficient investigation: 3 steps (minimum 4 for task_c)",
+          "name": "Audit Trail Completeness",
+          "severity": "medium",
+          "status": "fail"
+        }
+      ],
+      "overall_compliant": false,
+      "remediation_required": false
+    },
+    "currency_validation": {
+      "applicable": false,
+      "score": 1.0
+    },
+    "curriculum": {
+      "allowed_tasks": [
+        "task_a",
+        "task_b",
+        "task_c",
+        "task_d"
+      ],
+      "competence_ema": 0.7079,
+      "episode_count": 74,
+      "recent_5_avg": 0.5867,
+      "stagnation_counter": 0,
+      "tier": 2,
+      "tier_name": "proficient",
+      "tier_transitions": 12,
+      "weakest_task": "task_c"
+    },
+    "final_score": 0.7873,
     "outcome": {
       "outcome_type": "safe_payment_cleared",
       "portfolio_metrics": {
@@ -137,40 +215,46 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.8403,
-        "potential_delta": -0.0044
+        "final_score": 0.7873,
+        "potential_delta": -0.0037
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0152,
+        "budget_penalty": 0.0143,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
-        "unsafe_outcome": false
+        "unsafe_outcome": false,
+        "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.8359
+      "value": 0.7836
     },
     "score_breakdown": {
       "calibration_score": 0.9675,
+      "compliance_adjustment": -0.0071,
+      "compliance_penalty": -0.02,
+      "compliance_score": 0.8571,
+      "currency_adjustment": 0.0,
+      "currency_validation_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": -0.07,
       "duplicate_score": 1.0,
-      "efficiency_score": 0.9848,
+      "efficiency_score": 0.9857,
       "evidence_score": 1.0,
       "fraud_score": 1.0,
       "intervention_score": 0.45,
-      "investigation_score": 0.5,
+      "investigation_score": 0.0,
       "outcome_score": 1.0,
-      "resolution_state_score": 0.7725
+      "resolution_state_score": 0.625
     },
     "system_state": {
-      "budget_remaining": 11.35,
+      "budget_remaining": 11.45,
       "budget_total": 13.0,
       "case_clock": 4,
       "case_id": "CASE-C-002",
       "contrastive_pair_id": "",
-      "episode_id": "f141b0db-77f6-4b68-be55-b0c36478aa9b",
-      "final_score": 0.8403,
+      "episode_id": "3d73d72c-aea0-4ffd-a2a7-f06c1e612edb",
+      "final_score": 0.7873,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 16,
@@ -213,21 +297,19 @@
           "is_intervention": false,
           "message": "Vendor lookup complete.",
           "payload": {
-            "vendor_key": "eurocaps-components"
+            "vendor_key": "eurocaps components gmbh"
           },
           "step": 2,
           "success": true
         },
         {
-          "action_type": "search_ledger",
+          "action_type": "lookup_vendor_history",
           "case_clock": 3,
-          "cost": 0.35,
+          "cost": 0.25,
           "is_intervention": false,
-          "message": "Ledger search complete.",
+          "message": "Vendor history returned.",
           "payload": {
-            "amount": 845.0,
-            "invoice_number": "EC-4402-26",
-            "vendor_key": "eurocaps-components"
+            "vendor_key": "eurocaps components gmbh"
           },
           "step": 3,
           "success": true
@@ -240,7 +322,17 @@
     },
     "terminated": true,
     "truncated": false,
-    "unsafe_outcome": false
+    "unsafe_outcome": false,
+    "watchdog": {
+      "analyst_score": 0.7873,
+      "joint_score": 0.8673,
+      "verdict": "approve",
+      "watchdog_bonus": 0.08,
+      "watchdog_escalation_count": 0,
+      "watchdog_penalty": 0.0,
+      "watchdog_suspicion_final": 0.06,
+      "watchdog_veto_count": 0
+    }
   },
   "final_submission": {
     "confidence": 0.87,
@@ -265,9 +357,73 @@
     "fraud_flags": []
   },
   "final_tool_result": {
+    "compliance": {
+      "compliance_score": 0.8571,
+      "controls_evaluated": 7,
+      "controls_failed": 1,
+      "controls_passed": 6,
+      "critical_failures": [],
+      "findings": [
+        {
+          "control_id": "SOX-AP-001",
+          "details": "",
+          "name": "Segregation of Duties",
+          "severity": "critical",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-002",
+          "details": "",
+          "name": "Three-Way Match",
+          "severity": "high",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-003",
+          "details": "",
+          "name": "Bank Change Verification",
+          "severity": "critical",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-004",
+          "details": "",
+          "name": "Duplicate Payment Prevention",
+          "severity": "high",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-005",
+          "details": "",
+          "name": "Approval Threshold Enforcement",
+          "severity": "high",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-006",
+          "details": "",
+          "name": "Vendor Master Verification",
+          "severity": "medium",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-008",
+          "details": "Insufficient investigation: 3 steps (minimum 4 for task_c)",
+          "name": "Audit Trail Completeness",
+          "severity": "medium",
+          "status": "fail"
+        }
+      ],
+      "overall_compliant": false,
+      "remediation_required": false
+    },
     "cost": 0.0,
+    "currency_validation": {
+      "applicable": false,
+      "score": 1.0
+    },
     "decision": "PAY",
-    "final_score": 0.8403,
+    "final_score": 0.7873,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "safe_payment_cleared",
@@ -288,43 +444,49 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.8403,
-        "potential_delta": -0.0044
+        "final_score": 0.7873,
+        "potential_delta": -0.0037
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0152,
+        "budget_penalty": 0.0143,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
-        "unsafe_outcome": false
+        "unsafe_outcome": false,
+        "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.8359
+      "value": 0.7836
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
       "calibration_score": 0.9675,
+      "compliance_adjustment": -0.0071,
+      "compliance_penalty": -0.02,
+      "compliance_score": 0.8571,
+      "currency_adjustment": 0.0,
+      "currency_validation_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": -0.07,
       "duplicate_score": 1.0,
-      "efficiency_score": 0.9848,
+      "efficiency_score": 0.9857,
       "evidence_score": 1.0,
       "fraud_score": 1.0,
       "intervention_score": 0.45,
-      "investigation_score": 0.5,
+      "investigation_score": 0.0,
       "outcome_score": 1.0,
-      "resolution_state_score": 0.7725
+      "resolution_state_score": 0.625
     },
     "submission_received": true,
     "success": true,
     "system_state": {
-      "budget_remaining": 11.35,
+      "budget_remaining": 11.45,
       "budget_total": 13.0,
       "case_clock": 4,
       "case_id": "CASE-C-002",
       "contrastive_pair_id": "",
-      "episode_id": "f141b0db-77f6-4b68-be55-b0c36478aa9b",
-      "final_score": 0.8403,
+      "episode_id": "3d73d72c-aea0-4ffd-a2a7-f06c1e612edb",
+      "final_score": 0.7873,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 16,
@@ -367,21 +529,19 @@
           "is_intervention": false,
           "message": "Vendor lookup complete.",
           "payload": {
-            "vendor_key": "eurocaps-components"
+            "vendor_key": "eurocaps components gmbh"
           },
           "step": 2,
           "success": true
         },
         {
-          "action_type": "search_ledger",
+          "action_type": "lookup_vendor_history",
           "case_clock": 3,
-          "cost": 0.35,
+          "cost": 0.25,
           "is_intervention": false,
-          "message": "Ledger search complete.",
+          "message": "Vendor history returned.",
           "payload": {
-            "amount": 845.0,
-            "invoice_number": "EC-4402-26",
-            "vendor_key": "eurocaps-components"
+            "vendor_key": "eurocaps components gmbh"
           },
           "step": 3,
           "success": true
@@ -394,7 +554,17 @@
     },
     "tool_name": "submit_decision",
     "triggered_risk_reasons": [],
-    "unsafe_outcome": false
+    "unsafe_outcome": false,
+    "watchdog": {
+      "analyst_score": 0.7873,
+      "joint_score": 0.8673,
+      "verdict": "approve",
+      "watchdog_bonus": 0.08,
+      "watchdog_escalation_count": 0,
+      "watchdog_penalty": 0.0,
+      "watchdog_suspicion_final": 0.06,
+      "watchdog_veto_count": 0
+    }
   },
   "model": "gpt-3.5-turbo",
   "model_profile": {
@@ -430,18 +600,25 @@
         {
           "action_type": "lookup_vendor",
           "payload": {
-            "vendor_key": "eurocaps-components"
+            "vendor_key": "eurocaps components gmbh"
           },
-          "signature": "lookup_vendor:{\"vendor_key\":\"eurocaps-components\"}"
+          "signature": "lookup_vendor:{\"vendor_key\":\"eurocaps components gmbh\"}"
+        },
+        {
+          "action_type": "lookup_vendor_history",
+          "payload": {
+            "vendor_key": "eurocaps components gmbh"
+          },
+          "signature": "lookup_vendor_history:{\"vendor_key\":\"eurocaps components gmbh\"}"
         },
         {
           "action_type": "search_ledger",
           "payload": {
             "amount": 845.0,
             "invoice_number": "EC-4402-26",
-            "vendor_key": "eurocaps-components"
+            "vendor_key": "eurocaps components gmbh"
           },
-          "signature": "search_ledger:{\"amount\":845.0,\"invoice_number\":\"EC-4402-26\",\"vendor_key\":\"eurocaps-components\"}"
+          "signature": "search_ledger:{\"amount\":845.0,\"invoice_number\":\"EC-4402-26\",\"vendor_key\":\"eurocaps components gmbh\"}"
         },
         {
           "action_type": "search_ledger",
@@ -455,9 +632,9 @@
           "action_type": "compare_bank_account",
           "payload": {
             "proposed_bank_account": "DE04500105175407324931",
-            "vendor_key": "eurocaps-components"
+            "vendor_key": "eurocaps components gmbh"
           },
-          "signature": "compare_bank_account:{\"proposed_bank_account\":\"DE04500105175407324931\",\"vendor_key\":\"eurocaps-components\"}"
+          "signature": "compare_bank_account:{\"proposed_bank_account\":\"DE04500105175407324931\",\"vendor_key\":\"eurocaps components gmbh\"}"
         }
       ],
       "phase": "investigation",
@@ -465,18 +642,16 @@
         {
           "action_type": "lookup_vendor",
           "payload": {
-            "vendor_key": "eurocaps-components"
+            "vendor_key": "eurocaps components gmbh"
           },
-          "signature": "lookup_vendor:{\"vendor_key\":\"eurocaps-components\"}"
+          "signature": "lookup_vendor:{\"vendor_key\":\"eurocaps components gmbh\"}"
         },
         {
-          "action_type": "search_ledger",
+          "action_type": "lookup_vendor_history",
           "payload": {
-            "amount": 845.0,
-            "invoice_number": "EC-4402-26",
-            "vendor_key": "eurocaps-components"
+            "vendor_key": "eurocaps components gmbh"
           },
-          "signature": "search_ledger:{\"amount\":845.0,\"invoice_number\":\"EC-4402-26\",\"vendor_key\":\"eurocaps-components\"}"
+          "signature": "lookup_vendor_history:{\"vendor_key\":\"eurocaps components gmbh\"}"
         }
       ]
     },
@@ -487,30 +662,35 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.8403,
+  "score": 0.7873,
   "score_breakdown": {
     "calibration_score": 0.9675,
+    "compliance_adjustment": -0.0071,
+    "compliance_penalty": -0.02,
+    "compliance_score": 0.8571,
+    "currency_adjustment": 0.0,
+    "currency_validation_score": 1.0,
     "decision_score": 1.0,
     "degenerate_penalty": -0.07,
     "duplicate_score": 1.0,
-    "efficiency_score": 0.9848,
+    "efficiency_score": 0.9857,
     "evidence_score": 1.0,
     "fraud_score": 1.0,
     "intervention_score": 0.45,
-    "investigation_score": 0.5,
+    "investigation_score": 0.0,
     "outcome_score": 1.0,
-    "resolution_state_score": 0.7725
+    "resolution_state_score": 0.625
   },
   "steps": 4,
   "success": true,
   "system_state": {
-    "budget_remaining": 11.35,
+    "budget_remaining": 11.45,
     "budget_total": 13.0,
     "case_clock": 4,
     "case_id": "CASE-C-002",
     "contrastive_pair_id": "",
-    "episode_id": "f141b0db-77f6-4b68-be55-b0c36478aa9b",
-    "final_score": 0.8403,
+    "episode_id": "3d73d72c-aea0-4ffd-a2a7-f06c1e612edb",
+    "final_score": 0.7873,
     "handoff_packet": {},
     "interventions_taken": [],
     "max_steps": 16,
@@ -553,21 +733,19 @@
         "is_intervention": false,
         "message": "Vendor lookup complete.",
         "payload": {
-          "vendor_key": "eurocaps-components"
+          "vendor_key": "eurocaps components gmbh"
         },
         "step": 2,
         "success": true
       },
       {
-        "action_type": "search_ledger",
+        "action_type": "lookup_vendor_history",
         "case_clock": 3,
-        "cost": 0.35,
+        "cost": 0.25,
         "is_intervention": false,
-        "message": "Ledger search complete.",
+        "message": "Vendor history returned.",
         "payload": {
-          "amount": 845.0,
-          "invoice_number": "EC-4402-26",
-          "vendor_key": "eurocaps-components"
+          "vendor_key": "eurocaps components gmbh"
         },
         "step": 3,
         "success": true

@@ -116,6 +116,13 @@ class ScoreBreakdownDict(TypedDict, total=False):
     callback_interpretation_score: float
     cross_invoice_link_score: float
     campaign_detection_score: float
+    compliance_score: float
+    compliance_adjustment: float
+    compliance_penalty: float
+    currency_validation_score: float
+    currency_adjustment: float
+    cross_invoice_link_matches: float
+    counterfactual_doc_refs: float
     degenerate_penalty: float
     error: float
 

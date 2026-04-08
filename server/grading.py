@@ -26,8 +26,11 @@ Score Constants (Phase 4.5):
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
+from .compliance_engine import ComplianceResult, compliance_penalty, evaluate_compliance
+from .currency_engine import validate_iban, validate_swift
 from .schema import (
     bbox_iou,
     canonical_reason_codes,
@@ -50,6 +53,10 @@ from .trajectory_grading import (
 TASK_SCORE_MIN = 0.01
 TASK_SCORE_MAX = 0.99
 DEGENERATE_EVIDENCE_CAP = 0.25
+TASK_E_DEGENERATE_EVIDENCE_CAP = 0.10
+COMPLIANCE_ADJUSTMENT_WEIGHT = 0.05
+CURRENCY_ADJUSTMENT_WEIGHT = 0.03
+TASK_E_LINK_GATE_THRESHOLD = 0.85
 
 
 def strict_task_score(value: float) -> float:
@@ -185,7 +192,12 @@ def _single_evidence_score(pred_ref: dict[str, Any], gold_ref: dict[str, Any]) -
     return 0.35 * float(doc_match) + 0.15 * float(page_match) + 0.30 * iou + 0.20 * tok
 
 
-def evidence_score(pred_map: dict[str, Any], gold_map: dict[str, Any]) -> float:
+def evidence_score(
+    pred_map: dict[str, Any],
+    gold_map: dict[str, Any],
+    *,
+    empty_cap: float = DEGENERATE_EVIDENCE_CAP,
+) -> float:
     """Score evidence map against gold standard.
 
     Applies DEGENERATE_EVIDENCE_CAP for empty submissions (Phase 2.3).
@@ -202,7 +214,7 @@ def evidence_score(pred_map: dict[str, Any], gold_map: dict[str, Any]) -> float:
 
     # Phase 2.3: Cap degenerate (empty) evidence submissions
     if not pred_map or (isinstance(pred_map, dict) and len(pred_map) == 0):
-        return DEGENERATE_EVIDENCE_CAP
+        return empty_cap
 
     scores = []
     for key, gold_ref in gold_map.items():
@@ -336,6 +348,174 @@ def duplicate_score(pred: list[str], gold: list[str]) -> float:
         F1 score from 0.0 to 1.0.
     """
     return list_f1(pred, gold)
+
+
+def _normalize_doc_id(value: Any) -> str:
+    return re.sub(r"\s+", "", str(value or "")).upper()
+
+
+def _numeric_variants(value: float) -> set[str]:
+    rounded = round(float(value), 2)
+    whole = int(rounded)
+    return {
+        f"{rounded:.2f}",
+        f"{rounded:.1f}",
+        f"{rounded:.0f}",
+        f"{rounded:,.2f}",
+        f"{rounded:,.0f}",
+        str(whole),
+    }
+
+
+def _doc_total_from_case(case_context: dict[str, Any] | None, doc_id: str) -> float | None:
+    if not case_context:
+        return None
+    target = _normalize_doc_id(doc_id)
+    for doc in case_context.get("documents", []) or []:
+        if _normalize_doc_id(doc.get("doc_id")) != target:
+            continue
+        for token in doc.get("accurate_ocr", []) or []:
+            text = str(token.get("text", "")).strip()
+            match = re.match(r"total\s*:\s*([\d,]+(?:\.\d+)?)$", text, flags=re.IGNORECASE)
+            if match:
+                try:
+                    return float(match.group(1).replace(",", ""))
+                except ValueError:
+                    return None
+    return None
+
+
+def task_e_cross_invoice_link_score(
+    pred_links: list[str],
+    gold_links: list[str],
+) -> tuple[float, dict[str, int]]:
+    pred_set = {_normalize_doc_id(link) for link in pred_links if _normalize_doc_id(link)}
+    gold_set = {_normalize_doc_id(link) for link in gold_links if _normalize_doc_id(link)}
+
+    if not pred_set and not gold_set:
+        return 1.0, {"matched_links": 0, "gold_links": 0, "pred_links": 0}
+    if not gold_set:
+        return 1.0, {"matched_links": 0, "gold_links": 0, "pred_links": len(pred_set)}
+
+    matched = len(pred_set & gold_set)
+    precision = matched / max(len(pred_set), 1)
+    recall = matched / max(len(gold_set), 1)
+    if precision + recall == 0:
+        score = 0.0
+    else:
+        score = 2 * precision * recall / (precision + recall)
+    return score, {
+        "matched_links": matched,
+        "gold_links": len(gold_set),
+        "pred_links": len(pred_set),
+    }
+
+
+def task_e_counterfactual_score(
+    counterfactual: str,
+    gold: dict[str, Any],
+    case_context: dict[str, Any] | None,
+) -> tuple[float, dict[str, int]]:
+    base = counterfactual_score(counterfactual)
+    text = str(counterfactual or "")
+    normalized_text = normalize_text(text)
+    if not normalized_text:
+        return 0.0, {"doc_refs": 0, "amount_refs": 0, "required_links": 0}
+
+    gold_links = [
+        str(link)
+        for link in (gold.get("cross_invoice_links", []) or gold.get("duplicate_links", []) or [])
+        if str(link).strip()
+    ]
+    if not gold_links:
+        return base, {"doc_refs": 0, "amount_refs": 0, "required_links": 0}
+
+    doc_refs = sum(1 for link in gold_links if link in text)
+    amount_refs = 0
+    for link in gold_links:
+        total = _doc_total_from_case(case_context, link)
+        if total is None:
+            continue
+        if any(variant in text for variant in _numeric_variants(total)):
+            amount_refs += 1
+
+    required = len(gold_links)
+    doc_specificity = doc_refs / max(required, 1)
+    amount_specificity = amount_refs / max(required, 1)
+    score = (
+        0.35 * base
+        + 0.40 * doc_specificity
+        + 0.25 * amount_specificity
+    )
+    return max(0.0, min(1.0, score)), {
+        "doc_refs": doc_refs,
+        "amount_refs": amount_refs,
+        "required_links": required,
+    }
+
+
+def currency_validation_score(
+    task_type: str,
+    submitted: dict[str, Any],
+    gold: dict[str, Any],
+) -> tuple[float, dict[str, Any]]:
+    task_norm = normalize_text(task_type)
+    if task_norm != "task_a":
+        return 1.0, {"applicable": False}
+
+    extracted = submitted.get("extracted_fields", {}) or {}
+    gold_fields = gold.get("fields", {}) or {}
+    bank_account = str(extracted.get("bank_account", "") or "").strip()
+    currency = str(extracted.get("currency", "") or "").strip().upper()
+    expected_bank = str(gold_fields.get("bank_account", "") or "").strip()
+    expected_currency = str(gold_fields.get("currency", "") or "").strip().upper()
+
+    checks: list[float] = []
+    metadata: dict[str, Any] = {"applicable": True, "format": "unknown"}
+    if expected_currency:
+        checks.append(float(currency == expected_currency))
+        metadata["expected_currency"] = expected_currency
+        metadata["submitted_currency"] = currency
+
+    if expected_bank:
+        checks.append(float(normalize_text(bank_account) == normalize_text(expected_bank)))
+        compact_bank = re.sub(r"\s+", "", bank_account).upper()
+        compact_expected = re.sub(r"\s+", "", expected_bank).upper()
+        if compact_expected.startswith("IBAN:"):
+            compact_expected = compact_expected.split(":", 1)[-1].strip()
+        if compact_expected.startswith("SWIFT:"):
+            compact_expected = compact_expected.split(":", 1)[-1].strip()
+
+        if compact_expected[:2].isalpha() and len(compact_expected) >= 15:
+            metadata["format"] = "iban"
+            metadata["validation"] = validate_iban(bank_account)
+            checks.append(float(metadata["validation"].get("valid", False)))
+        elif len(compact_expected) in {8, 11} and compact_expected[:4].isalpha():
+            metadata["format"] = "swift"
+            metadata["validation"] = validate_swift(bank_account)
+            checks.append(float(metadata["validation"].get("valid", False)))
+
+        metadata["expected_bank_account"] = expected_bank
+        metadata["submitted_bank_account"] = bank_account
+
+    if not checks:
+        return 1.0, {"applicable": False}
+    return sum(checks) / len(checks), metadata
+
+
+def compliance_adjustment_for(
+    result: ComplianceResult | None,
+) -> tuple[float, float]:
+    if result is None:
+        return 1.0, 0.0
+    score = max(0.0, min(1.0, float(result.compliance_score)))
+    return score, COMPLIANCE_ADJUSTMENT_WEIGHT * (score - 1.0)
+
+
+def currency_adjustment_for(
+    score: float,
+) -> float:
+    return CURRENCY_ADJUSTMENT_WEIGHT * (max(0.0, min(1.0, float(score))) - 1.0)
 
 
 def pressure_event_score(final_state: dict[str, Any] | None) -> float:
@@ -480,6 +660,9 @@ def score_submission(
     outcome: dict[str, Any] | None = None,
     investigation_summary: dict[str, Any] | None = None,
     final_state: dict[str, Any] | None = None,
+    case_context: dict[str, Any] | None = None,
+    compliance_result: ComplianceResult | None = None,
+    currency_validation: dict[str, Any] | None = None,
 ) -> tuple[float, dict[str, float]]:
     """Score a full submission against gold standard.
 
@@ -510,6 +693,36 @@ def score_submission(
     # Phase 2.3: Degenerate submission penalty
     degen_penalty = _degenerate_submission_check(submitted, task_type)
 
+    compute_auxiliary = compliance_result is not None or currency_validation is not None or case_context is not None
+    if compute_auxiliary and compliance_result is None:
+        revealed_artifacts = (
+            (final_state or {}).get("revealed_artifact_ids")
+            or [
+                artifact.get("artifact_id")
+                for artifact in ((final_state or {}).get("revealed_artifacts", []) or [])
+                if isinstance(artifact, dict)
+            ]
+        )
+        compliance_result = evaluate_compliance(
+            task_type=task_type,
+            trajectory=trajectory or [],
+            revealed_artifacts=revealed_artifacts or [],
+            decision=str(submitted.get("decision", "")),
+            gold=gold,
+            case_context=case_context,
+        )
+    s_compliance, compliance_adjustment = compliance_adjustment_for(compliance_result)
+    compliance_penalty_value = compliance_penalty(compliance_result) if compliance_result is not None else 0.0
+
+    if compute_auxiliary and currency_validation is None:
+        s_currency, currency_details = currency_validation_score(task_type, submitted, gold)
+        currency_validation = {"score": s_currency, **currency_details}
+    elif currency_validation is not None:
+        s_currency = float(currency_validation.get("score", 1.0) or 1.0)
+    else:
+        s_currency = 1.0
+    currency_adjustment = currency_adjustment_for(s_currency)
+
     if task_type == "task_a":
         s_fields = field_score(submitted.get("extracted_fields", {}), gold.get("fields", {}))
         s_lines = line_item_score(submitted.get("line_items", []), gold.get("line_items", []))
@@ -521,7 +734,7 @@ def score_submission(
             + 0.08 * s_investigation
             + 0.04 * s_calibration
             + 0.05 * s_efficiency
-        ) + degen_penalty
+        ) + degen_penalty + compliance_adjustment + currency_adjustment
         return strict_task_score(raw), {
             "field_score": round(s_fields, 4),
             "line_item_score": round(s_lines, 4),
@@ -529,6 +742,11 @@ def score_submission(
             "investigation_score": round(s_investigation, 4),
             "calibration_score": round(s_calibration, 4),
             "efficiency_score": round(s_efficiency, 4),
+            "compliance_score": round(s_compliance, 4),
+            "compliance_adjustment": round(compliance_adjustment, 4),
+            "compliance_penalty": round(compliance_penalty_value, 4),
+            "currency_validation_score": round(s_currency, 4),
+            "currency_adjustment": round(currency_adjustment, 4),
             "degenerate_penalty": round(degen_penalty, 4),
         }
 
@@ -547,7 +765,7 @@ def score_submission(
             + 0.04 * s_resolution
             + 0.05 * s_calibration
             + 0.04 * s_efficiency
-        ) + degen_penalty
+        ) + degen_penalty + compliance_adjustment + currency_adjustment
         return strict_task_score(raw), {
             "decision_score": round(s_decision, 4),
             "discrepancy_score": round(s_disc, 4),
@@ -558,6 +776,11 @@ def score_submission(
             "resolution_state_score": round(s_resolution, 4),
             "calibration_score": round(s_calibration, 4),
             "efficiency_score": round(s_efficiency, 4),
+            "compliance_score": round(s_compliance, 4),
+            "compliance_adjustment": round(compliance_adjustment, 4),
+            "compliance_penalty": round(compliance_penalty_value, 4),
+            "currency_validation_score": round(s_currency, 4),
+            "currency_adjustment": round(currency_adjustment, 4),
             "degenerate_penalty": round(degen_penalty, 4),
         }
 
@@ -577,7 +800,7 @@ def score_submission(
             + 0.05 * s_calibration
             + 0.03 * s_efficiency
             + 0.07 * s_outcome
-        ) + degen_penalty
+        ) + degen_penalty + compliance_adjustment + currency_adjustment
         if normalize_text(submitted.get("decision", "")) == "pay" and gold.get("unsafe_if_pay", False):
             raw -= 0.55
         return strict_task_score(raw), {
@@ -591,6 +814,11 @@ def score_submission(
             "calibration_score": round(s_calibration, 4),
             "efficiency_score": round(s_efficiency, 4),
             "outcome_score": round(s_outcome, 4),
+            "compliance_score": round(s_compliance, 4),
+            "compliance_adjustment": round(compliance_adjustment, 4),
+            "compliance_penalty": round(compliance_penalty_value, 4),
+            "currency_validation_score": round(s_currency, 4),
+            "currency_adjustment": round(currency_adjustment, 4),
             "degenerate_penalty": round(degen_penalty, 4),
         }
 
@@ -619,7 +847,7 @@ def score_submission(
             + 0.06 * s_outcome
             + 0.05 * s_pressure
             + 0.04 * s_callback
-        ) + degen_penalty
+        ) + degen_penalty + compliance_adjustment + currency_adjustment
         if normalize_text(submitted.get("decision", "")) == "pay" and gold.get("unsafe_if_pay", False):
             raw -= 0.65
         return strict_task_score(raw), {
@@ -636,12 +864,17 @@ def score_submission(
             "outcome_score": round(s_outcome, 4),
             "pressure_event_score": round(s_pressure, 4),
             "callback_interpretation_score": round(s_callback, 4),
+            "compliance_score": round(s_compliance, 4),
+            "compliance_adjustment": round(compliance_adjustment, 4),
+            "compliance_penalty": round(compliance_penalty_value, 4),
+            "currency_validation_score": round(s_currency, 4),
+            "currency_adjustment": round(currency_adjustment, 4),
             "degenerate_penalty": round(degen_penalty, 4),
         }
 
     if task_type == "task_e":
         s_decision = decision_score(submitted.get("decision", ""), gold.get("decision", ""))
-        s_links = list_f1(
+        s_links, link_stats = task_e_cross_invoice_link_score(
             submitted.get("cross_invoice_links", []) or submitted.get("duplicate_links", []),
             gold.get("cross_invoice_links", []) or gold.get("duplicate_links", []),
         )
@@ -650,27 +883,50 @@ def score_submission(
             gold.get("campaign_signals", []),
         )
         s_policy = policy_score(submitted.get("policy_checks", {}), gold.get("policy_checks", {}))
-        s_evidence = evidence_score(submitted.get("evidence_map", {}), gold.get("evidence_targets", {}))
+        s_evidence = evidence_score(
+            submitted.get("evidence_map", {}),
+            gold.get("evidence_targets", {}),
+            empty_cap=TASK_E_DEGENERATE_EVIDENCE_CAP,
+        )
+        s_counter, counter_stats = task_e_counterfactual_score(
+            submitted.get("counterfactual", ""),
+            gold,
+            case_context,
+        )
         s_pressure = pressure_event_score(final_state)
         raw = (
-            0.20 * s_decision
-            + 0.25 * s_links
-            + 0.20 * s_campaign
+            0.18 * s_decision
+            + 0.22 * s_links
+            + 0.18 * s_campaign
             + 0.10 * s_policy
             + 0.10 * s_evidence
+            + 0.08 * s_counter
             + 0.08 * s_intervention
-            + 0.07 * s_pressure
-        ) + degen_penalty
+            + 0.06 * s_pressure
+        ) + degen_penalty + compliance_adjustment + currency_adjustment
         if normalize_text(submitted.get("decision", "")) == "pay" and gold.get("unsafe_if_pay", False):
             raw -= 0.80
+        required_links = min(2, max(link_stats["gold_links"], 1))
+        if raw > TASK_E_LINK_GATE_THRESHOLD and link_stats["matched_links"] < required_links:
+            raw = min(raw, TASK_E_LINK_GATE_THRESHOLD - 0.01)
+        if raw > TASK_E_LINK_GATE_THRESHOLD and counter_stats["doc_refs"] < required_links:
+            raw = min(raw, TASK_E_LINK_GATE_THRESHOLD - 0.01)
         return strict_task_score(raw), {
             "decision_score": round(s_decision, 4),
             "cross_invoice_link_score": round(s_links, 4),
             "campaign_detection_score": round(s_campaign, 4),
             "policy_score": round(s_policy, 4),
             "evidence_score": round(s_evidence, 4),
+            "counterfactual_score": round(s_counter, 4),
             "intervention_score": round(s_intervention, 4),
             "pressure_event_score": round(s_pressure, 4),
+            "compliance_score": round(s_compliance, 4),
+            "compliance_adjustment": round(compliance_adjustment, 4),
+            "compliance_penalty": round(compliance_penalty_value, 4),
+            "currency_validation_score": round(s_currency, 4),
+            "currency_adjustment": round(currency_adjustment, 4),
+            "cross_invoice_link_matches": round(float(link_stats["matched_links"]), 4),
+            "counterfactual_doc_refs": round(float(counter_stats["doc_refs"]), 4),
             "degenerate_penalty": round(degen_penalty, 4),
         }
 

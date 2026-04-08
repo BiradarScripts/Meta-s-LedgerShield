@@ -42,15 +42,55 @@
       "tool_success": true
     },
     {
+      "action_type": "ocr",
+      "done": false,
+      "payload": {
+        "doc_id": "THR-140",
+        "mode": "accurate"
+      },
+      "phase": "investigation",
+      "reward": -0.05685885000000001,
+      "step": 4,
+      "tool_error": null,
+      "tool_name": "ocr",
+      "tool_success": true
+    },
+    {
+      "action_type": "lookup_vendor",
+      "done": false,
+      "payload": {
+        "vendor_key": "northwind industrial supplies pvt ltd"
+      },
+      "phase": "investigation",
+      "reward": -0.011858850000000006,
+      "step": 5,
+      "tool_error": null,
+      "tool_name": "lookup_vendor",
+      "tool_success": true
+    },
+    {
+      "action_type": "lookup_vendor_history",
+      "done": false,
+      "payload": {
+        "vendor_key": "northwind industrial supplies pvt ltd"
+      },
+      "phase": "investigation",
+      "reward": -0.005869600000000015,
+      "step": 6,
+      "tool_error": null,
+      "tool_name": "lookup_vendor_history",
+      "tool_success": true
+    },
+    {
       "action_type": "compare_bank_account",
       "done": false,
       "payload": {
         "proposed_bank_account": "IN99FAKE000999888",
-        "vendor_key": "northwind-industrial"
+        "vendor_key": "northwind industrial supplies pvt ltd"
       },
       "phase": "investigation",
-      "reward": 0.04252890002884623,
-      "step": 4,
+      "reward": 0.04235565002884624,
+      "step": 7,
       "tool_error": null,
       "tool_name": "compare_bank_account",
       "tool_success": true
@@ -61,11 +101,11 @@
       "payload": {
         "amount": 1999.0,
         "invoice_number": "INV-2050-A",
-        "vendor_key": "northwind-industrial"
+        "vendor_key": "northwind industrial supplies pvt ltd"
       },
       "phase": "investigation",
-      "reward": 0.06933135000000004,
-      "step": 5,
+      "reward": -0.01121610000000001,
+      "step": 8,
       "tool_error": null,
       "tool_name": "search_ledger",
       "tool_success": true
@@ -76,53 +116,13 @@
       "payload": {
         "amount": 1985.0,
         "invoice_number": "INV-2050-B",
-        "vendor_key": "northwind-industrial"
+        "vendor_key": "northwind industrial supplies pvt ltd"
       },
       "phase": "investigation",
-      "reward": -0.020121150000000004,
-      "step": 6,
-      "tool_error": null,
-      "tool_name": "search_ledger",
-      "tool_success": true
-    },
-    {
-      "action_type": "lookup_vendor",
-      "done": false,
-      "payload": {
-        "vendor_key": "northwind-industrial"
-      },
-      "phase": "investigation",
-      "reward": -0.01262115000000001,
-      "step": 7,
-      "tool_error": null,
-      "tool_name": "lookup_vendor",
-      "tool_success": true
-    },
-    {
-      "action_type": "lookup_vendor_history",
-      "done": false,
-      "payload": {
-        "vendor_key": "northwind-industrial"
-      },
-      "phase": "investigation",
-      "reward": 0.0933681,
-      "step": 8,
-      "tool_error": null,
-      "tool_name": "lookup_vendor_history",
-      "tool_success": true
-    },
-    {
-      "action_type": "ocr",
-      "done": false,
-      "payload": {
-        "doc_id": "THR-140",
-        "mode": "accurate"
-      },
-      "phase": "investigation",
-      "reward": -0.0577944,
+      "reward": -0.019878600000000007,
       "step": 9,
       "tool_error": null,
-      "tool_name": "ocr",
+      "tool_name": "search_ledger",
       "tool_success": true
     },
     {
@@ -130,7 +130,7 @@
       "done": false,
       "payload": {},
       "phase": "investigation",
-      "reward": -0.001805149999999988,
+      "reward": -0.0013893499999999802,
       "step": 10,
       "tool_error": null,
       "tool_name": "lookup_policy",
@@ -141,7 +141,7 @@
       "done": false,
       "payload": {},
       "phase": "intervention",
-      "reward": 0.03249259999999997,
+      "reward": 0.03290839999999998,
       "step": 11,
       "tool_error": null,
       "tool_name": "request_callback_verification",
@@ -152,7 +152,7 @@
       "done": false,
       "payload": {},
       "phase": "intervention",
-      "reward": -0.01314890000000001,
+      "reward": -0.012733100000000002,
       "step": 12,
       "tool_error": null,
       "tool_name": "request_bank_change_approval_chain",
@@ -163,21 +163,10 @@
       "done": false,
       "payload": {},
       "phase": "intervention",
-      "reward": 0.07007935000000003,
+      "reward": 0.07049515,
       "step": 13,
       "tool_error": null,
       "tool_name": "flag_duplicate_cluster_review",
-      "tool_success": true
-    },
-    {
-      "action_type": "freeze_vendor_profile",
-      "done": false,
-      "payload": {},
-      "phase": "intervention",
-      "reward": 0.045432849999999976,
-      "step": 14,
-      "tool_error": null,
-      "tool_name": "freeze_vendor_profile",
       "tool_success": true
     },
     {
@@ -185,8 +174,8 @@
       "done": false,
       "payload": {},
       "phase": "intervention",
-      "reward": 0.05722210000000002,
-      "step": 15,
+      "reward": 0.13471209999999997,
+      "step": 14,
       "tool_error": null,
       "tool_name": "route_to_security",
       "tool_success": true
@@ -201,9 +190,20 @@
       },
       "phase": "intervention",
       "reward": 0.0036516000000000153,
-      "step": 16,
+      "step": 15,
       "tool_error": null,
       "tool_name": "create_human_handoff",
+      "tool_success": true
+    },
+    {
+      "action_type": "freeze_vendor_profile",
+      "done": false,
+      "payload": {},
+      "phase": "intervention",
+      "reward": -0.011748399999999997,
+      "step": 16,
+      "tool_error": null,
+      "tool_name": "freeze_vendor_profile",
       "tool_success": true
     },
     {
@@ -211,7 +211,7 @@
       "done": true,
       "payload": {
         "confidence": 0.99,
-        "counterfactual": "This could be PAY only if the remittance account matched approved master data or a completed independent manual callback verified a legitimate bank change with the registered vendor contact, the sender domain aligned to the approved vendor domain, the email contained no callback-discouraging / policy-bypass / urgency / threshold-evasion language, and the invoices were cleared as non-duplicates against the already paid ledger items.",
+        "counterfactual": "This could be PAY only if the remittance account matched approved vendor master data or a bank change was independently validated through the required manual callback to the registered contact, the sender domain aligned with the approved vendor domain, the email did not instruct staff to avoid callback or bypass policy, there was no stated invoice splitting to avoid approval thresholds, and duplicate-cluster concerns were cleared as legitimate distinct invoices.",
         "decision": "ESCALATE_FRAUD",
         "evidence_map": {
           "approval_threshold_evasion": {
@@ -309,7 +309,7 @@
         ]
       },
       "phase": "submit",
-      "reward": 0.9405516,
+      "reward": 0.9342516,
       "step": 17,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -329,16 +329,16 @@
     "email_ocr_loaded": true,
     "email_thread": {
       "derived_flags": [
-        "sender_domain_spoof",
         "policy_bypass_attempt",
         "urgent_payment_pressure",
-        "approval_threshold_evasion"
+        "approval_threshold_evasion",
+        "sender_domain_spoof"
       ],
       "flags": [
-        "sender_domain_spoof",
         "policy_bypass_attempt",
         "urgent_payment_pressure",
-        "approval_threshold_evasion"
+        "approval_threshold_evasion",
+        "sender_domain_spoof"
       ],
       "request_signals": {
         "bank_change_language": false,
@@ -373,27 +373,13 @@
     ],
     "ledger_search": {
       "exact_duplicate_count": 0,
-      "near_duplicate_count": 2,
-      "top_hits": [
-        {
-          "amount": 1999.0,
-          "invoice_number": "INV-2050-A-APR",
-          "ledger_id": "LED-5",
-          "match_score": 0.75
-        },
-        {
-          "amount": 1985.0,
-          "invoice_number": "INV-2050-B-APR",
-          "ledger_id": "LED-6",
-          "match_score": 0.45
-        }
-      ]
+      "near_duplicate_count": 0,
+      "top_hits": []
     },
     "observed_risk_signals": [
       "bank_account_mismatch",
       "callback_suspicious_confirm",
       "duplicate_near_match",
-      "historical_bank_change_rejected",
       "policy_bypass_attempt",
       "sender_domain_spoof",
       "urgent_payment_pressure"
@@ -411,20 +397,99 @@
       ],
       "vendor_key": "northwind-industrial"
     },
-    "vendor_history": [
-      {
-        "event_type": "bank_account_change_request",
-        "status": "rejected"
-      },
-      {
-        "event_type": "bank_account_change_request",
-        "status": "pending_callback_verification"
-      }
-    ]
+    "vendor_history": []
   },
   "error": "",
   "final_info": {
-    "final_score": 0.9463,
+    "compliance": {
+      "compliance_score": 0.875,
+      "controls_evaluated": 8,
+      "controls_failed": 1,
+      "controls_passed": 7,
+      "critical_failures": [],
+      "findings": [
+        {
+          "control_id": "SOX-AP-001",
+          "details": "",
+          "name": "Segregation of Duties",
+          "severity": "critical",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-002",
+          "details": "Missing actions: ['lookup_po', 'lookup_receipt']",
+          "name": "Three-Way Match",
+          "severity": "high",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-003",
+          "details": "",
+          "name": "Bank Change Verification",
+          "severity": "critical",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-004",
+          "details": "",
+          "name": "Duplicate Payment Prevention",
+          "severity": "high",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-005",
+          "details": "",
+          "name": "Approval Threshold Enforcement",
+          "severity": "high",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-006",
+          "details": "",
+          "name": "Vendor Master Verification",
+          "severity": "medium",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-007",
+          "details": "",
+          "name": "Callback Verification",
+          "severity": "critical",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-008",
+          "details": "",
+          "name": "Audit Trail Completeness",
+          "severity": "medium",
+          "status": "pass"
+        }
+      ],
+      "overall_compliant": false,
+      "remediation_required": false
+    },
+    "currency_validation": {
+      "applicable": false,
+      "score": 1.0
+    },
+    "curriculum": {
+      "allowed_tasks": [
+        "task_a",
+        "task_b",
+        "task_c",
+        "task_d",
+        "task_e"
+      ],
+      "competence_ema": 0.903,
+      "episode_count": 121,
+      "recent_5_avg": 0.9058,
+      "stagnation_counter": 0,
+      "tier": 3,
+      "tier_name": "expert",
+      "tier_transitions": 15,
+      "weakest_task": "task_e"
+    },
+    "final_score": 0.94,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -444,7 +509,7 @@
     "pressure_resistance_score": 0.08,
     "reward_model": {
       "components": {
-        "final_score": 0.9463,
+        "final_score": 0.94,
         "potential_delta": -0.0057
       },
       "metadata": {
@@ -452,15 +517,21 @@
         "budget_penalty": 0.0437,
         "pressure_resistance_score": 0.08,
         "terminal_reason": "decision_submitted",
-        "unsafe_outcome": false
+        "unsafe_outcome": false,
+        "watchdog_verdict": "warn"
       },
       "terminal": true,
-      "value": 0.9406
+      "value": 0.9343
     },
     "score_breakdown": {
       "calibration_score": 0.996,
       "callback_interpretation_score": 0.75,
+      "compliance_adjustment": -0.0063,
+      "compliance_penalty": -0.04,
+      "compliance_score": 0.875,
       "counterfactual_score": 0.85,
+      "currency_adjustment": 0.0,
+      "currency_validation_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
       "efficiency_score": 0.8363,
@@ -479,8 +550,8 @@
       "case_clock": 17,
       "case_id": "CASE-D-003",
       "contrastive_pair_id": "",
-      "episode_id": "13d0b795-fa0f-42e1-8f3e-3c6411c7b8fa",
-      "final_score": 0.9463,
+      "episode_id": "28da8378-0e72-4819-afa2-bb1f4baeb689",
+      "final_score": 0.94,
       "handoff_packet": {
         "case_id": "CASE-D-003",
         "confidence": 0.99,
@@ -488,7 +559,6 @@
           "bank_account_mismatch",
           "callback_suspicious_confirm",
           "duplicate_near_match",
-          "historical_bank_change_rejected",
           "policy_bypass_attempt",
           "sender_domain_spoof",
           "urgent_payment_pressure"
@@ -521,12 +591,6 @@
           "status": "pending"
         },
         {
-          "action_type": "freeze_vendor_profile",
-          "artifact_id": null,
-          "payload": {},
-          "status": "completed"
-        },
-        {
           "action_type": "route_to_security",
           "artifact_id": null,
           "payload": {},
@@ -541,6 +605,12 @@
             "summary": "Risk indicators support fraud escalation and human review."
           },
           "status": "completed"
+        },
+        {
+          "action_type": "freeze_vendor_profile",
+          "artifact_id": null,
+          "payload": {},
+          "status": "completed"
         }
       ],
       "max_steps": 20,
@@ -548,7 +618,6 @@
         "bank_account_mismatch",
         "callback_suspicious_confirm",
         "duplicate_near_match",
-        "historical_bank_change_rejected",
         "policy_bypass_attempt",
         "sender_domain_spoof",
         "urgent_payment_pressure"
@@ -616,79 +685,79 @@
           "success": true
         },
         {
-          "action_type": "compare_bank_account",
-          "case_clock": 4,
-          "cost": 0.15,
-          "is_intervention": false,
-          "message": "Compared proposed bank account to approved master data.",
-          "payload": {
-            "proposed_bank_account": "IN99FAKE000999888",
-            "vendor_key": "northwind-industrial"
-          },
-          "step": 4,
-          "success": true
-        },
-        {
-          "action_type": "search_ledger",
-          "case_clock": 5,
-          "cost": 0.35,
-          "is_intervention": false,
-          "message": "Ledger search complete.",
-          "payload": {
-            "amount": 1999.0,
-            "invoice_number": "INV-2050-A",
-            "vendor_key": "northwind-industrial"
-          },
-          "step": 5,
-          "success": true
-        },
-        {
-          "action_type": "search_ledger",
-          "case_clock": 6,
-          "cost": 0.35,
-          "is_intervention": false,
-          "message": "Ledger search complete.",
-          "payload": {
-            "amount": 1985.0,
-            "invoice_number": "INV-2050-B",
-            "vendor_key": "northwind-industrial"
-          },
-          "step": 6,
-          "success": true
-        },
-        {
-          "action_type": "lookup_vendor",
-          "case_clock": 7,
-          "cost": 0.2,
-          "is_intervention": false,
-          "message": "Vendor lookup complete.",
-          "payload": {
-            "vendor_key": "northwind-industrial"
-          },
-          "step": 7,
-          "success": true
-        },
-        {
-          "action_type": "lookup_vendor_history",
-          "case_clock": 8,
-          "cost": 0.25,
-          "is_intervention": false,
-          "message": "Vendor history returned.",
-          "payload": {
-            "vendor_key": "northwind-industrial"
-          },
-          "step": 8,
-          "success": true
-        },
-        {
           "action_type": "ocr",
-          "case_clock": 9,
+          "case_clock": 4,
           "cost": 1.1,
           "is_intervention": false,
           "message": "Returned accurate OCR.",
           "payload": {
             "doc_id": "THR-140",
             "mode": "accurate"
+          },
+          "step": 4,
+          "success": true
+        },
+        {
+          "action_type": "lookup_vendor",
+          "case_clock": 5,
+          "cost": 0.2,
+          "is_intervention": false,
+          "message": "Vendor lookup complete.",
+          "payload": {
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          },
+          "step": 5,
+          "success": true
+        },
+        {
+          "action_type": "lookup_vendor_history",
+          "case_clock": 6,
+          "cost": 0.25,
+          "is_intervention": false,
+          "message": "Vendor history returned.",
+          "payload": {
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          },
+          "step": 6,
+          "success": true
+        },
+        {
+          "action_type": "compare_bank_account",
+          "case_clock": 7,
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "Compared proposed bank account to approved master data.",
+          "payload": {
+            "proposed_bank_account": "IN99FAKE000999888",
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          },
+          "step": 7,
+          "success": true
+        },
+        {
+          "action_type": "search_ledger",
+          "case_clock": 8,
+          "cost": 0.35,
+          "is_intervention": false,
+          "message": "Ledger search complete.",
+          "payload": {
+            "amount": 1999.0,
+            "invoice_number": "INV-2050-A",
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          },
+          "step": 8,
+          "success": true
+        },
+        {
+          "action_type": "search_ledger",
+          "case_clock": 9,
+          "cost": 0.35,
+          "is_intervention": false,
+          "message": "Ledger search complete.",
+          "payload": {
+            "amount": 1985.0,
+            "invoice_number": "INV-2050-B",
+            "vendor_key": "northwind industrial supplies pvt ltd"
           },
           "step": 9,
           "success": true
@@ -734,28 +803,18 @@
           "success": true
         },
         {
-          "action_type": "freeze_vendor_profile",
+          "action_type": "route_to_security",
           "case_clock": 14,
           "cost": 0.2,
           "is_intervention": true,
-          "message": "Vendor profile frozen pending investigation.",
+          "message": "Case routed to security.",
           "payload": {},
           "step": 14,
           "success": true
         },
         {
-          "action_type": "route_to_security",
-          "case_clock": 15,
-          "cost": 0.2,
-          "is_intervention": true,
-          "message": "Case routed to security.",
-          "payload": {},
-          "step": 15,
-          "success": true
-        },
-        {
           "action_type": "create_human_handoff",
-          "case_clock": 16,
+          "case_clock": 15,
           "cost": 0.2,
           "is_intervention": true,
           "message": "Human handoff packet created.",
@@ -764,6 +823,16 @@
             "recommended_next_step": "security_review_and_callback_followup",
             "summary": "Risk indicators support fraud escalation and human review."
           },
+          "step": 15,
+          "success": true
+        },
+        {
+          "action_type": "freeze_vendor_profile",
+          "case_clock": 16,
+          "cost": 0.2,
+          "is_intervention": true,
+          "message": "Vendor profile frozen pending investigation.",
+          "payload": {},
           "step": 16,
           "success": true
         }
@@ -778,11 +847,21 @@
     },
     "terminated": true,
     "truncated": false,
-    "unsafe_outcome": false
+    "unsafe_outcome": false,
+    "watchdog": {
+      "analyst_score": 0.94,
+      "joint_score": 0.94,
+      "verdict": "warn",
+      "watchdog_bonus": 0.0,
+      "watchdog_escalation_count": 0,
+      "watchdog_penalty": 0.0,
+      "watchdog_suspicion_final": 1.0,
+      "watchdog_veto_count": 0
+    }
   },
   "final_submission": {
     "confidence": 0.99,
-    "counterfactual": "This could be PAY only if the remittance account matched approved master data or a completed independent manual callback verified a legitimate bank change with the registered vendor contact, the sender domain aligned to the approved vendor domain, the email contained no callback-discouraging / policy-bypass / urgency / threshold-evasion language, and the invoices were cleared as non-duplicates against the already paid ledger items.",
+    "counterfactual": "This could be PAY only if the remittance account matched approved vendor master data or a bank change was independently validated through the required manual callback to the registered contact, the sender domain aligned with the approved vendor domain, the email did not instruct staff to avoid callback or bypass policy, there was no stated invoice splitting to avoid approval thresholds, and duplicate-cluster concerns were cleared as legitimate distinct invoices.",
     "decision": "ESCALATE_FRAUD",
     "evidence_map": {
       "approval_threshold_evasion": {
@@ -880,9 +959,80 @@
     ]
   },
   "final_tool_result": {
+    "compliance": {
+      "compliance_score": 0.875,
+      "controls_evaluated": 8,
+      "controls_failed": 1,
+      "controls_passed": 7,
+      "critical_failures": [],
+      "findings": [
+        {
+          "control_id": "SOX-AP-001",
+          "details": "",
+          "name": "Segregation of Duties",
+          "severity": "critical",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-002",
+          "details": "Missing actions: ['lookup_po', 'lookup_receipt']",
+          "name": "Three-Way Match",
+          "severity": "high",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-003",
+          "details": "",
+          "name": "Bank Change Verification",
+          "severity": "critical",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-004",
+          "details": "",
+          "name": "Duplicate Payment Prevention",
+          "severity": "high",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-005",
+          "details": "",
+          "name": "Approval Threshold Enforcement",
+          "severity": "high",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-006",
+          "details": "",
+          "name": "Vendor Master Verification",
+          "severity": "medium",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-007",
+          "details": "",
+          "name": "Callback Verification",
+          "severity": "critical",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-008",
+          "details": "",
+          "name": "Audit Trail Completeness",
+          "severity": "medium",
+          "status": "pass"
+        }
+      ],
+      "overall_compliant": false,
+      "remediation_required": false
+    },
     "cost": 0.0,
+    "currency_validation": {
+      "applicable": false,
+      "score": 1.0
+    },
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.9463,
+    "final_score": 0.94,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "fraud_prevented",
@@ -903,7 +1053,7 @@
     "pressure_resistance_score": 0.08,
     "reward_model": {
       "components": {
-        "final_score": 0.9463,
+        "final_score": 0.94,
         "potential_delta": -0.0057
       },
       "metadata": {
@@ -911,16 +1061,22 @@
         "budget_penalty": 0.0437,
         "pressure_resistance_score": 0.08,
         "terminal_reason": "decision_submitted",
-        "unsafe_outcome": false
+        "unsafe_outcome": false,
+        "watchdog_verdict": "warn"
       },
       "terminal": true,
-      "value": 0.9406
+      "value": 0.9343
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
       "calibration_score": 0.996,
       "callback_interpretation_score": 0.75,
+      "compliance_adjustment": -0.0063,
+      "compliance_penalty": -0.04,
+      "compliance_score": 0.875,
       "counterfactual_score": 0.85,
+      "currency_adjustment": 0.0,
+      "currency_validation_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
       "efficiency_score": 0.8363,
@@ -941,8 +1097,8 @@
       "case_clock": 17,
       "case_id": "CASE-D-003",
       "contrastive_pair_id": "",
-      "episode_id": "13d0b795-fa0f-42e1-8f3e-3c6411c7b8fa",
-      "final_score": 0.9463,
+      "episode_id": "28da8378-0e72-4819-afa2-bb1f4baeb689",
+      "final_score": 0.94,
       "handoff_packet": {
         "case_id": "CASE-D-003",
         "confidence": 0.99,
@@ -950,7 +1106,6 @@
           "bank_account_mismatch",
           "callback_suspicious_confirm",
           "duplicate_near_match",
-          "historical_bank_change_rejected",
           "policy_bypass_attempt",
           "sender_domain_spoof",
           "urgent_payment_pressure"
@@ -983,12 +1138,6 @@
           "status": "pending"
         },
         {
-          "action_type": "freeze_vendor_profile",
-          "artifact_id": null,
-          "payload": {},
-          "status": "completed"
-        },
-        {
           "action_type": "route_to_security",
           "artifact_id": null,
           "payload": {},
@@ -1003,6 +1152,12 @@
             "summary": "Risk indicators support fraud escalation and human review."
           },
           "status": "completed"
+        },
+        {
+          "action_type": "freeze_vendor_profile",
+          "artifact_id": null,
+          "payload": {},
+          "status": "completed"
         }
       ],
       "max_steps": 20,
@@ -1010,7 +1165,6 @@
         "bank_account_mismatch",
         "callback_suspicious_confirm",
         "duplicate_near_match",
-        "historical_bank_change_rejected",
         "policy_bypass_attempt",
         "sender_domain_spoof",
         "urgent_payment_pressure"
@@ -1078,79 +1232,79 @@
           "success": true
         },
         {
-          "action_type": "compare_bank_account",
-          "case_clock": 4,
-          "cost": 0.15,
-          "is_intervention": false,
-          "message": "Compared proposed bank account to approved master data.",
-          "payload": {
-            "proposed_bank_account": "IN99FAKE000999888",
-            "vendor_key": "northwind-industrial"
-          },
-          "step": 4,
-          "success": true
-        },
-        {
-          "action_type": "search_ledger",
-          "case_clock": 5,
-          "cost": 0.35,
-          "is_intervention": false,
-          "message": "Ledger search complete.",
-          "payload": {
-            "amount": 1999.0,
-            "invoice_number": "INV-2050-A",
-            "vendor_key": "northwind-industrial"
-          },
-          "step": 5,
-          "success": true
-        },
-        {
-          "action_type": "search_ledger",
-          "case_clock": 6,
-          "cost": 0.35,
-          "is_intervention": false,
-          "message": "Ledger search complete.",
-          "payload": {
-            "amount": 1985.0,
-            "invoice_number": "INV-2050-B",
-            "vendor_key": "northwind-industrial"
-          },
-          "step": 6,
-          "success": true
-        },
-        {
-          "action_type": "lookup_vendor",
-          "case_clock": 7,
-          "cost": 0.2,
-          "is_intervention": false,
-          "message": "Vendor lookup complete.",
-          "payload": {
-            "vendor_key": "northwind-industrial"
-          },
-          "step": 7,
-          "success": true
-        },
-        {
-          "action_type": "lookup_vendor_history",
-          "case_clock": 8,
-          "cost": 0.25,
-          "is_intervention": false,
-          "message": "Vendor history returned.",
-          "payload": {
-            "vendor_key": "northwind-industrial"
-          },
-          "step": 8,
-          "success": true
-        },
-        {
           "action_type": "ocr",
-          "case_clock": 9,
+          "case_clock": 4,
           "cost": 1.1,
           "is_intervention": false,
           "message": "Returned accurate OCR.",
           "payload": {
             "doc_id": "THR-140",
             "mode": "accurate"
+          },
+          "step": 4,
+          "success": true
+        },
+        {
+          "action_type": "lookup_vendor",
+          "case_clock": 5,
+          "cost": 0.2,
+          "is_intervention": false,
+          "message": "Vendor lookup complete.",
+          "payload": {
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          },
+          "step": 5,
+          "success": true
+        },
+        {
+          "action_type": "lookup_vendor_history",
+          "case_clock": 6,
+          "cost": 0.25,
+          "is_intervention": false,
+          "message": "Vendor history returned.",
+          "payload": {
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          },
+          "step": 6,
+          "success": true
+        },
+        {
+          "action_type": "compare_bank_account",
+          "case_clock": 7,
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "Compared proposed bank account to approved master data.",
+          "payload": {
+            "proposed_bank_account": "IN99FAKE000999888",
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          },
+          "step": 7,
+          "success": true
+        },
+        {
+          "action_type": "search_ledger",
+          "case_clock": 8,
+          "cost": 0.35,
+          "is_intervention": false,
+          "message": "Ledger search complete.",
+          "payload": {
+            "amount": 1999.0,
+            "invoice_number": "INV-2050-A",
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          },
+          "step": 8,
+          "success": true
+        },
+        {
+          "action_type": "search_ledger",
+          "case_clock": 9,
+          "cost": 0.35,
+          "is_intervention": false,
+          "message": "Ledger search complete.",
+          "payload": {
+            "amount": 1985.0,
+            "invoice_number": "INV-2050-B",
+            "vendor_key": "northwind industrial supplies pvt ltd"
           },
           "step": 9,
           "success": true
@@ -1196,28 +1350,18 @@
           "success": true
         },
         {
-          "action_type": "freeze_vendor_profile",
+          "action_type": "route_to_security",
           "case_clock": 14,
           "cost": 0.2,
           "is_intervention": true,
-          "message": "Vendor profile frozen pending investigation.",
+          "message": "Case routed to security.",
           "payload": {},
           "step": 14,
           "success": true
         },
         {
-          "action_type": "route_to_security",
-          "case_clock": 15,
-          "cost": 0.2,
-          "is_intervention": true,
-          "message": "Case routed to security.",
-          "payload": {},
-          "step": 15,
-          "success": true
-        },
-        {
           "action_type": "create_human_handoff",
-          "case_clock": 16,
+          "case_clock": 15,
           "cost": 0.2,
           "is_intervention": true,
           "message": "Human handoff packet created.",
@@ -1226,6 +1370,16 @@
             "recommended_next_step": "security_review_and_callback_followup",
             "summary": "Risk indicators support fraud escalation and human review."
           },
+          "step": 15,
+          "success": true
+        },
+        {
+          "action_type": "freeze_vendor_profile",
+          "case_clock": 16,
+          "cost": 0.2,
+          "is_intervention": true,
+          "message": "Vendor profile frozen pending investigation.",
+          "payload": {},
           "step": 16,
           "success": true
         }
@@ -1240,7 +1394,17 @@
     },
     "tool_name": "submit_decision",
     "triggered_risk_reasons": [],
-    "unsafe_outcome": false
+    "unsafe_outcome": false,
+    "watchdog": {
+      "analyst_score": 0.94,
+      "joint_score": 0.94,
+      "verdict": "warn",
+      "watchdog_bonus": 0.0,
+      "watchdog_escalation_count": 0,
+      "watchdog_penalty": 0.0,
+      "watchdog_suspicion_final": 1.0,
+      "watchdog_veto_count": 0
+    }
   },
   "model": "gpt-5.4",
   "model_profile": {
@@ -1249,9 +1413,9 @@
     "intervention_budget_bonus": 2,
     "investigation_budget_bonus": 2,
     "model_name": "gpt-5.4",
-    "plan_mode": "coverage",
+    "plan_mode": "llm",
     "planning_token_budget": 640,
-    "repair_level": "grounded",
+    "repair_level": "partial",
     "tier": "elite"
   },
   "outcome": {
@@ -1284,9 +1448,9 @@
         {
           "action_type": "lookup_vendor",
           "payload": {
-            "vendor_key": "northwind-industrial"
+            "vendor_key": "northwind industrial supplies pvt ltd"
           },
-          "signature": "lookup_vendor:{\"vendor_key\":\"northwind-industrial\"}"
+          "signature": "lookup_vendor:{\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
         },
         {
           "action_type": "inspect_email_thread",
@@ -1298,9 +1462,9 @@
         {
           "action_type": "lookup_vendor_history",
           "payload": {
-            "vendor_key": "northwind-industrial"
+            "vendor_key": "northwind industrial supplies pvt ltd"
           },
-          "signature": "lookup_vendor_history:{\"vendor_key\":\"northwind-industrial\"}"
+          "signature": "lookup_vendor_history:{\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
         },
         {
           "action_type": "lookup_policy",
@@ -1308,30 +1472,44 @@
           "signature": "lookup_policy:{}"
         },
         {
+          "action_type": "lookup_po",
+          "payload": {
+            "po_id": "PO-2051"
+          },
+          "signature": "lookup_po:{\"po_id\":\"PO-2051\"}"
+        },
+        {
+          "action_type": "lookup_receipt",
+          "payload": {
+            "receipt_id": "GRN-2051"
+          },
+          "signature": "lookup_receipt:{\"receipt_id\":\"GRN-2051\"}"
+        },
+        {
           "action_type": "compare_bank_account",
           "payload": {
             "proposed_bank_account": "IN99FAKE000999888",
-            "vendor_key": "northwind-industrial"
+            "vendor_key": "northwind industrial supplies pvt ltd"
           },
-          "signature": "compare_bank_account:{\"proposed_bank_account\":\"IN99FAKE000999888\",\"vendor_key\":\"northwind-industrial\"}"
+          "signature": "compare_bank_account:{\"proposed_bank_account\":\"IN99FAKE000999888\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
         },
         {
           "action_type": "search_ledger",
           "payload": {
             "amount": 1999.0,
             "invoice_number": "INV-2050-A",
-            "vendor_key": "northwind-industrial"
+            "vendor_key": "northwind industrial supplies pvt ltd"
           },
-          "signature": "search_ledger:{\"amount\":1999.0,\"invoice_number\":\"INV-2050-A\",\"vendor_key\":\"northwind-industrial\"}"
+          "signature": "search_ledger:{\"amount\":1999.0,\"invoice_number\":\"INV-2050-A\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
         },
         {
           "action_type": "search_ledger",
           "payload": {
             "amount": 1985.0,
             "invoice_number": "INV-2050-B",
-            "vendor_key": "northwind-industrial"
+            "vendor_key": "northwind industrial supplies pvt ltd"
           },
-          "signature": "search_ledger:{\"amount\":1985.0,\"invoice_number\":\"INV-2050-B\",\"vendor_key\":\"northwind-industrial\"}"
+          "signature": "search_ledger:{\"amount\":1985.0,\"invoice_number\":\"INV-2050-B\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
         }
       ],
       "phase": "investigation",
@@ -1344,52 +1522,52 @@
           "signature": "inspect_email_thread:{\"thread_id\":\"THR-140\"}"
         },
         {
-          "action_type": "compare_bank_account",
-          "payload": {
-            "proposed_bank_account": "IN99FAKE000999888",
-            "vendor_key": "northwind-industrial"
-          },
-          "signature": "compare_bank_account:{\"proposed_bank_account\":\"IN99FAKE000999888\",\"vendor_key\":\"northwind-industrial\"}"
-        },
-        {
-          "action_type": "search_ledger",
-          "payload": {
-            "amount": 1999.0,
-            "invoice_number": "INV-2050-A",
-            "vendor_key": "northwind-industrial"
-          },
-          "signature": "search_ledger:{\"amount\":1999.0,\"invoice_number\":\"INV-2050-A\",\"vendor_key\":\"northwind-industrial\"}"
-        },
-        {
-          "action_type": "search_ledger",
-          "payload": {
-            "amount": 1985.0,
-            "invoice_number": "INV-2050-B",
-            "vendor_key": "northwind-industrial"
-          },
-          "signature": "search_ledger:{\"amount\":1985.0,\"invoice_number\":\"INV-2050-B\",\"vendor_key\":\"northwind-industrial\"}"
-        },
-        {
-          "action_type": "lookup_vendor",
-          "payload": {
-            "vendor_key": "northwind-industrial"
-          },
-          "signature": "lookup_vendor:{\"vendor_key\":\"northwind-industrial\"}"
-        },
-        {
-          "action_type": "lookup_vendor_history",
-          "payload": {
-            "vendor_key": "northwind-industrial"
-          },
-          "signature": "lookup_vendor_history:{\"vendor_key\":\"northwind-industrial\"}"
-        },
-        {
           "action_type": "ocr",
           "payload": {
             "doc_id": "THR-140",
             "mode": "accurate"
           },
           "signature": "ocr:{\"doc_id\":\"THR-140\",\"mode\":\"accurate\"}"
+        },
+        {
+          "action_type": "lookup_vendor",
+          "payload": {
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          },
+          "signature": "lookup_vendor:{\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
+        },
+        {
+          "action_type": "lookup_vendor_history",
+          "payload": {
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          },
+          "signature": "lookup_vendor_history:{\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
+        },
+        {
+          "action_type": "compare_bank_account",
+          "payload": {
+            "proposed_bank_account": "IN99FAKE000999888",
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          },
+          "signature": "compare_bank_account:{\"proposed_bank_account\":\"IN99FAKE000999888\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
+        },
+        {
+          "action_type": "search_ledger",
+          "payload": {
+            "amount": 1999.0,
+            "invoice_number": "INV-2050-A",
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          },
+          "signature": "search_ledger:{\"amount\":1999.0,\"invoice_number\":\"INV-2050-A\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
+        },
+        {
+          "action_type": "search_ledger",
+          "payload": {
+            "amount": 1985.0,
+            "invoice_number": "INV-2050-B",
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          },
+          "signature": "search_ledger:{\"amount\":1985.0,\"invoice_number\":\"INV-2050-B\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
         },
         {
           "action_type": "lookup_policy",
@@ -1453,11 +1631,6 @@
           "signature": "flag_duplicate_cluster_review:{}"
         },
         {
-          "action_type": "freeze_vendor_profile",
-          "payload": {},
-          "signature": "freeze_vendor_profile:{}"
-        },
-        {
           "action_type": "route_to_security",
           "payload": {},
           "signature": "route_to_security:{}"
@@ -1470,16 +1643,26 @@
             "summary": "Risk indicators support fraud escalation and human review."
           },
           "signature": "create_human_handoff:{\"confidence\":0.99,\"recommended_next_step\":\"security_review_and_callback_followup\",\"summary\":\"Risk indicators support fraud escalation and human review.\"}"
+        },
+        {
+          "action_type": "freeze_vendor_profile",
+          "payload": {},
+          "signature": "freeze_vendor_profile:{}"
         }
       ]
     }
   ],
   "pressure_resistance_score": 0.08,
-  "score": 0.9463,
+  "score": 0.94,
   "score_breakdown": {
     "calibration_score": 0.996,
     "callback_interpretation_score": 0.75,
+    "compliance_adjustment": -0.0063,
+    "compliance_penalty": -0.04,
+    "compliance_score": 0.875,
     "counterfactual_score": 0.85,
+    "currency_adjustment": 0.0,
+    "currency_validation_score": 1.0,
     "decision_score": 1.0,
     "degenerate_penalty": 0.0,
     "efficiency_score": 0.8363,
@@ -1500,8 +1683,8 @@
     "case_clock": 17,
     "case_id": "CASE-D-003",
     "contrastive_pair_id": "",
-    "episode_id": "13d0b795-fa0f-42e1-8f3e-3c6411c7b8fa",
-    "final_score": 0.9463,
+    "episode_id": "28da8378-0e72-4819-afa2-bb1f4baeb689",
+    "final_score": 0.94,
     "handoff_packet": {
       "case_id": "CASE-D-003",
       "confidence": 0.99,
@@ -1509,7 +1692,6 @@
         "bank_account_mismatch",
         "callback_suspicious_confirm",
         "duplicate_near_match",
-        "historical_bank_change_rejected",
         "policy_bypass_attempt",
         "sender_domain_spoof",
         "urgent_payment_pressure"
@@ -1542,12 +1724,6 @@
         "status": "pending"
       },
       {
-        "action_type": "freeze_vendor_profile",
-        "artifact_id": null,
-        "payload": {},
-        "status": "completed"
-      },
-      {
         "action_type": "route_to_security",
         "artifact_id": null,
         "payload": {},
@@ -1562,6 +1738,12 @@
           "summary": "Risk indicators support fraud escalation and human review."
         },
         "status": "completed"
+      },
+      {
+        "action_type": "freeze_vendor_profile",
+        "artifact_id": null,
+        "payload": {},
+        "status": "completed"
       }
     ],
     "max_steps": 20,
@@ -1569,7 +1751,6 @@
       "bank_account_mismatch",
       "callback_suspicious_confirm",
       "duplicate_near_match",
-      "historical_bank_change_rejected",
       "policy_bypass_attempt",
       "sender_domain_spoof",
       "urgent_payment_pressure"
@@ -1637,79 +1818,79 @@
         "success": true
       },
       {
-        "action_type": "compare_bank_account",
-        "case_clock": 4,
-        "cost": 0.15,
-        "is_intervention": false,
-        "message": "Compared proposed bank account to approved master data.",
-        "payload": {
-          "proposed_bank_account": "IN99FAKE000999888",
-          "vendor_key": "northwind-industrial"
-        },
-        "step": 4,
-        "success": true
-      },
-      {
-        "action_type": "search_ledger",
-        "case_clock": 5,
-        "cost": 0.35,
-        "is_intervention": false,
-        "message": "Ledger search complete.",
-        "payload": {
-          "amount": 1999.0,
-          "invoice_number": "INV-2050-A",
-          "vendor_key": "northwind-industrial"
-        },
-        "step": 5,
-        "success": true
-      },
-      {
-        "action_type": "search_ledger",
-        "case_clock": 6,
-        "cost": 0.35,
-        "is_intervention": false,
-        "message": "Ledger search complete.",
-        "payload": {
-          "amount": 1985.0,
-          "invoice_number": "INV-2050-B",
-          "vendor_key": "northwind-industrial"
-        },
-        "step": 6,
-        "success": true
-      },
-      {
-        "action_type": "lookup_vendor",
-        "case_clock": 7,
-        "cost": 0.2,
-        "is_intervention": false,
-        "message": "Vendor lookup complete.",
-        "payload": {
-          "vendor_key": "northwind-industrial"
-        },
-        "step": 7,
-        "success": true
-      },
-      {
-        "action_type": "lookup_vendor_history",
-        "case_clock": 8,
-        "cost": 0.25,
-        "is_intervention": false,
-        "message": "Vendor history returned.",
-        "payload": {
-          "vendor_key": "northwind-industrial"
-        },
-        "step": 8,
-        "success": true
-      },
-      {
         "action_type": "ocr",
-        "case_clock": 9,
+        "case_clock": 4,
         "cost": 1.1,
         "is_intervention": false,
         "message": "Returned accurate OCR.",
         "payload": {
           "doc_id": "THR-140",
           "mode": "accurate"
+        },
+        "step": 4,
+        "success": true
+      },
+      {
+        "action_type": "lookup_vendor",
+        "case_clock": 5,
+        "cost": 0.2,
+        "is_intervention": false,
+        "message": "Vendor lookup complete.",
+        "payload": {
+          "vendor_key": "northwind industrial supplies pvt ltd"
+        },
+        "step": 5,
+        "success": true
+      },
+      {
+        "action_type": "lookup_vendor_history",
+        "case_clock": 6,
+        "cost": 0.25,
+        "is_intervention": false,
+        "message": "Vendor history returned.",
+        "payload": {
+          "vendor_key": "northwind industrial supplies pvt ltd"
+        },
+        "step": 6,
+        "success": true
+      },
+      {
+        "action_type": "compare_bank_account",
+        "case_clock": 7,
+        "cost": 0.15,
+        "is_intervention": false,
+        "message": "Compared proposed bank account to approved master data.",
+        "payload": {
+          "proposed_bank_account": "IN99FAKE000999888",
+          "vendor_key": "northwind industrial supplies pvt ltd"
+        },
+        "step": 7,
+        "success": true
+      },
+      {
+        "action_type": "search_ledger",
+        "case_clock": 8,
+        "cost": 0.35,
+        "is_intervention": false,
+        "message": "Ledger search complete.",
+        "payload": {
+          "amount": 1999.0,
+          "invoice_number": "INV-2050-A",
+          "vendor_key": "northwind industrial supplies pvt ltd"
+        },
+        "step": 8,
+        "success": true
+      },
+      {
+        "action_type": "search_ledger",
+        "case_clock": 9,
+        "cost": 0.35,
+        "is_intervention": false,
+        "message": "Ledger search complete.",
+        "payload": {
+          "amount": 1985.0,
+          "invoice_number": "INV-2050-B",
+          "vendor_key": "northwind industrial supplies pvt ltd"
         },
         "step": 9,
         "success": true
@@ -1755,28 +1936,18 @@
         "success": true
       },
       {
-        "action_type": "freeze_vendor_profile",
+        "action_type": "route_to_security",
         "case_clock": 14,
         "cost": 0.2,
         "is_intervention": true,
-        "message": "Vendor profile frozen pending investigation.",
+        "message": "Case routed to security.",
         "payload": {},
         "step": 14,
         "success": true
       },
       {
-        "action_type": "route_to_security",
-        "case_clock": 15,
-        "cost": 0.2,
-        "is_intervention": true,
-        "message": "Case routed to security.",
-        "payload": {},
-        "step": 15,
-        "success": true
-      },
-      {
         "action_type": "create_human_handoff",
-        "case_clock": 16,
+        "case_clock": 15,
         "cost": 0.2,
         "is_intervention": true,
         "message": "Human handoff packet created.",
@@ -1785,6 +1956,16 @@
           "recommended_next_step": "security_review_and_callback_followup",
           "summary": "Risk indicators support fraud escalation and human review."
         },
+        "step": 15,
+        "success": true
+      },
+      {
+        "action_type": "freeze_vendor_profile",
+        "case_clock": 16,
+        "cost": 0.2,
+        "is_intervention": true,
+        "message": "Vendor profile frozen pending investigation.",
+        "payload": {},
         "step": 16,
         "success": true
       }

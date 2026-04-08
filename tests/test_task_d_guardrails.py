@@ -245,6 +245,23 @@ def test_grounded_task_d_submission_treats_routine_verified_bank_update_as_pay()
     }
 
 
+def test_grounded_task_d_submission_uses_duplicate_cluster_artifact_as_duplicate_signal():
+    collected = _benign_collected()
+    collected["ledger_search"] = {"exact_duplicate_count": 0, "near_duplicate_count": 0}
+    collected["duplicate_cluster_report"] = {
+        "artifact_id": "duplicate_cluster_report",
+        "details": {"status": "cluster_detected"},
+    }
+    collected["observed_risk_signals"] = ["duplicate_near_match"]
+
+    grounded = grounded_task_d_submission(collected)
+
+    assert grounded["decision"] == "ESCALATE_FRAUD"
+    assert "duplicate_near_match" in grounded["reason_codes"]
+    assert grounded["policy_checks"]["duplicate_check"] == "fail"
+    assert "duplicate_near_match" in grounded["evidence_map"]
+
+
 def test_validate_task_d_submission_repairs_missing_reasons_and_evidence():
     validated = validate_task_d_submission(
         {

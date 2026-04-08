@@ -97,7 +97,7 @@ If you change APIs, packaging, or runtime behavior, assume CI should keep passin
 | [`../llm_utils.py`](../llm_utils.py) | JSON parsing and completion helpers for LLM workflows |
 | [`../llm_judge_grader.py`](../llm_judge_grader.py) | optional LLM-as-judge grading experiments |
 | [`../compare_models_live.py`](../compare_models_live.py) | live multi-model comparison with capability profiles and monotonic strength checks |
-| [`../compare_all_models.py`](../compare_all_models.py) | broader multi-model sweep helper |
+| [`../compare_all_models.py`](../compare_all_models.py) | broader multi-model sweep helper with `--models`, `--output`, `--timeout`, and a `0.85`-aligned pass threshold |
 | [`../benchmark_report.py`](../benchmark_report.py) | public benchmark, holdout, and contrastive report generation |
 | [`../generate_branch_comparison_report.py`](../generate_branch_comparison_report.py) | legacy reporting helper for saved branch comparison JSONs |
 | [`../generate_comparison_report.py`](../generate_comparison_report.py) | legacy reporting helper for multi-model JSON summaries |

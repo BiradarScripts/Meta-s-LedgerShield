@@ -15,6 +15,8 @@ from __future__ import annotations
 import json
 from typing import Any
 
+PASS_THRESHOLD = 0.85
+
 
 def load_inference_results(filepath: str) -> dict[str, Any]:
     """Load inference results from JSON file."""
@@ -45,7 +47,7 @@ def simulate_weaker_agent_results(strong_results: dict[str, Any], degradation: f
         weak_case = case.copy()
         weak_case["score"] = max(0.0, case["score"] - degradation - (0.1 if case["difficulty"] == "hard" else 0))
         weak_case["steps"] = case["steps"] + (2 if case["difficulty"] != "easy" else 0)
-        weak_case["success"] = weak_case["score"] >= 0.6
+        weak_case["success"] = weak_case["score"] >= PASS_THRESHOLD
         weak_results["results_by_case"].append(weak_case)
     
     return weak_results
@@ -77,7 +79,7 @@ def simulate_random_agent_results(strong_results: dict[str, Any]) -> dict[str, A
         base_score = 0.4 if case["difficulty"] == "easy" else 0.3 if case["difficulty"] == "medium" else 0.2
         random_case["score"] = base_score + random.uniform(-0.1, 0.2)
         random_case["steps"] = random.randint(2, 5)
-        random_case["success"] = random_case["score"] >= 0.6
+        random_case["success"] = random_case["score"] >= PASS_THRESHOLD
         random_results["results_by_case"].append(random_case)
     
     return random_results
@@ -182,8 +184,8 @@ def print_score_distribution(agent_results: dict[str, dict[str, Any]]):
             "excellent (0.9-1.0)": len([s for s in scores if 0.9 <= s <= 1.0]),
             "good (0.8-0.9)": len([s for s in scores if 0.8 <= s < 0.9]),
             "acceptable (0.7-0.8)": len([s for s in scores if 0.7 <= s < 0.8]),
-            "poor (0.6-0.7)": len([s for s in scores if 0.6 <= s < 0.7]),
-            "failing (<0.6)": len([s for s in scores if s < 0.6]),
+            "borderline (0.7-0.85)": len([s for s in scores if 0.7 <= s < PASS_THRESHOLD]),
+            f"failing (<{PASS_THRESHOLD:.2f})": len([s for s in scores if s < PASS_THRESHOLD]),
         }
         
         for range_name, count in score_ranges.items():

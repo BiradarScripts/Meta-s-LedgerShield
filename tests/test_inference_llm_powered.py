@@ -125,7 +125,169 @@ def test_task_b_investigation_candidates_keep_receipt_lookup_for_three_way_match
     assert action_types == ["lookup_policy", "lookup_po", "lookup_receipt"]
 
 
-def test_llm_decision_task_b_recovers_grounded_pay_when_model_holds(monkeypatch):
+def test_task_c_investigation_candidates_add_vendor_history_and_policy_for_threshold_case():
+    candidates = inference_llm_powered.build_investigation_candidates(
+        "task_c",
+        {
+            "case_instruction": "Investigate whether this invoice amount was deliberately structured below the approval threshold.",
+            "invoice_fields": {"vendor_name": "Northwind Industrial Supplies Pvt Ltd", "bank_account": "IN55NW000111222"},
+        },
+        vendor_key="northwind industrial supplies pvt ltd",
+        po_id="",
+        receipt_id="",
+        invoice_total=4950.0,
+        invoice_number="INV-SPLIT-A",
+        proposed_bank_account="IN55NW000111222",
+        email_doc_id="",
+        executed_signatures=set(),
+    )
+
+    action_types = [candidate.action_type for candidate in candidates]
+    assert action_types == [
+        "lookup_vendor",
+        "lookup_vendor_history",
+        "lookup_policy",
+        "search_ledger",
+        "search_ledger",
+        "compare_bank_account",
+    ]
+
+
+def test_task_d_investigation_candidates_include_po_and_receipt_when_available():
+    candidates = inference_llm_powered.build_investigation_candidates(
+        "task_d",
+        {
+            "case_instruction": "Inspect the invoice, email thread, vendor master, ledger, and policy.",
+            "invoice_fields": {"vendor_name": "Northwind Industrial Supplies Pvt Ltd"},
+            "invoice_records": [],
+        },
+        vendor_key="northwind industrial supplies pvt ltd",
+        po_id="PO-2048",
+        receipt_id="GRN-2048",
+        invoice_total=2478.0,
+        invoice_number="INV-2048-A",
+        proposed_bank_account="IN99FAKE000999888",
+        email_doc_id="THR-100",
+        executed_signatures=set(),
+    )
+
+    action_types = [candidate.action_type for candidate in candidates]
+    assert "lookup_po" in action_types
+    assert "lookup_receipt" in action_types
+
+
+def test_build_intervention_candidates_adds_duplicate_review_after_risky_ledger_investigation():
+    candidates = inference_llm_powered.build_intervention_candidates(
+        "task_d",
+        {
+            "ledger_search": {"exact_duplicate_count": 0, "near_duplicate_count": 0, "top_hits": []},
+            "ledger_hits": [],
+            "bank_compares": [{"matched": False}],
+            "email_thread": {},
+            "case_instruction": "Inspect the invoice, email thread, vendor master, vendor history, ledger, and policy.",
+            "observed_risk_signals": ["bank_account_mismatch"],
+        },
+        {
+            "decision": "ESCALATE_FRAUD",
+            "reason_codes": ["bank_override_attempt", "policy_bypass_attempt"],
+            "confidence": 0.99,
+        },
+        executed_signatures=set(),
+    )
+
+    action_types = [candidate.action_type for candidate in candidates]
+    assert "flag_duplicate_cluster_review" in action_types
+
+
+def test_ranked_intervention_plan_prioritizes_duplicate_review_before_freeze_when_ledger_risk_exists():
+    submission = {
+        "decision": "ESCALATE_FRAUD",
+        "reason_codes": ["bank_override_attempt", "policy_bypass_attempt"],
+        "confidence": 0.99,
+    }
+    collected = {
+        "ledger_search": {"exact_duplicate_count": 0, "near_duplicate_count": 0, "top_hits": []},
+        "ledger_hits": [],
+        "bank_compares": [{"matched": False}],
+        "email_thread": {},
+        "case_instruction": "Inspect the invoice, email thread, vendor master, vendor history, ledger, and policy.",
+        "observed_risk_signals": ["bank_account_mismatch", "sender_domain_spoof"],
+    }
+    planned = inference_llm_powered.llm_plan_actions(
+        None,
+        task_type="task_d",
+        phase="intervention",
+        collected=collected,
+        candidates=inference_llm_powered.build_intervention_candidates(
+            "task_d",
+            collected,
+            submission,
+            executed_signatures=set(),
+        ),
+        max_actions=5,
+        current_submission=submission,
+    )
+
+    action_types = [candidate.action_type for candidate in planned]
+    assert action_types.index("flag_duplicate_cluster_review") < action_types.index("freeze_vendor_profile")
+
+
+def test_elite_llm_plan_actions_backfills_ranked_coverage_when_model_returns_too_few_actions(monkeypatch):
+    class _DummyMessage:
+        content = "{\"ordered_action_ids\":[\"A1\",\"A5\"]}"
+
+    class _DummyChoice:
+        message = _DummyMessage()
+
+    class _DummyResponse:
+        choices = [_DummyChoice()]
+        usage = None
+
+    monkeypatch.setattr(
+        inference_llm_powered,
+        "create_json_chat_completion",
+        lambda *args, **kwargs: _DummyResponse(),
+    )
+    monkeypatch.setattr(
+        inference_llm_powered,
+        "current_model_profile",
+        lambda: inference_llm_powered.get_model_capability_profile("gpt-5.4"),
+    )
+
+    planned = inference_llm_powered.llm_plan_actions(
+        object(),
+        task_type="task_c",
+        phase="investigation",
+        collected={
+            "case_instruction": "Detect duplicates and likely fraud in a batch payment review case. Use the ledger and evidence.",
+            "invoice_fields": {"bank_account": "IN99FAKE000999888"},
+            "observed_risk_signals": [],
+        },
+        candidates=[
+            inference_llm_powered.LedgerShieldAction("lookup_vendor", {"vendor_key": "northwind"}),
+            inference_llm_powered.LedgerShieldAction("lookup_vendor_history", {"vendor_key": "northwind"}),
+            inference_llm_powered.LedgerShieldAction(
+                "search_ledger",
+                {"vendor_key": "northwind", "invoice_number": "INV-2048-A", "amount": 2478.0},
+            ),
+            inference_llm_powered.LedgerShieldAction(
+                "search_ledger",
+                {"invoice_number": "INV-2048-A", "amount": 2478.0},
+            ),
+            inference_llm_powered.LedgerShieldAction(
+                "compare_bank_account",
+                {"vendor_key": "northwind", "proposed_bank_account": "IN99FAKE000999888"},
+            ),
+        ],
+        max_actions=5,
+    )
+
+    assert len(planned) == 5
+    assert sum(1 for action in planned if action.action_type == "search_ledger") == 2
+    assert any(action.action_type == "lookup_vendor_history" for action in planned)
+
+
+def test_llm_decision_task_b_preserves_model_disagreement_instead_of_snapping_to_grounded(monkeypatch):
     class _DummyMessage:
         content = "{\"decision\":\"HOLD\",\"confidence\":0.91,\"discrepancies\":[\"total_mismatch\"]}"
 
@@ -159,9 +321,9 @@ def test_llm_decision_task_b_recovers_grounded_pay_when_model_holds(monkeypatch)
         },
     )
 
-    assert result["decision"] == "PAY"
-    assert result["discrepancies"] == []
-    assert result["policy_checks"]["three_way_match"] == "pass"
+    assert result["decision"] == "HOLD"
+    assert "total_mismatch" in result["discrepancies"]
+    assert result["policy_checks"]["three_way_match"] == "fail"
 
 
 def test_refresh_email_thread_from_ocr_merges_without_crashing():
@@ -198,6 +360,15 @@ def test_model_capability_profile_separates_standard_strong_and_elite_models():
     assert strong.tier == "strong"
     assert elite.tier == "elite"
     assert elite.capability_score > strong.capability_score > weak.capability_score
+    assert elite.plan_mode != "coverage"
+    assert elite.repair_level != "grounded"
+
+
+def test_vendor_key_for_uses_normalized_vendor_name_instead_of_baked_mapping():
+    assert (
+        inference_llm_powered.vendor_key_for({"vendor_name": "BluePeak Logistics LLP"})
+        == "bluepeak logistics llp"
+    )
 
 
 def test_heuristic_task_b_infers_missing_receipt_from_failed_lookup_and_instruction():

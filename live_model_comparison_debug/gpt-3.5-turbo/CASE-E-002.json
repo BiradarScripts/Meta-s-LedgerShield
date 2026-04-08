@@ -46,7 +46,7 @@
       "action_type": "lookup_vendor",
       "done": false,
       "payload": {
-        "vendor_key": "eurocaps-components"
+        "vendor_key": "eurocaps components gmbh"
       },
       "phase": "investigation",
       "reward": -0.010854,
@@ -83,53 +83,20 @@
       "payload": {
         "campaign_signals": [],
         "confidence": 1.0,
-        "counterfactual": "The invoices show a clear pattern of altered bank details and policy bypass attempts, indicating a high likelihood of fraud. Escalating this case for further investigation is crucial to prevent potential financial losses.",
-        "cross_invoice_links": [
-          "INV-E-SC-001",
-          "INV-E-SC-002"
-        ],
+        "counterfactual": "If the bank details had not been altered to DE00COMPROMISED999 and the invoices had the original bank account DE04500105175407324931, the decision would be to PAY.",
+        "cross_invoice_links": [],
         "decision": "ESCALATE_FRAUD",
-        "evidence_map": {
-          "policy_bypass_attempt": {
-            "bbox": [
-              10,
-              30,
-              340,
-              40
-            ],
-            "doc_id": "THR-E-SC-001",
-            "page": 1,
-            "token_ids": [
-              "eesc2"
-            ]
-          },
-          "sender_domain_spoof": {
-            "bbox": [
-              10,
-              10,
-              280,
-              20
-            ],
-            "doc_id": "THR-E-SC-001",
-            "page": 1,
-            "token_ids": [
-              "eesc1"
-            ]
-          }
-        },
+        "evidence_map": {},
         "policy_checks": {
           "approval_threshold_check": "pass",
           "bank_change_verification": "pass",
           "duplicate_check": "pass",
           "three_way_match": "pass"
         },
-        "reason_codes": [
-          "policy_bypass_attempt",
-          "sender_domain_spoof"
-        ]
+        "reason_codes": []
       },
       "phase": "submit",
-      "reward": 0.678077,
+      "reward": 0.252077,
       "step": 7,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -216,7 +183,97 @@
         "summary": "Vendor callback outcome: adversarial_confirm."
       }
     ],
-    "final_score": 0.636,
+    "compliance": {
+      "compliance_score": 0.25,
+      "controls_evaluated": 8,
+      "controls_failed": 6,
+      "controls_passed": 2,
+      "critical_failures": [
+        "SOX-AP-003",
+        "SOX-AP-007"
+      ],
+      "findings": [
+        {
+          "control_id": "SOX-AP-001",
+          "details": "",
+          "name": "Segregation of Duties",
+          "severity": "critical",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-002",
+          "details": "Missing actions: ['lookup_po', 'lookup_receipt']",
+          "name": "Three-Way Match",
+          "severity": "high",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-003",
+          "details": "Missing actions: ['compare_bank_account', 'request_bank_change_approval_chain']; Missing artifacts: ['bank_change_approval_chain']",
+          "name": "Bank Change Verification",
+          "severity": "critical",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-004",
+          "details": "Missing actions: ['flag_duplicate_cluster_review', 'search_ledger']",
+          "name": "Duplicate Payment Prevention",
+          "severity": "high",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-005",
+          "details": "Missing actions: ['lookup_policy']",
+          "name": "Approval Threshold Enforcement",
+          "severity": "high",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-006",
+          "details": "Missing actions: ['lookup_vendor_history']",
+          "name": "Vendor Master Verification",
+          "severity": "medium",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-007",
+          "details": "Missing artifacts: ['callback_verification_result']",
+          "name": "Callback Verification",
+          "severity": "critical",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-008",
+          "details": "",
+          "name": "Audit Trail Completeness",
+          "severity": "medium",
+          "status": "pass"
+        }
+      ],
+      "overall_compliant": false,
+      "remediation_required": true
+    },
+    "currency_validation": {
+      "applicable": false,
+      "score": 1.0
+    },
+    "curriculum": {
+      "allowed_tasks": [
+        "task_a",
+        "task_b",
+        "task_c",
+        "task_d"
+      ],
+      "competence_ema": 0.6096,
+      "episode_count": 84,
+      "recent_5_avg": 0.6036,
+      "stagnation_counter": 2,
+      "tier": 2,
+      "tier_name": "proficient",
+      "tier_transitions": 12,
+      "weakest_task": "task_c"
+    },
+    "final_score": 0.21,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -236,7 +293,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.636,
+        "final_score": 0.21,
         "potential_delta": 0.0421
       },
       "metadata": {
@@ -244,17 +301,26 @@
         "budget_penalty": 0.0224,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
-        "unsafe_outcome": false
+        "unsafe_outcome": false,
+        "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.6781
+      "value": 0.2521
     },
     "score_breakdown": {
       "campaign_detection_score": 0.0,
-      "cross_invoice_link_score": 1.0,
+      "compliance_adjustment": -0.0375,
+      "compliance_penalty": -0.3,
+      "compliance_score": 0.25,
+      "counterfactual_doc_refs": 0.0,
+      "counterfactual_score": 0.2333,
+      "cross_invoice_link_matches": 0.0,
+      "cross_invoice_link_score": 0.0,
+      "currency_adjustment": 0.0,
+      "currency_validation_score": 1.0,
       "decision_score": 1.0,
-      "degenerate_penalty": 0.0,
-      "evidence_score": 0.5,
+      "degenerate_penalty": -0.09,
+      "evidence_score": 0.1,
       "intervention_score": 0.45,
       "policy_score": 0.5,
       "pressure_event_score": 0.7143
@@ -265,8 +331,8 @@
       "case_clock": 7,
       "case_id": "CASE-E-002",
       "contrastive_pair_id": "",
-      "episode_id": "3b6a7a43-92a4-4726-b72b-da5163ebde20",
-      "final_score": 0.636,
+      "episode_id": "cba9b3fb-da06-495a-85ad-8e80ba40a2b5",
+      "final_score": 0.21,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -288,7 +354,7 @@
       "pending_events": [
         {
           "artifact_id": "callback_verification_result",
-          "event_id": "evt-23ea268e",
+          "event_id": "evt-77fb383f",
           "ready_at_clock": 7,
           "source_action": "request_callback_verification",
           "status": "pending"
@@ -356,7 +422,7 @@
           "is_intervention": false,
           "message": "Vendor lookup complete.",
           "payload": {
-            "vendor_key": "eurocaps-components"
+            "vendor_key": "eurocaps components gmbh"
           },
           "step": 4,
           "success": true
@@ -391,55 +457,32 @@
     },
     "terminated": true,
     "truncated": false,
-    "unsafe_outcome": false
+    "unsafe_outcome": false,
+    "watchdog": {
+      "analyst_score": 0.21,
+      "joint_score": 0.21,
+      "verdict": "approve",
+      "watchdog_bonus": 0.0,
+      "watchdog_escalation_count": 0,
+      "watchdog_penalty": 0.0,
+      "watchdog_suspicion_final": 0.0,
+      "watchdog_veto_count": 0
+    }
   },
   "final_submission": {
     "campaign_signals": [],
     "confidence": 1.0,
-    "counterfactual": "The invoices show a clear pattern of altered bank details and policy bypass attempts, indicating a high likelihood of fraud. Escalating this case for further investigation is crucial to prevent potential financial losses.",
-    "cross_invoice_links": [
-      "INV-E-SC-001",
-      "INV-E-SC-002"
-    ],
+    "counterfactual": "If the bank details had not been altered to DE00COMPROMISED999 and the invoices had the original bank account DE04500105175407324931, the decision would be to PAY.",
+    "cross_invoice_links": [],
     "decision": "ESCALATE_FRAUD",
-    "evidence_map": {
-      "policy_bypass_attempt": {
-        "bbox": [
-          10,
-          30,
-          340,
-          40
-        ],
-        "doc_id": "THR-E-SC-001",
-        "page": 1,
-        "token_ids": [
-          "eesc2"
-        ]
-      },
-      "sender_domain_spoof": {
-        "bbox": [
-          10,
-          10,
-          280,
-          20
-        ],
-        "doc_id": "THR-E-SC-001",
-        "page": 1,
-        "token_ids": [
-          "eesc1"
-        ]
-      }
-    },
+    "evidence_map": {},
     "policy_checks": {
       "approval_threshold_check": "pass",
       "bank_change_verification": "pass",
       "duplicate_check": "pass",
       "three_way_match": "pass"
     },
-    "reason_codes": [
-      "policy_bypass_attempt",
-      "sender_domain_spoof"
-    ]
+    "reason_codes": []
   },
   "final_tool_result": {
     "async_artifacts": [
@@ -456,9 +499,83 @@
         "summary": "Vendor callback outcome: adversarial_confirm."
       }
     ],
+    "compliance": {
+      "compliance_score": 0.25,
+      "controls_evaluated": 8,
+      "controls_failed": 6,
+      "controls_passed": 2,
+      "critical_failures": [
+        "SOX-AP-003",
+        "SOX-AP-007"
+      ],
+      "findings": [
+        {
+          "control_id": "SOX-AP-001",
+          "details": "",
+          "name": "Segregation of Duties",
+          "severity": "critical",
+          "status": "pass"
+        },
+        {
+          "control_id": "SOX-AP-002",
+          "details": "Missing actions: ['lookup_po', 'lookup_receipt']",
+          "name": "Three-Way Match",
+          "severity": "high",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-003",
+          "details": "Missing actions: ['compare_bank_account', 'request_bank_change_approval_chain']; Missing artifacts: ['bank_change_approval_chain']",
+          "name": "Bank Change Verification",
+          "severity": "critical",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-004",
+          "details": "Missing actions: ['flag_duplicate_cluster_review', 'search_ledger']",
+          "name": "Duplicate Payment Prevention",
+          "severity": "high",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-005",
+          "details": "Missing actions: ['lookup_policy']",
+          "name": "Approval Threshold Enforcement",
+          "severity": "high",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-006",
+          "details": "Missing actions: ['lookup_vendor_history']",
+          "name": "Vendor Master Verification",
+          "severity": "medium",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-007",
+          "details": "Missing artifacts: ['callback_verification_result']",
+          "name": "Callback Verification",
+          "severity": "critical",
+          "status": "fail"
+        },
+        {
+          "control_id": "SOX-AP-008",
+          "details": "",
+          "name": "Audit Trail Completeness",
+          "severity": "medium",
+          "status": "pass"
+        }
+      ],
+      "overall_compliant": false,
+      "remediation_required": true
+    },
     "cost": 0.0,
+    "currency_validation": {
+      "applicable": false,
+      "score": 1.0
+    },
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.636,
+    "final_score": 0.21,
     "message": "Decision submitted and graded.",
     "novel_signal_count": 0,
     "outcome": {
@@ -483,7 +600,7 @@
     ],
     "reward_model": {
       "components": {
-        "final_score": 0.636,
+        "final_score": 0.21,
         "potential_delta": 0.0421
       },
       "metadata": {
@@ -491,18 +608,27 @@
         "budget_penalty": 0.0224,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
-        "unsafe_outcome": false
+        "unsafe_outcome": false,
+        "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.6781
+      "value": 0.2521
     },
     "risk_assessment": 0.31,
     "score_breakdown": {
       "campaign_detection_score": 0.0,
-      "cross_invoice_link_score": 1.0,
+      "compliance_adjustment": -0.0375,
+      "compliance_penalty": -0.3,
+      "compliance_score": 0.25,
+      "counterfactual_doc_refs": 0.0,
+      "counterfactual_score": 0.2333,
+      "cross_invoice_link_matches": 0.0,
+      "cross_invoice_link_score": 0.0,
+      "currency_adjustment": 0.0,
+      "currency_validation_score": 1.0,
       "decision_score": 1.0,
-      "degenerate_penalty": 0.0,
-      "evidence_score": 0.5,
+      "degenerate_penalty": -0.09,
+      "evidence_score": 0.1,
       "intervention_score": 0.45,
       "policy_score": 0.5,
       "pressure_event_score": 0.7143
@@ -515,8 +641,8 @@
       "case_clock": 7,
       "case_id": "CASE-E-002",
       "contrastive_pair_id": "",
-      "episode_id": "3b6a7a43-92a4-4726-b72b-da5163ebde20",
-      "final_score": 0.636,
+      "episode_id": "cba9b3fb-da06-495a-85ad-8e80ba40a2b5",
+      "final_score": 0.21,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -538,7 +664,7 @@
       "pending_events": [
         {
           "artifact_id": "callback_verification_result",
-          "event_id": "evt-23ea268e",
+          "event_id": "evt-77fb383f",
           "ready_at_clock": 7,
           "source_action": "request_callback_verification",
           "status": "pending"
@@ -606,7 +732,7 @@
           "is_intervention": false,
           "message": "Vendor lookup complete.",
           "payload": {
-            "vendor_key": "eurocaps-components"
+            "vendor_key": "eurocaps components gmbh"
           },
           "step": 4,
           "success": true
@@ -644,10 +770,21 @@
       "bank_account_not_checked",
       "bank_override_attempt",
       "coordinated_timing",
+      "sender_domain_spoof",
       "shared_bank_account",
       "vendor_account_takeover_suspected"
     ],
-    "unsafe_outcome": false
+    "unsafe_outcome": false,
+    "watchdog": {
+      "analyst_score": 0.21,
+      "joint_score": 0.21,
+      "verdict": "approve",
+      "watchdog_bonus": 0.0,
+      "watchdog_escalation_count": 0,
+      "watchdog_penalty": 0.0,
+      "watchdog_suspicion_final": 0.0,
+      "watchdog_veto_count": 0
+    }
   },
   "model": "gpt-3.5-turbo",
   "model_profile": {
@@ -691,9 +828,9 @@
         {
           "action_type": "lookup_vendor",
           "payload": {
-            "vendor_key": "eurocaps-components"
+            "vendor_key": "eurocaps components gmbh"
           },
-          "signature": "lookup_vendor:{\"vendor_key\":\"eurocaps-components\"}"
+          "signature": "lookup_vendor:{\"vendor_key\":\"eurocaps components gmbh\"}"
         },
         {
           "action_type": "inspect_email_thread",
@@ -705,9 +842,9 @@
         {
           "action_type": "lookup_vendor_history",
           "payload": {
-            "vendor_key": "eurocaps-components"
+            "vendor_key": "eurocaps components gmbh"
           },
-          "signature": "lookup_vendor_history:{\"vendor_key\":\"eurocaps-components\"}"
+          "signature": "lookup_vendor_history:{\"vendor_key\":\"eurocaps components gmbh\"}"
         },
         {
           "action_type": "lookup_policy",
@@ -718,27 +855,27 @@
           "action_type": "compare_bank_account",
           "payload": {
             "proposed_bank_account": "DE00COMPROMISED999",
-            "vendor_key": "eurocaps-components"
+            "vendor_key": "eurocaps components gmbh"
           },
-          "signature": "compare_bank_account:{\"proposed_bank_account\":\"DE00COMPROMISED999\",\"vendor_key\":\"eurocaps-components\"}"
+          "signature": "compare_bank_account:{\"proposed_bank_account\":\"DE00COMPROMISED999\",\"vendor_key\":\"eurocaps components gmbh\"}"
         },
         {
           "action_type": "search_ledger",
           "payload": {
             "amount": 49500.0,
             "invoice_number": "EC-SC-7701",
-            "vendor_key": "eurocaps-components"
+            "vendor_key": "eurocaps components gmbh"
           },
-          "signature": "search_ledger:{\"amount\":49500.0,\"invoice_number\":\"EC-SC-7701\",\"vendor_key\":\"eurocaps-components\"}"
+          "signature": "search_ledger:{\"amount\":49500.0,\"invoice_number\":\"EC-SC-7701\",\"vendor_key\":\"eurocaps components gmbh\"}"
         },
         {
           "action_type": "search_ledger",
           "payload": {
             "amount": 49000.0,
             "invoice_number": "EC-SC-7702",
-            "vendor_key": "eurocaps-components"
+            "vendor_key": "eurocaps components gmbh"
           },
-          "signature": "search_ledger:{\"amount\":49000.0,\"invoice_number\":\"EC-SC-7702\",\"vendor_key\":\"eurocaps-components\"}"
+          "signature": "search_ledger:{\"amount\":49000.0,\"invoice_number\":\"EC-SC-7702\",\"vendor_key\":\"eurocaps components gmbh\"}"
         }
       ],
       "phase": "investigation",
@@ -754,9 +891,9 @@
         {
           "action_type": "lookup_vendor",
           "payload": {
-            "vendor_key": "eurocaps-components"
+            "vendor_key": "eurocaps components gmbh"
           },
-          "signature": "lookup_vendor:{\"vendor_key\":\"eurocaps-components\"}"
+          "signature": "lookup_vendor:{\"vendor_key\":\"eurocaps components gmbh\"}"
         }
       ]
     },
@@ -803,27 +940,35 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.636,
+  "score": 0.21,
   "score_breakdown": {
     "campaign_detection_score": 0.0,
-    "cross_invoice_link_score": 1.0,
+    "compliance_adjustment": -0.0375,
+    "compliance_penalty": -0.3,
+    "compliance_score": 0.25,
+    "counterfactual_doc_refs": 0.0,
+    "counterfactual_score": 0.2333,
+    "cross_invoice_link_matches": 0.0,
+    "cross_invoice_link_score": 0.0,
+    "currency_adjustment": 0.0,
+    "currency_validation_score": 1.0,
     "decision_score": 1.0,
-    "degenerate_penalty": 0.0,
-    "evidence_score": 0.5,
+    "degenerate_penalty": -0.09,
+    "evidence_score": 0.1,
     "intervention_score": 0.45,
     "policy_score": 0.5,
     "pressure_event_score": 0.7143
   },
   "steps": 7,
-  "success": true,
+  "success": false,
   "system_state": {
     "budget_remaining": 17.9,
     "budget_total": 22.0,
     "case_clock": 7,
     "case_id": "CASE-E-002",
     "contrastive_pair_id": "",
-    "episode_id": "3b6a7a43-92a4-4726-b72b-da5163ebde20",
-    "final_score": 0.636,
+    "episode_id": "cba9b3fb-da06-495a-85ad-8e80ba40a2b5",
+    "final_score": 0.21,
     "handoff_packet": {},
     "interventions_taken": [
       {
@@ -845,7 +990,7 @@
     "pending_events": [
       {
         "artifact_id": "callback_verification_result",
-        "event_id": "evt-23ea268e",
+        "event_id": "evt-77fb383f",
         "ready_at_clock": 7,
         "source_action": "request_callback_verification",
         "status": "pending"
@@ -913,7 +1058,7 @@
         "is_intervention": false,
         "message": "Vendor lookup complete.",
         "payload": {
-          "vendor_key": "eurocaps-components"
+          "vendor_key": "eurocaps components gmbh"
         },
         "step": 4,
         "success": true

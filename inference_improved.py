@@ -34,7 +34,7 @@ BENCHMARK = "ledgershield"
 MAX_STEPS = 20
 TEMPERATURE = 0.0
 MAX_TOKENS = 1024  # Increased for better reasoning
-SUCCESS_SCORE_THRESHOLD = 0.60
+SUCCESS_SCORE_THRESHOLD = 0.85
 
 DEFAULT_CASES = [
     "CASE-A-001",
@@ -59,12 +59,6 @@ DEFAULT_CASES = [
     "CASE-E-001",
     "CASE-E-002",
 ]
-
-VENDOR_KEY_BY_NAME = {
-    "northwind industrial supplies pvt ltd": "northwind-industrial",
-    "eurocaps components gmbh": "eurocaps-components",
-    "bluepeak logistics llp": "bluepeak-logistics",
-}
 
 API_CALLS_TOTAL = 0
 API_TOKENS_PROMPT = 0
@@ -249,8 +243,7 @@ def parse_email_tokens(tokens: list[dict[str, Any]], doc_id: str) -> dict[str, A
     return evidence
 
 def vendor_key_for(fields: dict[str, Any]) -> str:
-    vendor_name = normalize_text(fields.get("vendor_name"))
-    return VENDOR_KEY_BY_NAME.get(vendor_name, "")
+    return normalize_text(fields.get("vendor_name"))
 
 # =============================================================================
 # IMPROVED LLM DECISION FUNCTIONS WITH VALIDATION

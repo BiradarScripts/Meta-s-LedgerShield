@@ -36,7 +36,23 @@ from typing import Any
 from models import LedgerShieldObservation, LedgerShieldReward, LedgerShieldState
 from openenv_compat import Environment
 
+from .compliance_engine import evaluate_compliance
+from .currency_engine import validate_iban, validate_swift
+from .curriculum import (
+    CurriculumState,
+    adjust_case_for_tier,
+    curriculum_summary,
+    select_next_case,
+    update_curriculum,
+)
 from .data_loader import load_all
+from .dual_agent_mode import (
+    WatchdogState,
+    build_watchdog_observation,
+    score_dual_agent_episode,
+    update_watchdog_state,
+    watchdog_evaluate_decision,
+)
 from .grading import score_submission
 from .outcome_simulator import simulate_outcome
 from .risk_rules import assess_submission_risk
@@ -155,6 +171,8 @@ class LedgerShieldEnvironment(Environment):
         self._hidden_world: dict[str, Any] = {}
         self._milestones_awarded: set[str] = set()
         self._render_mode: str | None = None
+        self._curriculum_state = CurriculumState()
+        self._watchdog_state = WatchdogState()
 
     # ── Gymnasium-compatible space definitions (Phase 3.4) ───────────────
 
@@ -258,8 +276,49 @@ class LedgerShieldEnvironment(Environment):
             if case is None:
                 raise ValueError(f"unknown case_id: {case_id}")
             return case
-        rng = random.Random(seed) if seed is not None else self.rng
-        return rng.choice(self.db["cases"])
+        selection_seed = seed if seed is not None else self.rng.randint(0, 2**31 - 1)
+        selected = select_next_case(self._curriculum_state, self.db["cases"], seed=selection_seed)
+        return adjust_case_for_tier(selected, self._curriculum_state.tier)
+
+    def _currency_validation_snapshot(self, submitted: dict[str, Any]) -> dict[str, Any]:
+        assert self.current_case is not None
+        task_type = str(self.current_case.get("task_type", ""))
+        if task_type != "task_a":
+            return {"applicable": False, "score": 1.0}
+
+        gold_fields = (self.current_case.get("gold", {}) or {}).get("fields", {}) or {}
+        extracted_fields = submitted.get("extracted_fields", {}) or {}
+
+        expected_bank = str(gold_fields.get("bank_account", "") or "").strip()
+        submitted_bank = str(extracted_fields.get("bank_account", "") or "").strip()
+        expected_currency = str(gold_fields.get("currency", "") or "").strip().upper()
+        submitted_currency = str(extracted_fields.get("currency", "") or "").strip().upper()
+
+        checks: list[float] = []
+        snapshot: dict[str, Any] = {"applicable": True, "format": "unknown"}
+        if expected_currency:
+            checks.append(float(submitted_currency == expected_currency))
+            snapshot["expected_currency"] = expected_currency
+            snapshot["submitted_currency"] = submitted_currency
+
+        compact_expected = "".join(expected_bank.split()).upper()
+        if expected_bank:
+            checks.append(float(" ".join(submitted_bank.lower().split()) == " ".join(expected_bank.lower().split())))
+            snapshot["expected_bank_account"] = expected_bank
+            snapshot["submitted_bank_account"] = submitted_bank
+            if compact_expected[:2].isalpha() and len(compact_expected) >= 15:
+                snapshot["format"] = "iban"
+                snapshot["validation"] = validate_iban(submitted_bank)
+                checks.append(float(snapshot["validation"].get("valid", False)))
+            elif len(compact_expected) in {8, 11} and compact_expected[:4].isalpha():
+                snapshot["format"] = "swift"
+                snapshot["validation"] = validate_swift(submitted_bank)
+                checks.append(float(snapshot["validation"].get("valid", False)))
+
+        snapshot["score"] = round(sum(checks) / len(checks), 4) if checks else 1.0
+        if not checks:
+            snapshot["applicable"] = False
+        return snapshot
 
     def _initial_visible_doc_ids(self) -> list[str]:
         """Return initial visible document IDs for the current case."""
@@ -478,8 +537,10 @@ class LedgerShieldEnvironment(Environment):
         self._last_terminated = False
         self._last_info = {"case_id": self._state.case_id}
         self._milestones_awarded = set()
+        self._watchdog_state = WatchdogState()
 
-        return self._observation(messages=[f"Loaded case {self._state.case_id}"])
+        tier_name = curriculum_summary(self._curriculum_state).get("tier_name", "unknown")
+        return self._observation(messages=[f"Loaded case {self._state.case_id} (curriculum: {tier_name})"])
 
     def _apply_cost(self, tool_name: str, payload: dict[str, Any]) -> float:
         """Calculate the budget cost for a tool invocation.
@@ -693,6 +754,15 @@ class LedgerShieldEnvironment(Environment):
             )
 
             internal_system_state = system_state_snapshot(self._state, self._hidden_world)
+            compliance_result = evaluate_compliance(
+                task_type=self._state.task_type,
+                trajectory=self._state.trajectory,
+                revealed_artifacts=internal_system_state.get("revealed_artifact_ids", []) or [],
+                decision=str(decision),
+                gold=self.current_case["gold"],
+                case_context=self.current_case,
+            )
+            currency_validation = self._currency_validation_snapshot(submitted)
 
             final_score, breakdown = score_submission(
                 task_type=self._state.task_type,
@@ -703,6 +773,9 @@ class LedgerShieldEnvironment(Environment):
                 outcome=outcome,
                 investigation_summary=self._investigation_summary(),
                 final_state=internal_system_state,
+                case_context=self.current_case,
+                compliance_result=compliance_result,
+                currency_validation=currency_validation,
             )
 
             heuristic_risk, triggered = assess_submission_risk(
@@ -737,6 +810,8 @@ class LedgerShieldEnvironment(Environment):
                 "decision": decision,
                 "outcome": outcome,
                 "system_state": public_system_state,
+                "compliance": asdict(compliance_result),
+                "currency_validation": currency_validation,
                 "pressure_resistance_score": self._state.pressure_resistance_score,
                 "message": "Decision submitted and graded.",
                 "cost": 0.0,
@@ -748,7 +823,10 @@ class LedgerShieldEnvironment(Environment):
                 "unsafe_outcome": self._state.unsafe_outcome,
                 "outcome": outcome,
                 "system_state": public_system_state,
+                "compliance": asdict(compliance_result),
+                "currency_validation": currency_validation,
                 "pressure_resistance_score": self._state.pressure_resistance_score,
+                "curriculum": curriculum_summary(self._curriculum_state),
             }
             reward_components = {"final_score": final_score}
             reward_metadata.update(
@@ -869,6 +947,35 @@ class LedgerShieldEnvironment(Environment):
         )
         self._state.trajectory.append(trajectory_entry)
 
+        watchdog_snapshot = public_state_snapshot(self._state, self._hidden_world)
+        watchdog_observation = build_watchdog_observation(
+            step=self._state.step_count,
+            analyst_action=action_type,
+            analyst_payload=payload,
+            tool_result=result,
+            state_snapshot=watchdog_snapshot,
+        )
+        self._watchdog_state = update_watchdog_state(self._watchdog_state, watchdog_observation)
+        if action_type == "submit_decision" and result.get("success"):
+            verdict = watchdog_evaluate_decision(
+                self._watchdog_state,
+                str(payload.get("decision", "")),
+                list(self._state.observed_risk_signals),
+                [entry.get("action_type", "") for entry in self._state.interventions_taken],
+            )
+            watchdog_summary = {
+                "verdict": verdict.value,
+                **score_dual_agent_episode(
+                    self._state.final_score,
+                    self._watchdog_state,
+                    str(payload.get("decision", "")),
+                    self.current_case["gold"],
+                ),
+            }
+            result["watchdog"] = watchdog_summary
+            info["watchdog"] = watchdog_summary
+            reward_metadata["watchdog_verdict"] = verdict.value
+
         # Phase 3.2: Distinguish truncated vs terminated
         if self._state.step_count >= self._state.max_steps and not done:
             done = True
@@ -913,6 +1020,9 @@ class LedgerShieldEnvironment(Environment):
         )
         result["reward_model"] = reward_model
         info["reward_model"] = reward_model
+        if done and action_type == "submit_decision":
+            update_curriculum(self._curriculum_state, self._state.task_type, self._state.final_score)
+            info["curriculum"] = curriculum_summary(self._curriculum_state)
         if ready_artifacts:
             info["async_artifacts"] = ready_artifacts
 

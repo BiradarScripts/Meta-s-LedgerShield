@@ -139,12 +139,119 @@ class ComplianceResult:
     remediation_required: bool = False
 
 
+def _normalized_gold_signals(gold: dict[str, Any]) -> set[str]:
+    signals: set[str] = set()
+    for key in ("reason_codes", "fraud_flags", "discrepancies", "campaign_signals"):
+        for value in gold.get(key, []) or []:
+            normalized = normalize_text(value)
+            if normalized:
+                signals.add(normalized)
+    policy_checks = gold.get("policy_checks", {}) or {}
+    for check_name, status in policy_checks.items():
+        if normalize_text(status) == "fail":
+            normalized = normalize_text(check_name)
+            if normalized:
+                signals.add(normalized)
+    return signals
+
+
+def _control_applies(
+    control: SOXControl,
+    *,
+    task_type: str,
+    gold: dict[str, Any],
+    case_context: dict[str, Any] | None,
+) -> bool:
+    task_norm = normalize_text(task_type)
+    if task_norm not in control.applies_to:
+        return False
+
+    instruction = normalize_text((case_context or {}).get("instruction", ""))
+    gold_signals = _normalized_gold_signals(gold)
+    policy_checks = {
+        normalize_text(name): normalize_text(status)
+        for name, status in (gold.get("policy_checks", {}) or {}).items()
+    }
+
+    if control.control_id == "SOX-AP-002":
+        return (
+            task_norm == "task_b"
+            or "three_way_match" in policy_checks
+            or "three way match" in instruction
+            or "3-way match" in instruction
+        )
+
+    if control.control_id == "SOX-AP-003":
+        return bool(
+            {"bank_override_attempt", "bank_account_mismatch", "shared_bank_account"} & gold_signals
+            or policy_checks.get("bank_change_verification") == "fail"
+            or any(
+                phrase in instruction
+                for phrase in {
+                    "bank update",
+                    "bank account",
+                    "bank change",
+                    "remittance instructions",
+                }
+            )
+        )
+
+    if control.control_id == "SOX-AP-004":
+        return bool(
+            {
+                "duplicate_near_match",
+                "shared_bank_account",
+                "coordinated_timing",
+                "approval_threshold_evasion",
+            }
+            & gold_signals
+            or policy_checks.get("duplicate_check") == "fail"
+            or any(
+                phrase in instruction
+                for phrase in {
+                    "duplicate",
+                    "batch payment",
+                    "coordinated fraud",
+                    "similar amounts and timing",
+                    "approval threshold",
+                    "structured below",
+                    "split invoice",
+                }
+            )
+        )
+
+    if control.control_id == "SOX-AP-005":
+        return bool(
+            task_norm == "task_b"
+            or "approval_threshold_check" in policy_checks
+            or "approval_threshold_evasion" in gold_signals
+            or any(
+                phrase in instruction
+                for phrase in {
+                    "approval threshold",
+                    "threshold",
+                    "structured below",
+                    "split invoice",
+                }
+            )
+        )
+
+    if control.control_id == "SOX-AP-006":
+        return task_norm in {"task_c", "task_d", "task_e"} or "vendor master" in instruction
+
+    if control.control_id == "SOX-AP-007":
+        return task_norm in {"task_d", "task_e"} and bool(gold.get("unsafe_if_pay"))
+
+    return True
+
+
 def evaluate_compliance(
     task_type: str,
     trajectory: list[dict[str, Any]],
     revealed_artifacts: list[str],
     decision: str,
     gold: dict[str, Any],
+    case_context: dict[str, Any] | None = None,
 ) -> ComplianceResult:
     """Evaluate SOX compliance for an episode.
 
@@ -170,7 +277,11 @@ def evaluate_compliance(
     artifacts_set = {normalize_text(a) for a in (revealed_artifacts or [])}
 
     result = ComplianceResult()
-    applicable = [c for c in SOX_CONTROLS if task_norm in c.applies_to]
+    applicable = [
+        c
+        for c in SOX_CONTROLS
+        if _control_applies(c, task_type=task_type, gold=gold, case_context=case_context)
+    ]
     result.controls_evaluated = len(applicable)
 
     for control in applicable:
