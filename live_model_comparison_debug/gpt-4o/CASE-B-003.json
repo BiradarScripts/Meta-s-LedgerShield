@@ -8,7 +8,7 @@
         "mode": "accurate"
       },
       "phase": "bootstrap",
-      "reward": -0.05687868571428573,
+      "reward": -0.05865300000000003,
       "step": 1,
       "tool_error": null,
       "tool_name": "ocr",
@@ -19,7 +19,7 @@
       "done": false,
       "payload": {},
       "phase": "investigation",
-      "reward": 0.0022498285714285873,
+      "reward": 0.01145800000000003,
       "step": 2,
       "tool_error": null,
       "tool_name": "lookup_policy",
@@ -32,7 +32,7 @@
         "po_id": "PO-3301"
       },
       "phase": "investigation",
-      "reward": -0.0005016571428571523,
+      "reward": 0.008468999999999983,
       "step": 3,
       "tool_error": null,
       "tool_name": "lookup_po",
@@ -45,7 +45,7 @@
         "receipt_id": "GRN-3301"
       },
       "phase": "investigation",
-      "reward": -0.0007531428571428706,
+      "reward": 0.06797999999999997,
       "step": 4,
       "tool_error": null,
       "tool_name": "lookup_receipt",
@@ -67,7 +67,7 @@
         }
       },
       "phase": "submit",
-      "reward": 0.9724529714285713,
+      "reward": 0.877953,
       "step": 5,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -77,8 +77,10 @@
   "case_id": "CASE-B-003",
   "collected_summary": {
     "bank_compares": [],
+    "case_instruction": "Perform a 3-way match across invoice, PO, and receipt. Release payment only if the records reconcile cleanly and policy checks pass.",
     "email_ocr_loaded": false,
     "email_thread": {
+      "derived_flags": null,
       "flags": null,
       "request_signals": null,
       "sender": null,
@@ -100,11 +102,18 @@
       "near_duplicate_count": null,
       "top_hits": []
     },
+    "observed_risk_signals": [],
+    "pending_event_count": 0,
+    "revealed_artifacts": [],
+    "vendor": {
+      "approved_domains": null,
+      "vendor_key": null
+    },
     "vendor_history": []
   },
   "error": "",
   "final_info": {
-    "final_score": 0.9751,
+    "final_score": 0.8831,
     "outcome": {
       "outcome_type": "safe_payment_cleared",
       "portfolio_metrics": {
@@ -124,8 +133,8 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.9751,
-        "potential_delta": -0.0026
+        "final_score": 0.8831,
+        "potential_delta": -0.0051
       },
       "metadata": {
         "action_type": "submit_decision",
@@ -135,15 +144,16 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.9725
+      "value": 0.878
     },
     "score_breakdown": {
       "calibration_score": 1.0,
       "decision_score": 1.0,
+      "degenerate_penalty": -0.08,
       "discrepancy_score": 1.0,
       "efficiency_score": 0.9835,
       "evidence_score": 1.0,
-      "intervention_score": 0.65,
+      "intervention_score": 0.45,
       "investigation_score": 1.0,
       "policy_score": 1.0,
       "resolution_state_score": 0.92
@@ -154,8 +164,8 @@
       "case_clock": 5,
       "case_id": "CASE-B-003",
       "contrastive_pair_id": "",
-      "episode_id": "fc7a36ea-7a12-4712-85b5-f6a4139acc66",
-      "final_score": 0.9751,
+      "episode_id": "94f80c63-3e12-4a61-b439-8058765e862f",
+      "final_score": 0.8831,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 14,
@@ -231,6 +241,8 @@
         "INV-B-003"
       ]
     },
+    "terminated": true,
+    "truncated": false,
     "unsafe_outcome": false
   },
   "final_submission": {
@@ -248,7 +260,7 @@
   "final_tool_result": {
     "cost": 0.0,
     "decision": "PAY",
-    "final_score": 0.9751,
+    "final_score": 0.8831,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "safe_payment_cleared",
@@ -269,8 +281,8 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.9751,
-        "potential_delta": -0.0026
+        "final_score": 0.8831,
+        "potential_delta": -0.0051
       },
       "metadata": {
         "action_type": "submit_decision",
@@ -280,16 +292,17 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.9725
+      "value": 0.878
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
       "calibration_score": 1.0,
       "decision_score": 1.0,
+      "degenerate_penalty": -0.08,
       "discrepancy_score": 1.0,
       "efficiency_score": 0.9835,
       "evidence_score": 1.0,
-      "intervention_score": 0.65,
+      "intervention_score": 0.45,
       "investigation_score": 1.0,
       "policy_score": 1.0,
       "resolution_state_score": 0.92
@@ -302,8 +315,8 @@
       "case_clock": 5,
       "case_id": "CASE-B-003",
       "contrastive_pair_id": "",
-      "episode_id": "fc7a36ea-7a12-4712-85b5-f6a4139acc66",
-      "final_score": 0.9751,
+      "episode_id": "94f80c63-3e12-4a61-b439-8058765e862f",
+      "final_score": 0.8831,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 14,
@@ -453,14 +466,15 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.9751,
+  "score": 0.8831,
   "score_breakdown": {
     "calibration_score": 1.0,
     "decision_score": 1.0,
+    "degenerate_penalty": -0.08,
     "discrepancy_score": 1.0,
     "efficiency_score": 0.9835,
     "evidence_score": 1.0,
-    "intervention_score": 0.65,
+    "intervention_score": 0.45,
     "investigation_score": 1.0,
     "policy_score": 1.0,
     "resolution_state_score": 0.92
@@ -473,8 +487,8 @@
     "case_clock": 5,
     "case_id": "CASE-B-003",
     "contrastive_pair_id": "",
-    "episode_id": "fc7a36ea-7a12-4712-85b5-f6a4139acc66",
-    "final_score": 0.9751,
+    "episode_id": "94f80c63-3e12-4a61-b439-8058765e862f",
+    "final_score": 0.8831,
     "handoff_packet": {},
     "interventions_taken": [],
     "max_steps": 14,

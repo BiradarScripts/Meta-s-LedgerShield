@@ -78,6 +78,7 @@ def _task_d_findings(collected: dict[str, Any]) -> dict[str, Any]:
         and sum(invoice_totals) >= 3000.0
         and all(0.0 < total < 2000.0 for total in invoice_totals)
     )
+    high_value_pressure = any(total >= 50000.0 for total in invoice_totals) and "urgent_payment_pressure" in email_flags
     suspicious_history = any(
         normalize_text(item.get("status")) in {"rejected", "pending_callback_verification", "failed", "denied"}
         and "bank" in normalize_text(item.get("change_type") or item.get("event_type"))
@@ -124,6 +125,15 @@ def _task_d_findings(collected: dict[str, Any]) -> dict[str, Any]:
         if bypass_evidence:
             evidence_map["policy_bypass_attempt"] = bypass_evidence
         reason_codes.append("policy_bypass_attempt")
+    if "urgent_payment_pressure" in email_flags:
+        urgent_evidence = (
+            email_evidence.get("subject_header")
+            or email_evidence.get("policy_bypass_attempt")
+            or email_evidence.get("from_header")
+        )
+        if urgent_evidence:
+            evidence_map["urgent_payment_pressure"] = urgent_evidence
+        reason_codes.append("urgent_payment_pressure")
 
     policy_checks = policy_check_payload(
         three_way_match="pass",
@@ -132,7 +142,7 @@ def _task_d_findings(collected: dict[str, Any]) -> dict[str, Any]:
         else "pass",
         duplicate_check="fail" if duplicate_detected else "pass",
     )
-    if "approval_threshold_evasion" in reason_codes:
+    if "approval_threshold_evasion" in reason_codes or high_value_pressure:
         policy_checks["approval_threshold_check"] = "fail"
 
     return {

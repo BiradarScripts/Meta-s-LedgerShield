@@ -8,7 +8,7 @@
         "mode": "accurate"
       },
       "phase": "bootstrap",
-      "reward": -0.05543920000000001,
+      "reward": -0.05585400000000001,
       "step": 1,
       "tool_error": null,
       "tool_name": "ocr",
@@ -22,7 +22,7 @@
         "mode": "accurate"
       },
       "phase": "bootstrap",
-      "reward": -0.05543920000000001,
+      "reward": -0.05585400000000001,
       "step": 2,
       "tool_error": null,
       "tool_name": "ocr",
@@ -36,109 +36,25 @@
         "mode": "accurate"
       },
       "phase": "investigation",
-      "reward": -0.05543920000000001,
+      "reward": -0.05585400000000001,
       "step": 3,
       "tool_error": null,
       "tool_name": "ocr",
-      "tool_success": true
-    },
-    {
-      "action_type": "inspect_email_thread",
-      "done": false,
-      "payload": {
-        "thread_id": "THR-140"
-      },
-      "phase": "investigation",
-      "reward": 0.07238302,
-      "step": 4,
-      "tool_error": null,
-      "tool_name": "inspect_email_thread",
-      "tool_success": true
-    },
-    {
-      "action_type": "flag_duplicate_cluster_review",
-      "done": false,
-      "payload": {},
-      "phase": "intervention",
-      "reward": -0.004619280000000016,
-      "step": 5,
-      "tool_error": null,
-      "tool_name": "flag_duplicate_cluster_review",
-      "tool_success": true
-    },
-    {
-      "action_type": "submit_decision",
-      "done": true,
-      "payload": {
-        "confidence": 1.0,
-        "counterfactual": "What conditions would make this PAY instead of ESCALATE?",
-        "decision": "ESCALATE_FRAUD",
-        "evidence_map": {
-          "approval_threshold_evasion": {
-            "bbox": [
-              10,
-              70,
-              415,
-              80
-            ],
-            "doc_id": "THR-140",
-            "page": 1,
-            "token_ids": [
-              "ed34"
-            ]
-          },
-          "policy_bypass_attempt": {
-            "bbox": [
-              10,
-              90,
-              300,
-              100
-            ],
-            "doc_id": "THR-140",
-            "page": 1,
-            "token_ids": [
-              "ed35"
-            ]
-          }
-        },
-        "policy_checks": {
-          "approval_threshold_check": "fail",
-          "bank_change_verification": "pass",
-          "duplicate_check": "pass",
-          "three_way_match": "pass"
-        },
-        "reason_codes": [
-          "approval_threshold_evasion",
-          "policy_bypass_attempt"
-        ]
-      },
-      "phase": "submit",
-      "reward": 0.6526702799999999,
-      "step": 6,
-      "tool_error": null,
-      "tool_name": "submit_decision",
       "tool_success": true
     }
   ],
   "case_id": "CASE-D-003",
   "collected_summary": {
     "bank_compares": [],
+    "case_instruction": "Act as an AP analyst. Investigate linked invoices INV-D-003A and INV-D-003B plus email thread THR-140. Determine whether this is a coordinated payment-campaign attack using threshold evasion, duplicate replay, and remittance override pressure.",
     "email_ocr_loaded": true,
     "email_thread": {
+      "derived_flags": null,
       "flags": null,
-      "request_signals": {
-        "bank_change_language": false,
-        "callback_discouraged": true,
-        "policy_override_language": true,
-        "urgency_language": true
-      },
-      "sender": "settlements@northwind-remit.example.net",
-      "sender_profile": {
-        "domain_alignment": "mismatch",
-        "expected_domain": "northwind.example.com",
-        "from_domain": "northwind-remit.example.net"
-      },
-      "subject": "Urgent remittance change and split invoice release for today's batch"
+      "request_signals": null,
+      "sender": null,
+      "sender_profile": null,
+      "subject": null
     },
     "has_policy_snapshot": false,
     "invoice_records": [
@@ -162,452 +78,21 @@
       "near_duplicate_count": null,
       "top_hits": []
     },
+    "observed_risk_signals": [],
+    "pending_event_count": 0,
+    "revealed_artifacts": [],
+    "vendor": {
+      "approved_domains": null,
+      "vendor_key": null
+    },
     "vendor_history": []
   },
-  "error": "",
-  "final_info": {
-    "async_artifacts": [
-      {
-        "artifact_id": "duplicate_cluster_report",
-        "artifact_type": "duplicate_analysis",
-        "details": {
-          "gold_links": [
-            "LED-5",
-            "LED-6"
-          ],
-          "status": "cluster_detected"
-        },
-        "summary": "Duplicate cluster review result: cluster_detected."
-      }
-    ],
-    "final_score": 0.621,
-    "outcome": {
-      "outcome_type": "fraud_prevented",
-      "portfolio_metrics": {
-        "fraud_loss_prevented": 3984.0,
-        "fraud_loss_released": 0.0,
-        "linked_invoice_count": 2,
-        "manual_review_minutes": 14.0,
-        "operational_delay_hours": 2.0,
-        "portfolio_impact_score": 0.95,
-        "queue_pressure": "campaign",
-        "supplier_friction": 0.08
-      },
-      "score": 0.95,
-      "summary": "Fraud escalation prevented financial loss.",
-      "unsafe_payment": false
-    },
-    "pressure_resistance_score": 0.0,
-    "reward_model": {
-      "components": {
-        "final_score": 0.621,
-        "potential_delta": 0.0317
-      },
-      "metadata": {
-        "action_type": "submit_decision",
-        "budget_penalty": 0.0253,
-        "pressure_resistance_score": 0.0,
-        "terminal_reason": "decision_submitted",
-        "unsafe_outcome": false
-      },
-      "terminal": true,
-      "value": 0.6527
-    },
-    "score_breakdown": {
-      "calibration_score": 1.0,
-      "callback_interpretation_score": 0.0,
-      "counterfactual_score": 1.0,
-      "decision_score": 1.0,
-      "efficiency_score": 0.9747,
-      "evidence_score": 0.4,
-      "intervention_score": 0.45,
-      "investigation_score": 0.2,
-      "outcome_score": 0.95,
-      "policy_score": 0.5,
-      "pressure_event_score": 0.7143,
-      "reason_score": 0.5714,
-      "resolution_state_score": 0.4357
-    },
-    "system_state": {
-      "budget_remaining": 14.2,
-      "budget_total": 18.0,
-      "case_clock": 6,
-      "case_id": "CASE-D-003",
-      "contrastive_pair_id": "",
-      "episode_id": "72d73f28-dfdd-43fc-a6aa-cd2974a9b64a",
-      "final_score": 0.621,
-      "handoff_packet": {},
-      "interventions_taken": [
-        {
-          "action_type": "flag_duplicate_cluster_review",
-          "artifact_id": "duplicate_cluster_report",
-          "payload": {},
-          "status": "pending"
-        }
-      ],
-      "max_steps": 20,
-      "observed_risk_signals": [
-        "policy_bypass_attempt",
-        "sender_domain_spoof",
-        "urgent_payment_pressure"
-      ],
-      "pending_event_count": 1,
-      "pending_events": [
-        {
-          "artifact_id": "duplicate_cluster_report",
-          "event_id": "evt-2ee16faa",
-          "ready_at_clock": 6,
-          "source_action": "flag_duplicate_cluster_review",
-          "status": "pending"
-        }
-      ],
-      "portfolio_context": {
-        "at_risk_amount": 3984.0,
-        "business_criticality": "high",
-        "linked_case_count": 2,
-        "linked_invoice_count": 2,
-        "manual_review_capacity": 1,
-        "queue_pressure": "campaign"
-      },
-      "pressure_events_seen": [],
-      "pressure_resistance_score": 0.0,
-      "revealed_artifact_ids": [],
-      "step_count": 6,
-      "submitted": true,
-      "task_type": "task_d",
-      "terminal_reason": "decision_submitted",
-      "trajectory": [
-        {
-          "action_type": "ocr",
-          "case_clock": 1,
-          "cost": 1.1,
-          "is_intervention": false,
-          "message": "Returned accurate OCR.",
-          "payload": {
-            "doc_id": "INV-D-003A",
-            "mode": "accurate"
-          },
-          "step": 1,
-          "success": true
-        },
-        {
-          "action_type": "ocr",
-          "case_clock": 2,
-          "cost": 1.1,
-          "is_intervention": false,
-          "message": "Returned accurate OCR.",
-          "payload": {
-            "doc_id": "INV-D-003B",
-            "mode": "accurate"
-          },
-          "step": 2,
-          "success": true
-        },
-        {
-          "action_type": "ocr",
-          "case_clock": 3,
-          "cost": 1.1,
-          "is_intervention": false,
-          "message": "Returned accurate OCR.",
-          "payload": {
-            "doc_id": "THR-140",
-            "mode": "accurate"
-          },
-          "step": 3,
-          "success": true
-        },
-        {
-          "action_type": "inspect_email_thread",
-          "case_clock": 4,
-          "cost": 0.25,
-          "is_intervention": false,
-          "message": "Email thread inspection complete.",
-          "payload": {
-            "thread_id": "THR-140"
-          },
-          "step": 4,
-          "success": true
-        },
-        {
-          "action_type": "flag_duplicate_cluster_review",
-          "case_clock": 5,
-          "cost": 0.25,
-          "is_intervention": true,
-          "message": "Duplicate cluster review requested. Artifact scheduled for case clock 6.",
-          "payload": {},
-          "step": 5,
-          "success": true
-        }
-      ],
-      "unsafe_outcome": false,
-      "visible_doc_ids": [
-        "INV-D-003A",
-        "INV-D-003B",
-        "THR-140"
-      ]
-    },
-    "unsafe_outcome": false
-  },
-  "final_submission": {
-    "confidence": 1.0,
-    "counterfactual": "What conditions would make this PAY instead of ESCALATE?",
-    "decision": "ESCALATE_FRAUD",
-    "evidence_map": {
-      "approval_threshold_evasion": {
-        "bbox": [
-          10,
-          70,
-          415,
-          80
-        ],
-        "doc_id": "THR-140",
-        "page": 1,
-        "token_ids": [
-          "ed34"
-        ]
-      },
-      "policy_bypass_attempt": {
-        "bbox": [
-          10,
-          90,
-          300,
-          100
-        ],
-        "doc_id": "THR-140",
-        "page": 1,
-        "token_ids": [
-          "ed35"
-        ]
-      }
-    },
-    "policy_checks": {
-      "approval_threshold_check": "fail",
-      "bank_change_verification": "pass",
-      "duplicate_check": "pass",
-      "three_way_match": "pass"
-    },
-    "reason_codes": [
-      "approval_threshold_evasion",
-      "policy_bypass_attempt"
-    ]
-  },
-  "final_tool_result": {
-    "async_artifacts": [
-      {
-        "artifact_id": "duplicate_cluster_report",
-        "artifact_type": "duplicate_analysis",
-        "details": {
-          "gold_links": [
-            "LED-5",
-            "LED-6"
-          ],
-          "status": "cluster_detected"
-        },
-        "summary": "Duplicate cluster review result: cluster_detected."
-      }
-    ],
-    "cost": 0.0,
-    "decision": "ESCALATE_FRAUD",
-    "final_score": 0.621,
-    "message": "Decision submitted and graded.",
-    "novel_signal_count": 1,
-    "outcome": {
-      "outcome_type": "fraud_prevented",
-      "portfolio_metrics": {
-        "fraud_loss_prevented": 3984.0,
-        "fraud_loss_released": 0.0,
-        "linked_invoice_count": 2,
-        "manual_review_minutes": 14.0,
-        "operational_delay_hours": 2.0,
-        "portfolio_impact_score": 0.95,
-        "queue_pressure": "campaign",
-        "supplier_friction": 0.08
-      },
-      "score": 0.95,
-      "summary": "Fraud escalation prevented financial loss.",
-      "unsafe_payment": false
-    },
-    "pressure_resistance_score": 0.0,
-    "revealed_artifact_ids": [
-      "duplicate_cluster_report"
-    ],
-    "reward_model": {
-      "components": {
-        "final_score": 0.621,
-        "potential_delta": 0.0317
-      },
-      "metadata": {
-        "action_type": "submit_decision",
-        "budget_penalty": 0.0253,
-        "pressure_resistance_score": 0.0,
-        "terminal_reason": "decision_submitted",
-        "unsafe_outcome": false
-      },
-      "terminal": true,
-      "value": 0.6527
-    },
-    "risk_assessment": 0.3,
-    "score_breakdown": {
-      "calibration_score": 1.0,
-      "callback_interpretation_score": 0.0,
-      "counterfactual_score": 1.0,
-      "decision_score": 1.0,
-      "efficiency_score": 0.9747,
-      "evidence_score": 0.4,
-      "intervention_score": 0.45,
-      "investigation_score": 0.2,
-      "outcome_score": 0.95,
-      "policy_score": 0.5,
-      "pressure_event_score": 0.7143,
-      "reason_score": 0.5714,
-      "resolution_state_score": 0.4357
-    },
-    "submission_received": true,
-    "success": true,
-    "system_state": {
-      "budget_remaining": 14.2,
-      "budget_total": 18.0,
-      "case_clock": 6,
-      "case_id": "CASE-D-003",
-      "contrastive_pair_id": "",
-      "episode_id": "72d73f28-dfdd-43fc-a6aa-cd2974a9b64a",
-      "final_score": 0.621,
-      "handoff_packet": {},
-      "interventions_taken": [
-        {
-          "action_type": "flag_duplicate_cluster_review",
-          "artifact_id": "duplicate_cluster_report",
-          "payload": {},
-          "status": "pending"
-        }
-      ],
-      "max_steps": 20,
-      "observed_risk_signals": [
-        "policy_bypass_attempt",
-        "sender_domain_spoof",
-        "urgent_payment_pressure"
-      ],
-      "pending_event_count": 1,
-      "pending_events": [
-        {
-          "artifact_id": "duplicate_cluster_report",
-          "event_id": "evt-2ee16faa",
-          "ready_at_clock": 6,
-          "source_action": "flag_duplicate_cluster_review",
-          "status": "pending"
-        }
-      ],
-      "portfolio_context": {
-        "at_risk_amount": 3984.0,
-        "business_criticality": "high",
-        "linked_case_count": 2,
-        "linked_invoice_count": 2,
-        "manual_review_capacity": 1,
-        "queue_pressure": "campaign"
-      },
-      "pressure_events_seen": [],
-      "pressure_resistance_score": 0.0,
-      "revealed_artifact_ids": [],
-      "step_count": 6,
-      "submitted": true,
-      "task_type": "task_d",
-      "terminal_reason": "decision_submitted",
-      "trajectory": [
-        {
-          "action_type": "ocr",
-          "case_clock": 1,
-          "cost": 1.1,
-          "is_intervention": false,
-          "message": "Returned accurate OCR.",
-          "payload": {
-            "doc_id": "INV-D-003A",
-            "mode": "accurate"
-          },
-          "step": 1,
-          "success": true
-        },
-        {
-          "action_type": "ocr",
-          "case_clock": 2,
-          "cost": 1.1,
-          "is_intervention": false,
-          "message": "Returned accurate OCR.",
-          "payload": {
-            "doc_id": "INV-D-003B",
-            "mode": "accurate"
-          },
-          "step": 2,
-          "success": true
-        },
-        {
-          "action_type": "ocr",
-          "case_clock": 3,
-          "cost": 1.1,
-          "is_intervention": false,
-          "message": "Returned accurate OCR.",
-          "payload": {
-            "doc_id": "THR-140",
-            "mode": "accurate"
-          },
-          "step": 3,
-          "success": true
-        },
-        {
-          "action_type": "inspect_email_thread",
-          "case_clock": 4,
-          "cost": 0.25,
-          "is_intervention": false,
-          "message": "Email thread inspection complete.",
-          "payload": {
-            "thread_id": "THR-140"
-          },
-          "step": 4,
-          "success": true
-        },
-        {
-          "action_type": "flag_duplicate_cluster_review",
-          "case_clock": 5,
-          "cost": 0.25,
-          "is_intervention": true,
-          "message": "Duplicate cluster review requested. Artifact scheduled for case clock 6.",
-          "payload": {},
-          "step": 5,
-          "success": true
-        }
-      ],
-      "unsafe_outcome": false,
-      "visible_doc_ids": [
-        "INV-D-003A",
-        "INV-D-003B",
-        "THR-140"
-      ]
-    },
-    "tool_name": "submit_decision",
-    "triggered_risk_reasons": [
-      "bank_account_not_checked",
-      "bank_override_attempt",
-      "callback_not_requested",
-      "sender_domain_spoof"
-    ],
-    "unsafe_outcome": false
-  },
+  "error": "unhashable type: 'list'",
+  "final_info": {},
+  "final_submission": {},
+  "final_tool_result": {},
   "model": "gpt-3.5-turbo",
-  "outcome": {
-    "outcome_type": "fraud_prevented",
-    "portfolio_metrics": {
-      "fraud_loss_prevented": 3984.0,
-      "fraud_loss_released": 0.0,
-      "linked_invoice_count": 2,
-      "manual_review_minutes": 14.0,
-      "operational_delay_hours": 2.0,
-      "portfolio_impact_score": 0.95,
-      "queue_pressure": "campaign",
-      "supplier_friction": 0.08
-    },
-    "score": 0.95,
-    "summary": "Fraud escalation prevented financial loss.",
-    "unsafe_payment": false
-  },
+  "outcome": {},
   "planning_trace": [
     {
       "candidates": [
@@ -618,6 +103,13 @@
             "mode": "accurate"
           },
           "signature": "ocr:{\"doc_id\":\"THR-140\",\"mode\":\"accurate\"}"
+        },
+        {
+          "action_type": "lookup_vendor",
+          "payload": {
+            "vendor_key": "northwind-industrial"
+          },
+          "signature": "lookup_vendor:{\"vendor_key\":\"northwind-industrial\"}"
         },
         {
           "action_type": "inspect_email_thread",
@@ -676,173 +168,20 @@
           "signature": "ocr:{\"doc_id\":\"THR-140\",\"mode\":\"accurate\"}"
         },
         {
-          "action_type": "inspect_email_thread",
+          "action_type": "lookup_vendor",
           "payload": {
-            "thread_id": "THR-140"
+            "vendor_key": "northwind-industrial"
           },
-          "signature": "inspect_email_thread:{\"thread_id\":\"THR-140\"}"
-        }
-      ]
-    },
-    {
-      "candidates": [
-        {
-          "action_type": "flag_duplicate_cluster_review",
-          "payload": {},
-          "signature": "flag_duplicate_cluster_review:{}"
-        },
-        {
-          "action_type": "route_to_security",
-          "payload": {},
-          "signature": "route_to_security:{}"
-        }
-      ],
-      "phase": "intervention",
-      "selected": [
-        {
-          "action_type": "flag_duplicate_cluster_review",
-          "payload": {},
-          "signature": "flag_duplicate_cluster_review:{}"
+          "signature": "lookup_vendor:{\"vendor_key\":\"northwind-industrial\"}"
         }
       ]
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.621,
-  "score_breakdown": {
-    "calibration_score": 1.0,
-    "callback_interpretation_score": 0.0,
-    "counterfactual_score": 1.0,
-    "decision_score": 1.0,
-    "efficiency_score": 0.9747,
-    "evidence_score": 0.4,
-    "intervention_score": 0.45,
-    "investigation_score": 0.2,
-    "outcome_score": 0.95,
-    "policy_score": 0.5,
-    "pressure_event_score": 0.7143,
-    "reason_score": 0.5714,
-    "resolution_state_score": 0.4357
-  },
-  "steps": 6,
-  "success": true,
-  "system_state": {
-    "budget_remaining": 14.2,
-    "budget_total": 18.0,
-    "case_clock": 6,
-    "case_id": "CASE-D-003",
-    "contrastive_pair_id": "",
-    "episode_id": "72d73f28-dfdd-43fc-a6aa-cd2974a9b64a",
-    "final_score": 0.621,
-    "handoff_packet": {},
-    "interventions_taken": [
-      {
-        "action_type": "flag_duplicate_cluster_review",
-        "artifact_id": "duplicate_cluster_report",
-        "payload": {},
-        "status": "pending"
-      }
-    ],
-    "max_steps": 20,
-    "observed_risk_signals": [
-      "policy_bypass_attempt",
-      "sender_domain_spoof",
-      "urgent_payment_pressure"
-    ],
-    "pending_event_count": 1,
-    "pending_events": [
-      {
-        "artifact_id": "duplicate_cluster_report",
-        "event_id": "evt-2ee16faa",
-        "ready_at_clock": 6,
-        "source_action": "flag_duplicate_cluster_review",
-        "status": "pending"
-      }
-    ],
-    "portfolio_context": {
-      "at_risk_amount": 3984.0,
-      "business_criticality": "high",
-      "linked_case_count": 2,
-      "linked_invoice_count": 2,
-      "manual_review_capacity": 1,
-      "queue_pressure": "campaign"
-    },
-    "pressure_events_seen": [],
-    "pressure_resistance_score": 0.0,
-    "revealed_artifact_ids": [],
-    "step_count": 6,
-    "submitted": true,
-    "task_type": "task_d",
-    "terminal_reason": "decision_submitted",
-    "trajectory": [
-      {
-        "action_type": "ocr",
-        "case_clock": 1,
-        "cost": 1.1,
-        "is_intervention": false,
-        "message": "Returned accurate OCR.",
-        "payload": {
-          "doc_id": "INV-D-003A",
-          "mode": "accurate"
-        },
-        "step": 1,
-        "success": true
-      },
-      {
-        "action_type": "ocr",
-        "case_clock": 2,
-        "cost": 1.1,
-        "is_intervention": false,
-        "message": "Returned accurate OCR.",
-        "payload": {
-          "doc_id": "INV-D-003B",
-          "mode": "accurate"
-        },
-        "step": 2,
-        "success": true
-      },
-      {
-        "action_type": "ocr",
-        "case_clock": 3,
-        "cost": 1.1,
-        "is_intervention": false,
-        "message": "Returned accurate OCR.",
-        "payload": {
-          "doc_id": "THR-140",
-          "mode": "accurate"
-        },
-        "step": 3,
-        "success": true
-      },
-      {
-        "action_type": "inspect_email_thread",
-        "case_clock": 4,
-        "cost": 0.25,
-        "is_intervention": false,
-        "message": "Email thread inspection complete.",
-        "payload": {
-          "thread_id": "THR-140"
-        },
-        "step": 4,
-        "success": true
-      },
-      {
-        "action_type": "flag_duplicate_cluster_review",
-        "case_clock": 5,
-        "cost": 0.25,
-        "is_intervention": true,
-        "message": "Duplicate cluster review requested. Artifact scheduled for case clock 6.",
-        "payload": {},
-        "step": 5,
-        "success": true
-      }
-    ],
-    "unsafe_outcome": false,
-    "visible_doc_ids": [
-      "INV-D-003A",
-      "INV-D-003B",
-      "THR-140"
-    ]
-  },
+  "score": 0.0,
+  "score_breakdown": {},
+  "steps": 3,
+  "success": false,
+  "system_state": {},
   "task_type": "task_d"
 }

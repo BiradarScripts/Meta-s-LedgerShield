@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from task_d_guardrails import sanitize_task_d_submission, validate_task_d_submission
+from task_d_guardrails import grounded_task_d_submission, sanitize_task_d_submission, validate_task_d_submission
 
 
 def _benign_collected() -> dict:
@@ -198,6 +198,7 @@ def test_validate_task_d_submission_repairs_missing_reasons_and_evidence():
         "duplicate_near_match",
         "policy_bypass_attempt",
         "sender_domain_spoof",
+        "urgent_payment_pressure",
     }
     assert set(validated["evidence_map"]) == {
         "approval_threshold_evasion",
@@ -205,6 +206,7 @@ def test_validate_task_d_submission_repairs_missing_reasons_and_evidence():
         "duplicate_near_match",
         "policy_bypass_attempt",
         "sender_domain_spoof",
+        "urgent_payment_pressure",
     }
     assert validated["policy_checks"]["bank_change_verification"] == "fail"
     assert validated["policy_checks"]["duplicate_check"] == "fail"
@@ -262,3 +264,58 @@ def test_sanitize_task_d_submission_backfills_grounded_evidence_for_chosen_reaso
 
     assert sanitized["reason_codes"] == ["bank_override_attempt", "policy_bypass_attempt"]
     assert set(sanitized["evidence_map"]) == {"bank_override_attempt", "policy_bypass_attempt"}
+
+
+def test_grounded_task_d_submission_includes_urgent_pressure_for_ceo_style_case():
+    grounded = grounded_task_d_submission(
+        {
+            "invoice_records": [
+                {
+                    "fields": {
+                        "invoice_number": "SLX-EXEC-001",
+                        "total": 75000.0,
+                    },
+                    "evidence": {
+                        "bank_account": {
+                            "doc_id": "INV-D-005",
+                            "page": 1,
+                            "bbox": [10, 70, 170, 80],
+                            "token_ids": ["d64"],
+                        },
+                    },
+                }
+            ],
+            "email_evidence": {
+                "from_header": {
+                    "doc_id": "THR-CEO-001",
+                    "page": 1,
+                    "bbox": [10, 10, 250, 20],
+                    "token_ids": ["ec1"],
+                },
+                "subject_header": {
+                    "doc_id": "THR-CEO-001",
+                    "page": 1,
+                    "bbox": [10, 30, 320, 40],
+                    "token_ids": ["ec2"],
+                },
+            },
+            "email_thread": {
+                "sender_profile": {"domain_alignment": "mismatch"},
+                "request_signals": {
+                    "bank_change_language": False,
+                    "callback_discouraged": False,
+                    "policy_override_language": True,
+                    "urgency_language": True,
+                },
+            },
+            "ledger_search": {"exact_duplicate_count": 0},
+            "ledger_hits": [],
+            "bank_compares": [],
+            "vendor_history": [],
+        },
+        counterfactual="Would PAY if the sender domain matched the vendor and normal approval controls remained intact.",
+    )
+
+    assert grounded["decision"] == "ESCALATE_FRAUD"
+    assert "urgent_payment_pressure" in grounded["reason_codes"]
+    assert grounded["policy_checks"]["approval_threshold_check"] == "fail"

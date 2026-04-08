@@ -8,7 +8,7 @@
         "mode": "accurate"
       },
       "phase": "bootstrap",
-      "reward": -0.039415000000000006,
+      "reward": -0.024695833333333337,
       "step": 1,
       "tool_error": null,
       "tool_name": "ocr",
@@ -27,7 +27,7 @@
         "doc_id": "INV-A-001"
       },
       "phase": "bootstrap",
-      "reward": 0.005214799999999992,
+      "reward": 0.07958433333333331,
       "step": 2,
       "tool_error": null,
       "tool_name": "zoom",
@@ -199,7 +199,7 @@
         ]
       },
       "phase": "submit",
-      "reward": 0.987381,
+      "reward": 0.9849074999999999,
       "step": 3,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -209,8 +209,10 @@
   "case_id": "CASE-A-001",
   "collected_summary": {
     "bank_compares": [],
+    "case_instruction": "Extract the canonical invoice fields, line items, and evidence map from the provided invoice.",
     "email_ocr_loaded": false,
     "email_thread": {
+      "derived_flags": null,
       "flags": null,
       "request_signals": null,
       "sender": null,
@@ -231,6 +233,13 @@
       "exact_duplicate_count": null,
       "near_duplicate_count": null,
       "top_hits": []
+    },
+    "observed_risk_signals": [],
+    "pending_event_count": 0,
+    "revealed_artifacts": [],
+    "vendor": {
+      "approved_domains": null,
+      "vendor_key": null
     },
     "vendor_history": []
   },
@@ -257,7 +266,7 @@
     "reward_model": {
       "components": {
         "final_score": 0.99,
-        "potential_delta": -0.0026
+        "potential_delta": -0.0051
       },
       "metadata": {
         "action_type": "submit_decision",
@@ -267,10 +276,11 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.9874
+      "value": 0.9849
     },
     "score_breakdown": {
       "calibration_score": 0.975,
+      "degenerate_penalty": 0.0,
       "efficiency_score": 0.9844,
       "evidence_score": 1.0,
       "field_score": 1.0,
@@ -283,7 +293,7 @@
       "case_clock": 3,
       "case_id": "CASE-A-001",
       "contrastive_pair_id": "",
-      "episode_id": "46d90174-ec66-42be-9786-b4d716932343",
+      "episode_id": "b8d288b8-b5ec-42f4-bf8f-960a816c6d27",
       "final_score": 0.99,
       "handoff_packet": {},
       "interventions_taken": [],
@@ -344,6 +354,8 @@
         "INV-A-001"
       ]
     },
+    "terminated": true,
+    "truncated": false,
     "unsafe_outcome": false
   },
   "final_submission": {
@@ -533,7 +545,7 @@
     "reward_model": {
       "components": {
         "final_score": 0.99,
-        "potential_delta": -0.0026
+        "potential_delta": -0.0051
       },
       "metadata": {
         "action_type": "submit_decision",
@@ -543,11 +555,12 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.9874
+      "value": 0.9849
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
       "calibration_score": 0.975,
+      "degenerate_penalty": 0.0,
       "efficiency_score": 0.9844,
       "evidence_score": 1.0,
       "field_score": 1.0,
@@ -562,7 +575,7 @@
       "case_clock": 3,
       "case_id": "CASE-A-001",
       "contrastive_pair_id": "",
-      "episode_id": "46d90174-ec66-42be-9786-b4d716932343",
+      "episode_id": "b8d288b8-b5ec-42f4-bf8f-960a816c6d27",
       "final_score": 0.99,
       "handoff_packet": {},
       "interventions_taken": [],
@@ -649,6 +662,7 @@
   "score": 0.99,
   "score_breakdown": {
     "calibration_score": 0.975,
+    "degenerate_penalty": 0.0,
     "efficiency_score": 0.9844,
     "evidence_score": 1.0,
     "field_score": 1.0,
@@ -663,7 +677,7 @@
     "case_clock": 3,
     "case_id": "CASE-A-001",
     "contrastive_pair_id": "",
-    "episode_id": "46d90174-ec66-42be-9786-b4d716932343",
+    "episode_id": "b8d288b8-b5ec-42f4-bf8f-960a816c6d27",
     "final_score": 0.99,
     "handoff_packet": {},
     "interventions_taken": [],

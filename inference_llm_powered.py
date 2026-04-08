@@ -269,6 +269,210 @@ def parse_email_tokens(tokens: list[dict[str, Any]], doc_id: str) -> dict[str, A
             evidence["policy_bypass_attempt"] = token_ref(token, doc_id)
     return evidence
 
+
+def _domain_tokens(domain: str) -> set[str]:
+    chunks = re.split(r"[^a-z0-9]+", normalize_text(domain))
+    return {chunk for chunk in chunks if len(chunk) > 2}
+
+
+def _vendor_name_tokens(vendor_name: str) -> set[str]:
+    stop_words = {
+        "ag",
+        "co",
+        "company",
+        "components",
+        "corp",
+        "gmbh",
+        "group",
+        "holdings",
+        "industrial",
+        "llc",
+        "llp",
+        "limited",
+        "ltd",
+        "manufacturing",
+        "pvt",
+        "supplies",
+    }
+    tokens = re.split(r"[^a-z0-9]+", normalize_text(vendor_name))
+    return {token for token in tokens if len(token) > 2 and token not in stop_words}
+
+
+def _sender_domain(sender: str) -> str:
+    sender_text = normalize_text(sender)
+    if "@" not in sender_text:
+        return ""
+    return sender_text.split("@", 1)[-1]
+
+
+def _infer_domain_alignment(*, sender: str, vendor_name: str, approved_domains: list[str]) -> tuple[str, str]:
+    sender_domain = _sender_domain(sender)
+    normalized_domains = [normalize_text(domain) for domain in approved_domains if normalize_text(domain)]
+    expected_domain = normalized_domains[0] if normalized_domains else ""
+    if sender_domain and expected_domain:
+        return ("aligned" if sender_domain == expected_domain else "mismatch", expected_domain)
+
+    vendor_tokens = _vendor_name_tokens(vendor_name)
+    domain_tokens = _domain_tokens(sender_domain)
+    if vendor_tokens and domain_tokens and vendor_tokens & domain_tokens:
+        return "aligned", expected_domain
+    if sender_domain and vendor_tokens:
+        return "mismatch", expected_domain
+    return "aligned", expected_domain
+
+
+def derive_email_thread_from_ocr(collected: dict[str, Any]) -> dict[str, Any]:
+    tokens = list(collected.get("email_tokens", []) or [])
+    if not tokens:
+        return {}
+
+    lines = [str(token.get("text", "")).strip() for token in tokens if str(token.get("text", "")).strip()]
+    sender = ""
+    subject = ""
+    body_lines: list[str] = []
+    for line in lines:
+        lower = line.lower()
+        if lower.startswith("from:"):
+            sender = line.split(":", 1)[-1].strip()
+            continue
+        if lower.startswith("subject:"):
+            subject = line.split(":", 1)[-1].strip()
+            continue
+        body_lines.append(line)
+
+    vendor = collected.get("vendor") or {}
+    vendor_name = str((vendor or {}).get("vendor_name") or collected.get("invoice_fields", {}).get("vendor_name") or "")
+    approved_domains = [str(domain).strip() for domain in (vendor.get("approved_domains", []) or []) if str(domain).strip()]
+    domain_alignment, expected_domain = _infer_domain_alignment(
+        sender=sender,
+        vendor_name=vendor_name,
+        approved_domains=approved_domains,
+    )
+
+    body_text = " ".join(body_lines)
+    normalized_body = normalize_text(body_text)
+    normalized_subject = normalize_text(subject)
+    explicit_no_change = any(
+        phrase in normalized_body
+        for phrase in {
+            "no bank change",
+            "no bank changes",
+            "no change to bank",
+            "approved remittance instructions already on file",
+        }
+    )
+    bank_change_language = (
+        "bank" in normalized_body
+        and any(word in normalized_body for word in {"change", "changed", "update", "updated", "override", "directed"})
+        and not explicit_no_change
+    )
+    urgency_language = any(phrase in normalized_subject or phrase in normalized_body for phrase in {"urgent", "immediately", "asap", "today"})
+    callback_discouraged = any(phrase in normalized_body for phrase in {"skip callback", "do not call", "don't call", "do not verify"})
+    policy_override_language = any(
+        phrase in normalized_body
+        for phrase in {
+            "override policy",
+            "bypass policy",
+            "source of truth",
+            "avoid reapproval",
+            "do not contact",
+            "skip normal review",
+            "ignore the standard workflow",
+            "personally approved",
+        }
+    )
+    derived_flags = canonical_reason_codes(
+        [
+            "sender_domain_spoof" if domain_alignment == "mismatch" else "",
+            "bank_override_attempt" if bank_change_language else "",
+            "policy_bypass_attempt" if callback_discouraged or policy_override_language else "",
+            "urgent_payment_pressure" if urgency_language else "",
+            "approval_threshold_evasion"
+            if any(phrase in normalized_body for phrase in {"approval threshold", "split the request", "split invoice"})
+            else "",
+        ]
+    )
+
+    return {
+        "thread_id": collected.get("email_doc_id") or collected.get("case_metadata", {}).get("thread_id"),
+        "vendor_key": (vendor or {}).get("vendor_key"),
+        "sender": sender,
+        "subject": subject,
+        "body": body_text,
+        "message_count": max(1, len(body_lines)),
+        "sender_profile": {
+            "from_domain": _sender_domain(sender),
+            "expected_domain": expected_domain,
+            "domain_alignment": domain_alignment,
+        },
+        "request_signals": {
+            "bank_change_language": bank_change_language,
+            "urgency_language": urgency_language,
+            "callback_discouraged": callback_discouraged,
+            "policy_override_language": policy_override_language,
+        },
+        "derived_flags": derived_flags,
+    }
+
+
+def refresh_email_thread_from_ocr(collected: dict[str, Any]) -> None:
+    derived = derive_email_thread_from_ocr(collected)
+    if not derived:
+        return
+
+    current = collected.get("email_thread") or {}
+    merged = dict(current)
+    for key, value in derived.items():
+        if key in {"sender_profile", "request_signals"}:
+            existing = current.get(key, {}) or {}
+            candidate = value if isinstance(value, dict) else {}
+            merged[key] = {**candidate, **existing} if existing else candidate
+            continue
+        if current.get(key) not in (None, "", [], {}):
+            merged[key] = current.get(key)
+            continue
+        merged[key] = value
+
+    merged["flags"] = canonical_reason_codes(
+        (current.get("flags", []) or [])
+        + (current.get("derived_flags", []) or [])
+        + (derived.get("flags", []) or [])
+        + (derived.get("derived_flags", []) or [])
+    )
+    merged["derived_flags"] = canonical_reason_codes(
+        (current.get("derived_flags", []) or []) + (derived.get("derived_flags", []) or [])
+    )
+    collected["email_thread"] = merged
+
+
+def update_collected_from_observation(collected: dict[str, Any], observation: Any) -> None:
+    revealed_artifacts = list(getattr(observation, "revealed_artifacts", []) or [])
+    pending_events = list(getattr(observation, "pending_events", []) or [])
+    case_metadata = getattr(observation, "case_metadata", {}) or {}
+    risk_snapshot = getattr(observation, "risk_snapshot", {}) or {}
+
+    collected["case_metadata"] = dict(case_metadata)
+    collected["pending_events"] = pending_events
+    collected["observed_risk_signals"] = list(risk_snapshot.get("observed_signals", []) or [])
+
+    if revealed_artifacts:
+        artifact_store = collected.setdefault("revealed_artifacts", {})
+        for artifact in revealed_artifacts:
+            artifact_id = normalize_text(artifact.get("artifact_id"))
+            if not artifact_id:
+                continue
+            artifact_store[artifact_id] = artifact
+            if artifact_id == "callback_verification_result":
+                collected["callback_result"] = artifact
+            elif artifact_id == "bank_change_approval_chain":
+                collected["bank_change_approval_chain"] = artifact
+            elif artifact_id == "po_reconciliation_report":
+                collected["po_reconciliation_report"] = artifact
+            elif artifact_id == "receipt_reconciliation_report":
+                collected["receipt_reconciliation_report"] = artifact
+            elif artifact_id == "duplicate_cluster_report":
+                collected["duplicate_cluster_report"] = artifact
+
 def vendor_key_for(fields: dict[str, Any]) -> str:
     vendor_name = normalize_text(fields.get("vendor_name"))
     return VENDOR_KEY_BY_NAME.get(vendor_name, "")
@@ -305,13 +509,19 @@ def summarize_collected_state(collected: dict[str, Any]) -> dict[str, Any]:
     email_thread = collected.get("email_thread") or {}
     ledger_search = collected.get("ledger_search") or {}
     return {
+        "case_instruction": str(collected.get("case_instruction", "") or ""),
         "invoice_records": [_invoice_record_summary(record) for record in collected.get("invoice_records", []) or []],
         "email_thread": {
             "sender": email_thread.get("sender"),
             "subject": email_thread.get("subject"),
             "flags": email_thread.get("flags"),
+            "derived_flags": email_thread.get("derived_flags"),
             "sender_profile": email_thread.get("sender_profile"),
             "request_signals": email_thread.get("request_signals"),
+        },
+        "vendor": {
+            "vendor_key": (collected.get("vendor") or {}).get("vendor_key"),
+            "approved_domains": (collected.get("vendor") or {}).get("approved_domains"),
         },
         "bank_compares": [
             {
@@ -343,6 +553,9 @@ def summarize_collected_state(collected: dict[str, Any]) -> dict[str, Any]:
         ],
         "has_policy_snapshot": bool(collected.get("policies")),
         "email_ocr_loaded": bool(collected.get("email_tokens")),
+        "revealed_artifacts": sorted((collected.get("revealed_artifacts", {}) or {}).keys()),
+        "pending_event_count": len(collected.get("pending_events", []) or []),
+        "observed_risk_signals": collected.get("observed_risk_signals", []) or [],
     }
 
 
@@ -375,6 +588,12 @@ def build_investigation_candidates(
         return candidates
 
     if task_type == "task_c":
+        if vendor_key:
+            _append_candidate(
+                candidates,
+                seen,
+                LedgerShieldAction(action_type="lookup_vendor", payload={"vendor_key": vendor_key}),
+            )
         if vendor_key and (invoice_number or invoice_total):
             _append_candidate(
                 candidates,
@@ -383,6 +602,18 @@ def build_investigation_candidates(
                     action_type="search_ledger",
                     payload={
                         "vendor_key": vendor_key,
+                        "invoice_number": invoice_number,
+                        "amount": invoice_total,
+                    },
+                ),
+            )
+        if invoice_number or invoice_total:
+            _append_candidate(
+                candidates,
+                seen,
+                LedgerShieldAction(
+                    action_type="search_ledger",
+                    payload={
                         "invoice_number": invoice_number,
                         "amount": invoice_total,
                     },
@@ -404,6 +635,12 @@ def build_investigation_candidates(
             candidates,
             seen,
             LedgerShieldAction(action_type="ocr", payload={"doc_id": email_doc_id, "mode": "accurate"}),
+        )
+    if vendor_key:
+        _append_candidate(
+            candidates,
+            seen,
+            LedgerShieldAction(action_type="lookup_vendor", payload={"vendor_key": vendor_key}),
         )
     if email_doc_id:
         _append_candidate(
@@ -476,9 +713,31 @@ def build_intervention_candidates(
     bank_mismatch = any(compare and not bool(compare.get("matched")) for compare in collected.get("bank_compares", []) or [])
     email_thread = collected.get("email_thread") or {}
     email_flags = set(canonical_reason_codes((email_thread.get("flags", []) or []) + (email_thread.get("derived_flags", []) or [])))
+    instruction = normalize_text(collected.get("case_instruction", ""))
+    task_c_campaign_hint = any(
+        phrase in instruction
+        for phrase in {
+            "cross-vendor",
+            "coordinated fraud",
+            "coordinated payment",
+            "similar amounts and timing",
+            "approval threshold",
+            "structured below",
+            "split invoice",
+        }
+    )
 
     if task_type == "task_b":
-        _append_candidate(candidates, seen, LedgerShieldAction(action_type="request_callback_verification", payload={}))
+        if str((collected.get("invoice_fields", {}) or {}).get("po_id", "")).strip():
+            _append_candidate(candidates, seen, LedgerShieldAction(action_type="request_po_reconciliation", payload={}))
+        if str((collected.get("invoice_fields", {}) or {}).get("receipt_id", "")).strip():
+            _append_candidate(
+                candidates,
+                seen,
+                LedgerShieldAction(action_type="request_additional_receipt_evidence", payload={}),
+            )
+        if normalize_text(submission.get("decision")) == "hold" or not collected.get("po") or not collected.get("receipt"):
+            _append_candidate(candidates, seen, LedgerShieldAction(action_type="request_callback_verification", payload={}))
         return candidates
 
     if bank_mismatch or "bank_override_attempt" in reason_codes:
@@ -491,6 +750,8 @@ def build_intervention_candidates(
         _append_candidate(candidates, seen, LedgerShieldAction(action_type="freeze_vendor_profile", payload={}))
 
     if has_duplicates or {"duplicate_near_match", "approval_threshold_evasion", "shared_bank_account", "coordinated_timing"} & reason_codes:
+        _append_candidate(candidates, seen, LedgerShieldAction(action_type="flag_duplicate_cluster_review", payload={}))
+    elif task_type == "task_c" and task_c_campaign_hint:
         _append_candidate(candidates, seen, LedgerShieldAction(action_type="flag_duplicate_cluster_review", payload={}))
 
     if {"sender_domain_spoof", "policy_bypass_attempt"} & (reason_codes | email_flags):
@@ -552,6 +813,7 @@ def llm_plan_actions(
         "task_type": task_type,
         "phase": phase,
         "max_actions": max_plan_length,
+        "case_instruction": str(collected.get("case_instruction", "") or ""),
         "current_state": summarize_collected_state(collected),
         "draft_submission": current_submission or {},
         "candidate_actions": indexed,
@@ -683,7 +945,10 @@ def update_collected_from_tool_result(
     email_doc_id: str,
 ) -> None:
     tool_name = tool.get("tool_name")
-    if tool_name == "lookup_po" and tool.get("success"):
+    if tool_name == "lookup_vendor" and tool.get("success"):
+        collected["vendor"] = tool.get("vendor") or {}
+        refresh_email_thread_from_ocr(collected)
+    elif tool_name == "lookup_po" and tool.get("success"):
         collected["po"] = tool.get("po")
     elif tool_name == "lookup_receipt" and tool.get("success"):
         collected["receipt"] = tool.get("receipt")
@@ -702,6 +967,7 @@ def update_collected_from_tool_result(
         collected["vendor_history"] = list(tool.get("history", []) or [])
     elif tool_name == "inspect_email_thread" and tool.get("success"):
         collected["email_thread"] = tool.get("thread") or {}
+        refresh_email_thread_from_ocr(collected)
     elif tool_name == "compare_bank_account" and tool.get("success"):
         collected["bank_compare"] = tool
         collected["bank_compares"].append(tool)
@@ -709,39 +975,88 @@ def update_collected_from_tool_result(
         collected["policies"] = list(tool.get("policies", []) or [])
     elif tool_name == "ocr" and tool.get("success") and tool.get("doc_id") == email_doc_id:
         capture_email_data(collected, tool)
+        refresh_email_thread_from_ocr(collected)
 
 # =============================================================================
 # LLM-POWERED DECISION FUNCTIONS (Replaces Deterministic Heuristics)
 # =============================================================================
+
+def _task_b_artifact_findings(collected: dict[str, Any]) -> tuple[list[str], dict[str, Any], str]:
+    invoice_evidence = collected.get("invoice_evidence", {}) or {}
+    invoice_line_tokens = collected.get("invoice_line_tokens", []) or []
+    invoice_doc_id = str(collected.get("invoice_doc_id", "") or "")
+    po_report = collected.get("po_reconciliation_report", {}) or {}
+    receipt_report = collected.get("receipt_reconciliation_report", {}) or {}
+    callback_result = collected.get("callback_result", {}) or {}
+    callback_details = callback_result.get("details", {}) or {}
+    callback_signal = normalize_text(callback_details.get("risk_signal") or callback_details.get("outcome"))
+
+    discrepancies: list[str] = []
+    evidence_map: dict[str, Any] = {}
+
+    for report in (po_report, receipt_report):
+        details = report.get("details", {}) or {}
+        if normalize_text(details.get("status")) != "reconciled_with_flags":
+            continue
+        for raw in details.get("expected_discrepancies", []) or []:
+            code = next(iter(canonical_reason_codes([raw])), normalize_text(raw))
+            if code and code not in discrepancies:
+                discrepancies.append(code)
+
+    for discrepancy in discrepancies:
+        if discrepancy == "quantity_mismatch" and invoice_line_tokens:
+            evidence_map["quantity_mismatch"] = token_ref(invoice_line_tokens[0], invoice_doc_id)
+        elif discrepancy == "price_mismatch" and invoice_line_tokens:
+            evidence_map["price_mismatch"] = token_ref(invoice_line_tokens[0], invoice_doc_id)
+        elif discrepancy == "missing_receipt" and "receipt_id" in invoice_evidence:
+            evidence_map["missing_receipt"] = invoice_evidence["receipt_id"]
+        elif discrepancy in {"total_mismatch", "tax_mismatch"} and "total" in invoice_evidence:
+            evidence_map["total_mismatch"] = invoice_evidence["total"]
+
+    return discrepancies, evidence_map, callback_signal
 
 def llm_decision_task_b(client: Optional[OpenAI], collected: dict[str, Any]) -> dict[str, Any]:
     """Use LLM to analyze evidence and decide PAY or HOLD for Task B."""
     if not client:
         # Fallback to heuristic if no client
         return heuristic_task_b(collected)
-    
+
+    artifact_discrepancies, artifact_evidence, callback_signal = _task_b_artifact_findings(collected)
     invoice_fields = collected["invoice_fields"]
     po = collected.get("po") or {}
     receipt = collected.get("receipt")
-    
+
     context = {
         "task": "Task B - Three-way match decisioning",
+        "case_instruction": str(collected.get("case_instruction", "") or ""),
         "invoice_fields": invoice_fields,
         "po_data": po,
         "receipt_data": receipt,
         "invoice_lines": collected.get("invoice_line_items", []),
+        "po_reconciliation_report": collected.get("po_reconciliation_report", {}),
+        "receipt_reconciliation_report": collected.get("receipt_reconciliation_report", {}),
+        "callback_result": collected.get("callback_result", {}),
+        "observed_risk_signals": collected.get("observed_risk_signals", []),
+        "current_grounded_discrepancies": artifact_discrepancies,
     }
-    
+
     system_prompt = """You are an expert AP (Accounts Payable) auditor. Analyze the invoice data and determine if it should be PAID or HELD.
 
 Available evidence:
 - Invoice fields extracted from document
 - Purchase Order (PO) data
 - Goods Receipt Note (GRN) / Receipt data
+- Any reconciliation artifacts already revealed
+- Any callback-verification outcome already revealed
 
 Decision rules:
 - PAY: Invoice matches PO and receipt (valid three-way match)
 - HOLD: Discrepancies found (price mismatch, missing receipt, quantity mismatch, total mismatch)
+
+Important:
+- Do not infer missing_receipt or missing_po solely because a lookup returned nothing.
+- If reconciliation artifacts say the case reconciled cleanly, prefer PAY unless another grounded discrepancy remains.
+- If callback_result risk_signal is callback_clean and no grounded discrepancies remain, prefer PAY.
 
 Return JSON format:
 {
@@ -774,20 +1089,26 @@ Return JSON format:
         if decision not in ["PAY", "HOLD"]:
             decision = "HOLD"
         
-        discrepancies = result.get("discrepancies", [])
-        if not isinstance(discrepancies, list):
-            discrepancies = []
-        
+        raw_discrepancies = result.get("discrepancies", [])
+        if not isinstance(raw_discrepancies, list):
+            raw_discrepancies = []
+
+        discrepancies = canonical_reason_codes(raw_discrepancies) or list(artifact_discrepancies)
+        if callback_signal == "callback_clean" and not discrepancies:
+            decision = "PAY"
+
         # Build evidence map based on discrepancies
-        evidence_map = {}
+        evidence_map = dict(artifact_evidence)
         invoice_evidence = collected["invoice_evidence"]
         if "missing_receipt" in discrepancies and "po_id" in invoice_evidence:
             evidence_map["missing_receipt"] = invoice_evidence["po_id"]
         if "price_mismatch" in discrepancies and collected.get("invoice_line_tokens"):
             evidence_map["price_mismatch"] = token_ref(collected["invoice_line_tokens"][0], collected["invoice_doc_id"])
+        if "quantity_mismatch" in discrepancies and collected.get("invoice_line_tokens"):
+            evidence_map["quantity_mismatch"] = token_ref(collected["invoice_line_tokens"][0], collected["invoice_doc_id"])
         if "total_mismatch" in discrepancies and "total" in invoice_evidence:
             evidence_map["total_mismatch"] = invoice_evidence["total"]
-        
+
         return {
             "decision": decision,
             "confidence": clamp(float(result.get("confidence", 0.9)), 0.0, 1.0),
@@ -811,15 +1132,16 @@ def heuristic_task_b(collected: dict[str, Any]) -> dict[str, Any]:
     invoice_lines = collected["invoice_line_items"]
     po = collected.get("po") or {}
     receipt = collected.get("receipt")
+    artifact_discrepancies, artifact_evidence, callback_signal = _task_b_artifact_findings(collected)
 
-    discrepancies: list[str] = []
-    evidence_map: dict[str, Any] = {}
+    discrepancies: list[str] = list(artifact_discrepancies)
+    evidence_map: dict[str, Any] = dict(artifact_evidence)
 
-    if receipt is None:
+    if not discrepancies and receipt is None and callback_signal != "callback_clean":
         discrepancies.append("missing_receipt")
-        if "po_id" in invoice_evidence:
-            evidence_map["missing_receipt"] = invoice_evidence["po_id"]
-    else:
+        if "receipt_id" in invoice_evidence:
+            evidence_map["missing_receipt"] = invoice_evidence["receipt_id"]
+    elif po or receipt:
         po_lines = po.get("line_items", [])
         if invoice_lines and po_lines:
             invoice_line = invoice_lines[0]
@@ -830,13 +1152,32 @@ def heuristic_task_b(collected: dict[str, Any]) -> dict[str, Any]:
                 if invoice_lines:
                     evidence_map["price_mismatch"] = token_ref(collected["invoice_line_tokens"][0], collected["invoice_doc_id"])
 
-        if safe_float(invoice_fields.get("total")) != safe_float(po.get("total")):
+        if po and safe_float(invoice_fields.get("total")) != safe_float(po.get("total")):
             discrepancies.append("total_mismatch")
             if "total" in invoice_evidence:
                 evidence_map["total_mismatch"] = invoice_evidence["total"]
 
+        receipt_items = {
+            normalize_text(item.get("description")): safe_float(item.get("qty"))
+            for item in receipt.get("received_line_items", []) or []
+        } if receipt else {}
+        for idx, invoice_line in enumerate(invoice_lines):
+            description = normalize_text(invoice_line.get("description"))
+            expected_qty = safe_float(invoice_line.get("qty"))
+            received_qty = receipt_items.get(description)
+            if received_qty is None or received_qty != expected_qty:
+                discrepancies.append("quantity_mismatch")
+                if idx < len(collected["invoice_line_tokens"]):
+                    evidence_map["quantity_mismatch"] = token_ref(
+                        collected["invoice_line_tokens"][idx],
+                        collected["invoice_doc_id"],
+                    )
+                break
+
+    discrepancies = canonical_reason_codes(discrepancies)
+
     return {
-        "decision": "HOLD" if discrepancies else "PAY",
+        "decision": "PAY" if callback_signal == "callback_clean" and not discrepancies else ("HOLD" if discrepancies else "PAY"),
         "confidence": 0.93 if discrepancies else 0.89,
         "discrepancies": discrepancies,
         "policy_checks": {
@@ -852,40 +1193,62 @@ def llm_decision_task_c(client: Optional[OpenAI], collected: dict[str, Any]) -> 
     """Use LLM to detect fraud and decide PAY or ESCALATE_FRAUD for Task C."""
     if not client:
         return heuristic_task_c(collected)
-    
+
+    grounded = grounded_task_c_submission(collected)
     invoice_evidence = collected["invoice_evidence"]
-    ledger_search = collected.get("ledger_search") or {}
     duplicate_links = [hit.get("ledger_id") for hit in collected.get("ledger_hits", []) if hit.get("ledger_id")]
+    duplicate_cluster_report = collected.get("duplicate_cluster_report", {}) or {}
+    report_links = ((duplicate_cluster_report.get("details", {}) or {}).get("gold_links", [])) if isinstance(duplicate_cluster_report, dict) else []
+    for link in report_links or []:
+        if link and link not in duplicate_links:
+            duplicate_links.append(link)
     bank_compare = collected.get("bank_compare") or {}
-    
+
     context = {
         "task": "Task C - Duplicate and fraud triage",
+        "case_instruction": str(collected.get("case_instruction", "") or ""),
         "invoice_fields": collected.get("invoice_fields", {}),
         "bank_comparison": bank_compare,
-        "ledger_search_results": ledger_search,
+        "ledger_search_results": collected.get("ledger_search") or {},
         "duplicate_links": duplicate_links,
+        "duplicate_cluster_report": duplicate_cluster_report,
+        "vendor": collected.get("vendor") or {},
         "vendor_history": collected.get("vendor_history", []),
+        "observed_risk_signals": collected.get("observed_risk_signals", []),
+        "grounded_submission": grounded,
     }
-    
+
     system_prompt = """You are a fraud detection specialist in AP. Analyze the invoice for fraud indicators.
 
 Fraud signals to watch for:
 - Bank account mismatch (proposed account != vendor master)
 - Duplicate invoices (same invoice number or amount in ledger)
+- Approval-threshold evasion / structured invoice amounts
+- Cross-vendor coordination hints from the task instruction
 - Suspicious vendor history
 
 Decision:
 - PAY: Clean, no fraud signals detected
-- ESCALATE_FRAUD: Fraud indicators present (bank mismatch, duplicates, suspicious patterns)
+- NEEDS_REVIEW: Suspicious but not fully confirmed; manual review is required
+- ESCALATE_FRAUD: Fraud indicators present (bank mismatch, coordinated attack, duplicates, suspicious patterns)
+
+Use only grounded fraud_flags from:
+- bank_override_attempt
+- duplicate_near_match
+- approval_threshold_evasion
+- shared_bank_account
+- coordinated_timing
 
 Return JSON format:
 {
-  "decision": "PAY" or "ESCALATE_FRAUD",
+  "decision": "PAY" or "NEEDS_REVIEW" or "ESCALATE_FRAUD",
   "confidence": float (0.0-1.0),
-  "fraud_flags": ["bank_override_attempt", "duplicate_near_match"],
+  "fraud_flags": ["bank_override_attempt", "duplicate_near_match", "approval_threshold_evasion", "shared_bank_account", "coordinated_timing"],
+  "duplicate_links": ["LED-131"],
+  "discrepancies": ["approval_threshold_evasion"],
   "reasoning": "explanation of fraud indicators found"
 }"""
-    
+
     try:
         response = create_json_chat_completion(
             client,
@@ -905,26 +1268,34 @@ Return JSON format:
             raise ValueError("Task C response was not valid JSON.")
         
         decision = result.get("decision", "ESCALATE_FRAUD")
-        if decision not in ["PAY", "ESCALATE_FRAUD"]:
-            decision = "ESCALATE_FRAUD"
-        
-        fraud_flags = result.get("fraud_flags", [])
-        if not isinstance(fraud_flags, list):
-            fraud_flags = []
-        
+        if decision not in ["PAY", "NEEDS_REVIEW", "ESCALATE_FRAUD"]:
+            decision = grounded["decision"]
+
+        raw_fraud_flags = result.get("fraud_flags", [])
+        if not isinstance(raw_fraud_flags, list):
+            raw_fraud_flags = []
+        fraud_flags = canonical_reason_codes(raw_fraud_flags)
+
         # Build evidence map
         evidence_map = {}
-        if "bank_override_attempt" in fraud_flags and "bank_account" in invoice_evidence:
+        if {"bank_override_attempt", "shared_bank_account"} & set(fraud_flags) and "bank_account" in invoice_evidence:
             evidence_map["bank_override_attempt"] = invoice_evidence["bank_account"]
-        if "duplicate_near_match" in fraud_flags and "invoice_number" in invoice_evidence:
+            evidence_map.setdefault("shared_bank_account", invoice_evidence["bank_account"])
+        if {"duplicate_near_match", "coordinated_timing"} & set(fraud_flags) and "invoice_number" in invoice_evidence:
             evidence_map["duplicate_near_match"] = invoice_evidence["invoice_number"]
-        
+            evidence_map.setdefault("coordinated_timing", invoice_evidence["invoice_number"])
+        if "approval_threshold_evasion" in fraud_flags:
+            threshold_evidence = invoice_evidence.get("total") or invoice_evidence.get("invoice_number")
+            if threshold_evidence:
+                evidence_map["approval_threshold_evasion"] = threshold_evidence
+
         return sanitize_task_c_submission(
             {
                 "decision": decision,
                 "confidence": clamp(float(result.get("confidence", 0.9)), 0.0, 1.0),
-                "duplicate_links": duplicate_links if decision == "ESCALATE_FRAUD" else [],
+                "duplicate_links": result.get("duplicate_links", duplicate_links),
                 "fraud_flags": fraud_flags,
+                "discrepancies": result.get("discrepancies", fraud_flags),
                 "evidence_map": evidence_map,
             },
             collected,
@@ -951,6 +1322,7 @@ def llm_decision_task_d(client: Optional[OpenAI], collected: dict[str, Any]) -> 
     
     context = {
         "task": "Task D - AP inbox incident triage (complex fraud)",
+        "case_instruction": str(collected.get("case_instruction", "") or ""),
         "invoice_records": invoice_records,
         "email_thread": email_thread,
         "email_evidence": collected.get("email_evidence", {}),
@@ -958,6 +1330,11 @@ def llm_decision_task_d(client: Optional[OpenAI], collected: dict[str, Any]) -> 
         "vendor_history": vendor_history,
         "bank_comparisons": bank_compares,
         "ledger_hits": ledger_hits,
+        "vendor": collected.get("vendor") or {},
+        "revealed_artifacts": collected.get("revealed_artifacts", {}) or {},
+        "callback_result": collected.get("callback_result", {}) or {},
+        "bank_change_approval_chain": collected.get("bank_change_approval_chain", {}) or {},
+        "pending_events": collected.get("pending_events", []) or [],
     }
     
     system_prompt = """You are a senior fraud investigator analyzing a complex AP case. Look for multiple fraud vectors:
@@ -978,6 +1355,7 @@ Hard constraints:
 - If you return ESCALATE_FRAUD, every reason_code must be grounded in the provided invoices or email thread.
 - If domain_alignment is mismatch, include sender_domain_spoof.
 - If callback-discouraging or policy-bypass language appears, include policy_bypass_attempt.
+- If urgency or executive-pressure language appears, include urgent_payment_pressure.
 - If you include a reason_code, include the same key in evidence_map.
 - If no fraud indicators are evidenced, return PAY with an empty reason_codes array.
 
@@ -989,12 +1367,13 @@ Allowed reason_codes:
 - sender_domain_spoof
 - policy_bypass_attempt
 - approval_threshold_evasion
+- urgent_payment_pressure
 
 Return JSON format:
 {
   "decision": "PAY" or "ESCALATE_FRAUD",
   "confidence": float (0.0-1.0),
-  "reason_codes": ["bank_override_attempt", "duplicate_near_match", "sender_domain_spoof", "policy_bypass_attempt", "approval_threshold_evasion"],
+  "reason_codes": ["bank_override_attempt", "duplicate_near_match", "sender_domain_spoof", "policy_bypass_attempt", "approval_threshold_evasion", "urgent_payment_pressure"],
   "policy_checks": {
     "three_way_match": "pass" or "fail",
     "bank_change_verification": "pass" or "fail",
@@ -1050,12 +1429,18 @@ def llm_decision_task_e(client: Optional[OpenAI], collected: dict[str, Any]) -> 
 
     context = {
         "task": "Task E - campaign-level threshold-evasion fraud",
+        "case_instruction": str(collected.get("case_instruction", "") or ""),
         "invoice_records": invoice_records,
         "email_thread": email_thread,
         "email_evidence": collected.get("email_evidence", {}),
         "vendor_history": vendor_history,
         "bank_comparisons": bank_compares,
         "ledger_hits": ledger_hits,
+        "vendor": collected.get("vendor") or {},
+        "revealed_artifacts": collected.get("revealed_artifacts", {}) or {},
+        "callback_result": collected.get("callback_result", {}) or {},
+        "bank_change_approval_chain": collected.get("bank_change_approval_chain", {}) or {},
+        "duplicate_cluster_report": collected.get("duplicate_cluster_report", {}) or {},
     }
 
     system_prompt = """You are a senior AP fraud investigator analyzing a coordinated payment campaign.
@@ -1076,6 +1461,7 @@ Allowed reason_codes:
 - sender_domain_spoof
 - approval_threshold_evasion
 - policy_bypass_attempt
+- vendor_account_takeover_suspected
 - shared_bank_account
 - coordinated_timing
 
@@ -1095,6 +1481,7 @@ Hard constraints:
 - If multiple invoices share the same suspicious bank account, include shared_bank_account.
 - If the invoices occur across distinct nearby dates as part of one request, include coordinated_timing.
 - If the sender says to keep invoices below approval threshold, include approval_threshold_evasion.
+- If bank details change and the sender domain is suspicious or callback evidence is suspicious, include vendor_account_takeover_suspected.
 - If you return ESCALATE_FRAUD, include every grounded campaign signal you can support from the provided evidence.
 
 Return JSON:
@@ -1225,6 +1612,7 @@ def run_episode(env_url: str, case_id: str, client: Optional[OpenAI]) -> dict[st
     try:
         reset_result = env.reset(case_id=case_id)
         observation = reset_result.observation
+        step_limit = min(int(getattr(observation, "max_steps", MAX_STEPS) or MAX_STEPS), MAX_STEPS)
         task_type = observation.task_type
         step_no = 1
 
@@ -1234,8 +1622,15 @@ def run_episode(env_url: str, case_id: str, client: Optional[OpenAI]) -> dict[st
             "invoice_records": [], "email_doc_id": "", "email_tokens": [],
             "email_evidence": {}, "po": None, "receipt": None, "ledger_hits": [],
             "ledger_queries": {}, "ledger_search": {}, "vendor_history": [],
-            "email_thread": None, "bank_compare": None, "bank_compares": [],
+            "email_thread": {}, "bank_compare": None, "bank_compares": [],
+            "vendor": {}, "revealed_artifacts": {}, "pending_events": [],
+            "observed_risk_signals": [], "callback_result": {},
+            "bank_change_approval_chain": {}, "po_reconciliation_report": {},
+            "receipt_reconciliation_report": {}, "duplicate_cluster_report": {},
+            "case_instruction": str(getattr(observation, "instruction", "") or ""),
+            "case_metadata": dict(getattr(observation, "case_metadata", {}) or {}),
         }
+        update_collected_from_observation(collected, observation)
         executed_signatures: set[str] = set()
 
         invoice_doc_ids = []
@@ -1330,7 +1725,7 @@ def run_episode(env_url: str, case_id: str, client: Optional[OpenAI]) -> dict[st
         invoice_fields = collected["invoice_fields"]
         vendor_key = vendor_key_for(invoice_fields)
         if not vendor_key:
-            vendor_key = normalize_text(collected.get("email_thread", {}).get("vendor_key"))
+            vendor_key = normalize_text((collected.get("email_thread") or {}).get("vendor_key"))
 
         po_id = str(invoice_fields.get("po_id", "")).strip()
         receipt_id = str(invoice_fields.get("receipt_id", "")).strip()
@@ -1341,7 +1736,7 @@ def run_episode(env_url: str, case_id: str, client: Optional[OpenAI]) -> dict[st
         def execute_action_batch(actions: list[LedgerShieldAction]) -> bool:
             nonlocal step_no, steps_taken, final_score, success, final_info, final_tool_result
             for action in actions:
-                if step_no > MAX_STEPS:
+                if step_no > step_limit:
                     break
                 executed_signatures.add(action_signature(action))
                 result, step_no = perform_step(env, step_no, rewards, action)
@@ -1349,6 +1744,7 @@ def run_episode(env_url: str, case_id: str, client: Optional[OpenAI]) -> dict[st
                 record_action_trace("investigation" if action.action_type not in {"request_callback_verification", "freeze_vendor_profile", "request_bank_change_approval_chain", "request_po_reconciliation", "request_additional_receipt_evidence", "route_to_procurement", "route_to_security", "flag_duplicate_cluster_review", "create_human_handoff"} else "intervention", action, result)
                 tool = result.observation.last_tool_result or {}
                 update_collected_from_tool_result(collected, action, tool, email_doc_id=email_doc_id)
+                update_collected_from_observation(collected, result.observation)
                 if result.done:
                     final_score = float(result.info.get("final_score", result.reward or 0.0))
                     success = final_score >= SUCCESS_SCORE_THRESHOLD
@@ -1357,10 +1753,10 @@ def run_episode(env_url: str, case_id: str, client: Optional[OpenAI]) -> dict[st
                     return True
             return False
 
-        remaining_action_slots = max(0, MAX_STEPS - step_no)
+        remaining_action_slots = max(0, step_limit - step_no + 1)
         investigation_budget = {
             "task_b": 3,
-            "task_c": 2,
+            "task_c": 3,
             "task_d": 6,
             "task_e": 8,
         }.get(task_type, 0)
@@ -1391,10 +1787,10 @@ def run_episode(env_url: str, case_id: str, client: Optional[OpenAI]) -> dict[st
         submit_payload = build_final_submission(task_type, collected, client)
         final_submission = dict(submit_payload)
 
-        remaining_action_slots = max(0, MAX_STEPS - step_no)
+        remaining_action_slots = max(0, step_limit - step_no + 1)
         intervention_budget = {
-            "task_b": 1,
-            "task_c": 4,
+            "task_b": 3,
+            "task_c": 5,
             "task_d": 5,
             "task_e": 6,
         }.get(task_type, 0)
@@ -1417,7 +1813,10 @@ def run_episode(env_url: str, case_id: str, client: Optional[OpenAI]) -> dict[st
         if execute_action_batch(planned_interventions):
             return {"case_id": case_id, "task_type": task_type, "score": final_score, "steps": steps_taken}
 
-        if step_no <= MAX_STEPS:
+        submit_payload = build_final_submission(task_type, collected, client)
+        final_submission = dict(submit_payload)
+
+        if step_no <= step_limit:
             submit_action = LedgerShieldAction(action_type="submit_decision", payload=submit_payload)
             final_result, step_no = perform_step(env, step_no, rewards, submit_action)
             steps_taken = step_no - 1

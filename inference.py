@@ -944,6 +944,10 @@ def build_task_e_submission(collected: dict[str, Any], model_assessment: dict[st
     email_evidence = collected.get("email_evidence", {})
     vendor_history = collected.get("vendor_history", []) or []
     ledger_hits = collected.get("ledger_hits", []) or []
+    bank_compare = collected.get("bank_compare") or {}
+    bank_compares = collected.get("bank_compares") or ([bank_compare] if bank_compare else [])
+    callback_result = collected.get("callback_result", {}) or {}
+    callback_details = callback_result.get("details", {}) or {}
     email_flags = derive_email_thread_signals(email_thread)
     bank_accounts = {
         str(record.get("fields", {}).get("bank_account", "")).strip()
@@ -956,15 +960,41 @@ def build_task_e_submission(collected: dict[str, Any], model_assessment: dict[st
         if str(record.get("fields", {}).get("invoice_date", "")).strip()
     ]
     invoice_totals = [safe_float(record.get("fields", {}).get("total")) for record in invoice_records]
-    shared_bank = len(bank_accounts) == 1 and any(account != "" for account in bank_accounts)
-    coordinated_timing = len(set(invoice_dates)) == len(invoice_dates) and len(invoice_dates) >= 3
-    threshold_evasion = len(invoice_totals) >= 3 and sum(invoice_totals) >= 100000.0 and all(0.0 < total < 50000.0 for total in invoice_totals)
+    bank_mismatch = any(compare and not bool(compare.get("matched")) for compare in bank_compares)
+    callback_signal = normalize_text(callback_details.get("risk_signal") or callback_details.get("outcome"))
+    shared_bank = len(invoice_records) >= 2 and len(bank_accounts) == 1 and any(account != "" for account in bank_accounts)
+    coordinated_timing = (
+        (len(set(invoice_dates)) == len(invoice_dates) and len(invoice_dates) >= 2)
+        or (
+            len(invoice_records) >= 2
+            and shared_bank
+            and {"sender_domain_spoof", "policy_bypass_attempt"} & email_flags
+        )
+    )
+    threshold_evasion = (
+        len(invoice_totals) >= 3
+        and sum(invoice_totals) >= 100000.0
+        and all(0.0 < total < 50000.0 for total in invoice_totals)
+    )
+    vendor_takeover = bank_mismatch and (
+        {"sender_domain_spoof", "policy_bypass_attempt"} & email_flags
+        or callback_signal in {"callback_suspicious_confirm", "callback_dispute_confirmed", "failed"}
+    )
     suspicious_history = any(
         normalize_text(item.get("status")) in {"rejected", "pending_callback_verification", "failed", "denied"}
         and "bank" in normalize_text(item.get("change_type") or item.get("event_type"))
         for item in vendor_history
     )
-    suspicious = bool(email_flags) or shared_bank or coordinated_timing or threshold_evasion or suspicious_history or bool(ledger_hits)
+    suspicious = (
+        bool(email_flags)
+        or bank_mismatch
+        or shared_bank
+        or coordinated_timing
+        or threshold_evasion
+        or vendor_takeover
+        or suspicious_history
+        or bool(ledger_hits)
+    )
 
     if not suspicious:
         return {
@@ -1015,14 +1045,29 @@ def build_task_e_submission(collected: dict[str, Any], model_assessment: dict[st
             or email_evidence.get("subject_header")
             or email_evidence.get("from_header")
         )
-    if shared_bank and invoice_records:
+    if bank_mismatch and invoice_records:
         primary_evidence = invoice_records[0].get("evidence", {})
         if "bank_account" in primary_evidence:
             reason_codes.append("bank_override_attempt")
             evidence_map.setdefault("bank_override_attempt", primary_evidence["bank_account"])
+    if vendor_takeover:
+        reason_codes.append("vendor_account_takeover_suspected")
+        evidence_map.setdefault(
+            "vendor_account_takeover_suspected",
+            email_evidence.get("from_header")
+            or email_evidence.get("policy_bypass_attempt")
+            or invoice_records[0].get("evidence", {}).get("bank_account")
+            if invoice_records
+            else None,
+        )
 
-    checks = policy_check_payload("pass", "fail", "fail")
-    checks["approval_threshold_check"] = "fail"
+    checks = policy_check_payload(
+        "pass",
+        "fail" if bank_mismatch or vendor_takeover else "pass",
+        "fail" if ledger_hits else "pass",
+    )
+    if threshold_evasion:
+        checks["approval_threshold_check"] = "fail"
     return {
         "decision": "ESCALATE_FRAUD",
         "confidence": 0.99,
@@ -1607,7 +1652,7 @@ def run_episode_with_env(
             "ledger_queries": {},
             "ledger_search": {},
             "vendor_history": [],
-            "email_thread": None,
+            "email_thread": {},
             "bank_compare": None,
             "bank_compares": [],
             "_client": client,
@@ -1687,7 +1732,7 @@ def run_episode_with_env(
         invoice_fields = collected["invoice_fields"]
         vendor_key = vendor_key_for(invoice_fields)
         if not vendor_key:
-            vendor_key = normalize_text(collected.get("email_thread", {}).get("vendor_key"))
+            vendor_key = normalize_text((collected.get("email_thread") or {}).get("vendor_key"))
 
         po_id = str(invoice_fields.get("po_id", "")).strip()
         receipt_id = str(invoice_fields.get("receipt_id", "")).strip()

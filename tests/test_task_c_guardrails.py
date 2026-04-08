@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from task_c_guardrails import sanitize_task_c_submission, validate_task_c_submission
+from task_c_guardrails import grounded_task_c_submission, sanitize_task_c_submission, validate_task_c_submission
 
 
 def _clean_collected() -> dict:
@@ -143,3 +143,91 @@ def test_sanitize_task_c_submission_backfills_grounded_evidence_for_chosen_flags
 
     assert sanitized["fraud_flags"] == ["bank_override_attempt"]
     assert set(sanitized["evidence_map"]) == {"bank_override_attempt"}
+
+
+def test_grounded_task_c_submission_promotes_threshold_case_to_needs_review():
+    grounded = grounded_task_c_submission(
+        {
+            "case_instruction": "Investigate whether this invoice amount was deliberately structured below the approval threshold.",
+            "invoice_evidence": {
+                "invoice_number": {
+                    "doc_id": "INV-C-004",
+                    "page": 1,
+                    "bbox": [10, 30, 160, 40],
+                    "token_ids": ["c42"],
+                },
+                "total": {
+                    "doc_id": "INV-C-004",
+                    "page": 1,
+                    "bbox": [10, 50, 100, 60],
+                    "token_ids": ["c43"],
+                },
+                "bank_account": {
+                    "doc_id": "INV-C-004",
+                    "page": 1,
+                    "bbox": [10, 70, 150, 80],
+                    "token_ids": ["c44"],
+                },
+            },
+            "invoice_fields": {
+                "invoice_number": "INV-SPLIT-A",
+                "total": 4950.0,
+            },
+            "duplicate_cluster_report": {
+                "details": {
+                    "status": "cluster_detected",
+                    "gold_links": [],
+                }
+            },
+            "ledger_search": {"exact_duplicate_count": 0, "near_duplicate_count": 0},
+            "ledger_hits": [],
+            "bank_compare": {"matched": True},
+            "bank_compares": [{"matched": True}],
+        }
+    )
+
+    assert grounded["decision"] == "NEEDS_REVIEW"
+    assert grounded["fraud_flags"] == ["approval_threshold_evasion"]
+    assert grounded["discrepancies"] == ["approval_threshold_evasion"]
+    assert set(grounded["evidence_map"]) == {"approval_threshold_evasion"}
+
+
+def test_grounded_task_c_submission_surfaces_cross_vendor_campaign_signals():
+    grounded = grounded_task_c_submission(
+        {
+            "case_instruction": "Two vendors have submitted invoices with suspiciously similar amounts and timing. Investigate for coordinated fraud.",
+            "invoice_evidence": {
+                "invoice_number": {
+                    "doc_id": "INV-C-003",
+                    "page": 1,
+                    "bbox": [10, 30, 170, 40],
+                    "token_ids": ["c32"],
+                },
+                "bank_account": {
+                    "doc_id": "INV-C-003",
+                    "page": 1,
+                    "bbox": [10, 70, 170, 80],
+                    "token_ids": ["c34"],
+                },
+            },
+            "invoice_fields": {
+                "invoice_number": "BLP-DUPL-001",
+                "total": 4999.0,
+            },
+            "duplicate_cluster_report": {
+                "details": {
+                    "status": "cluster_detected",
+                    "gold_links": ["LED-131"],
+                }
+            },
+            "ledger_search": {"exact_duplicate_count": 0, "near_duplicate_count": 0},
+            "ledger_hits": [],
+            "bank_compare": {"matched": False},
+            "bank_compares": [{"matched": False}],
+        }
+    )
+
+    assert grounded["decision"] == "ESCALATE_FRAUD"
+    assert "shared_bank_account" in grounded["fraud_flags"]
+    assert "coordinated_timing" in grounded["fraud_flags"]
+    assert grounded["duplicate_links"] == ["LED-131"]

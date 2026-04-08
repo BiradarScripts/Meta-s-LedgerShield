@@ -208,3 +208,70 @@ def test_run_local_baseline_repairs_incomplete_task_d_fraud_submission(monkeypat
 
     assert case["final_decision"] == "ESCALATE_FRAUD"
     assert case["score"] >= 0.85  # Lowered due to new tightened grading (Phase 2)
+
+
+def test_build_task_e_submission_detects_vendor_takeover_patterns():
+    submission = inference.build_task_e_submission(
+        {
+            "invoice_records": [
+                {
+                    "doc_id": "INV-E-SC-001",
+                    "fields": {"bank_account": "DE00COMPROMISED999", "total": 49500.0},
+                    "evidence": {
+                        "bank_account": {
+                            "doc_id": "INV-E-SC-001",
+                            "page": 1,
+                            "bbox": [10, 70, 190, 80],
+                            "token_ids": ["esc4"],
+                        }
+                    },
+                },
+                {
+                    "doc_id": "INV-E-SC-002",
+                    "fields": {"bank_account": "DE00COMPROMISED999", "total": 49000.0},
+                    "evidence": {
+                        "bank_account": {
+                            "doc_id": "INV-E-SC-002",
+                            "page": 1,
+                            "bbox": [10, 70, 190, 80],
+                            "token_ids": ["esc8"],
+                        }
+                    },
+                },
+            ],
+            "email_thread": {
+                "sender_profile": {"domain_alignment": "mismatch"},
+                "request_signals": {
+                    "bank_change_language": True,
+                    "callback_discouraged": True,
+                    "policy_override_language": True,
+                    "urgency_language": False,
+                },
+            },
+            "email_evidence": {
+                "from_header": {
+                    "doc_id": "THR-E-SC-001",
+                    "page": 1,
+                    "bbox": [10, 10, 280, 20],
+                    "token_ids": ["eesc1"],
+                },
+                "policy_bypass_attempt": {
+                    "doc_id": "THR-E-SC-001",
+                    "page": 1,
+                    "bbox": [10, 70, 400, 80],
+                    "token_ids": ["eesc4"],
+                },
+            },
+            "bank_compares": [{"matched": False}],
+            "ledger_hits": [],
+            "vendor_history": [],
+            "callback_result": {"details": {"risk_signal": "callback_suspicious_confirm"}},
+        },
+        {},
+    )
+
+    assert submission["decision"] == "ESCALATE_FRAUD"
+    assert "vendor_account_takeover_suspected" in submission["reason_codes"]
+    assert "sender_domain_spoof" in submission["reason_codes"]
+    assert "bank_override_attempt" in submission["reason_codes"]
+    assert "shared_bank_account" in submission["campaign_signals"]

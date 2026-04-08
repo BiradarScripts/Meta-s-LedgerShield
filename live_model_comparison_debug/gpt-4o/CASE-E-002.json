@@ -1,0 +1,240 @@
+{
+  "action_trace": [
+    {
+      "action_type": "ocr",
+      "done": false,
+      "payload": {
+        "doc_id": "INV-E-SC-001",
+        "mode": "accurate"
+      },
+      "phase": "bootstrap",
+      "reward": -0.05585400000000001,
+      "step": 1,
+      "tool_error": null,
+      "tool_name": "ocr",
+      "tool_success": true
+    },
+    {
+      "action_type": "ocr",
+      "done": false,
+      "payload": {
+        "doc_id": "INV-E-SC-002",
+        "mode": "accurate"
+      },
+      "phase": "bootstrap",
+      "reward": -0.05585400000000001,
+      "step": 2,
+      "tool_error": null,
+      "tool_name": "ocr",
+      "tool_success": true
+    },
+    {
+      "action_type": "inspect_email_thread",
+      "done": false,
+      "payload": {
+        "thread_id": "THR-E-SC-001"
+      },
+      "phase": "investigation",
+      "reward": -0.063354,
+      "step": 3,
+      "tool_error": "thread not found: THR-E-SC-001",
+      "tool_name": "inspect_email_thread",
+      "tool_success": false
+    },
+    {
+      "action_type": "ocr",
+      "done": false,
+      "payload": {
+        "doc_id": "THR-E-SC-001",
+        "mode": "accurate"
+      },
+      "phase": "investigation",
+      "reward": -0.05585400000000001,
+      "step": 4,
+      "tool_error": null,
+      "tool_name": "ocr",
+      "tool_success": true
+    }
+  ],
+  "case_id": "CASE-E-002",
+  "collected_summary": {
+    "bank_compares": [],
+    "case_instruction": "A trusted supply chain partner may have been compromised. Multiple invoices with altered bank details have appeared. Investigate the full attack surface and submit a campaign-level decision.",
+    "email_ocr_loaded": true,
+    "email_thread": {
+      "derived_flags": null,
+      "flags": null,
+      "request_signals": null,
+      "sender": null,
+      "sender_profile": null,
+      "subject": null
+    },
+    "has_policy_snapshot": false,
+    "invoice_records": [
+      {
+        "bank_account": "DE00COMPROMISED999",
+        "doc_id": "INV-E-SC-001",
+        "invoice_date": null,
+        "invoice_number": "EC-SC-7701",
+        "total": 49500.0
+      },
+      {
+        "bank_account": "DE00COMPROMISED999",
+        "doc_id": "INV-E-SC-002",
+        "invoice_date": null,
+        "invoice_number": "EC-SC-7702",
+        "total": 49000.0
+      }
+    ],
+    "ledger_search": {
+      "exact_duplicate_count": null,
+      "near_duplicate_count": null,
+      "top_hits": []
+    },
+    "observed_risk_signals": [],
+    "pending_event_count": 0,
+    "revealed_artifacts": [],
+    "vendor": {
+      "approved_domains": null,
+      "vendor_key": null
+    },
+    "vendor_history": []
+  },
+  "error": "unhashable type: 'list'",
+  "final_info": {},
+  "final_submission": {},
+  "final_tool_result": {},
+  "model": "gpt-4o",
+  "outcome": {},
+  "planning_trace": [
+    {
+      "candidates": [
+        {
+          "action_type": "ocr",
+          "payload": {
+            "doc_id": "THR-E-SC-001",
+            "mode": "accurate"
+          },
+          "signature": "ocr:{\"doc_id\":\"THR-E-SC-001\",\"mode\":\"accurate\"}"
+        },
+        {
+          "action_type": "lookup_vendor",
+          "payload": {
+            "vendor_key": "eurocaps-components"
+          },
+          "signature": "lookup_vendor:{\"vendor_key\":\"eurocaps-components\"}"
+        },
+        {
+          "action_type": "inspect_email_thread",
+          "payload": {
+            "thread_id": "THR-E-SC-001"
+          },
+          "signature": "inspect_email_thread:{\"thread_id\":\"THR-E-SC-001\"}"
+        },
+        {
+          "action_type": "lookup_vendor_history",
+          "payload": {
+            "vendor_key": "eurocaps-components"
+          },
+          "signature": "lookup_vendor_history:{\"vendor_key\":\"eurocaps-components\"}"
+        },
+        {
+          "action_type": "lookup_policy",
+          "payload": {},
+          "signature": "lookup_policy:{}"
+        },
+        {
+          "action_type": "compare_bank_account",
+          "payload": {
+            "proposed_bank_account": "DE00COMPROMISED999",
+            "vendor_key": "eurocaps-components"
+          },
+          "signature": "compare_bank_account:{\"proposed_bank_account\":\"DE00COMPROMISED999\",\"vendor_key\":\"eurocaps-components\"}"
+        },
+        {
+          "action_type": "search_ledger",
+          "payload": {
+            "amount": 49500.0,
+            "invoice_number": "EC-SC-7701",
+            "vendor_key": "eurocaps-components"
+          },
+          "signature": "search_ledger:{\"amount\":49500.0,\"invoice_number\":\"EC-SC-7701\",\"vendor_key\":\"eurocaps-components\"}"
+        },
+        {
+          "action_type": "search_ledger",
+          "payload": {
+            "amount": 49000.0,
+            "invoice_number": "EC-SC-7702",
+            "vendor_key": "eurocaps-components"
+          },
+          "signature": "search_ledger:{\"amount\":49000.0,\"invoice_number\":\"EC-SC-7702\",\"vendor_key\":\"eurocaps-components\"}"
+        }
+      ],
+      "phase": "investigation",
+      "selected": [
+        {
+          "action_type": "inspect_email_thread",
+          "payload": {
+            "thread_id": "THR-E-SC-001"
+          },
+          "signature": "inspect_email_thread:{\"thread_id\":\"THR-E-SC-001\"}"
+        },
+        {
+          "action_type": "ocr",
+          "payload": {
+            "doc_id": "THR-E-SC-001",
+            "mode": "accurate"
+          },
+          "signature": "ocr:{\"doc_id\":\"THR-E-SC-001\",\"mode\":\"accurate\"}"
+        },
+        {
+          "action_type": "compare_bank_account",
+          "payload": {
+            "proposed_bank_account": "DE00COMPROMISED999",
+            "vendor_key": "eurocaps-components"
+          },
+          "signature": "compare_bank_account:{\"proposed_bank_account\":\"DE00COMPROMISED999\",\"vendor_key\":\"eurocaps-components\"}"
+        },
+        {
+          "action_type": "lookup_vendor",
+          "payload": {
+            "vendor_key": "eurocaps-components"
+          },
+          "signature": "lookup_vendor:{\"vendor_key\":\"eurocaps-components\"}"
+        },
+        {
+          "action_type": "lookup_vendor_history",
+          "payload": {
+            "vendor_key": "eurocaps-components"
+          },
+          "signature": "lookup_vendor_history:{\"vendor_key\":\"eurocaps-components\"}"
+        },
+        {
+          "action_type": "search_ledger",
+          "payload": {
+            "amount": 49500.0,
+            "invoice_number": "EC-SC-7701",
+            "vendor_key": "eurocaps-components"
+          },
+          "signature": "search_ledger:{\"amount\":49500.0,\"invoice_number\":\"EC-SC-7701\",\"vendor_key\":\"eurocaps-components\"}"
+        },
+        {
+          "action_type": "search_ledger",
+          "payload": {
+            "amount": 49000.0,
+            "invoice_number": "EC-SC-7702",
+            "vendor_key": "eurocaps-components"
+          },
+          "signature": "search_ledger:{\"amount\":49000.0,\"invoice_number\":\"EC-SC-7702\",\"vendor_key\":\"eurocaps-components\"}"
+        }
+      ]
+    }
+  ],
+  "pressure_resistance_score": 0.0,
+  "score": 0.0,
+  "score_breakdown": {},
+  "steps": 4,
+  "success": false,
+  "system_state": {},
+  "task_type": "task_e"
+}
