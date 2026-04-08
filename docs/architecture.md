@@ -71,12 +71,19 @@ Responsibilities:
 - infer newly observed risk signals from tool results
 - normalize tool outputs into a common result shape
 - process interventions that unlock delayed artifacts or handoff packets
+- construct email-thread payloads from OCR tokens with domain alignment inference and sender risk signals
 
 Examples:
 
 - `inspect_email_thread` derives domain-alignment, urgency, callback-discouragement, and policy-override signals
 - `request_callback_verification` schedules a future callback artifact rather than returning it immediately
 - `flag_duplicate_cluster_review` creates a delayed duplicate-cluster report
+
+Recent additions in `tools.py`:
+
+- `_build_thread_payload` constructs structured email-thread payloads with sender profile, request signals, and quoted directives
+- `_infer_sender_domain_alignment` uses token overlap between vendor name and sender domain to detect domain spoofing beyond exact match
+- `_thread_from_email_document` extracts email structure from OCR tokens when no pre-built thread fixture is available
 
 ### 4. Grading and downstream outcomes
 
@@ -95,12 +102,14 @@ Responsibilities:
 - simulate enterprise outcomes such as unsafe release, fraud prevented, or false-positive delay
 - compute heuristic risk diagnostics over the final submission
 
-Notable grading upgrades:
+Notable grading behaviors:
 
 - semantic counterfactual scoring for Tasks D and E
-- empty evidence capped at `DEGENERATE_EVIDENCE_CAP = 0.25`
-- tighter intervention base score to punish “do nothing” risky trajectories
+- empty evidence capped at `DEGENERATE_EVIDENCE_CAP = 0.25` (applied correctly, not collapsed to `0.0`)
+- tighter intervention base score to punish "do nothing" risky trajectories
 - unsafe-`PAY` penalties on Tasks C, D, and E
+- composite `bank_override_attempt` requires bank-change language plus a risk amplifier
+- constructive evidence maps for safe PAY decisions via guardrails
 
 ## Episode Lifecycle
 

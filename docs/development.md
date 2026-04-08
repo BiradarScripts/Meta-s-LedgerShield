@@ -65,6 +65,12 @@ The repo includes [`../.github/workflows/ci.yml`](../.github/workflows/ci.yml), 
 - Docker build + container smoke test
 - `openenv.yaml` metadata validation
 
+Pytest configuration is centralized in [`../pyproject.toml`](../pyproject.toml) under `[tool.pytest.ini_options]`:
+
+- `asyncio_mode = "strict"` with `asyncio_default_fixture_loop_scope = "function"`
+- custom `tests` marker
+- deprecation-warning filters for `websockets.legacy`
+
 If you change APIs, packaging, or runtime behavior, assume CI should keep passing without special local context.
 
 ## Repo Map
@@ -85,22 +91,20 @@ If you change APIs, packaging, or runtime behavior, assume CI should keep passin
 | [`../ledgershield_env.py`](../ledgershield_env.py) | compatibility re-export module for legacy imports |
 | [`../models.py`](../models.py) | shared dataclasses, Pydantic reward model, typed internal returns |
 | [`../openenv_compat.py`](../openenv_compat.py) | adapter around `openenv-core` with local fallback server/client |
-| [`../inference.py`](../inference.py) | submission-safe baseline/entrypoint with strict stdout contract |
+| [`../inference.py`](../inference.py) | submission-safe agent with `ModelCapabilityProfile` tiers, evidence grounding, and strict stdout contract |
 | [`../inference_improved.py`](../inference_improved.py) | experimental improved agent entrypoint |
 | [`../inference_llm_powered.py`](../inference_llm_powered.py) | richer LLM-powered agent used for debugging and comparisons |
 | [`../llm_utils.py`](../llm_utils.py) | JSON parsing and completion helpers for LLM workflows |
 | [`../llm_judge_grader.py`](../llm_judge_grader.py) | optional LLM-as-judge grading experiments |
-| [`../compare_models_live.py`](../compare_models_live.py) | live multi-model comparison runner with debug artifact output |
+| [`../compare_models_live.py`](../compare_models_live.py) | live multi-model comparison with capability profiles and monotonic strength checks |
 | [`../compare_all_models.py`](../compare_all_models.py) | broader multi-model sweep helper |
 | [`../benchmark_report.py`](../benchmark_report.py) | public benchmark, holdout, and contrastive report generation |
 | [`../generate_branch_comparison_report.py`](../generate_branch_comparison_report.py) | legacy reporting helper for saved branch comparison JSONs |
 | [`../generate_comparison_report.py`](../generate_comparison_report.py) | legacy reporting helper for multi-model JSON summaries |
 | [`../generate_final_report.py`](../generate_final_report.py) | legacy reporting helper for final comparison JSONs |
 | [`../generate_sota_report.py`](../generate_sota_report.py) | legacy reporting helper for SOTA comparison JSONs |
-| [`../find_codec.py`](../find_codec.py) | local troubleshooting helper script |
-| [`../find_crash.py`](../find_crash.py) | local troubleshooting helper script |
-| [`../task_c_guardrails.py`](../task_c_guardrails.py) | Task C sanitization and validation helpers |
-| [`../task_d_guardrails.py`](../task_d_guardrails.py) | Task D sanitization and validation helpers |
+| [`../task_c_guardrails.py`](../task_c_guardrails.py) | Task C sanitization, composite signal detection, and constructive PAY evidence |
+| [`../task_d_guardrails.py`](../task_d_guardrails.py) | Task D sanitization, composite signal detection, and constructive PAY evidence |
 | [`../test_scoring.py`](../test_scoring.py) | local baseline scoring simulation helper |
 | [`../validate_grader.py`](../validate_grader.py) | end-to-end grader and environment validation script |
 | [`../validate_agent_grading.py`](../validate_agent_grading.py) | score-separation validation helper |
@@ -115,7 +119,7 @@ If you change APIs, packaging, or runtime behavior, assume CI should keep passin
 | [`../server/app.py`](../server/app.py) | FastAPI app builder and endpoint registration |
 | [`../server/environment.py`](../server/environment.py) | main environment loop, reward shaping, truncation logic, rendering |
 | [`../server/world_state.py`](../server/world_state.py) | hidden/public state, artifacts, readiness, pressure resistance |
-| [`../server/tools.py`](../server/tools.py) | investigation tool implementations |
+| [`../server/tools.py`](../server/tools.py) | investigation tool implementations, email-thread payload construction, domain alignment inference |
 | [`../server/transition_engine.py`](../server/transition_engine.py) | intervention handling and signal extraction |
 | [`../server/grading.py`](../server/grading.py) | task-specific grading rubrics |
 | [`../server/trajectory_grading.py`](../server/trajectory_grading.py) | trajectory-aware scoring components |
@@ -153,7 +157,7 @@ If you change APIs, packaging, or runtime behavior, assume CI should keep passin
 | [`../tests/test_api_smoke.py`](../tests/test_api_smoke.py) | API endpoint smoke coverage |
 | [`../tests/test_benchmark_report.py`](../tests/test_benchmark_report.py) | public/holdout/contrastive reporting behavior |
 | [`../tests/test_compare_all_models.py`](../tests/test_compare_all_models.py) | score parsing helpers in broad model sweeps |
-| [`../tests/test_compare_models_live.py`](../tests/test_compare_models_live.py) | live comparison stats and rendering helpers |
+| [`../tests/test_compare_models_live.py`](../tests/test_compare_models_live.py) | live comparison stats, capability profiles, and rendering helpers |
 | [`../tests/test_compliance_engine.py`](../tests/test_compliance_engine.py) | SOX compliance evaluation |
 | [`../tests/test_currency_engine.py`](../tests/test_currency_engine.py) | FX/IBAN/SWIFT/aging-report utilities |
 | [`../tests/test_curriculum.py`](../tests/test_curriculum.py) | curriculum tiering and case selection |
@@ -163,8 +167,8 @@ If you change APIs, packaging, or runtime behavior, assume CI should keep passin
 | [`../tests/test_inference_runtime.py`](../tests/test_inference_runtime.py) | model capability profiles and runtime heuristics |
 | [`../tests/test_ledgershield_env.py`](../tests/test_ledgershield_env.py) | environment transitions, scoring, and holdout generation |
 | [`../tests/test_schema_reason_codes.py`](../tests/test_schema_reason_codes.py) | reason-code normalization and aliasing |
-| [`../tests/test_task_c_guardrails.py`](../tests/test_task_c_guardrails.py) | Task C submission guardrails |
-| [`../tests/test_task_d_guardrails.py`](../tests/test_task_d_guardrails.py) | Task D submission guardrails |
+| [`../tests/test_task_c_guardrails.py`](../tests/test_task_c_guardrails.py) | Task C submission guardrails and PAY evidence |
+| [`../tests/test_task_d_guardrails.py`](../tests/test_task_d_guardrails.py) | Task D submission guardrails and PAY evidence |
 
 ### `docs/`
 

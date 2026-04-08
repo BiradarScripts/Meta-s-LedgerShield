@@ -98,11 +98,12 @@ Common variables used by `inference.py` and related scripts:
 | Variable | Typical use |
 |---|---|
 | `API_BASE_URL` | OpenAI-compatible API endpoint |
-| `MODEL_NAME` | model name for inference |
+| `MODEL_NAME` | model name for inference (determines `ModelCapabilityProfile` tier) |
 | `HF_TOKEN` | token used by the submission-safe agent |
 | `OPENAI_API_KEY` | credential for live comparison scripts |
 | `ENV_URL` | environment server base URL |
 | `LOCAL_IMAGE_NAME` | optional Docker image name for local environment use |
+| `LEDGERSHIELD_DEBUG` | set to `1` to enable stderr output from the inference agent (default: stderr suppressed) |
 
 ## Operational Checks
 

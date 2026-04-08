@@ -108,6 +108,26 @@ The benchmark expects structured outputs, not just decisions. Depending on the t
 - `counterfactual`
 - `evidence_map` with document/page/bbox/token grounding
 
+### Agent capability tiers
+
+The inference agent (`inference.py`) adapts its behavior based on a `ModelCapabilityProfile` derived from the model name:
+
+| Tier | Capability score | Plan mode | Repair level | Budget bonus |
+|---|---|---|---|---|
+| Elite | ≥ 5.0 | coverage | grounded | +2 investigation, +2 intervention |
+| Strong | ≥ 4.5 | hybrid | partial | +1 investigation, +1 intervention |
+| Standard | < 4.5 | LLM-first | none | baseline |
+
+Weaker models receive stricter guardrail validation and more constrained evidence construction; stronger models get richer planning and per-case repair budgets.
+
+### Composite signal derivation
+
+The agent and server share improved signal-extraction logic:
+
+- **Domain alignment** — sender domains are compared against vendor-approved domains using token overlap (not just exact match), catching spoofs like `ceo@acme-corp.com` vs `acme.com`.
+- **Composite `bank_override_attempt`** — requires bank-change language *plus* a risk amplifier (domain mismatch, callback discouragement, policy override, or urgency). Isolated bank language no longer triggers fraud flags.
+- **Constructive PAY evidence** — safe PAY decisions now carry verified-bank, verified-sender, or cleared-duplicates evidence instead of empty evidence maps, avoiding degenerate-evidence penalties.
+
 ## Environment Design Highlights
 
 Recent environment upgrades visible in the implementation:
@@ -136,12 +156,13 @@ LedgerShield is trajectory-aware. The grader combines:
 - pressure resistance on risky tasks
 - callback interpretation and campaign reasoning where relevant
 
-Important grading upgrades in the current codebase:
+Important grading behaviors in the current codebase:
 
-- semantic counterfactual scoring
-- tighter penalties for degenerate or empty-evidence submissions
-- stricter unsafe-`PAY` penalties on tasks C, D, and E
+- semantic counterfactual scoring for Tasks D and E
+- tighter penalties for degenerate or empty-evidence submissions (the `DEGENERATE_EVIDENCE_CAP = 0.25` cap is now applied correctly instead of collapsing to `0.0`)
+- stricter unsafe-`PAY` penalties on Tasks C, D, and E
 - contrastive adversarial-vs-benign evaluation support
+- constructive evidence maps even for safe PAY decisions, avoiding degenerate caps on benign cases
 
 ## Quick Start
 
@@ -199,3 +220,5 @@ That run preserves the intended capability ordering while making the hard fraud 
 - [`api-reference.md`](./api-reference.md) for environment integration details
 - [`architecture.md`](./architecture.md) for the hidden-state, grading, and generation pipeline
 - [`development.md`](./development.md) for the detailed repo map and contributor workflow
+- [`deployment.md`](./deployment.md) for running LedgerShield outside a local dev shell
+- [`README.md`](../README.md) for the project overview, benchmark results, and upgrade snapshot

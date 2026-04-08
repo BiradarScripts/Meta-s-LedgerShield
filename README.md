@@ -15,7 +15,7 @@ tags:
   - enterprise-risk
 ---
 
-# LedgerShield
+# LedgerShield 🛡️
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
@@ -23,6 +23,8 @@ tags:
 [![OpenEnv](https://img.shields.io/badge/OpenEnv-compatible-green.svg)](./openenv.yaml)
 
 LedgerShield is a stateful, adversarial benchmark for AI agents operating inside enterprise accounts-payable workflows. Instead of asking a model to classify one document, LedgerShield asks it to investigate, unlock hidden evidence, choose controls, withstand pressure, and submit a proof-carrying decision under budget and step limits.
+
+> **📖 Documentation hub:** See [`docs/README.md`](./docs/README.md) for a guided tour of all documentation, reading paths by role, and a map of what lives where.
 
 ## Why This Matters
 
@@ -96,9 +98,29 @@ Final action:
 
 The submission is not just a label. Strong agents are expected to return structured decisions with grounded `reason_codes`, `policy_checks`, `evidence_map`, and task-specific fields like duplicates, campaign signals, discrepancies, or extracted invoice fields.
 
+### Agent capability tiers
+
+The inference agent (`inference.py`) uses a `ModelCapabilityProfile` that adapts behavior to model strength:
+
+| Tier | Capability score | Plan mode | Repair level | Budget bonus |
+|---|---|---|---|---|
+| Elite | ≥ 5.0 | coverage | grounded | +2 investigation, +2 intervention |
+| Strong | ≥ 4.5 | hybrid | partial | +1 investigation, +1 intervention |
+| Standard | < 4.5 | LLM-first | none | baseline |
+
+Weaker models get more structured guardrails and stricter evidence validation; stronger models get richer planning and repair budgets.
+
+### Smart signal derivation
+
+The agent and server now share improved signal-extraction logic:
+
+- **Domain alignment inference** — sender domains are compared against vendor-approved domains using token overlap, not just exact match. This catches spoofs like `ceo@acme-corp.com` vs approved `acme.com`.
+- **Composite risk flags** — `bank_override_attempt` now requires `bank_change_language` *and* a risk amplifier (domain mismatch, callback discouragement, policy override, or urgency). Isolated bank language no longer triggers false fraud flags.
+- **PAY evidence** — safe PAY decisions now carry constructive evidence (verified bank, verified sender, cleared duplicates) instead of empty evidence maps. This avoids degenerate-evidence penalties on benign cases.
+
 ## Upgrade Snapshot
 
-The recent benchmark upgrade work is now reflected in the codebase:
+The benchmark upgrade work is reflected in the codebase across five phases:
 
 | Phase | Highlights |
 |---|---|
@@ -108,12 +130,24 @@ The recent benchmark upgrade work is now reflected in the codebase:
 | Phase 4: Code quality | docstrings across core modules, `tests/conftest.py`, CI workflow, `TypedDict` internal returns |
 | Phase 5: Creativity and novelty | Dec-POMDP watchdog mode, curriculum adaptation, 16-attack library, exploration bonus integrated into `step()` |
 
+### Recent patch-level changes
+
+| Change | Where | Why |
+|---|---|---|
+| `DEGENERATE_EVIDENCE_CAP` applied correctly | `server/grading.py` | Bug fix: empty evidence now correctly receives cap value instead of collapsing to `0.0` |
+| Model capability profiles and tiered agent behavior | `inference.py` | Agent adapts investigation/repair strategy based on model tier (elite/strong/standard) |
+| Composite `bank_override_attempt` signal | `server/tools.py`, `task_c_guardrails.py`, `task_d_guardrails.py` | Bank override flag now requires bank-change language *plus* a risk amplifier — reduces false positives |
+| Domain alignment via token overlap | `server/tools.py`, `inference.py` | Catches spoofs where sender domain shares tokens with vendor name but is not an exact match |
+| Constructive PAY evidence maps | `task_c_guardrails.py`, `task_d_guardrails.py` | Safe PAY decisions carry verified-bank / cleared-duplicates evidence instead of empty maps |
+| Per-model capability profiles in live comparison | `compare_models_live.py` | Records model tier, capability score, and monotonic strength checks alongside scores |
+| `pytest` config in `pyproject.toml` | `pyproject.toml` | Asyncio mode, markers, deprecation-warning filters |
+
 ## Benchmarking Story
 
 LedgerShield is not just a server. It includes a full evaluation stack:
 
 - `benchmark_report.py` scores the public benchmark, generated holdout suites, and contrastive adversarial/benign pairs.
-- `compare_models_live.py` runs live head-to-head evaluations and writes per-case debug traces.
+- `compare_models_live.py` runs live head-to-head evaluations with per-model capability profiles and writes per-case debug traces including monotonic strength ordering checks.
 - `live_model_comparison_debug/` stores action traces, planning traces, score breakdowns, and system state snapshots for diagnosis.
 - `/leaderboard` and `/benchmark-report` expose report artifacts through the API when generated.
 
@@ -141,23 +175,17 @@ Failed cases for the weakest model:
 - `CASE-C-001`
 - `CASE-C-002`
 - `CASE-C-003`
-- `CASE-D-001`
-- `CASE-D-002`
-- `CASE-D-003`
-- `CASE-D-004`
-- `CASE-D-005`
-- `CASE-D-006`
-- `CASE-E-001`
-- `CASE-E-002`
+- `CASE-D-001` through `CASE-D-006`
+- `CASE-E-001`, `CASE-E-002`
 
-Published benchmark metadata in [`openenv.yaml`](./openenv.yaml) already records meaningful public-vs-holdout separation:
+Published benchmark metadata in [`openenv.yaml`](./openenv.yaml) records meaningful public-vs-holdout separation:
 
 | Agent | Public mean | Holdout mean | Holdout consistent pass rate |
 |---|---:|---:|---:|
 | Deterministic baseline | 0.9674 | 0.6649 | 0.6190 |
 | Published external LLM agent | not listed | 0.3847 | 0.2222 |
 
-That gap is deliberate: the benchmark is meant to look easy on clean public cases and much harder on generated holdouts, adversarial variants, and expert Task E scenarios.
+That gap is deliberate: the benchmark looks easy on clean public cases and much harder on generated holdouts, adversarial variants, and expert Task E scenarios.
 
 ## Quick Start
 
@@ -248,17 +276,29 @@ Recommended reading paths:
 ### Top level
 
 ```text
-Meta_final/
+Meta-s-LedgerShield/
 ├── README.md
+├── CHANGELOG.md
 ├── docs/
 ├── server/
 ├── tests/
 ├── inference.py
+├── inference_improved.py
 ├── inference_llm_powered.py
+├── task_c_guardrails.py
+├── task_d_guardrails.py
 ├── benchmark_report.py
 ├── compare_models_live.py
 ├── compare_all_models.py
+├── llm_utils.py
+├── llm_judge_grader.py
+├── models.py
+├── client.py
+├── ledgershield_env.py
+├── openenv_compat.py
 ├── openenv.yaml
+├── pyproject.toml
+├── requirements.txt
 ├── Dockerfile
 └── validate-submission.sh
 ```
@@ -273,14 +313,20 @@ Meta_final/
 | `server/trajectory_grading.py` | investigation, intervention, calibration, efficiency, and outcome scoring |
 | `server/attack_library.py` | 16 adversarial attack templates |
 | `server/case_factory.py` | challenge, holdout, and benign-twin generation |
+| `server/tools.py` | investigation tool implementations, email thread parsing, domain alignment inference |
 | `server/currency_engine.py` | FX conversion, IBAN/SWIFT checks, currency mismatch detection, aging reports |
 | `server/compliance_engine.py` | SOX-style AP control evaluation |
 | `server/curriculum.py` | dynamic difficulty adaptation |
 | `server/dual_agent_mode.py` | Dec-POMDP watchdog/auditor mode |
 | `benchmark_report.py` | public benchmark + holdout + contrastive reporting |
-| `compare_models_live.py` | live multi-model evaluation with debug artifacts |
-| `inference.py` | submission-safe agent entrypoint with strict stdout contract |
-| `task_c_guardrails.py` / `task_d_guardrails.py` | grounded output sanitizers for high-risk tasks |
+| `compare_models_live.py` | live multi-model evaluation with capability profiles and debug artifacts |
+| `inference.py` | submission-safe agent with ModelCapabilityProfile tiers and evidence-grounded output |
+| `inference_improved.py` | experimental improved agent entrypoint |
+| `inference_llm_powered.py` | richer LLM-powered agent used for debugging and comparisons |
+| `task_c_guardrails.py` / `task_d_guardrails.py` | grounded output sanitizers with composite signal detection and PAY evidence construction |
+| `llm_utils.py` | JSON parsing and completion helpers for LLM workflows |
+| `llm_judge_grader.py` | optional LLM-as-judge grading experiments |
+| `models.py` | shared dataclasses and Pydantic reward model |
 | `.github/workflows/ci.yml` | pytest, Docker build, and metadata validation in CI |
 
 For the full file-by-file map, see [`docs/development.md`](./docs/development.md).
@@ -288,9 +334,12 @@ For the full file-by-file map, see [`docs/development.md`](./docs/development.md
 ## Current Engineering Status
 
 - Core environment upgrades from Phases 1 through 5 are implemented in code.
+- Patch-level fixes applied: correct `DEGENERATE_EVIDENCE_CAP` in grading, composite bank-override signal, domain-alignment token overlap, constructive PAY evidence in guardrails.
+- The agent (`inference.py`) now uses `ModelCapabilityProfile` tiers (elite/strong/standard) that adapt planning mode, repair level, and budget bonuses.
+- `compare_models_live.py` records per-model capability profiles and includes monotonic strength ordering checks.
 - The repo includes 21 curated benchmark cases and generated challenge/holdout tooling.
-- CI is present via GitHub Actions.
-- The test suite includes API smoke, grading, environment, inference, compliance, currency, curriculum, and guardrail coverage.
+- CI is present via GitHub Actions with pytest config now in `pyproject.toml`.
+- The test suite includes API smoke, grading, environment, inference, inference-runtime, compliance, currency, curriculum, and guardrail coverage.
 - The environment remains submission-compatible through `inference.py`.
 
 ## Safety Note

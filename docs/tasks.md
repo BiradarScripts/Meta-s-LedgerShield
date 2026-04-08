@@ -322,10 +322,27 @@ Task-specific fields are described below.
 
 The current grader intentionally punishes low-effort submissions:
 
-- empty evidence maps are capped at `0.25`
+- empty evidence maps are capped at `0.25` (the `DEGENERATE_EVIDENCE_CAP` is now applied correctly, not collapsed to `0.0`)
 - missing reason codes on Tasks C/D/E are penalized
 - missing counterfactuals on Tasks D/E are penalized
 - missing discrepancies on Tasks B/C are penalized
+
+### Constructive PAY evidence
+
+Safe PAY decisions on Tasks C and D now carry constructive evidence maps instead of empty ones:
+
+- **Task C**: verified bank match, duplicate-clear, or invoice-reviewed evidence
+- **Task D**: verified bank match, aligned sender domain, duplicate-clear, or case-reviewed evidence
+
+This prevents legitimate safe PAY decisions from hitting the degenerate evidence cap.
+
+### Composite signal detection
+
+Risk flags are now derived with composite logic:
+
+- `bank_override_attempt` requires bank-change language *plus* a risk amplifier (domain mismatch, callback discouragement, policy override, or urgency)
+- `sender_domain_spoof` uses token-overlap domain alignment, not just exact match
+- `policy_bypass_attempt` captures callback discouragement and policy override language together
 
 ### Trajectory still matters
 

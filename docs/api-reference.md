@@ -345,3 +345,15 @@ The HTTP API is the main integration path, but the Python environment class also
 - `LedgerShieldEnvironment.render(mode="text")`
 
 These are useful for local experiments and Gymnasium-style tooling, but they are not separate REST endpoints.
+
+## Agent Capability Profiles
+
+The reference agent in `inference.py` uses a `ModelCapabilityProfile` to adapt behavior to model strength. This is part of the agent-side logic, not the server API, but it affects how different models interact with the environment:
+
+| Tier | Capability score | Plan mode | Repair level | Decision token budget |
+|---|---|---|---|---|
+| Elite | ≥ 5.0 | coverage | grounded | ≥ 1536 |
+| Strong | ≥ 4.5 | hybrid | partial | ≥ 1280 |
+| Standard | < 4.5 | LLM-first | none | model default |
+
+The tier determines investigation and intervention budget bonuses, whether repair attempts are made on malformed outputs, and how much planning context the agent maintains.
