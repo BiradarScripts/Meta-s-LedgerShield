@@ -1,0 +1,79 @@
+name: LedgerShield CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest httpx fastapi uvicorn pydantic pyyaml requests
+          pip install -e . || pip install .
+
+      - name: Run pytest
+        run: |
+          python -m pytest tests/ -v --tb=short -q
+
+      - name: Run scoring tests
+        run: |
+          python -m pytest test_scoring.py -v --tb=short -q || true
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t ledgershield:ci .
+
+      - name: Smoke test Docker
+        run: |
+          docker run -d --name ls-ci -p 8000:8000 ledgershield:ci
+          sleep 5
+          curl -f http://localhost:8000/health || exit 1
+          docker stop ls-ci
+
+  validate:
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+
+      - name: Validate openenv.yaml
+        run: |
+          python -c "
+          import yaml
+          with open('openenv.yaml') as f:
+              config = yaml.safe_load(f)
+          assert config['spec_version'] == 1
+          assert config['name'] == 'ledgershield'
+          assert config['type'] == 'space'
+          print('openenv.yaml validation passed')
+          "

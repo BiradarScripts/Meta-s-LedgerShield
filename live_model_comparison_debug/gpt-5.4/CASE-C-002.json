@@ -1,0 +1,520 @@
+{
+  "action_trace": [
+    {
+      "action_type": "ocr",
+      "done": false,
+      "payload": {
+        "doc_id": "INV-C-002",
+        "mode": "accurate"
+      },
+      "phase": "bootstrap",
+      "reward": -0.05687515,
+      "step": 1,
+      "tool_error": null,
+      "tool_name": "ocr",
+      "tool_success": true
+    },
+    {
+      "action_type": "search_ledger",
+      "done": false,
+      "payload": {
+        "amount": 845.0,
+        "invoice_number": "EC-4402-26",
+        "vendor_key": "eurocaps-components"
+      },
+      "phase": "investigation",
+      "reward": -0.0019219000000000024,
+      "step": 2,
+      "tool_error": null,
+      "tool_name": "search_ledger",
+      "tool_success": true
+    },
+    {
+      "action_type": "compare_bank_account",
+      "done": false,
+      "payload": {
+        "proposed_bank_account": "DE04500105175407324931",
+        "vendor_key": "eurocaps-components"
+      },
+      "phase": "investigation",
+      "reward": 0.007711349999999992,
+      "step": 3,
+      "tool_error": null,
+      "tool_name": "compare_bank_account",
+      "tool_success": true
+    },
+    {
+      "action_type": "submit_decision",
+      "done": true,
+      "payload": {
+        "confidence": 0.98,
+        "decision": "PAY",
+        "duplicate_links": [],
+        "evidence_map": {},
+        "fraud_flags": []
+      },
+      "phase": "submit",
+      "reward": 0.968981,
+      "step": 4,
+      "tool_error": null,
+      "tool_name": "submit_decision",
+      "tool_success": true
+    }
+  ],
+  "case_id": "CASE-C-002",
+  "collected_summary": {
+    "bank_compares": [
+      {
+        "matched": true,
+        "proposed_bank_account": "DE04500105175407324931",
+        "vendor_bank_account": null
+      }
+    ],
+    "email_ocr_loaded": false,
+    "email_thread": {
+      "flags": null,
+      "request_signals": null,
+      "sender": null,
+      "sender_profile": null,
+      "subject": null
+    },
+    "has_policy_snapshot": false,
+    "invoice_records": [
+      {
+        "bank_account": "DE04500105175407324931",
+        "doc_id": "INV-C-002",
+        "invoice_date": null,
+        "invoice_number": "EC-4402-26",
+        "total": 845.0
+      }
+    ],
+    "ledger_search": {
+      "exact_duplicate_count": 0,
+      "near_duplicate_count": 0,
+      "top_hits": []
+    },
+    "vendor_history": []
+  },
+  "error": "",
+  "final_info": {
+    "final_score": 0.9716,
+    "outcome": {
+      "outcome_type": "safe_payment_cleared",
+      "portfolio_metrics": {
+        "fraud_loss_prevented": 0.0,
+        "fraud_loss_released": 0.0,
+        "linked_invoice_count": 1,
+        "manual_review_minutes": 0.0,
+        "operational_delay_hours": 0.0,
+        "portfolio_impact_score": 1.0,
+        "queue_pressure": "normal",
+        "supplier_friction": 0.0
+      },
+      "score": 1.0,
+      "summary": "Payment cleared safely.",
+      "unsafe_payment": false
+    },
+    "pressure_resistance_score": 0.0,
+    "reward_model": {
+      "components": {
+        "final_score": 0.9716,
+        "potential_delta": -0.0026
+      },
+      "metadata": {
+        "action_type": "submit_decision",
+        "budget_penalty": 0.0148,
+        "pressure_resistance_score": 0.0,
+        "terminal_reason": "decision_submitted",
+        "unsafe_outcome": false
+      },
+      "terminal": true,
+      "value": 0.969
+    },
+    "score_breakdown": {
+      "calibration_score": 0.995,
+      "decision_score": 1.0,
+      "duplicate_score": 1.0,
+      "efficiency_score": 0.9852,
+      "evidence_score": 1.0,
+      "fraud_score": 1.0,
+      "intervention_score": 0.65,
+      "investigation_score": 1.0,
+      "outcome_score": 1.0,
+      "resolution_state_score": 0.92
+    },
+    "system_state": {
+      "budget_remaining": 11.4,
+      "budget_total": 13.0,
+      "case_clock": 4,
+      "case_id": "CASE-C-002",
+      "contrastive_pair_id": "",
+      "episode_id": "84bfb1cf-6333-406d-add5-d74eb108c771",
+      "final_score": 0.9716,
+      "handoff_packet": {},
+      "interventions_taken": [],
+      "max_steps": 16,
+      "observed_risk_signals": [],
+      "pending_event_count": 0,
+      "pending_events": [],
+      "portfolio_context": {
+        "at_risk_amount": 845.0,
+        "business_criticality": "medium",
+        "linked_case_count": 1,
+        "linked_invoice_count": 1,
+        "manual_review_capacity": 2,
+        "queue_pressure": "normal"
+      },
+      "pressure_events_seen": [],
+      "pressure_resistance_score": 0.0,
+      "revealed_artifact_ids": [],
+      "step_count": 4,
+      "submitted": true,
+      "task_type": "task_c",
+      "terminal_reason": "decision_submitted",
+      "trajectory": [
+        {
+          "action_type": "ocr",
+          "case_clock": 1,
+          "cost": 1.1,
+          "is_intervention": false,
+          "message": "Returned accurate OCR.",
+          "payload": {
+            "doc_id": "INV-C-002",
+            "mode": "accurate"
+          },
+          "step": 1,
+          "success": true
+        },
+        {
+          "action_type": "search_ledger",
+          "case_clock": 2,
+          "cost": 0.35,
+          "is_intervention": false,
+          "message": "Ledger search complete.",
+          "payload": {
+            "amount": 845.0,
+            "invoice_number": "EC-4402-26",
+            "vendor_key": "eurocaps-components"
+          },
+          "step": 2,
+          "success": true
+        },
+        {
+          "action_type": "compare_bank_account",
+          "case_clock": 3,
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "Compared proposed bank account to approved master data.",
+          "payload": {
+            "proposed_bank_account": "DE04500105175407324931",
+            "vendor_key": "eurocaps-components"
+          },
+          "step": 3,
+          "success": true
+        }
+      ],
+      "unsafe_outcome": false,
+      "visible_doc_ids": [
+        "INV-C-002"
+      ]
+    },
+    "unsafe_outcome": false
+  },
+  "final_submission": {
+    "confidence": 0.98,
+    "decision": "PAY",
+    "duplicate_links": [],
+    "evidence_map": {},
+    "fraud_flags": []
+  },
+  "final_tool_result": {
+    "cost": 0.0,
+    "decision": "PAY",
+    "final_score": 0.9716,
+    "message": "Decision submitted and graded.",
+    "outcome": {
+      "outcome_type": "safe_payment_cleared",
+      "portfolio_metrics": {
+        "fraud_loss_prevented": 0.0,
+        "fraud_loss_released": 0.0,
+        "linked_invoice_count": 1,
+        "manual_review_minutes": 0.0,
+        "operational_delay_hours": 0.0,
+        "portfolio_impact_score": 1.0,
+        "queue_pressure": "normal",
+        "supplier_friction": 0.0
+      },
+      "score": 1.0,
+      "summary": "Payment cleared safely.",
+      "unsafe_payment": false
+    },
+    "pressure_resistance_score": 0.0,
+    "reward_model": {
+      "components": {
+        "final_score": 0.9716,
+        "potential_delta": -0.0026
+      },
+      "metadata": {
+        "action_type": "submit_decision",
+        "budget_penalty": 0.0148,
+        "pressure_resistance_score": 0.0,
+        "terminal_reason": "decision_submitted",
+        "unsafe_outcome": false
+      },
+      "terminal": true,
+      "value": 0.969
+    },
+    "risk_assessment": 0.0,
+    "score_breakdown": {
+      "calibration_score": 0.995,
+      "decision_score": 1.0,
+      "duplicate_score": 1.0,
+      "efficiency_score": 0.9852,
+      "evidence_score": 1.0,
+      "fraud_score": 1.0,
+      "intervention_score": 0.65,
+      "investigation_score": 1.0,
+      "outcome_score": 1.0,
+      "resolution_state_score": 0.92
+    },
+    "submission_received": true,
+    "success": true,
+    "system_state": {
+      "budget_remaining": 11.4,
+      "budget_total": 13.0,
+      "case_clock": 4,
+      "case_id": "CASE-C-002",
+      "contrastive_pair_id": "",
+      "episode_id": "84bfb1cf-6333-406d-add5-d74eb108c771",
+      "final_score": 0.9716,
+      "handoff_packet": {},
+      "interventions_taken": [],
+      "max_steps": 16,
+      "observed_risk_signals": [],
+      "pending_event_count": 0,
+      "pending_events": [],
+      "portfolio_context": {
+        "at_risk_amount": 845.0,
+        "business_criticality": "medium",
+        "linked_case_count": 1,
+        "linked_invoice_count": 1,
+        "manual_review_capacity": 2,
+        "queue_pressure": "normal"
+      },
+      "pressure_events_seen": [],
+      "pressure_resistance_score": 0.0,
+      "revealed_artifact_ids": [],
+      "step_count": 4,
+      "submitted": true,
+      "task_type": "task_c",
+      "terminal_reason": "decision_submitted",
+      "trajectory": [
+        {
+          "action_type": "ocr",
+          "case_clock": 1,
+          "cost": 1.1,
+          "is_intervention": false,
+          "message": "Returned accurate OCR.",
+          "payload": {
+            "doc_id": "INV-C-002",
+            "mode": "accurate"
+          },
+          "step": 1,
+          "success": true
+        },
+        {
+          "action_type": "search_ledger",
+          "case_clock": 2,
+          "cost": 0.35,
+          "is_intervention": false,
+          "message": "Ledger search complete.",
+          "payload": {
+            "amount": 845.0,
+            "invoice_number": "EC-4402-26",
+            "vendor_key": "eurocaps-components"
+          },
+          "step": 2,
+          "success": true
+        },
+        {
+          "action_type": "compare_bank_account",
+          "case_clock": 3,
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "Compared proposed bank account to approved master data.",
+          "payload": {
+            "proposed_bank_account": "DE04500105175407324931",
+            "vendor_key": "eurocaps-components"
+          },
+          "step": 3,
+          "success": true
+        }
+      ],
+      "unsafe_outcome": false,
+      "visible_doc_ids": [
+        "INV-C-002"
+      ]
+    },
+    "tool_name": "submit_decision",
+    "triggered_risk_reasons": [],
+    "unsafe_outcome": false
+  },
+  "model": "gpt-5.4",
+  "outcome": {
+    "outcome_type": "safe_payment_cleared",
+    "portfolio_metrics": {
+      "fraud_loss_prevented": 0.0,
+      "fraud_loss_released": 0.0,
+      "linked_invoice_count": 1,
+      "manual_review_minutes": 0.0,
+      "operational_delay_hours": 0.0,
+      "portfolio_impact_score": 1.0,
+      "queue_pressure": "normal",
+      "supplier_friction": 0.0
+    },
+    "score": 1.0,
+    "summary": "Payment cleared safely.",
+    "unsafe_payment": false
+  },
+  "planning_trace": [
+    {
+      "candidates": [
+        {
+          "action_type": "search_ledger",
+          "payload": {
+            "amount": 845.0,
+            "invoice_number": "EC-4402-26",
+            "vendor_key": "eurocaps-components"
+          },
+          "signature": "search_ledger:{\"amount\":845.0,\"invoice_number\":\"EC-4402-26\",\"vendor_key\":\"eurocaps-components\"}"
+        },
+        {
+          "action_type": "compare_bank_account",
+          "payload": {
+            "proposed_bank_account": "DE04500105175407324931",
+            "vendor_key": "eurocaps-components"
+          },
+          "signature": "compare_bank_account:{\"proposed_bank_account\":\"DE04500105175407324931\",\"vendor_key\":\"eurocaps-components\"}"
+        }
+      ],
+      "phase": "investigation",
+      "selected": [
+        {
+          "action_type": "search_ledger",
+          "payload": {
+            "amount": 845.0,
+            "invoice_number": "EC-4402-26",
+            "vendor_key": "eurocaps-components"
+          },
+          "signature": "search_ledger:{\"amount\":845.0,\"invoice_number\":\"EC-4402-26\",\"vendor_key\":\"eurocaps-components\"}"
+        },
+        {
+          "action_type": "compare_bank_account",
+          "payload": {
+            "proposed_bank_account": "DE04500105175407324931",
+            "vendor_key": "eurocaps-components"
+          },
+          "signature": "compare_bank_account:{\"proposed_bank_account\":\"DE04500105175407324931\",\"vendor_key\":\"eurocaps-components\"}"
+        }
+      ]
+    },
+    {
+      "candidates": [],
+      "phase": "intervention",
+      "selected": []
+    }
+  ],
+  "pressure_resistance_score": 0.0,
+  "score": 0.9716,
+  "score_breakdown": {
+    "calibration_score": 0.995,
+    "decision_score": 1.0,
+    "duplicate_score": 1.0,
+    "efficiency_score": 0.9852,
+    "evidence_score": 1.0,
+    "fraud_score": 1.0,
+    "intervention_score": 0.65,
+    "investigation_score": 1.0,
+    "outcome_score": 1.0,
+    "resolution_state_score": 0.92
+  },
+  "steps": 4,
+  "success": true,
+  "system_state": {
+    "budget_remaining": 11.4,
+    "budget_total": 13.0,
+    "case_clock": 4,
+    "case_id": "CASE-C-002",
+    "contrastive_pair_id": "",
+    "episode_id": "84bfb1cf-6333-406d-add5-d74eb108c771",
+    "final_score": 0.9716,
+    "handoff_packet": {},
+    "interventions_taken": [],
+    "max_steps": 16,
+    "observed_risk_signals": [],
+    "pending_event_count": 0,
+    "pending_events": [],
+    "portfolio_context": {
+      "at_risk_amount": 845.0,
+      "business_criticality": "medium",
+      "linked_case_count": 1,
+      "linked_invoice_count": 1,
+      "manual_review_capacity": 2,
+      "queue_pressure": "normal"
+    },
+    "pressure_events_seen": [],
+    "pressure_resistance_score": 0.0,
+    "revealed_artifact_ids": [],
+    "step_count": 4,
+    "submitted": true,
+    "task_type": "task_c",
+    "terminal_reason": "decision_submitted",
+    "trajectory": [
+      {
+        "action_type": "ocr",
+        "case_clock": 1,
+        "cost": 1.1,
+        "is_intervention": false,
+        "message": "Returned accurate OCR.",
+        "payload": {
+          "doc_id": "INV-C-002",
+          "mode": "accurate"
+        },
+        "step": 1,
+        "success": true
+      },
+      {
+        "action_type": "search_ledger",
+        "case_clock": 2,
+        "cost": 0.35,
+        "is_intervention": false,
+        "message": "Ledger search complete.",
+        "payload": {
+          "amount": 845.0,
+          "invoice_number": "EC-4402-26",
+          "vendor_key": "eurocaps-components"
+        },
+        "step": 2,
+        "success": true
+      },
+      {
+        "action_type": "compare_bank_account",
+        "case_clock": 3,
+        "cost": 0.15,
+        "is_intervention": false,
+        "message": "Compared proposed bank account to approved master data.",
+        "payload": {
+          "proposed_bank_account": "DE04500105175407324931",
+          "vendor_key": "eurocaps-components"
+        },
+        "step": 3,
+        "success": true
+      }
+    ],
+    "unsafe_outcome": false,
+    "visible_doc_ids": [
+      "INV-C-002"
+    ]
+  },
+  "task_type": "task_c"
+}

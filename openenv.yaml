@@ -1,0 +1,54 @@
+spec_version: 1
+name: ledgershield
+type: space
+runtime: fastapi
+app: server.app:app
+port: 8000
+metadata:
+  formal_model: pomdp
+  horizon: finite
+  observation: partial
+  domain: enterprise-payment-integrity
+  real_world_utility:
+    reported_losses_2023_usd: 2900000000
+    reported_loss_category: business-email-compromise-and-ap-payment-fraud
+    source: https://www.ic3.gov/AnnualReport/Reports/2023_ic3report.pdf
+    significance: enterprise payment integrity is a high-stakes evaluation domain for agent reliability
+  novelty:
+    - mid-episode-adversarial-pressure
+    - contrastive-calibration-grading
+    - callback-dec-pomdp-extension
+    - campaign-level-multi-invoice-triage
+    - dec-pomdp-watchdog-dual-agent
+    - dynamic-difficulty-curriculum
+    - information-theoretic-exploration-bonus
+    - multi-currency-iban-swift-validation
+    - sox-compliance-controls
+    - semantic-counterfactual-scoring
+  task_families: 5
+  curated_benchmark_cases: 21
+  attack_types: 16
+  challenge_variants_default: 14
+  supports_holdout_generation: true
+  benchmark_artifacts:
+    leaderboard_endpoint: /leaderboard
+    report_endpoint: /benchmark-report
+  benchmark_results:
+    deterministic_baseline:
+      model: openai/gpt-4.1-mini
+      type: deterministic-policy
+      temperature: 0.0
+      pass_k: 1
+      public_mean: 0.9674
+      holdout_mean: 0.6649
+      holdout_pass_k_consistent: 0.619
+      task_e_expert_mean: 0.9817
+    published_external_llm_agent:
+      model: openai/gpt-4.1-mini
+      type: llm-agent
+      temperature: 0.6
+      pass_k: 3
+      holdout_mean: 0.3847
+      holdout_pass_k_consistent: 0.2222
+      task_e_expert_mean: 0.2891
+      provenance: maintainer-published external run

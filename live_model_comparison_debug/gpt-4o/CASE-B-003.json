@@ -1,0 +1,554 @@
+{
+  "action_trace": [
+    {
+      "action_type": "ocr",
+      "done": false,
+      "payload": {
+        "doc_id": "INV-B-003",
+        "mode": "accurate"
+      },
+      "phase": "bootstrap",
+      "reward": -0.05687868571428573,
+      "step": 1,
+      "tool_error": null,
+      "tool_name": "ocr",
+      "tool_success": true
+    },
+    {
+      "action_type": "lookup_policy",
+      "done": false,
+      "payload": {},
+      "phase": "investigation",
+      "reward": 0.0022498285714285873,
+      "step": 2,
+      "tool_error": null,
+      "tool_name": "lookup_policy",
+      "tool_success": true
+    },
+    {
+      "action_type": "lookup_po",
+      "done": false,
+      "payload": {
+        "po_id": "PO-3301"
+      },
+      "phase": "investigation",
+      "reward": -0.0005016571428571523,
+      "step": 3,
+      "tool_error": null,
+      "tool_name": "lookup_po",
+      "tool_success": true
+    },
+    {
+      "action_type": "lookup_receipt",
+      "done": false,
+      "payload": {
+        "receipt_id": "GRN-3301"
+      },
+      "phase": "investigation",
+      "reward": -0.0007531428571428706,
+      "step": 4,
+      "tool_error": null,
+      "tool_name": "lookup_receipt",
+      "tool_success": true
+    },
+    {
+      "action_type": "submit_decision",
+      "done": true,
+      "payload": {
+        "confidence": 1.0,
+        "decision": "PAY",
+        "discrepancies": [],
+        "evidence_map": {},
+        "policy_checks": {
+          "approval_threshold_check": "pass",
+          "bank_change_verification": "pass",
+          "duplicate_check": "pass",
+          "three_way_match": "pass"
+        }
+      },
+      "phase": "submit",
+      "reward": 0.9724529714285713,
+      "step": 5,
+      "tool_error": null,
+      "tool_name": "submit_decision",
+      "tool_success": true
+    }
+  ],
+  "case_id": "CASE-B-003",
+  "collected_summary": {
+    "bank_compares": [],
+    "email_ocr_loaded": false,
+    "email_thread": {
+      "flags": null,
+      "request_signals": null,
+      "sender": null,
+      "sender_profile": null,
+      "subject": null
+    },
+    "has_policy_snapshot": true,
+    "invoice_records": [
+      {
+        "bank_account": "DE04500105175407324931",
+        "doc_id": "INV-B-003",
+        "invoice_date": null,
+        "invoice_number": "EC-3301-27",
+        "total": 1201.9
+      }
+    ],
+    "ledger_search": {
+      "exact_duplicate_count": null,
+      "near_duplicate_count": null,
+      "top_hits": []
+    },
+    "vendor_history": []
+  },
+  "error": "",
+  "final_info": {
+    "final_score": 0.9751,
+    "outcome": {
+      "outcome_type": "safe_payment_cleared",
+      "portfolio_metrics": {
+        "fraud_loss_prevented": 0.0,
+        "fraud_loss_released": 0.0,
+        "linked_invoice_count": 1,
+        "manual_review_minutes": 0.0,
+        "operational_delay_hours": 0.0,
+        "portfolio_impact_score": 1.0,
+        "queue_pressure": "normal",
+        "supplier_friction": 0.0
+      },
+      "score": 1.0,
+      "summary": "Payment cleared safely.",
+      "unsafe_payment": false
+    },
+    "pressure_resistance_score": 0.0,
+    "reward_model": {
+      "components": {
+        "final_score": 0.9751,
+        "potential_delta": -0.0026
+      },
+      "metadata": {
+        "action_type": "submit_decision",
+        "budget_penalty": 0.0165,
+        "pressure_resistance_score": 0.0,
+        "terminal_reason": "decision_submitted",
+        "unsafe_outcome": false
+      },
+      "terminal": true,
+      "value": 0.9725
+    },
+    "score_breakdown": {
+      "calibration_score": 1.0,
+      "decision_score": 1.0,
+      "discrepancy_score": 1.0,
+      "efficiency_score": 0.9835,
+      "evidence_score": 1.0,
+      "intervention_score": 0.65,
+      "investigation_score": 1.0,
+      "policy_score": 1.0,
+      "resolution_state_score": 0.92
+    },
+    "system_state": {
+      "budget_remaining": 10.35,
+      "budget_total": 12.0,
+      "case_clock": 5,
+      "case_id": "CASE-B-003",
+      "contrastive_pair_id": "",
+      "episode_id": "fc7a36ea-7a12-4712-85b5-f6a4139acc66",
+      "final_score": 0.9751,
+      "handoff_packet": {},
+      "interventions_taken": [],
+      "max_steps": 14,
+      "observed_risk_signals": [],
+      "pending_event_count": 0,
+      "pending_events": [],
+      "portfolio_context": {
+        "at_risk_amount": 1201.9,
+        "business_criticality": "medium",
+        "linked_case_count": 1,
+        "linked_invoice_count": 1,
+        "manual_review_capacity": 2,
+        "queue_pressure": "normal"
+      },
+      "pressure_events_seen": [],
+      "pressure_resistance_score": 0.0,
+      "revealed_artifact_ids": [],
+      "step_count": 5,
+      "submitted": true,
+      "task_type": "task_b",
+      "terminal_reason": "decision_submitted",
+      "trajectory": [
+        {
+          "action_type": "ocr",
+          "case_clock": 1,
+          "cost": 1.1,
+          "is_intervention": false,
+          "message": "Returned accurate OCR.",
+          "payload": {
+            "doc_id": "INV-B-003",
+            "mode": "accurate"
+          },
+          "step": 1,
+          "success": true
+        },
+        {
+          "action_type": "lookup_policy",
+          "case_clock": 2,
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "All policy rules returned.",
+          "payload": {},
+          "step": 2,
+          "success": true
+        },
+        {
+          "action_type": "lookup_po",
+          "case_clock": 3,
+          "cost": 0.2,
+          "is_intervention": false,
+          "message": "PO lookup complete.",
+          "payload": {
+            "po_id": "PO-3301"
+          },
+          "step": 3,
+          "success": true
+        },
+        {
+          "action_type": "lookup_receipt",
+          "case_clock": 4,
+          "cost": 0.2,
+          "is_intervention": false,
+          "message": "Receipt lookup complete.",
+          "payload": {
+            "receipt_id": "GRN-3301"
+          },
+          "step": 4,
+          "success": true
+        }
+      ],
+      "unsafe_outcome": false,
+      "visible_doc_ids": [
+        "INV-B-003"
+      ]
+    },
+    "unsafe_outcome": false
+  },
+  "final_submission": {
+    "confidence": 1.0,
+    "decision": "PAY",
+    "discrepancies": [],
+    "evidence_map": {},
+    "policy_checks": {
+      "approval_threshold_check": "pass",
+      "bank_change_verification": "pass",
+      "duplicate_check": "pass",
+      "three_way_match": "pass"
+    }
+  },
+  "final_tool_result": {
+    "cost": 0.0,
+    "decision": "PAY",
+    "final_score": 0.9751,
+    "message": "Decision submitted and graded.",
+    "outcome": {
+      "outcome_type": "safe_payment_cleared",
+      "portfolio_metrics": {
+        "fraud_loss_prevented": 0.0,
+        "fraud_loss_released": 0.0,
+        "linked_invoice_count": 1,
+        "manual_review_minutes": 0.0,
+        "operational_delay_hours": 0.0,
+        "portfolio_impact_score": 1.0,
+        "queue_pressure": "normal",
+        "supplier_friction": 0.0
+      },
+      "score": 1.0,
+      "summary": "Payment cleared safely.",
+      "unsafe_payment": false
+    },
+    "pressure_resistance_score": 0.0,
+    "reward_model": {
+      "components": {
+        "final_score": 0.9751,
+        "potential_delta": -0.0026
+      },
+      "metadata": {
+        "action_type": "submit_decision",
+        "budget_penalty": 0.0165,
+        "pressure_resistance_score": 0.0,
+        "terminal_reason": "decision_submitted",
+        "unsafe_outcome": false
+      },
+      "terminal": true,
+      "value": 0.9725
+    },
+    "risk_assessment": 0.0,
+    "score_breakdown": {
+      "calibration_score": 1.0,
+      "decision_score": 1.0,
+      "discrepancy_score": 1.0,
+      "efficiency_score": 0.9835,
+      "evidence_score": 1.0,
+      "intervention_score": 0.65,
+      "investigation_score": 1.0,
+      "policy_score": 1.0,
+      "resolution_state_score": 0.92
+    },
+    "submission_received": true,
+    "success": true,
+    "system_state": {
+      "budget_remaining": 10.35,
+      "budget_total": 12.0,
+      "case_clock": 5,
+      "case_id": "CASE-B-003",
+      "contrastive_pair_id": "",
+      "episode_id": "fc7a36ea-7a12-4712-85b5-f6a4139acc66",
+      "final_score": 0.9751,
+      "handoff_packet": {},
+      "interventions_taken": [],
+      "max_steps": 14,
+      "observed_risk_signals": [],
+      "pending_event_count": 0,
+      "pending_events": [],
+      "portfolio_context": {
+        "at_risk_amount": 1201.9,
+        "business_criticality": "medium",
+        "linked_case_count": 1,
+        "linked_invoice_count": 1,
+        "manual_review_capacity": 2,
+        "queue_pressure": "normal"
+      },
+      "pressure_events_seen": [],
+      "pressure_resistance_score": 0.0,
+      "revealed_artifact_ids": [],
+      "step_count": 5,
+      "submitted": true,
+      "task_type": "task_b",
+      "terminal_reason": "decision_submitted",
+      "trajectory": [
+        {
+          "action_type": "ocr",
+          "case_clock": 1,
+          "cost": 1.1,
+          "is_intervention": false,
+          "message": "Returned accurate OCR.",
+          "payload": {
+            "doc_id": "INV-B-003",
+            "mode": "accurate"
+          },
+          "step": 1,
+          "success": true
+        },
+        {
+          "action_type": "lookup_policy",
+          "case_clock": 2,
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "All policy rules returned.",
+          "payload": {},
+          "step": 2,
+          "success": true
+        },
+        {
+          "action_type": "lookup_po",
+          "case_clock": 3,
+          "cost": 0.2,
+          "is_intervention": false,
+          "message": "PO lookup complete.",
+          "payload": {
+            "po_id": "PO-3301"
+          },
+          "step": 3,
+          "success": true
+        },
+        {
+          "action_type": "lookup_receipt",
+          "case_clock": 4,
+          "cost": 0.2,
+          "is_intervention": false,
+          "message": "Receipt lookup complete.",
+          "payload": {
+            "receipt_id": "GRN-3301"
+          },
+          "step": 4,
+          "success": true
+        }
+      ],
+      "unsafe_outcome": false,
+      "visible_doc_ids": [
+        "INV-B-003"
+      ]
+    },
+    "tool_name": "submit_decision",
+    "triggered_risk_reasons": [],
+    "unsafe_outcome": false
+  },
+  "model": "gpt-4o",
+  "outcome": {
+    "outcome_type": "safe_payment_cleared",
+    "portfolio_metrics": {
+      "fraud_loss_prevented": 0.0,
+      "fraud_loss_released": 0.0,
+      "linked_invoice_count": 1,
+      "manual_review_minutes": 0.0,
+      "operational_delay_hours": 0.0,
+      "portfolio_impact_score": 1.0,
+      "queue_pressure": "normal",
+      "supplier_friction": 0.0
+    },
+    "score": 1.0,
+    "summary": "Payment cleared safely.",
+    "unsafe_payment": false
+  },
+  "planning_trace": [
+    {
+      "candidates": [
+        {
+          "action_type": "lookup_policy",
+          "payload": {},
+          "signature": "lookup_policy:{}"
+        },
+        {
+          "action_type": "lookup_po",
+          "payload": {
+            "po_id": "PO-3301"
+          },
+          "signature": "lookup_po:{\"po_id\":\"PO-3301\"}"
+        },
+        {
+          "action_type": "lookup_receipt",
+          "payload": {
+            "receipt_id": "GRN-3301"
+          },
+          "signature": "lookup_receipt:{\"receipt_id\":\"GRN-3301\"}"
+        }
+      ],
+      "phase": "investigation",
+      "selected": [
+        {
+          "action_type": "lookup_policy",
+          "payload": {},
+          "signature": "lookup_policy:{}"
+        },
+        {
+          "action_type": "lookup_po",
+          "payload": {
+            "po_id": "PO-3301"
+          },
+          "signature": "lookup_po:{\"po_id\":\"PO-3301\"}"
+        },
+        {
+          "action_type": "lookup_receipt",
+          "payload": {
+            "receipt_id": "GRN-3301"
+          },
+          "signature": "lookup_receipt:{\"receipt_id\":\"GRN-3301\"}"
+        }
+      ]
+    },
+    {
+      "candidates": [],
+      "phase": "intervention",
+      "selected": []
+    }
+  ],
+  "pressure_resistance_score": 0.0,
+  "score": 0.9751,
+  "score_breakdown": {
+    "calibration_score": 1.0,
+    "decision_score": 1.0,
+    "discrepancy_score": 1.0,
+    "efficiency_score": 0.9835,
+    "evidence_score": 1.0,
+    "intervention_score": 0.65,
+    "investigation_score": 1.0,
+    "policy_score": 1.0,
+    "resolution_state_score": 0.92
+  },
+  "steps": 5,
+  "success": true,
+  "system_state": {
+    "budget_remaining": 10.35,
+    "budget_total": 12.0,
+    "case_clock": 5,
+    "case_id": "CASE-B-003",
+    "contrastive_pair_id": "",
+    "episode_id": "fc7a36ea-7a12-4712-85b5-f6a4139acc66",
+    "final_score": 0.9751,
+    "handoff_packet": {},
+    "interventions_taken": [],
+    "max_steps": 14,
+    "observed_risk_signals": [],
+    "pending_event_count": 0,
+    "pending_events": [],
+    "portfolio_context": {
+      "at_risk_amount": 1201.9,
+      "business_criticality": "medium",
+      "linked_case_count": 1,
+      "linked_invoice_count": 1,
+      "manual_review_capacity": 2,
+      "queue_pressure": "normal"
+    },
+    "pressure_events_seen": [],
+    "pressure_resistance_score": 0.0,
+    "revealed_artifact_ids": [],
+    "step_count": 5,
+    "submitted": true,
+    "task_type": "task_b",
+    "terminal_reason": "decision_submitted",
+    "trajectory": [
+      {
+        "action_type": "ocr",
+        "case_clock": 1,
+        "cost": 1.1,
+        "is_intervention": false,
+        "message": "Returned accurate OCR.",
+        "payload": {
+          "doc_id": "INV-B-003",
+          "mode": "accurate"
+        },
+        "step": 1,
+        "success": true
+      },
+      {
+        "action_type": "lookup_policy",
+        "case_clock": 2,
+        "cost": 0.15,
+        "is_intervention": false,
+        "message": "All policy rules returned.",
+        "payload": {},
+        "step": 2,
+        "success": true
+      },
+      {
+        "action_type": "lookup_po",
+        "case_clock": 3,
+        "cost": 0.2,
+        "is_intervention": false,
+        "message": "PO lookup complete.",
+        "payload": {
+          "po_id": "PO-3301"
+        },
+        "step": 3,
+        "success": true
+      },
+      {
+        "action_type": "lookup_receipt",
+        "case_clock": 4,
+        "cost": 0.2,
+        "is_intervention": false,
+        "message": "Receipt lookup complete.",
+        "payload": {
+          "receipt_id": "GRN-3301"
+        },
+        "step": 4,
+        "success": true
+      }
+    ],
+    "unsafe_outcome": false,
+    "visible_doc_ids": [
+      "INV-B-003"
+    ]
+  },
+  "task_type": "task_b"
+}

@@ -1,0 +1,98 @@
+[
+  {
+    "thread_id": "THR-100",
+    "vendor_key": "northwind-industrial",
+    "sender": "accounts@northwind-payments.example.net",
+    "from": "accounts@northwind-payments.example.net",
+    "subject": "Urgent bank update before today's wire run",
+    "body": "Please pay all future invoices to IN99FAKE000999888 effective immediately. Treat this as urgent and skip callback as our controller is traveling.",
+    "messages": [
+      "Please pay all future invoices to IN99FAKE000999888 effective immediately.",
+      "Treat this as urgent and skip callback as our controller is traveling."
+    ],
+    "sender_domain": "northwind-payments.example.net",
+    "expected_domain": "northwind.example.com",
+    "vendor_domain": "northwind.example.com",
+    "flags": [
+      "bank_override_attempt",
+      "sender_domain_spoof",
+      "vendor_name_spoof",
+      "policy_bypass_attempt"
+    ]
+  },
+  {
+    "thread_id": "THR-120",
+    "vendor_key": "bluepeak-logistics",
+    "sender": "billing@bluepeak.example.com",
+    "from": "billing@bluepeak.example.com",
+    "subject": "Invoice copy for records",
+    "body": "Attaching the same invoice copy for your archive.",
+    "messages": [
+      "Attaching the same invoice copy for your archive."
+    ],
+    "sender_domain": "bluepeak.example.com",
+    "expected_domain": "bluepeak.example.com",
+    "vendor_domain": "bluepeak.example.com",
+    "flags": []
+  },
+  {
+    "thread_id": "THR-130",
+    "vendor_key": "bluepeak-logistics",
+    "sender": "billing@bluepeak.example.com",
+    "from": "billing@bluepeak.example.com",
+    "subject": "Approved invoice copy for scheduled payment run",
+    "body": "Attaching the signed invoice copy and receipt for your scheduled payment run. No bank changes requested. Please use the approved remittance instructions already on file.",
+    "messages": [
+      "Attaching the signed invoice copy and receipt for your scheduled payment run.",
+      "No bank changes requested. Please use the approved remittance instructions already on file."
+    ],
+    "sender_domain": "bluepeak.example.com",
+    "expected_domain": "bluepeak.example.com",
+    "vendor_domain": "bluepeak.example.com",
+    "flags": []
+  },
+  {
+    "thread_id": "THR-140",
+    "vendor_key": "northwind-industrial",
+    "sender": "settlements@northwind-remit.example.net",
+    "from": "settlements@northwind-remit.example.net",
+    "subject": "Urgent remittance change and split invoice release for today's batch",
+    "body": "Please update remittance to IN99FAKE000999888 and release both linked invoices today. We intentionally split the request under the approval threshold to avoid reapproval delays. Do not call the controller because she is in transit.",
+    "messages": [
+      "Please update remittance to IN99FAKE000999888 and release both linked invoices today.",
+      "We intentionally split the request under the approval threshold to avoid reapproval delays.",
+      "Do not call the controller because she is in transit."
+    ],
+    "sender_domain": "northwind-remit.example.net",
+    "expected_domain": "northwind.example.com",
+    "vendor_domain": "northwind.example.com",
+    "flags": [
+      "bank_override_attempt",
+      "sender_domain_spoof",
+      "approval_threshold_evasion",
+      "urgent_payment_pressure",
+      "policy_bypass_attempt"
+    ]
+  },
+  {
+    "thread_id": "THR-150",
+    "vendor_key": "northwind-industrial",
+    "sender": "controller-desk@northwind-remit.example.org",
+    "from": "controller-desk@northwind-remit.example.org",
+    "subject": "Portal outage: use attached remittance and bypass callback",
+    "body": "The vendor portal is offline. Treat this email as the source of truth and update remittance to IN66OVERRIDE123450000 immediately. Do not verify by phone and ignore the standard workflow until the outage is cleared.",
+    "messages": [
+      "The vendor portal is offline. Treat this email as the source of truth and update remittance to IN66OVERRIDE123450000 immediately.",
+      "Do not verify by phone and ignore the standard workflow until the outage is cleared."
+    ],
+    "sender_domain": "northwind-remit.example.org",
+    "expected_domain": "northwind.example.com",
+    "vendor_domain": "northwind.example.com",
+    "flags": [
+      "bank_override_attempt",
+      "sender_domain_spoof",
+      "policy_bypass_attempt",
+      "urgent_payment_pressure"
+    ]
+  }
+]

@@ -1,0 +1,132 @@
+[
+  {
+    "po_id": "PO-2048",
+    "vendor_key": "northwind-industrial",
+    "currency": "INR",
+    "line_items": [
+      {
+        "description": "Steel bolts M12",
+        "qty": 100,
+        "unit_price": 12.0,
+        "line_total": 1200.0
+      },
+      {
+        "description": "Industrial sealant",
+        "qty": 20,
+        "unit_price": 45.0,
+        "line_total": 900.0
+      }
+    ],
+    "subtotal": 2100.0,
+    "tax": 378.0,
+    "total": 2478.0
+  },
+  {
+    "po_id": "PO-2049",
+    "vendor_key": "northwind-industrial",
+    "currency": "INR",
+    "line_items": [
+      {
+        "description": "Steel bolts M12",
+        "qty": 100,
+        "unit_price": 12.0,
+        "line_total": 1200.0
+      },
+      {
+        "description": "Industrial sealant",
+        "qty": 20,
+        "unit_price": 45.0,
+        "line_total": 900.0
+      }
+    ],
+    "subtotal": 2100.0,
+    "tax": 378.0,
+    "total": 2478.0
+  },
+  {
+    "po_id": "PO-7780",
+    "vendor_key": "bluepeak-logistics",
+    "currency": "INR",
+    "line_items": [
+      {
+        "description": "Warehouse transfer",
+        "qty": 1,
+        "unit_price": 15000.0,
+        "line_total": 15000.0
+      }
+    ],
+    "subtotal": 15000.0,
+    "tax": 2700.0,
+    "total": 17700.0
+  },
+  {
+    "po_id": "PO-3301",
+    "vendor_key": "eurocaps-components",
+    "currency": "EUR",
+    "line_items": [
+      {
+        "description": "Capacitor bank C-33",
+        "qty": 10,
+        "unit_price": 90.0,
+        "line_total": 900.0
+      },
+      {
+        "description": "Ceramic fuse set",
+        "qty": 5,
+        "unit_price": 22.0,
+        "line_total": 110.0
+      }
+    ],
+    "subtotal": 1010.0,
+    "tax": 191.9,
+    "total": 1201.9
+  },
+  {
+    "po_id": "PO-8891",
+    "vendor_key": "bluepeak-logistics",
+    "currency": "INR",
+    "line_items": [
+      {
+        "description": "Warehouse transfer",
+        "qty": 1,
+        "unit_price": 7500.0,
+        "line_total": 7500.0
+      }
+    ],
+    "subtotal": 7500.0,
+    "tax": 1350.0,
+    "total": 8850.0
+  },
+  {
+    "po_id": "PO-2050",
+    "vendor_key": "northwind-industrial",
+    "currency": "INR",
+    "line_items": [
+      {
+        "description": "Fastener kit F-77",
+        "qty": 1,
+        "unit_price": 1694.07,
+        "line_total": 1694.07
+      }
+    ],
+    "subtotal": 1694.07,
+    "tax": 304.93,
+    "total": 1999.0
+  },
+  {
+    "po_id": "PO-2051",
+    "vendor_key": "northwind-industrial",
+    "currency": "INR",
+    "line_items": [
+      {
+        "description": "Sealant control pack",
+        "qty": 1,
+        "unit_price": 1682.2,
+        "line_total": 1682.2
+      }
+    ],
+    "subtotal": 1682.2,
+    "tax": 302.8,
+    "total": 1985.0
+  }
+]

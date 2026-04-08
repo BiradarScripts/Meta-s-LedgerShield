@@ -1,0 +1,74 @@
+[
+  {
+    "ledger_id": "LED-131",
+    "vendor_key": "northwind-industrial",
+    "vendor_name": "Northwind Industrial Supplies Pvt Ltd",
+    "invoice_number": "INV-2048-A",
+    "fingerprint": "northwind-bolts-2478",
+    "currency": "INR",
+    "amount": 2478.0,
+    "po_id": "PO-2048",
+    "payment_status": "paid",
+    "payment_date": "2026-03-11"
+  },
+  {
+    "ledger_id": "LED-2",
+    "vendor_key": "bluepeak-logistics",
+    "vendor_name": "BluePeak Logistics LLP",
+    "invoice_number": "BLP-7780-APR",
+    "fingerprint": "bluepeak-transfer-17700",
+    "currency": "INR",
+    "amount": 17700.0,
+    "po_id": "PO-7780",
+    "payment_status": "paid",
+    "payment_date": "2026-03-02"
+  },
+  {
+    "ledger_id": "LED-3",
+    "vendor_key": "northwind-industrial",
+    "vendor_name": "Northwind Industrial Supplies Pvt Ltd",
+    "invoice_number": "INV-2048-A-RESEND",
+    "fingerprint": "northwind-bolts-2478-scan",
+    "currency": "INR",
+    "amount": 2478.0,
+    "po_id": "PO-2048",
+    "payment_status": "paid",
+    "payment_date": "2026-03-15"
+  },
+  {
+    "ledger_id": "LED-4",
+    "vendor_key": "eurocaps-components",
+    "vendor_name": "EuroCaps Components GmbH",
+    "invoice_number": "EC-3301-26",
+    "fingerprint": "eurocaps-capacitor-1201.9",
+    "currency": "EUR",
+    "amount": 1201.9,
+    "po_id": "PO-3301",
+    "payment_status": "paid",
+    "payment_date": "2026-03-21"
+  },
+  {
+    "ledger_id": "LED-5",
+    "vendor_key": "northwind-industrial",
+    "vendor_name": "Northwind Industrial Supplies Pvt Ltd",
+    "invoice_number": "INV-2050-A-APR",
+    "fingerprint": "northwind-fasteners-1999",
+    "currency": "INR",
+    "amount": 1999.0,
+    "po_id": "PO-2050",
+    "payment_status": "paid",
+    "payment_date": "2026-03-27"
+  },
+  {
+    "ledger_id": "LED-6",
+    "vendor_key": "northwind-industrial",
+    "vendor_name": "Northwind Industrial Supplies Pvt Ltd",
+    "invoice_number": "INV-2050-B-APR",
+    "fingerprint": "northwind-seal-kit-1985",
+    "currency": "INR",
+    "amount": 1985.0,
+    "po_id": "PO-2051",
+    "payment_status": "paid",
+    "payment_date": "2026-03-28"
+  }
+]

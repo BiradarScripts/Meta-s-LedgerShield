@@ -1,0 +1,70 @@
+[
+  {
+    "receipt_id": "GRN-2048",
+    "po_id": "PO-2048",
+    "received_line_items": [
+      {
+        "description": "Steel bolts M12",
+        "qty": 100
+      },
+      {
+        "description": "Industrial sealant",
+        "qty": 20
+      }
+    ]
+  },
+  {
+    "receipt_id": "GRN-7780",
+    "po_id": "PO-7780",
+    "received_line_items": [
+      {
+        "description": "Warehouse transfer",
+        "qty": 1
+      }
+    ]
+  },
+  {
+    "receipt_id": "GRN-3301",
+    "po_id": "PO-3301",
+    "received_line_items": [
+      {
+        "description": "Capacitor bank C-33",
+        "qty": 10
+      },
+      {
+        "description": "Ceramic fuse set",
+        "qty": 5
+      }
+    ]
+  },
+  {
+    "receipt_id": "GRN-8891",
+    "po_id": "PO-8891",
+    "received_line_items": [
+      {
+        "description": "Warehouse transfer",
+        "qty": 1
+      }
+    ]
+  },
+  {
+    "receipt_id": "GRN-2050",
+    "po_id": "PO-2050",
+    "received_line_items": [
+      {
+        "description": "Fastener kit F-77",
+        "qty": 1
+      }
+    ]
+  },
+  {
+    "receipt_id": "GRN-2051",
+    "po_id": "PO-2051",
+    "received_line_items": [
+      {
+        "description": "Sealant control pack",
+        "qty": 1
+      }
+    ]
+  }
+]
