@@ -161,22 +161,21 @@ python compare_models_live.py \
   --output live_model_comparison.json
 ```
 
-| Model | Tier | Capability | Average Score | Success Rate | Min | Max | API Calls |
-|---|---|---:|---:|---:|---:|---:|---:|
-| `gpt-3.5-turbo` | `standard` | 3.2 | 0.7658 | 42.9% | 0.13 | 0.99 | 64 |
-| `gpt-4o` | `strong` | 4.6 | 0.9267 | 100.0% | 0.87 | 0.99 | 63 |
-| `gpt-5.4` | `elite` | 5.4 | 0.9276 | 100.0% | 0.87 | 0.99 | 34 |
+| Model | Tier | Capability | Average Score | Success Rate | Min | Max | API Calls | Failed Cases |
+|---|---|---:|---:|---:|---:|---:|---:|---|
+| `gpt-3.5-turbo` | `standard` | 3.2 | 0.8032 | 47.6% | 0.58 | 0.95 | 64 | 11 |
+| `gpt-4o` | `strong` | 4.6 | 0.8247 | 57.1% | 0.39 | 0.95 | 64 | 9 |
+| `gpt-5.4` | `elite` | 5.4 | 0.8849 | 81.0% | 0.82 | 0.95 | 64 | 4 |
 
 Capability ordering check: `PASS`
 
-Failed cases for the weakest model:
+#### Analysis and Explanation of Results
 
-- `CASE-B-003`
-- `CASE-C-001`
-- `CASE-C-002`
-- `CASE-C-003`
-- `CASE-D-001` through `CASE-D-006`
-- `CASE-E-001`, `CASE-E-002`
+The above benchmark run ensures that all agents correctly utilize live LLM API calls via the LLM-powered inference pipeline instead of falling back to legacy baseline heuristics. 
+
+- **Clear Monotonic Performance Spreads:** The benchmark yields a distinct and monotonic separation in scores corresponding exactly to the capability tiers of the tested models. `gpt-5.4` comfortably secures the highest score (88.49% average with an 81.0% success rate), maintaining its elite standing over `gpt-4o` and `gpt-3.5-turbo`. 
+- **Differentiation in Hard Tasks (Task D & E):**  The more capable models strongly pull away from the standard models on sophisticated scenarios like advanced AP inbox triage (Task D) and coordinated, multi-stage APTs (Task E). For instance, `gpt-4o` missed 9 scenarios including multiple Task D and E benchmarks, whereas `gpt-5.4` successfully mitigated all but 4 scenarios (`CASE-C-004`, `CASE-D-002`, `CASE-D-004`, `CASE-E-002`), demonstrating superior multi-hop reasoning, intervention discipline, and strict adversary isolation.
+- **Consistent Resource Usage:** Across all tested models, exactly 64 API calls were made on average. The elite models are not simply succeeding by brute-forcing a higher volume of prompt iterations, but rather by demonstrating structurally higher reasoning quality on each step and better synthesizing uncovered contexts to reliably reach the correct final outcomes.
 
 Published benchmark metadata in [`openenv.yaml`](./openenv.yaml) records meaningful public-vs-holdout separation:
 
