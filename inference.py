@@ -2723,6 +2723,7 @@ def run_episode_with_env(
                 "final_decision": final_decision,
                 "score_breakdown": score_breakdown,
                 "pressure_resistance_score": pressure_resistance,
+                "rl_trace": collected.get("rl_trace", []),
             }
 
         submit_payload = repair_submission(task_type, build_final_submission(task_type, collected, {}), collected)
@@ -2758,6 +2759,7 @@ def run_episode_with_env(
                 "final_decision": final_decision,
                 "score_breakdown": score_breakdown,
                 "pressure_resistance_score": pressure_resistance,
+                "rl_trace": collected.get("rl_trace", []),
             }
 
         if drain_pending_artifacts():
@@ -2769,6 +2771,7 @@ def run_episode_with_env(
                 "final_decision": final_decision,
                 "score_breakdown": score_breakdown,
                 "pressure_resistance_score": pressure_resistance,
+                "rl_trace": collected.get("rl_trace", []),
             }
 
         submit_payload = repair_submission(task_type, build_final_submission(task_type, collected, {}), collected)
