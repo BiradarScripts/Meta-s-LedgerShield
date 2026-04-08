@@ -101,7 +101,7 @@
       "done": true,
       "payload": {
         "confidence": 0.98,
-        "counterfactual": "This would be ESCALATE_FRAUD if the sender domain did not align with the approved vendor domain, if the email requested a bank/remittance change, discouraged callback verification, pushed urgency or executive pressure, if the invoice matched or nearly matched an existing ledger invoice, or if multiple split invoices appeared designed to evade approval thresholds.",
+        "counterfactual": "This would be ESCALATE_FRAUD if the email domain did not align with the approved vendor domain, if the sender requested a bank/remittance change, if the message discouraged callback or asked to bypass policy, if urgency/executive pressure appeared, if ledger results showed duplicate or near-duplicate invoices, or if invoice amounts appeared intentionally split to avoid approval thresholds.",
         "decision": "PAY",
         "evidence_map": {},
         "policy_checks": {
@@ -236,7 +236,7 @@
       "case_clock": 8,
       "case_id": "CASE-D-002",
       "contrastive_pair_id": "",
-      "episode_id": "3bca78b1-b937-40d5-854a-6bb23a107046",
+      "episode_id": "e5f84065-33e3-480e-aeb3-b16856f9555d",
       "final_score": 0.7968,
       "handoff_packet": {},
       "interventions_taken": [],
@@ -362,7 +362,7 @@
   },
   "final_submission": {
     "confidence": 0.98,
-    "counterfactual": "This would be ESCALATE_FRAUD if the sender domain did not align with the approved vendor domain, if the email requested a bank/remittance change, discouraged callback verification, pushed urgency or executive pressure, if the invoice matched or nearly matched an existing ledger invoice, or if multiple split invoices appeared designed to evade approval thresholds.",
+    "counterfactual": "This would be ESCALATE_FRAUD if the email domain did not align with the approved vendor domain, if the sender requested a bank/remittance change, if the message discouraged callback or asked to bypass policy, if urgency/executive pressure appeared, if ledger results showed duplicate or near-duplicate invoices, or if invoice amounts appeared intentionally split to avoid approval thresholds.",
     "decision": "PAY",
     "evidence_map": {},
     "policy_checks": {
@@ -435,7 +435,7 @@
       "case_clock": 8,
       "case_id": "CASE-D-002",
       "contrastive_pair_id": "",
-      "episode_id": "3bca78b1-b937-40d5-854a-6bb23a107046",
+      "episode_id": "e5f84065-33e3-480e-aeb3-b16856f9555d",
       "final_score": 0.7968,
       "handoff_packet": {},
       "interventions_taken": [],
@@ -713,7 +713,7 @@
     "case_clock": 8,
     "case_id": "CASE-D-002",
     "contrastive_pair_id": "",
-    "episode_id": "3bca78b1-b937-40d5-854a-6bb23a107046",
+    "episode_id": "e5f84065-33e3-480e-aeb3-b16856f9555d",
     "final_score": 0.7968,
     "handoff_packet": {},
     "interventions_taken": [],

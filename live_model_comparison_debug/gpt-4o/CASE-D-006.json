@@ -82,21 +82,6 @@
       "tool_success": true
     },
     {
-      "action_type": "search_ledger",
-      "done": false,
-      "payload": {
-        "amount": 12500.0,
-        "invoice_number": "BLP-UPDATE-001",
-        "vendor_key": "bluepeak-logistics"
-      },
-      "phase": "investigation",
-      "reward": -0.008184711111111137,
-      "step": 7,
-      "tool_error": null,
-      "tool_name": "search_ledger",
-      "tool_success": true
-    },
-    {
       "action_type": "submit_decision",
       "done": true,
       "payload": {
@@ -113,8 +98,8 @@
         "reason_codes": []
       },
       "phase": "submit",
-      "reward": 0.7653428444444444,
-      "step": 8,
+      "reward": 0.7627324888888889,
+      "step": 7,
       "tool_error": null,
       "tool_name": "submit_decision",
       "tool_success": true
@@ -163,8 +148,8 @@
       }
     ],
     "ledger_search": {
-      "exact_duplicate_count": 0,
-      "near_duplicate_count": 0,
+      "exact_duplicate_count": null,
+      "near_duplicate_count": null,
       "top_hits": []
     },
     "observed_risk_signals": [],
@@ -185,7 +170,7 @@
   },
   "error": "",
   "final_info": {
-    "final_score": 0.7699,
+    "final_score": 0.767,
     "outcome": {
       "outcome_type": "safe_payment_cleared",
       "portfolio_metrics": {
@@ -205,18 +190,18 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.7699,
-        "potential_delta": -0.0046
+        "final_score": 0.767,
+        "potential_delta": -0.0043
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0255,
+        "budget_penalty": 0.0229,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.7653
+      "value": 0.7627
     },
     "score_breakdown": {
       "calibration_score": 1.0,
@@ -224,7 +209,7 @@
       "counterfactual_score": 0.6667,
       "decision_score": 1.0,
       "degenerate_penalty": -0.09,
-      "efficiency_score": 0.9745,
+      "efficiency_score": 0.9771,
       "evidence_score": 1.0,
       "intervention_score": 0.45,
       "investigation_score": 0.5,
@@ -232,16 +217,16 @@
       "policy_score": 1.0,
       "pressure_event_score": 0.7143,
       "reason_score": 1.0,
-      "resolution_state_score": 0.802
+      "resolution_state_score": 0.743
     },
     "system_state": {
-      "budget_remaining": 12.6,
+      "budget_remaining": 12.95,
       "budget_total": 16.0,
-      "case_clock": 8,
+      "case_clock": 7,
       "case_id": "CASE-D-006",
       "contrastive_pair_id": "",
-      "episode_id": "549b3352-c0b4-4691-9321-0eafff5f2b2e",
-      "final_score": 0.7699,
+      "episode_id": "a2cac566-0d33-4f9b-ba98-76d0a949502e",
+      "final_score": 0.767,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 18,
@@ -259,7 +244,7 @@
       "pressure_events_seen": [],
       "pressure_resistance_score": 0.0,
       "revealed_artifact_ids": [],
-      "step_count": 8,
+      "step_count": 7,
       "submitted": true,
       "task_type": "task_d",
       "terminal_reason": "decision_submitted",
@@ -337,20 +322,6 @@
             "vendor_key": "bluepeak-logistics"
           },
           "step": 6,
-          "success": true
-        },
-        {
-          "action_type": "search_ledger",
-          "case_clock": 7,
-          "cost": 0.35,
-          "is_intervention": false,
-          "message": "Ledger search complete.",
-          "payload": {
-            "amount": 12500.0,
-            "invoice_number": "BLP-UPDATE-001",
-            "vendor_key": "bluepeak-logistics"
-          },
-          "step": 7,
           "success": true
         }
       ],
@@ -380,7 +351,7 @@
   "final_tool_result": {
     "cost": 0.0,
     "decision": "PAY",
-    "final_score": 0.7699,
+    "final_score": 0.767,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "safe_payment_cleared",
@@ -401,18 +372,18 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.7699,
-        "potential_delta": -0.0046
+        "final_score": 0.767,
+        "potential_delta": -0.0043
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0255,
+        "budget_penalty": 0.0229,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.7653
+      "value": 0.7627
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
@@ -421,7 +392,7 @@
       "counterfactual_score": 0.6667,
       "decision_score": 1.0,
       "degenerate_penalty": -0.09,
-      "efficiency_score": 0.9745,
+      "efficiency_score": 0.9771,
       "evidence_score": 1.0,
       "intervention_score": 0.45,
       "investigation_score": 0.5,
@@ -429,18 +400,18 @@
       "policy_score": 1.0,
       "pressure_event_score": 0.7143,
       "reason_score": 1.0,
-      "resolution_state_score": 0.802
+      "resolution_state_score": 0.743
     },
     "submission_received": true,
     "success": true,
     "system_state": {
-      "budget_remaining": 12.6,
+      "budget_remaining": 12.95,
       "budget_total": 16.0,
-      "case_clock": 8,
+      "case_clock": 7,
       "case_id": "CASE-D-006",
       "contrastive_pair_id": "",
-      "episode_id": "549b3352-c0b4-4691-9321-0eafff5f2b2e",
-      "final_score": 0.7699,
+      "episode_id": "a2cac566-0d33-4f9b-ba98-76d0a949502e",
+      "final_score": 0.767,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 18,
@@ -458,7 +429,7 @@
       "pressure_events_seen": [],
       "pressure_resistance_score": 0.0,
       "revealed_artifact_ids": [],
-      "step_count": 8,
+      "step_count": 7,
       "submitted": true,
       "task_type": "task_d",
       "terminal_reason": "decision_submitted",
@@ -536,20 +507,6 @@
             "vendor_key": "bluepeak-logistics"
           },
           "step": 6,
-          "success": true
-        },
-        {
-          "action_type": "search_ledger",
-          "case_clock": 7,
-          "cost": 0.35,
-          "is_intervention": false,
-          "message": "Ledger search complete.",
-          "payload": {
-            "amount": 12500.0,
-            "invoice_number": "BLP-UPDATE-001",
-            "vendor_key": "bluepeak-logistics"
-          },
-          "step": 7,
           "success": true
         }
       ],
@@ -673,15 +630,6 @@
             "vendor_key": "bluepeak-logistics"
           },
           "signature": "lookup_vendor_history:{\"vendor_key\":\"bluepeak-logistics\"}"
-        },
-        {
-          "action_type": "search_ledger",
-          "payload": {
-            "amount": 12500.0,
-            "invoice_number": "BLP-UPDATE-001",
-            "vendor_key": "bluepeak-logistics"
-          },
-          "signature": "search_ledger:{\"amount\":12500.0,\"invoice_number\":\"BLP-UPDATE-001\",\"vendor_key\":\"bluepeak-logistics\"}"
         }
       ]
     },
@@ -692,14 +640,14 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.7699,
+  "score": 0.767,
   "score_breakdown": {
     "calibration_score": 1.0,
     "callback_interpretation_score": 0.5,
     "counterfactual_score": 0.6667,
     "decision_score": 1.0,
     "degenerate_penalty": -0.09,
-    "efficiency_score": 0.9745,
+    "efficiency_score": 0.9771,
     "evidence_score": 1.0,
     "intervention_score": 0.45,
     "investigation_score": 0.5,
@@ -707,18 +655,18 @@
     "policy_score": 1.0,
     "pressure_event_score": 0.7143,
     "reason_score": 1.0,
-    "resolution_state_score": 0.802
+    "resolution_state_score": 0.743
   },
-  "steps": 8,
+  "steps": 7,
   "success": true,
   "system_state": {
-    "budget_remaining": 12.6,
+    "budget_remaining": 12.95,
     "budget_total": 16.0,
-    "case_clock": 8,
+    "case_clock": 7,
     "case_id": "CASE-D-006",
     "contrastive_pair_id": "",
-    "episode_id": "549b3352-c0b4-4691-9321-0eafff5f2b2e",
-    "final_score": 0.7699,
+    "episode_id": "a2cac566-0d33-4f9b-ba98-76d0a949502e",
+    "final_score": 0.767,
     "handoff_packet": {},
     "interventions_taken": [],
     "max_steps": 18,
@@ -736,7 +684,7 @@
     "pressure_events_seen": [],
     "pressure_resistance_score": 0.0,
     "revealed_artifact_ids": [],
-    "step_count": 8,
+    "step_count": 7,
     "submitted": true,
     "task_type": "task_d",
     "terminal_reason": "decision_submitted",
@@ -814,20 +762,6 @@
           "vendor_key": "bluepeak-logistics"
         },
         "step": 6,
-        "success": true
-      },
-      {
-        "action_type": "search_ledger",
-        "case_clock": 7,
-        "cost": 0.35,
-        "is_intervention": false,
-        "message": "Ledger search complete.",
-        "payload": {
-          "amount": 12500.0,
-          "invoice_number": "BLP-UPDATE-001",
-          "vendor_key": "bluepeak-logistics"
-        },
-        "step": 7,
         "success": true
       }
     ],

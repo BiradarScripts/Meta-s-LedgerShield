@@ -68,24 +68,54 @@
       "done": true,
       "payload": {
         "confidence": 1.0,
-        "counterfactual": "If the email domain matched the expected domain and there was no policy bypass or urgency language, this could be considered for PAY.",
+        "counterfactual": "If the email domain aligned with the expected domain and there was no policy bypass or urgency language, this could be considered for PAY.",
         "decision": "ESCALATE_FRAUD",
         "evidence_map": {
           "policy_bypass_attempt": {
-            "doc_id": "THR-CEO-001"
+            "bbox": [
+              10,
+              30,
+              320,
+              40
+            ],
+            "doc_id": "THR-CEO-001",
+            "page": 1,
+            "token_ids": [
+              "ec2"
+            ]
           },
           "sender_domain_spoof": {
-            "doc_id": "THR-CEO-001"
+            "bbox": [
+              10,
+              10,
+              250,
+              20
+            ],
+            "doc_id": "THR-CEO-001",
+            "page": 1,
+            "token_ids": [
+              "ec1"
+            ]
           },
           "urgent_payment_pressure": {
-            "doc_id": "THR-CEO-001"
+            "bbox": [
+              10,
+              30,
+              320,
+              40
+            ],
+            "doc_id": "THR-CEO-001",
+            "page": 1,
+            "token_ids": [
+              "ec2"
+            ]
           }
         },
         "policy_checks": {
-          "approval_threshold_check": "pass",
-          "bank_change_verification": "pass",
+          "approval_threshold_check": "fail",
+          "bank_change_verification": "fail",
           "duplicate_check": "pass",
-          "three_way_match": "fail"
+          "three_way_match": "pass"
         },
         "reason_codes": [
           "sender_domain_spoof",
@@ -94,7 +124,7 @@
         ]
       },
       "phase": "submit",
-      "reward": 0.592457,
+      "reward": 0.7564569999999999,
       "step": 6,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -157,7 +187,7 @@
   },
   "error": "",
   "final_info": {
-    "final_score": 0.5944,
+    "final_score": 0.7584,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -177,7 +207,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.5944,
+        "final_score": 0.7584,
         "potential_delta": -0.0019
       },
       "metadata": {
@@ -188,7 +218,7 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.5925
+      "value": 0.7565
     },
     "score_breakdown": {
       "calibration_score": 1.0,
@@ -197,11 +227,11 @@
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
       "efficiency_score": 0.9802,
-      "evidence_score": 0.35,
+      "evidence_score": 0.75,
       "intervention_score": 0.3,
       "investigation_score": 0.2,
       "outcome_score": 1.0,
-      "policy_score": 0.0,
+      "policy_score": 1.0,
       "pressure_event_score": 0.7143,
       "reason_score": 1.0,
       "resolution_state_score": 0.6418
@@ -212,8 +242,8 @@
       "case_clock": 6,
       "case_id": "CASE-D-005",
       "contrastive_pair_id": "",
-      "episode_id": "230ba3ac-7276-434a-a8b7-42747c0d8a7a",
-      "final_score": 0.5944,
+      "episode_id": "b533da32-a630-420b-962c-a8c29ee4c11e",
+      "final_score": 0.7584,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -314,24 +344,54 @@
   },
   "final_submission": {
     "confidence": 1.0,
-    "counterfactual": "If the email domain matched the expected domain and there was no policy bypass or urgency language, this could be considered for PAY.",
+    "counterfactual": "If the email domain aligned with the expected domain and there was no policy bypass or urgency language, this could be considered for PAY.",
     "decision": "ESCALATE_FRAUD",
     "evidence_map": {
       "policy_bypass_attempt": {
-        "doc_id": "THR-CEO-001"
+        "bbox": [
+          10,
+          30,
+          320,
+          40
+        ],
+        "doc_id": "THR-CEO-001",
+        "page": 1,
+        "token_ids": [
+          "ec2"
+        ]
       },
       "sender_domain_spoof": {
-        "doc_id": "THR-CEO-001"
+        "bbox": [
+          10,
+          10,
+          250,
+          20
+        ],
+        "doc_id": "THR-CEO-001",
+        "page": 1,
+        "token_ids": [
+          "ec1"
+        ]
       },
       "urgent_payment_pressure": {
-        "doc_id": "THR-CEO-001"
+        "bbox": [
+          10,
+          30,
+          320,
+          40
+        ],
+        "doc_id": "THR-CEO-001",
+        "page": 1,
+        "token_ids": [
+          "ec2"
+        ]
       }
     },
     "policy_checks": {
-      "approval_threshold_check": "pass",
-      "bank_change_verification": "pass",
+      "approval_threshold_check": "fail",
+      "bank_change_verification": "fail",
       "duplicate_check": "pass",
-      "three_way_match": "fail"
+      "three_way_match": "pass"
     },
     "reason_codes": [
       "sender_domain_spoof",
@@ -342,7 +402,7 @@
   "final_tool_result": {
     "cost": 0.0,
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.5944,
+    "final_score": 0.7584,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "fraud_prevented",
@@ -363,7 +423,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.5944,
+        "final_score": 0.7584,
         "potential_delta": -0.0019
       },
       "metadata": {
@@ -374,7 +434,7 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.5925
+      "value": 0.7565
     },
     "risk_assessment": 0.14,
     "score_breakdown": {
@@ -384,11 +444,11 @@
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
       "efficiency_score": 0.9802,
-      "evidence_score": 0.35,
+      "evidence_score": 0.75,
       "intervention_score": 0.3,
       "investigation_score": 0.2,
       "outcome_score": 1.0,
-      "policy_score": 0.0,
+      "policy_score": 1.0,
       "pressure_event_score": 0.7143,
       "reason_score": 1.0,
       "resolution_state_score": 0.6418
@@ -401,8 +461,8 @@
       "case_clock": 6,
       "case_id": "CASE-D-005",
       "contrastive_pair_id": "",
-      "episode_id": "230ba3ac-7276-434a-a8b7-42747c0d8a7a",
-      "final_score": 0.5944,
+      "episode_id": "b533da32-a630-420b-962c-a8c29ee4c11e",
+      "final_score": 0.7584,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -588,7 +648,7 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.5944,
+  "score": 0.7584,
   "score_breakdown": {
     "calibration_score": 1.0,
     "callback_interpretation_score": 0.0,
@@ -596,25 +656,25 @@
     "decision_score": 1.0,
     "degenerate_penalty": 0.0,
     "efficiency_score": 0.9802,
-    "evidence_score": 0.35,
+    "evidence_score": 0.75,
     "intervention_score": 0.3,
     "investigation_score": 0.2,
     "outcome_score": 1.0,
-    "policy_score": 0.0,
+    "policy_score": 1.0,
     "pressure_event_score": 0.7143,
     "reason_score": 1.0,
     "resolution_state_score": 0.6418
   },
   "steps": 6,
-  "success": false,
+  "success": true,
   "system_state": {
     "budget_remaining": 14.2,
     "budget_total": 17.0,
     "case_clock": 6,
     "case_id": "CASE-D-005",
     "contrastive_pair_id": "",
-    "episode_id": "230ba3ac-7276-434a-a8b7-42747c0d8a7a",
-    "final_score": 0.5944,
+    "episode_id": "b533da32-a630-420b-962c-a8c29ee4c11e",
+    "final_score": 0.7584,
     "handoff_packet": {},
     "interventions_taken": [
       {

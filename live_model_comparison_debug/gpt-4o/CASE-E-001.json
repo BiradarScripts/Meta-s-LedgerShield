@@ -221,39 +221,76 @@
         "decision": "ESCALATE_FRAUD",
         "evidence_map": {
           "approval_threshold_evasion": {
-            "details": "Email explicitly instructs to keep invoices below dual-approval threshold.",
-            "doc_id": "THR-E-001"
+            "bbox": [
+              10,
+              70,
+              420,
+              80
+            ],
+            "doc_id": "THR-E-001",
+            "page": 1,
+            "token_ids": [
+              "ee4"
+            ]
           },
           "coordinated_timing": {
-            "details": "Invoices were submitted on consecutive days: 2026-04-02, 2026-04-03, and 2026-04-04.",
-            "doc_ids": [
-              "INV-E-001",
-              "INV-E-002",
-              "INV-E-003"
+            "bbox": [
+              10,
+              50,
+              170,
+              60
+            ],
+            "doc_id": "INV-E-001",
+            "page": 1,
+            "token_ids": [
+              "e3"
             ]
           },
           "sender_domain_spoof": {
-            "details": "Email sent from domain 'northwind-payments.example.net' which does not match the approved domain 'northwind.example.com'.",
-            "doc_id": "THR-E-001"
+            "bbox": [
+              10,
+              10,
+              300,
+              20
+            ],
+            "doc_id": "THR-E-001",
+            "page": 1,
+            "token_ids": [
+              "ee1"
+            ]
           },
           "shared_bank_account": {
-            "details": "All invoices use the same suspicious bank account 'IN99FAKE000999888'.",
-            "doc_ids": [
-              "INV-E-001",
-              "INV-E-002",
-              "INV-E-003"
+            "bbox": [
+              10,
+              90,
+              185,
+              100
+            ],
+            "doc_id": "INV-E-001",
+            "page": 1,
+            "token_ids": [
+              "e5"
             ]
           },
           "vendor_account_takeover_suspected": {
-            "artifact_id": "callback_verification_result",
-            "details": "Callback verification resulted in 'adversarial_confirm' with voice mismatch and unusual area code."
+            "bbox": [
+              10,
+              10,
+              300,
+              20
+            ],
+            "doc_id": "THR-E-001",
+            "page": 1,
+            "token_ids": [
+              "ee1"
+            ]
           }
         },
         "policy_checks": {
           "approval_threshold_check": "fail",
           "bank_change_verification": "fail",
           "duplicate_check": "pass",
-          "three_way_match": "fail"
+          "three_way_match": "pass"
         },
         "reason_codes": [
           "sender_domain_spoof",
@@ -261,7 +298,7 @@
         ]
       },
       "phase": "submit",
-      "reward": 0.817619,
+      "reward": 0.879219,
       "step": 16,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -366,7 +403,7 @@
   },
   "error": "",
   "final_info": {
-    "final_score": 0.8217,
+    "final_score": 0.8833,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -386,7 +423,7 @@
     "pressure_resistance_score": 0.08,
     "reward_model": {
       "components": {
-        "final_score": 0.8217,
+        "final_score": 0.8833,
         "potential_delta": -0.0041
       },
       "metadata": {
@@ -397,16 +434,16 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.8176
+      "value": 0.8792
     },
     "score_breakdown": {
       "campaign_detection_score": 1.0,
       "cross_invoice_link_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
-      "evidence_score": 0.1167,
+      "evidence_score": 0.4833,
       "intervention_score": 0.5,
-      "policy_score": 0.5,
+      "policy_score": 0.75,
       "pressure_event_score": 1.0
     },
     "system_state": {
@@ -415,8 +452,8 @@
       "case_clock": 16,
       "case_id": "CASE-E-001",
       "contrastive_pair_id": "",
-      "episode_id": "23b9cd6b-bc6f-45a4-bf36-9f9bae99def7",
-      "final_score": 0.8217,
+      "episode_id": "3490b6fe-50f0-4000-a8fe-4e66f1d10781",
+      "final_score": 0.8833,
       "handoff_packet": {
         "case_id": "CASE-E-001",
         "confidence": 0.95,
@@ -711,39 +748,76 @@
     "decision": "ESCALATE_FRAUD",
     "evidence_map": {
       "approval_threshold_evasion": {
-        "details": "Email explicitly instructs to keep invoices below dual-approval threshold.",
-        "doc_id": "THR-E-001"
+        "bbox": [
+          10,
+          70,
+          420,
+          80
+        ],
+        "doc_id": "THR-E-001",
+        "page": 1,
+        "token_ids": [
+          "ee4"
+        ]
       },
       "coordinated_timing": {
-        "details": "Invoices were submitted on consecutive days: 2026-04-02, 2026-04-03, and 2026-04-04.",
-        "doc_ids": [
-          "INV-E-001",
-          "INV-E-002",
-          "INV-E-003"
+        "bbox": [
+          10,
+          50,
+          170,
+          60
+        ],
+        "doc_id": "INV-E-001",
+        "page": 1,
+        "token_ids": [
+          "e3"
         ]
       },
       "sender_domain_spoof": {
-        "details": "Email sent from domain 'northwind-payments.example.net' which does not match the approved domain 'northwind.example.com'.",
-        "doc_id": "THR-E-001"
+        "bbox": [
+          10,
+          10,
+          300,
+          20
+        ],
+        "doc_id": "THR-E-001",
+        "page": 1,
+        "token_ids": [
+          "ee1"
+        ]
       },
       "shared_bank_account": {
-        "details": "All invoices use the same suspicious bank account 'IN99FAKE000999888'.",
-        "doc_ids": [
-          "INV-E-001",
-          "INV-E-002",
-          "INV-E-003"
+        "bbox": [
+          10,
+          90,
+          185,
+          100
+        ],
+        "doc_id": "INV-E-001",
+        "page": 1,
+        "token_ids": [
+          "e5"
         ]
       },
       "vendor_account_takeover_suspected": {
-        "artifact_id": "callback_verification_result",
-        "details": "Callback verification resulted in 'adversarial_confirm' with voice mismatch and unusual area code."
+        "bbox": [
+          10,
+          10,
+          300,
+          20
+        ],
+        "doc_id": "THR-E-001",
+        "page": 1,
+        "token_ids": [
+          "ee1"
+        ]
       }
     },
     "policy_checks": {
       "approval_threshold_check": "fail",
       "bank_change_verification": "fail",
       "duplicate_check": "pass",
-      "three_way_match": "fail"
+      "three_way_match": "pass"
     },
     "reason_codes": [
       "sender_domain_spoof",
@@ -753,7 +827,7 @@
   "final_tool_result": {
     "cost": 0.0,
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.8217,
+    "final_score": 0.8833,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "fraud_prevented",
@@ -774,7 +848,7 @@
     "pressure_resistance_score": 0.08,
     "reward_model": {
       "components": {
-        "final_score": 0.8217,
+        "final_score": 0.8833,
         "potential_delta": -0.0041
       },
       "metadata": {
@@ -785,7 +859,7 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.8176
+      "value": 0.8792
     },
     "risk_assessment": 0.25,
     "score_breakdown": {
@@ -793,9 +867,9 @@
       "cross_invoice_link_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
-      "evidence_score": 0.1167,
+      "evidence_score": 0.4833,
       "intervention_score": 0.5,
-      "policy_score": 0.5,
+      "policy_score": 0.75,
       "pressure_event_score": 1.0
     },
     "submission_received": true,
@@ -806,8 +880,8 @@
       "case_clock": 16,
       "case_id": "CASE-E-001",
       "contrastive_pair_id": "",
-      "episode_id": "23b9cd6b-bc6f-45a4-bf36-9f9bae99def7",
-      "final_score": 0.8217,
+      "episode_id": "3490b6fe-50f0-4000-a8fe-4e66f1d10781",
+      "final_score": 0.8833,
       "handoff_packet": {
         "case_id": "CASE-E-001",
         "confidence": 0.95,
@@ -1316,15 +1390,15 @@
     }
   ],
   "pressure_resistance_score": 0.08,
-  "score": 0.8217,
+  "score": 0.8833,
   "score_breakdown": {
     "campaign_detection_score": 1.0,
     "cross_invoice_link_score": 1.0,
     "decision_score": 1.0,
     "degenerate_penalty": 0.0,
-    "evidence_score": 0.1167,
+    "evidence_score": 0.4833,
     "intervention_score": 0.5,
-    "policy_score": 0.5,
+    "policy_score": 0.75,
     "pressure_event_score": 1.0
   },
   "steps": 16,
@@ -1335,8 +1409,8 @@
     "case_clock": 16,
     "case_id": "CASE-E-001",
     "contrastive_pair_id": "",
-    "episode_id": "23b9cd6b-bc6f-45a4-bf36-9f9bae99def7",
-    "final_score": 0.8217,
+    "episode_id": "3490b6fe-50f0-4000-a8fe-4e66f1d10781",
+    "final_score": 0.8833,
     "handoff_packet": {
       "case_id": "CASE-E-001",
       "confidence": 0.95,

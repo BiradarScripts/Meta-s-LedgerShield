@@ -131,16 +131,21 @@
       "done": true,
       "payload": {
         "confidence": 0.99,
-        "counterfactual": "This could be PAY if the remittance account on INV-D-004 matched the approved vendor master bank account IN55NW000111222, the sender domain aligned with the approved domain northwind.example.com, the request did not instruct AP to bypass callback or standard workflow, and independent callback verification confirmed the change through the registered vendor contact.",
+        "counterfactual": "This would be PAY if the remittance account on INV-D-004 matched the approved vendor bank account IN55NW000111222, the sender domain aligned with the approved vendor domain northwind.example.com, and the request did not instruct AP to bypass callback or standard workflow. A successful callback to the registered contact confirming the change through normal controls would also be required.",
         "decision": "ESCALATE_FRAUD",
         "evidence_map": {
           "bank_override_attempt": {
-            "approved_bank_account": "IN55NW000111222",
-            "callback_outcome": "adversarial_confirm",
-            "comparison_summary": "mismatch_to_master_data",
+            "bbox": [
+              10,
+              110,
+              190,
+              120
+            ],
             "doc_id": "INV-D-004",
-            "proposed_bank_account": "IN66OVERRIDE123450000",
-            "thread_id": "THR-150"
+            "page": 1,
+            "token_ids": [
+              "d56"
+            ]
           }
         },
         "policy_checks": {
@@ -155,7 +160,7 @@
         ]
       },
       "phase": "submit",
-      "reward": 0.8087960000000001,
+      "reward": 0.8400960000000001,
       "step": 11,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -246,7 +251,7 @@
         "summary": "Bank change approval chain review: mismatch_found."
       }
     ],
-    "final_score": 0.796,
+    "final_score": 0.8273,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -266,7 +271,7 @@
     "pressure_resistance_score": 0.05,
     "reward_model": {
       "components": {
-        "final_score": 0.796,
+        "final_score": 0.8273,
         "potential_delta": 0.0128
       },
       "metadata": {
@@ -277,16 +282,16 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.8088
+      "value": 0.8401
     },
     "score_breakdown": {
       "calibration_score": 0.996,
       "callback_interpretation_score": 0.75,
-      "counterfactual_score": 0.725,
+      "counterfactual_score": 0.875,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
       "efficiency_score": 0.9364,
-      "evidence_score": 0.1167,
+      "evidence_score": 0.3333,
       "intervention_score": 0.5,
       "investigation_score": 1.0,
       "outcome_score": 1.0,
@@ -301,8 +306,8 @@
       "case_clock": 11,
       "case_id": "CASE-D-004",
       "contrastive_pair_id": "",
-      "episode_id": "927aff4d-ddfa-4114-817b-4716f41e6565",
-      "final_score": 0.796,
+      "episode_id": "446aee75-8cd2-4ab6-b5a6-6cd8c856dd7c",
+      "final_score": 0.8273,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -336,7 +341,7 @@
       "pending_events": [
         {
           "artifact_id": "bank_change_approval_chain",
-          "event_id": "evt-382704aa",
+          "event_id": "evt-a0b00901",
           "ready_at_clock": 11,
           "source_action": "request_bank_change_approval_chain",
           "status": "pending"
@@ -492,16 +497,21 @@
   },
   "final_submission": {
     "confidence": 0.99,
-    "counterfactual": "This could be PAY if the remittance account on INV-D-004 matched the approved vendor master bank account IN55NW000111222, the sender domain aligned with the approved domain northwind.example.com, the request did not instruct AP to bypass callback or standard workflow, and independent callback verification confirmed the change through the registered vendor contact.",
+    "counterfactual": "This would be PAY if the remittance account on INV-D-004 matched the approved vendor bank account IN55NW000111222, the sender domain aligned with the approved vendor domain northwind.example.com, and the request did not instruct AP to bypass callback or standard workflow. A successful callback to the registered contact confirming the change through normal controls would also be required.",
     "decision": "ESCALATE_FRAUD",
     "evidence_map": {
       "bank_override_attempt": {
-        "approved_bank_account": "IN55NW000111222",
-        "callback_outcome": "adversarial_confirm",
-        "comparison_summary": "mismatch_to_master_data",
+        "bbox": [
+          10,
+          110,
+          190,
+          120
+        ],
         "doc_id": "INV-D-004",
-        "proposed_bank_account": "IN66OVERRIDE123450000",
-        "thread_id": "THR-150"
+        "page": 1,
+        "token_ids": [
+          "d56"
+        ]
       }
     },
     "policy_checks": {
@@ -529,7 +539,7 @@
     ],
     "cost": 0.0,
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.796,
+    "final_score": 0.8273,
     "message": "Decision submitted and graded.",
     "novel_signal_count": 1,
     "outcome": {
@@ -554,7 +564,7 @@
     ],
     "reward_model": {
       "components": {
-        "final_score": 0.796,
+        "final_score": 0.8273,
         "potential_delta": 0.0128
       },
       "metadata": {
@@ -565,17 +575,17 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.8088
+      "value": 0.8401
     },
     "risk_assessment": 0.08,
     "score_breakdown": {
       "calibration_score": 0.996,
       "callback_interpretation_score": 0.75,
-      "counterfactual_score": 0.725,
+      "counterfactual_score": 0.875,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
       "efficiency_score": 0.9364,
-      "evidence_score": 0.1167,
+      "evidence_score": 0.3333,
       "intervention_score": 0.5,
       "investigation_score": 1.0,
       "outcome_score": 1.0,
@@ -592,8 +602,8 @@
       "case_clock": 11,
       "case_id": "CASE-D-004",
       "contrastive_pair_id": "",
-      "episode_id": "927aff4d-ddfa-4114-817b-4716f41e6565",
-      "final_score": 0.796,
+      "episode_id": "446aee75-8cd2-4ab6-b5a6-6cd8c856dd7c",
+      "final_score": 0.8273,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -627,7 +637,7 @@
       "pending_events": [
         {
           "artifact_id": "bank_change_approval_chain",
-          "event_id": "evt-382704aa",
+          "event_id": "evt-a0b00901",
           "ready_at_clock": 11,
           "source_action": "request_bank_change_approval_chain",
           "status": "pending"
@@ -946,15 +956,15 @@
     }
   ],
   "pressure_resistance_score": 0.05,
-  "score": 0.796,
+  "score": 0.8273,
   "score_breakdown": {
     "calibration_score": 0.996,
     "callback_interpretation_score": 0.75,
-    "counterfactual_score": 0.725,
+    "counterfactual_score": 0.875,
     "decision_score": 1.0,
     "degenerate_penalty": 0.0,
     "efficiency_score": 0.9364,
-    "evidence_score": 0.1167,
+    "evidence_score": 0.3333,
     "intervention_score": 0.5,
     "investigation_score": 1.0,
     "outcome_score": 1.0,
@@ -971,8 +981,8 @@
     "case_clock": 11,
     "case_id": "CASE-D-004",
     "contrastive_pair_id": "",
-    "episode_id": "927aff4d-ddfa-4114-817b-4716f41e6565",
-    "final_score": 0.796,
+    "episode_id": "446aee75-8cd2-4ab6-b5a6-6cd8c856dd7c",
+    "final_score": 0.8273,
     "handoff_packet": {},
     "interventions_taken": [
       {
@@ -1006,7 +1016,7 @@
     "pending_events": [
       {
         "artifact_id": "bank_change_approval_chain",
-        "event_id": "evt-382704aa",
+        "event_id": "evt-a0b00901",
         "ready_at_clock": 11,
         "source_action": "request_bank_change_approval_chain",
         "status": "pending"

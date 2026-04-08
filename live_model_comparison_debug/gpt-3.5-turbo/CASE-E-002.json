@@ -87,20 +87,20 @@
       "payload": {
         "campaign_signals": [],
         "confidence": 1.0,
-        "counterfactual": "The invoices show a clear pattern of altered bank details with a suspicious bank account 'DE00COMPROMISED999'. This indicates a potential vendor account takeover, leading to an escalation of the fraud risk.",
+        "counterfactual": "The invoices show a clear pattern of altered bank details with a suspicious sender domain and a request to bypass the approval threshold. This indicates a high likelihood of a vendor account takeover. Therefore, the fraud should be escalated for further investigation.",
         "cross_invoice_links": [],
         "decision": "ESCALATE_FRAUD",
         "evidence_map": {},
         "policy_checks": {
           "approval_threshold_check": "pass",
-          "bank_change_verification": "fail",
+          "bank_change_verification": "pass",
           "duplicate_check": "pass",
           "three_way_match": "pass"
         },
         "reason_codes": []
       },
       "phase": "submit",
-      "reward": 0.286684,
+      "reward": 0.23668399999999998,
       "step": 7,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -172,7 +172,7 @@
   },
   "error": "",
   "final_info": {
-    "final_score": 0.288,
+    "final_score": 0.238,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -192,7 +192,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.288,
+        "final_score": 0.238,
         "potential_delta": -0.0013
       },
       "metadata": {
@@ -203,7 +203,7 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.2867
+      "value": 0.2367
     },
     "score_breakdown": {
       "campaign_detection_score": 0.0,
@@ -212,7 +212,7 @@
       "degenerate_penalty": -0.09,
       "evidence_score": 0.0,
       "intervention_score": 0.35,
-      "policy_score": 1.0,
+      "policy_score": 0.5,
       "pressure_event_score": 0.7143
     },
     "system_state": {
@@ -221,8 +221,8 @@
       "case_clock": 7,
       "case_id": "CASE-E-002",
       "contrastive_pair_id": "",
-      "episode_id": "dd3b067c-4ab8-4222-98c9-a009125808c9",
-      "final_score": 0.288,
+      "episode_id": "782feb9f-1aa1-4b8e-b03b-ae12094ad670",
+      "final_score": 0.238,
       "handoff_packet": {
         "case_id": "CASE-E-002",
         "confidence": 1.0,
@@ -359,13 +359,13 @@
   "final_submission": {
     "campaign_signals": [],
     "confidence": 1.0,
-    "counterfactual": "The invoices show a clear pattern of altered bank details with a suspicious bank account 'DE00COMPROMISED999'. This indicates a potential vendor account takeover, leading to an escalation of the fraud risk.",
+    "counterfactual": "The invoices show a clear pattern of altered bank details with a suspicious sender domain and a request to bypass the approval threshold. This indicates a high likelihood of a vendor account takeover. Therefore, the fraud should be escalated for further investigation.",
     "cross_invoice_links": [],
     "decision": "ESCALATE_FRAUD",
     "evidence_map": {},
     "policy_checks": {
       "approval_threshold_check": "pass",
-      "bank_change_verification": "fail",
+      "bank_change_verification": "pass",
       "duplicate_check": "pass",
       "three_way_match": "pass"
     },
@@ -374,7 +374,7 @@
   "final_tool_result": {
     "cost": 0.0,
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.288,
+    "final_score": 0.238,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "fraud_prevented",
@@ -395,7 +395,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.288,
+        "final_score": 0.238,
         "potential_delta": -0.0013
       },
       "metadata": {
@@ -406,7 +406,7 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.2867
+      "value": 0.2367
     },
     "risk_assessment": 0.39,
     "score_breakdown": {
@@ -416,7 +416,7 @@
       "degenerate_penalty": -0.09,
       "evidence_score": 0.0,
       "intervention_score": 0.35,
-      "policy_score": 1.0,
+      "policy_score": 0.5,
       "pressure_event_score": 0.7143
     },
     "submission_received": true,
@@ -427,8 +427,8 @@
       "case_clock": 7,
       "case_id": "CASE-E-002",
       "contrastive_pair_id": "",
-      "episode_id": "dd3b067c-4ab8-4222-98c9-a009125808c9",
-      "final_score": 0.288,
+      "episode_id": "782feb9f-1aa1-4b8e-b03b-ae12094ad670",
+      "final_score": 0.238,
       "handoff_packet": {
         "case_id": "CASE-E-002",
         "confidence": 1.0,
@@ -707,7 +707,7 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.288,
+  "score": 0.238,
   "score_breakdown": {
     "campaign_detection_score": 0.0,
     "cross_invoice_link_score": 0.0,
@@ -715,7 +715,7 @@
     "degenerate_penalty": -0.09,
     "evidence_score": 0.0,
     "intervention_score": 0.35,
-    "policy_score": 1.0,
+    "policy_score": 0.5,
     "pressure_event_score": 0.7143
   },
   "steps": 7,
@@ -726,8 +726,8 @@
     "case_clock": 7,
     "case_id": "CASE-E-002",
     "contrastive_pair_id": "",
-    "episode_id": "dd3b067c-4ab8-4222-98c9-a009125808c9",
-    "final_score": 0.288,
+    "episode_id": "782feb9f-1aa1-4b8e-b03b-ae12094ad670",
+    "final_score": 0.238,
     "handoff_packet": {
       "case_id": "CASE-E-002",
       "confidence": 1.0,

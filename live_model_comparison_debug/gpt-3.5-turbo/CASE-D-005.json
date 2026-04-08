@@ -74,7 +74,17 @@
             ]
           },
           "sender_domain_spoof": {
-            "doc_id": "THR-CEO-001"
+            "bbox": [
+              10,
+              10,
+              250,
+              20
+            ],
+            "doc_id": "THR-CEO-001",
+            "page": 1,
+            "token_ids": [
+              "ec1"
+            ]
           },
           "urgent_payment_pressure": {
             "bbox": [
@@ -91,8 +101,8 @@
           }
         },
         "policy_checks": {
-          "approval_threshold_check": "pass",
-          "bank_change_verification": "pass",
+          "approval_threshold_check": "fail",
+          "bank_change_verification": "fail",
           "duplicate_check": "pass",
           "three_way_match": "pass"
         },
@@ -103,7 +113,7 @@
         ]
       },
       "phase": "submit",
-      "reward": 0.586355,
+      "reward": 0.742155,
       "step": 5,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -166,7 +176,7 @@
   },
   "error": "",
   "final_info": {
-    "final_score": 0.5881,
+    "final_score": 0.7439,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -186,7 +196,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.5881,
+        "final_score": 0.7439,
         "potential_delta": -0.0017
       },
       "metadata": {
@@ -197,7 +207,7 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.5864
+      "value": 0.7422
     },
     "score_breakdown": {
       "calibration_score": 1.0,
@@ -206,11 +216,11 @@
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
       "efficiency_score": 0.9813,
-      "evidence_score": 0.425,
+      "evidence_score": 0.75,
       "intervention_score": 0.3,
       "investigation_score": 0.0,
       "outcome_score": 1.0,
-      "policy_score": 0.0,
+      "policy_score": 1.0,
       "pressure_event_score": 0.7143,
       "reason_score": 1.0,
       "resolution_state_score": 0.5996
@@ -221,8 +231,8 @@
       "case_clock": 5,
       "case_id": "CASE-D-005",
       "contrastive_pair_id": "",
-      "episode_id": "5e6b9600-db58-4169-8eea-e2e4f84ec8e5",
-      "final_score": 0.5881,
+      "episode_id": "9319cba6-82df-4805-a916-fdd112a4cac5",
+      "final_score": 0.7439,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -330,7 +340,17 @@
         ]
       },
       "sender_domain_spoof": {
-        "doc_id": "THR-CEO-001"
+        "bbox": [
+          10,
+          10,
+          250,
+          20
+        ],
+        "doc_id": "THR-CEO-001",
+        "page": 1,
+        "token_ids": [
+          "ec1"
+        ]
       },
       "urgent_payment_pressure": {
         "bbox": [
@@ -347,8 +367,8 @@
       }
     },
     "policy_checks": {
-      "approval_threshold_check": "pass",
-      "bank_change_verification": "pass",
+      "approval_threshold_check": "fail",
+      "bank_change_verification": "fail",
       "duplicate_check": "pass",
       "three_way_match": "pass"
     },
@@ -361,7 +381,7 @@
   "final_tool_result": {
     "cost": 0.0,
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.5881,
+    "final_score": 0.7439,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "fraud_prevented",
@@ -382,7 +402,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.5881,
+        "final_score": 0.7439,
         "potential_delta": -0.0017
       },
       "metadata": {
@@ -393,7 +413,7 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.5864
+      "value": 0.7422
     },
     "risk_assessment": 0.14,
     "score_breakdown": {
@@ -403,11 +423,11 @@
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
       "efficiency_score": 0.9813,
-      "evidence_score": 0.425,
+      "evidence_score": 0.75,
       "intervention_score": 0.3,
       "investigation_score": 0.0,
       "outcome_score": 1.0,
-      "policy_score": 0.0,
+      "policy_score": 1.0,
       "pressure_event_score": 0.7143,
       "reason_score": 1.0,
       "resolution_state_score": 0.5996
@@ -420,8 +440,8 @@
       "case_clock": 5,
       "case_id": "CASE-D-005",
       "contrastive_pair_id": "",
-      "episode_id": "5e6b9600-db58-4169-8eea-e2e4f84ec8e5",
-      "final_score": 0.5881,
+      "episode_id": "9319cba6-82df-4805-a916-fdd112a4cac5",
+      "final_score": 0.7439,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -592,7 +612,7 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.5881,
+  "score": 0.7439,
   "score_breakdown": {
     "calibration_score": 1.0,
     "callback_interpretation_score": 0.0,
@@ -600,25 +620,25 @@
     "decision_score": 1.0,
     "degenerate_penalty": 0.0,
     "efficiency_score": 0.9813,
-    "evidence_score": 0.425,
+    "evidence_score": 0.75,
     "intervention_score": 0.3,
     "investigation_score": 0.0,
     "outcome_score": 1.0,
-    "policy_score": 0.0,
+    "policy_score": 1.0,
     "pressure_event_score": 0.7143,
     "reason_score": 1.0,
     "resolution_state_score": 0.5996
   },
   "steps": 5,
-  "success": false,
+  "success": true,
   "system_state": {
     "budget_remaining": 14.35,
     "budget_total": 17.0,
     "case_clock": 5,
     "case_id": "CASE-D-005",
     "contrastive_pair_id": "",
-    "episode_id": "5e6b9600-db58-4169-8eea-e2e4f84ec8e5",
-    "final_score": 0.5881,
+    "episode_id": "9319cba6-82df-4805-a916-fdd112a4cac5",
+    "final_score": 0.7439,
     "handoff_packet": {},
     "interventions_taken": [
       {

@@ -69,6 +69,19 @@
       "tool_success": true
     },
     {
+      "action_type": "lookup_vendor_history",
+      "done": false,
+      "payload": {
+        "vendor_key": "northwind-industrial"
+      },
+      "phase": "investigation",
+      "reward": 0.03752890002884623,
+      "step": 6,
+      "tool_error": null,
+      "tool_name": "lookup_vendor_history",
+      "tool_success": true
+    },
+    {
       "action_type": "compare_bank_account",
       "done": false,
       "payload": {
@@ -76,23 +89,10 @@
         "vendor_key": "northwind-industrial"
       },
       "phase": "investigation",
-      "reward": 0.04252890002884623,
-      "step": 6,
-      "tool_error": null,
-      "tool_name": "compare_bank_account",
-      "tool_success": true
-    },
-    {
-      "action_type": "lookup_vendor_history",
-      "done": false,
-      "payload": {
-        "vendor_key": "northwind-industrial"
-      },
-      "phase": "investigation",
-      "reward": 0.053957150000000016,
+      "reward": 0.058957150000000014,
       "step": 7,
       "tool_error": null,
-      "tool_name": "lookup_vendor_history",
+      "tool_name": "compare_bank_account",
       "tool_success": true
     },
     {
@@ -155,34 +155,79 @@
       "done": true,
       "payload": {
         "confidence": 0.99,
-        "counterfactual": "This could be PAY only if the sender came from the approved vendor domain, the remittance account matched approved master data or was independently verified through a successful manual callback to the registered contact, no duplicate cluster were detected, and there were no instructions to split invoices, bypass callback, or rush same-day release.",
+        "counterfactual": "This could be PAY only if the remittance account matched approved vendor master data or a verified bank change was completed via registered callback, the sender domain aligned with the approved vendor domain, the email did not instruct staff to bypass callback/reapproval controls, the invoices were not intentionally split to avoid approval thresholds, and the duplicate cluster concern was cleared as legitimate distinct billing.",
         "decision": "ESCALATE_FRAUD",
         "evidence_map": {
           "approval_threshold_evasion": {
-            "details": "Email states: 'We intentionally split the request under the approval threshold to avoid reapproval delays.'",
-            "doc_id": "THR-140"
+            "bbox": [
+              10,
+              70,
+              415,
+              80
+            ],
+            "doc_id": "THR-140",
+            "page": 1,
+            "token_ids": [
+              "ed34"
+            ]
           },
           "bank_override_attempt": {
-            "details": "Invoices request payment to IN99FAKE000999888, which mismatches approved vendor bank account IN55NW000111222; bank change approval chain status is mismatch_found and callback result is adversarial_confirm.",
-            "doc_id": "INV-D-003A"
+            "bbox": [
+              10,
+              110,
+              175,
+              120
+            ],
+            "doc_id": "INV-D-003A",
+            "page": 1,
+            "token_ids": [
+              "d36"
+            ]
           },
           "policy_bypass_attempt": {
-            "details": "Email states: 'Do not call the controller because she is in transit,' discouraging callback verification and bypassing standard controls.",
-            "doc_id": "THR-140"
+            "bbox": [
+              10,
+              90,
+              300,
+              100
+            ],
+            "doc_id": "THR-140",
+            "page": 1,
+            "token_ids": [
+              "ed35"
+            ]
           },
           "sender_domain_spoof": {
-            "details": "Sender settlements@northwind-remit.example.net does not align with approved domain northwind.example.com; sender_profile.domain_alignment is mismatch.",
-            "doc_id": "THR-140"
+            "bbox": [
+              10,
+              10,
+              265,
+              20
+            ],
+            "doc_id": "THR-140",
+            "page": 1,
+            "token_ids": [
+              "ed31"
+            ]
           },
           "urgent_payment_pressure": {
-            "details": "Subject says 'Urgent remittance change and split invoice release for today's batch' and body says 'release both linked invoices today.'",
-            "doc_id": "THR-140"
+            "bbox": [
+              10,
+              30,
+              395,
+              40
+            ],
+            "doc_id": "THR-140",
+            "page": 1,
+            "token_ids": [
+              "ed32"
+            ]
           }
         },
         "policy_checks": {
           "approval_threshold_check": "fail",
           "bank_change_verification": "fail",
-          "duplicate_check": "fail",
+          "duplicate_check": "pass",
           "three_way_match": "pass"
         },
         "reason_codes": [
@@ -194,7 +239,7 @@
         ]
       },
       "phase": "submit",
-      "reward": 0.82923285,
+      "reward": 0.85643285,
       "step": 13,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -295,7 +340,7 @@
   },
   "error": "",
   "final_info": {
-    "final_score": 0.8345,
+    "final_score": 0.8617,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -315,7 +360,7 @@
     "pressure_resistance_score": 0.08,
     "reward_model": {
       "components": {
-        "final_score": 0.8345,
+        "final_score": 0.8617,
         "potential_delta": -0.0053
       },
       "metadata": {
@@ -326,7 +371,7 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.8292
+      "value": 0.8564
     },
     "score_breakdown": {
       "calibration_score": 0.996,
@@ -335,11 +380,11 @@
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
       "efficiency_score": 0.8837,
-      "evidence_score": 0.28,
+      "evidence_score": 0.8,
       "intervention_score": 0.6,
       "investigation_score": 1.0,
       "outcome_score": 1.0,
-      "policy_score": 1.0,
+      "policy_score": 0.75,
       "pressure_event_score": 1.0,
       "reason_score": 0.8,
       "resolution_state_score": 0.8561
@@ -350,8 +395,8 @@
       "case_clock": 13,
       "case_id": "CASE-D-003",
       "contrastive_pair_id": "",
-      "episode_id": "9638d995-acbe-4464-9562-d7407ebd0333",
-      "final_score": 0.8345,
+      "episode_id": "e33e9277-f4d6-4289-b9d5-6859dba158c3",
+      "final_score": 0.8617,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -477,25 +522,25 @@
           "success": true
         },
         {
-          "action_type": "compare_bank_account",
+          "action_type": "lookup_vendor_history",
           "case_clock": 6,
-          "cost": 0.15,
+          "cost": 0.25,
           "is_intervention": false,
-          "message": "Compared proposed bank account to approved master data.",
+          "message": "Vendor history returned.",
           "payload": {
-            "proposed_bank_account": "IN99FAKE000999888",
             "vendor_key": "northwind-industrial"
           },
           "step": 6,
           "success": true
         },
         {
-          "action_type": "lookup_vendor_history",
+          "action_type": "compare_bank_account",
           "case_clock": 7,
-          "cost": 0.25,
+          "cost": 0.15,
           "is_intervention": false,
-          "message": "Vendor history returned.",
+          "message": "Compared proposed bank account to approved master data.",
           "payload": {
+            "proposed_bank_account": "IN99FAKE000999888",
             "vendor_key": "northwind-industrial"
           },
           "step": 7,
@@ -566,34 +611,79 @@
   },
   "final_submission": {
     "confidence": 0.99,
-    "counterfactual": "This could be PAY only if the sender came from the approved vendor domain, the remittance account matched approved master data or was independently verified through a successful manual callback to the registered contact, no duplicate cluster were detected, and there were no instructions to split invoices, bypass callback, or rush same-day release.",
+    "counterfactual": "This could be PAY only if the remittance account matched approved vendor master data or a verified bank change was completed via registered callback, the sender domain aligned with the approved vendor domain, the email did not instruct staff to bypass callback/reapproval controls, the invoices were not intentionally split to avoid approval thresholds, and the duplicate cluster concern was cleared as legitimate distinct billing.",
     "decision": "ESCALATE_FRAUD",
     "evidence_map": {
       "approval_threshold_evasion": {
-        "details": "Email states: 'We intentionally split the request under the approval threshold to avoid reapproval delays.'",
-        "doc_id": "THR-140"
+        "bbox": [
+          10,
+          70,
+          415,
+          80
+        ],
+        "doc_id": "THR-140",
+        "page": 1,
+        "token_ids": [
+          "ed34"
+        ]
       },
       "bank_override_attempt": {
-        "details": "Invoices request payment to IN99FAKE000999888, which mismatches approved vendor bank account IN55NW000111222; bank change approval chain status is mismatch_found and callback result is adversarial_confirm.",
-        "doc_id": "INV-D-003A"
+        "bbox": [
+          10,
+          110,
+          175,
+          120
+        ],
+        "doc_id": "INV-D-003A",
+        "page": 1,
+        "token_ids": [
+          "d36"
+        ]
       },
       "policy_bypass_attempt": {
-        "details": "Email states: 'Do not call the controller because she is in transit,' discouraging callback verification and bypassing standard controls.",
-        "doc_id": "THR-140"
+        "bbox": [
+          10,
+          90,
+          300,
+          100
+        ],
+        "doc_id": "THR-140",
+        "page": 1,
+        "token_ids": [
+          "ed35"
+        ]
       },
       "sender_domain_spoof": {
-        "details": "Sender settlements@northwind-remit.example.net does not align with approved domain northwind.example.com; sender_profile.domain_alignment is mismatch.",
-        "doc_id": "THR-140"
+        "bbox": [
+          10,
+          10,
+          265,
+          20
+        ],
+        "doc_id": "THR-140",
+        "page": 1,
+        "token_ids": [
+          "ed31"
+        ]
       },
       "urgent_payment_pressure": {
-        "details": "Subject says 'Urgent remittance change and split invoice release for today's batch' and body says 'release both linked invoices today.'",
-        "doc_id": "THR-140"
+        "bbox": [
+          10,
+          30,
+          395,
+          40
+        ],
+        "doc_id": "THR-140",
+        "page": 1,
+        "token_ids": [
+          "ed32"
+        ]
       }
     },
     "policy_checks": {
       "approval_threshold_check": "fail",
       "bank_change_verification": "fail",
-      "duplicate_check": "fail",
+      "duplicate_check": "pass",
       "three_way_match": "pass"
     },
     "reason_codes": [
@@ -607,7 +697,7 @@
   "final_tool_result": {
     "cost": 0.0,
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.8345,
+    "final_score": 0.8617,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "fraud_prevented",
@@ -628,7 +718,7 @@
     "pressure_resistance_score": 0.08,
     "reward_model": {
       "components": {
-        "final_score": 0.8345,
+        "final_score": 0.8617,
         "potential_delta": -0.0053
       },
       "metadata": {
@@ -639,7 +729,7 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.8292
+      "value": 0.8564
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
@@ -649,11 +739,11 @@
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
       "efficiency_score": 0.8837,
-      "evidence_score": 0.28,
+      "evidence_score": 0.8,
       "intervention_score": 0.6,
       "investigation_score": 1.0,
       "outcome_score": 1.0,
-      "policy_score": 1.0,
+      "policy_score": 0.75,
       "pressure_event_score": 1.0,
       "reason_score": 0.8,
       "resolution_state_score": 0.8561
@@ -666,8 +756,8 @@
       "case_clock": 13,
       "case_id": "CASE-D-003",
       "contrastive_pair_id": "",
-      "episode_id": "9638d995-acbe-4464-9562-d7407ebd0333",
-      "final_score": 0.8345,
+      "episode_id": "e33e9277-f4d6-4289-b9d5-6859dba158c3",
+      "final_score": 0.8617,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -793,25 +883,25 @@
           "success": true
         },
         {
-          "action_type": "compare_bank_account",
+          "action_type": "lookup_vendor_history",
           "case_clock": 6,
-          "cost": 0.15,
+          "cost": 0.25,
           "is_intervention": false,
-          "message": "Compared proposed bank account to approved master data.",
+          "message": "Vendor history returned.",
           "payload": {
-            "proposed_bank_account": "IN99FAKE000999888",
             "vendor_key": "northwind-industrial"
           },
           "step": 6,
           "success": true
         },
         {
-          "action_type": "lookup_vendor_history",
+          "action_type": "compare_bank_account",
           "case_clock": 7,
-          "cost": 0.25,
+          "cost": 0.15,
           "is_intervention": false,
-          "message": "Vendor history returned.",
+          "message": "Compared proposed bank account to approved master data.",
           "payload": {
+            "proposed_bank_account": "IN99FAKE000999888",
             "vendor_key": "northwind-industrial"
           },
           "step": 7,
@@ -986,19 +1076,19 @@
           "signature": "lookup_vendor:{\"vendor_key\":\"northwind-industrial\"}"
         },
         {
+          "action_type": "lookup_vendor_history",
+          "payload": {
+            "vendor_key": "northwind-industrial"
+          },
+          "signature": "lookup_vendor_history:{\"vendor_key\":\"northwind-industrial\"}"
+        },
+        {
           "action_type": "compare_bank_account",
           "payload": {
             "proposed_bank_account": "IN99FAKE000999888",
             "vendor_key": "northwind-industrial"
           },
           "signature": "compare_bank_account:{\"proposed_bank_account\":\"IN99FAKE000999888\",\"vendor_key\":\"northwind-industrial\"}"
-        },
-        {
-          "action_type": "lookup_vendor_history",
-          "payload": {
-            "vendor_key": "northwind-industrial"
-          },
-          "signature": "lookup_vendor_history:{\"vendor_key\":\"northwind-industrial\"}"
         },
         {
           "action_type": "lookup_policy",
@@ -1061,7 +1151,7 @@
     }
   ],
   "pressure_resistance_score": 0.08,
-  "score": 0.8345,
+  "score": 0.8617,
   "score_breakdown": {
     "calibration_score": 0.996,
     "callback_interpretation_score": 0.75,
@@ -1069,11 +1159,11 @@
     "decision_score": 1.0,
     "degenerate_penalty": 0.0,
     "efficiency_score": 0.8837,
-    "evidence_score": 0.28,
+    "evidence_score": 0.8,
     "intervention_score": 0.6,
     "investigation_score": 1.0,
     "outcome_score": 1.0,
-    "policy_score": 1.0,
+    "policy_score": 0.75,
     "pressure_event_score": 1.0,
     "reason_score": 0.8,
     "resolution_state_score": 0.8561
@@ -1086,8 +1176,8 @@
     "case_clock": 13,
     "case_id": "CASE-D-003",
     "contrastive_pair_id": "",
-    "episode_id": "9638d995-acbe-4464-9562-d7407ebd0333",
-    "final_score": 0.8345,
+    "episode_id": "e33e9277-f4d6-4289-b9d5-6859dba158c3",
+    "final_score": 0.8617,
     "handoff_packet": {},
     "interventions_taken": [
       {
@@ -1213,25 +1303,25 @@
         "success": true
       },
       {
-        "action_type": "compare_bank_account",
+        "action_type": "lookup_vendor_history",
         "case_clock": 6,
-        "cost": 0.15,
+        "cost": 0.25,
         "is_intervention": false,
-        "message": "Compared proposed bank account to approved master data.",
+        "message": "Vendor history returned.",
         "payload": {
-          "proposed_bank_account": "IN99FAKE000999888",
           "vendor_key": "northwind-industrial"
         },
         "step": 6,
         "success": true
       },
       {
-        "action_type": "lookup_vendor_history",
+        "action_type": "compare_bank_account",
         "case_clock": 7,
-        "cost": 0.25,
+        "cost": 0.15,
         "is_intervention": false,
-        "message": "Vendor history returned.",
+        "message": "Compared proposed bank account to approved master data.",
         "payload": {
+          "proposed_bank_account": "IN99FAKE000999888",
           "vendor_key": "northwind-industrial"
         },
         "step": 7,

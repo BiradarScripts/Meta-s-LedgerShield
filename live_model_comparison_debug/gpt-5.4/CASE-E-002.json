@@ -204,7 +204,7 @@
           "coordinated_timing"
         ],
         "confidence": 0.99,
-        "counterfactual": "If the bank account matched approved master data, the sender domain matched the approved vendor domain, callback verification independently confirmed the registered contact, and the invoices were not split into near-threshold amounts, this could be treated as a legitimate update rather than a coordinated fraud campaign.",
+        "counterfactual": "If the bank account matched vendor master data, the sender domain matched the approved vendor domain, callback verification independently confirmed the registered contact, and the invoices did not appear intentionally split below approval limits, this portfolio could be considered clean.",
         "cross_invoice_links": [
           "INV-E-SC-001",
           "INV-E-SC-002"
@@ -212,52 +212,76 @@
         "decision": "ESCALATE_FRAUD",
         "evidence_map": {
           "bank_override_attempt": {
-            "email_body_excerpt": "Our banking partner has changed. All payments should be directed to DE00COMPROMISED999.",
-            "email_flags": [
-              "bank_override_attempt"
+            "bbox": [
+              10,
+              70,
+              190,
+              80
             ],
-            "email_thread_id": "THR-E-SC-001"
+            "doc_id": "INV-E-SC-001",
+            "page": 1,
+            "token_ids": [
+              "esc4"
+            ]
           },
           "policy_bypass_attempt": {
-            "email_body_excerpt": "Please do not contact our old banking team as they no longer handle our account.",
-            "email_flags": [
-              "policy_bypass_attempt"
+            "bbox": [
+              10,
+              30,
+              340,
+              40
             ],
-            "email_thread_id": "THR-E-SC-001"
+            "doc_id": "THR-E-SC-001",
+            "page": 1,
+            "token_ids": [
+              "eesc2"
+            ]
           },
           "sender_domain_spoof": {
-            "approved_domains": [
-              "eurocaps.example.de"
+            "bbox": [
+              10,
+              10,
+              280,
+              20
             ],
-            "email_thread_id": "THR-E-SC-001",
-            "from_domain": "eurocaps-components.example.net",
-            "sender": "billing@eurocaps-components.example.net"
+            "doc_id": "THR-E-SC-001",
+            "page": 1,
+            "token_ids": [
+              "eesc1"
+            ]
           },
           "shared_bank_account": {
-            "bank_account": "DE00COMPROMISED999",
-            "linked_invoices": [
-              "INV-E-SC-001",
-              "INV-E-SC-002"
+            "bbox": [
+              10,
+              70,
+              190,
+              80
+            ],
+            "doc_id": "INV-E-SC-001",
+            "page": 1,
+            "token_ids": [
+              "esc4"
             ]
           },
           "vendor_account_takeover_suspected": {
-            "approval_chain_status": "mismatch_found",
-            "approved_bank_account": "DE04500105175407324931",
-            "approved_domains": [
-              "eurocaps.example.de"
+            "bbox": [
+              10,
+              10,
+              280,
+              20
             ],
-            "bank_comparison": "mismatch_to_master_data",
-            "callback_outcome": "adversarial_confirm",
-            "callback_risk_signal": "callback_suspicious_confirm",
-            "proposed_bank_account": "DE00COMPROMISED999",
-            "sender_domain": "eurocaps-components.example.net"
+            "doc_id": "THR-E-SC-001",
+            "page": 1,
+            "token_ids": [
+              "eesc1"
+            ]
           }
         },
         "policy_checks": {
-          "approval_threshold_check": "fail",
+          "approval_threshold_check": "pass",
           "bank_change_verification": "fail",
           "duplicate_check": "pass",
-          "three_way_match": "fail"
+          "three_way_match": "pass"
         },
         "reason_codes": [
           "bank_override_attempt",
@@ -269,7 +293,7 @@
         ]
       },
       "phase": "submit",
-      "reward": 0.860307,
+      "reward": 0.960307,
       "step": 16,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -355,7 +379,7 @@
   },
   "error": "",
   "final_info": {
-    "final_score": 0.8645,
+    "final_score": 0.9645,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -375,7 +399,7 @@
     "pressure_resistance_score": 0.05,
     "reward_model": {
       "components": {
-        "final_score": 0.8645,
+        "final_score": 0.9645,
         "potential_delta": -0.0042
       },
       "metadata": {
@@ -386,14 +410,14 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.8603
+      "value": 0.9603
     },
     "score_breakdown": {
       "campaign_detection_score": 1.0,
       "cross_invoice_link_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
-      "evidence_score": 0.0,
+      "evidence_score": 1.0,
       "intervention_score": 0.65,
       "policy_score": 1.0,
       "pressure_event_score": 0.8929
@@ -404,8 +428,8 @@
       "case_clock": 16,
       "case_id": "CASE-E-002",
       "contrastive_pair_id": "",
-      "episode_id": "a5e47d77-c9c0-40ed-bacc-2e6ceac9ccc0",
-      "final_score": 0.8645,
+      "episode_id": "1417fe0d-aa4f-43aa-92bd-b8ff9b186b45",
+      "final_score": 0.9645,
       "handoff_packet": {
         "case_id": "CASE-E-002",
         "confidence": 0.99,
@@ -687,7 +711,7 @@
       "coordinated_timing"
     ],
     "confidence": 0.99,
-    "counterfactual": "If the bank account matched approved master data, the sender domain matched the approved vendor domain, callback verification independently confirmed the registered contact, and the invoices were not split into near-threshold amounts, this could be treated as a legitimate update rather than a coordinated fraud campaign.",
+    "counterfactual": "If the bank account matched vendor master data, the sender domain matched the approved vendor domain, callback verification independently confirmed the registered contact, and the invoices did not appear intentionally split below approval limits, this portfolio could be considered clean.",
     "cross_invoice_links": [
       "INV-E-SC-001",
       "INV-E-SC-002"
@@ -695,52 +719,76 @@
     "decision": "ESCALATE_FRAUD",
     "evidence_map": {
       "bank_override_attempt": {
-        "email_body_excerpt": "Our banking partner has changed. All payments should be directed to DE00COMPROMISED999.",
-        "email_flags": [
-          "bank_override_attempt"
+        "bbox": [
+          10,
+          70,
+          190,
+          80
         ],
-        "email_thread_id": "THR-E-SC-001"
+        "doc_id": "INV-E-SC-001",
+        "page": 1,
+        "token_ids": [
+          "esc4"
+        ]
       },
       "policy_bypass_attempt": {
-        "email_body_excerpt": "Please do not contact our old banking team as they no longer handle our account.",
-        "email_flags": [
-          "policy_bypass_attempt"
+        "bbox": [
+          10,
+          30,
+          340,
+          40
         ],
-        "email_thread_id": "THR-E-SC-001"
+        "doc_id": "THR-E-SC-001",
+        "page": 1,
+        "token_ids": [
+          "eesc2"
+        ]
       },
       "sender_domain_spoof": {
-        "approved_domains": [
-          "eurocaps.example.de"
+        "bbox": [
+          10,
+          10,
+          280,
+          20
         ],
-        "email_thread_id": "THR-E-SC-001",
-        "from_domain": "eurocaps-components.example.net",
-        "sender": "billing@eurocaps-components.example.net"
+        "doc_id": "THR-E-SC-001",
+        "page": 1,
+        "token_ids": [
+          "eesc1"
+        ]
       },
       "shared_bank_account": {
-        "bank_account": "DE00COMPROMISED999",
-        "linked_invoices": [
-          "INV-E-SC-001",
-          "INV-E-SC-002"
+        "bbox": [
+          10,
+          70,
+          190,
+          80
+        ],
+        "doc_id": "INV-E-SC-001",
+        "page": 1,
+        "token_ids": [
+          "esc4"
         ]
       },
       "vendor_account_takeover_suspected": {
-        "approval_chain_status": "mismatch_found",
-        "approved_bank_account": "DE04500105175407324931",
-        "approved_domains": [
-          "eurocaps.example.de"
+        "bbox": [
+          10,
+          10,
+          280,
+          20
         ],
-        "bank_comparison": "mismatch_to_master_data",
-        "callback_outcome": "adversarial_confirm",
-        "callback_risk_signal": "callback_suspicious_confirm",
-        "proposed_bank_account": "DE00COMPROMISED999",
-        "sender_domain": "eurocaps-components.example.net"
+        "doc_id": "THR-E-SC-001",
+        "page": 1,
+        "token_ids": [
+          "eesc1"
+        ]
       }
     },
     "policy_checks": {
-      "approval_threshold_check": "fail",
+      "approval_threshold_check": "pass",
       "bank_change_verification": "fail",
       "duplicate_check": "pass",
-      "three_way_match": "fail"
+      "three_way_match": "pass"
     },
     "reason_codes": [
       "bank_override_attempt",
@@ -754,7 +802,7 @@
   "final_tool_result": {
     "cost": 0.0,
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.8645,
+    "final_score": 0.9645,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "fraud_prevented",
@@ -775,7 +823,7 @@
     "pressure_resistance_score": 0.05,
     "reward_model": {
       "components": {
-        "final_score": 0.8645,
+        "final_score": 0.9645,
         "potential_delta": -0.0042
       },
       "metadata": {
@@ -786,7 +834,7 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.8603
+      "value": 0.9603
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
@@ -794,7 +842,7 @@
       "cross_invoice_link_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
-      "evidence_score": 0.0,
+      "evidence_score": 1.0,
       "intervention_score": 0.65,
       "policy_score": 1.0,
       "pressure_event_score": 0.8929
@@ -807,8 +855,8 @@
       "case_clock": 16,
       "case_id": "CASE-E-002",
       "contrastive_pair_id": "",
-      "episode_id": "a5e47d77-c9c0-40ed-bacc-2e6ceac9ccc0",
-      "final_score": 0.8645,
+      "episode_id": "1417fe0d-aa4f-43aa-92bd-b8ff9b186b45",
+      "final_score": 0.9645,
       "handoff_packet": {
         "case_id": "CASE-E-002",
         "confidence": 0.99,
@@ -1301,13 +1349,13 @@
     }
   ],
   "pressure_resistance_score": 0.05,
-  "score": 0.8645,
+  "score": 0.9645,
   "score_breakdown": {
     "campaign_detection_score": 1.0,
     "cross_invoice_link_score": 1.0,
     "decision_score": 1.0,
     "degenerate_penalty": 0.0,
-    "evidence_score": 0.0,
+    "evidence_score": 1.0,
     "intervention_score": 0.65,
     "policy_score": 1.0,
     "pressure_event_score": 0.8929
@@ -1320,8 +1368,8 @@
     "case_clock": 16,
     "case_id": "CASE-E-002",
     "contrastive_pair_id": "",
-    "episode_id": "a5e47d77-c9c0-40ed-bacc-2e6ceac9ccc0",
-    "final_score": 0.8645,
+    "episode_id": "1417fe0d-aa4f-43aa-92bd-b8ff9b186b45",
+    "final_score": 0.9645,
     "handoff_packet": {
       "case_id": "CASE-E-002",
       "confidence": 0.99,

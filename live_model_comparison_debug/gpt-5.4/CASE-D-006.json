@@ -97,7 +97,7 @@
       "done": true,
       "payload": {
         "confidence": 0.97,
-        "counterfactual": "This would be ESCALATE_FRAUD if the proposed bank account differed from approved master data, the sender domain was misaligned or spoofed, the email discouraged callback or attempted to bypass policy, duplicate or near-duplicate invoices were present, or there was evidence of invoice splitting to evade approval thresholds.",
+        "counterfactual": "This would be ESCALATE_FRAUD if the proposed bank account differed from approved master data, the sender domain did not align with the approved vendor domain, the email discouraged callback or attempted to bypass policy, duplicate or near-duplicate invoices were present, or invoice amounts appeared split to evade approval thresholds.",
         "decision": "PAY",
         "evidence_map": {},
         "policy_checks": {
@@ -236,7 +236,7 @@
       "case_clock": 8,
       "case_id": "CASE-D-006",
       "contrastive_pair_id": "",
-      "episode_id": "3cd87b50-7125-4883-a1d0-1e58650818c9",
+      "episode_id": "406f82bb-f7a4-4739-b9e5-d97ea9519dfe",
       "final_score": 0.7938,
       "handoff_packet": {},
       "interventions_taken": [],
@@ -358,7 +358,7 @@
   },
   "final_submission": {
     "confidence": 0.97,
-    "counterfactual": "This would be ESCALATE_FRAUD if the proposed bank account differed from approved master data, the sender domain was misaligned or spoofed, the email discouraged callback or attempted to bypass policy, duplicate or near-duplicate invoices were present, or there was evidence of invoice splitting to evade approval thresholds.",
+    "counterfactual": "This would be ESCALATE_FRAUD if the proposed bank account differed from approved master data, the sender domain did not align with the approved vendor domain, the email discouraged callback or attempted to bypass policy, duplicate or near-duplicate invoices were present, or invoice amounts appeared split to evade approval thresholds.",
     "decision": "PAY",
     "evidence_map": {},
     "policy_checks": {
@@ -431,7 +431,7 @@
       "case_clock": 8,
       "case_id": "CASE-D-006",
       "contrastive_pair_id": "",
-      "episode_id": "3cd87b50-7125-4883-a1d0-1e58650818c9",
+      "episode_id": "406f82bb-f7a4-4739-b9e5-d97ea9519dfe",
       "final_score": 0.7938,
       "handoff_packet": {},
       "interventions_taken": [],
@@ -701,7 +701,7 @@
     "case_clock": 8,
     "case_id": "CASE-D-006",
     "contrastive_pair_id": "",
-    "episode_id": "3cd87b50-7125-4883-a1d0-1e58650818c9",
+    "episode_id": "406f82bb-f7a4-4739-b9e5-d97ea9519dfe",
     "final_score": 0.7938,
     "handoff_packet": {},
     "interventions_taken": [],

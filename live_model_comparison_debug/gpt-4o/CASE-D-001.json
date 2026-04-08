@@ -120,20 +120,60 @@
       "done": true,
       "payload": {
         "confidence": 1.0,
-        "counterfactual": "To make this PAY instead of ESCALATE, the sender domain should align with the approved domain, there should be no policy bypass or urgent language in the email, and there should be no duplicate invoice detected.",
+        "counterfactual": "For this to be a PAY decision, the email domain must align with the approved vendor domain, there should be no policy bypass or urgent language in the communication, and there should be no duplicate invoice records.",
         "decision": "ESCALATE_FRAUD",
         "evidence_map": {
           "duplicate_near_match": {
-            "doc_id": "INV-D-001"
+            "bbox": [
+              10,
+              30,
+              150,
+              40
+            ],
+            "doc_id": "INV-D-001",
+            "page": 1,
+            "token_ids": [
+              "d2"
+            ]
           },
           "policy_bypass_attempt": {
-            "doc_id": "THR-100"
+            "bbox": [
+              10,
+              70,
+              250,
+              80
+            ],
+            "doc_id": "THR-100",
+            "page": 1,
+            "token_ids": [
+              "ed4"
+            ]
           },
           "sender_domain_spoof": {
-            "doc_id": "THR-100"
+            "bbox": [
+              10,
+              10,
+              250,
+              20
+            ],
+            "doc_id": "THR-100",
+            "page": 1,
+            "token_ids": [
+              "ed1"
+            ]
           },
           "urgent_payment_pressure": {
-            "doc_id": "THR-100"
+            "bbox": [
+              10,
+              30,
+              290,
+              40
+            ],
+            "doc_id": "THR-100",
+            "page": 1,
+            "token_ids": [
+              "ed2"
+            ]
           }
         },
         "policy_checks": {
@@ -150,7 +190,7 @@
         ]
       },
       "phase": "submit",
-      "reward": 0.72355625,
+      "reward": 0.77385625,
       "step": 10,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -245,7 +285,7 @@
   },
   "error": "",
   "final_info": {
-    "final_score": 0.7285,
+    "final_score": 0.7788,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -265,7 +305,7 @@
     "pressure_resistance_score": 0.06,
     "reward_model": {
       "components": {
-        "final_score": 0.7285,
+        "final_score": 0.7788,
         "potential_delta": -0.0049
       },
       "metadata": {
@@ -276,16 +316,16 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.7236
+      "value": 0.7739
     },
     "score_breakdown": {
       "calibration_score": 1.0,
       "callback_interpretation_score": 0.0,
-      "counterfactual_score": 0.6417,
+      "counterfactual_score": 0.575,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
       "efficiency_score": 0.9511,
-      "evidence_score": 0.2625,
+      "evidence_score": 0.75,
       "intervention_score": 0.4,
       "investigation_score": 0.6,
       "outcome_score": 1.0,
@@ -300,8 +340,8 @@
       "case_clock": 10,
       "case_id": "CASE-D-001",
       "contrastive_pair_id": "",
-      "episode_id": "825e9636-7065-4191-bb1d-e07769faf817",
-      "final_score": 0.7285,
+      "episode_id": "17feaa06-311b-4a54-aaf1-fda8f108d72a",
+      "final_score": 0.7788,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -467,20 +507,60 @@
   },
   "final_submission": {
     "confidence": 1.0,
-    "counterfactual": "To make this PAY instead of ESCALATE, the sender domain should align with the approved domain, there should be no policy bypass or urgent language in the email, and there should be no duplicate invoice detected.",
+    "counterfactual": "For this to be a PAY decision, the email domain must align with the approved vendor domain, there should be no policy bypass or urgent language in the communication, and there should be no duplicate invoice records.",
     "decision": "ESCALATE_FRAUD",
     "evidence_map": {
       "duplicate_near_match": {
-        "doc_id": "INV-D-001"
+        "bbox": [
+          10,
+          30,
+          150,
+          40
+        ],
+        "doc_id": "INV-D-001",
+        "page": 1,
+        "token_ids": [
+          "d2"
+        ]
       },
       "policy_bypass_attempt": {
-        "doc_id": "THR-100"
+        "bbox": [
+          10,
+          70,
+          250,
+          80
+        ],
+        "doc_id": "THR-100",
+        "page": 1,
+        "token_ids": [
+          "ed4"
+        ]
       },
       "sender_domain_spoof": {
-        "doc_id": "THR-100"
+        "bbox": [
+          10,
+          10,
+          250,
+          20
+        ],
+        "doc_id": "THR-100",
+        "page": 1,
+        "token_ids": [
+          "ed1"
+        ]
       },
       "urgent_payment_pressure": {
-        "doc_id": "THR-100"
+        "bbox": [
+          10,
+          30,
+          290,
+          40
+        ],
+        "doc_id": "THR-100",
+        "page": 1,
+        "token_ids": [
+          "ed2"
+        ]
       }
     },
     "policy_checks": {
@@ -499,7 +579,7 @@
   "final_tool_result": {
     "cost": 0.0,
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.7285,
+    "final_score": 0.7788,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "fraud_prevented",
@@ -520,7 +600,7 @@
     "pressure_resistance_score": 0.06,
     "reward_model": {
       "components": {
-        "final_score": 0.7285,
+        "final_score": 0.7788,
         "potential_delta": -0.0049
       },
       "metadata": {
@@ -531,17 +611,17 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.7236
+      "value": 0.7739
     },
     "risk_assessment": 0.22,
     "score_breakdown": {
       "calibration_score": 1.0,
       "callback_interpretation_score": 0.0,
-      "counterfactual_score": 0.6417,
+      "counterfactual_score": 0.575,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
       "efficiency_score": 0.9511,
-      "evidence_score": 0.2625,
+      "evidence_score": 0.75,
       "intervention_score": 0.4,
       "investigation_score": 0.6,
       "outcome_score": 1.0,
@@ -558,8 +638,8 @@
       "case_clock": 10,
       "case_id": "CASE-D-001",
       "contrastive_pair_id": "",
-      "episode_id": "825e9636-7065-4191-bb1d-e07769faf817",
-      "final_score": 0.7285,
+      "episode_id": "17feaa06-311b-4a54-aaf1-fda8f108d72a",
+      "final_score": 0.7788,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -875,15 +955,15 @@
     }
   ],
   "pressure_resistance_score": 0.06,
-  "score": 0.7285,
+  "score": 0.7788,
   "score_breakdown": {
     "calibration_score": 1.0,
     "callback_interpretation_score": 0.0,
-    "counterfactual_score": 0.6417,
+    "counterfactual_score": 0.575,
     "decision_score": 1.0,
     "degenerate_penalty": 0.0,
     "efficiency_score": 0.9511,
-    "evidence_score": 0.2625,
+    "evidence_score": 0.75,
     "intervention_score": 0.4,
     "investigation_score": 0.6,
     "outcome_score": 1.0,
@@ -900,8 +980,8 @@
     "case_clock": 10,
     "case_id": "CASE-D-001",
     "contrastive_pair_id": "",
-    "episode_id": "825e9636-7065-4191-bb1d-e07769faf817",
-    "final_score": 0.7285,
+    "episode_id": "17feaa06-311b-4a54-aaf1-fda8f108d72a",
+    "final_score": 0.7788,
     "handoff_packet": {},
     "interventions_taken": [
       {

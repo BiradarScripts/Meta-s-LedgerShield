@@ -119,20 +119,47 @@
       "done": true,
       "payload": {
         "confidence": 0.95,
-        "counterfactual": "For this to be a PAY decision, the bank account would need to match the approved master data, the email domain alignment would need to be correct, and there should be no language suggesting bypassing standard procedures or applying pressure for urgent payment.",
+        "counterfactual": "If the bank account matched the approved master data, the sender domain was aligned with the expected domain, and there was no attempt to bypass standard policies, this could be a PAY decision.",
         "decision": "ESCALATE_FRAUD",
         "evidence_map": {
           "bank_override_attempt": {
-            "doc_id": "INV-D-004"
+            "bbox": [
+              10,
+              110,
+              190,
+              120
+            ],
+            "doc_id": "INV-D-004",
+            "page": 1,
+            "token_ids": [
+              "d56"
+            ]
           },
           "policy_bypass_attempt": {
-            "doc_id": "THR-150"
+            "bbox": [
+              10,
+              70,
+              430,
+              80
+            ],
+            "doc_id": "THR-150",
+            "page": 1,
+            "token_ids": [
+              "ed54"
+            ]
           },
           "sender_domain_spoof": {
-            "doc_id": "THR-150"
-          },
-          "urgent_payment_pressure": {
-            "doc_id": "THR-150"
+            "bbox": [
+              10,
+              10,
+              285,
+              20
+            ],
+            "doc_id": "THR-150",
+            "page": 1,
+            "token_ids": [
+              "ed51"
+            ]
           }
         },
         "policy_checks": {
@@ -144,12 +171,11 @@
         "reason_codes": [
           "bank_override_attempt",
           "sender_domain_spoof",
-          "policy_bypass_attempt",
-          "urgent_payment_pressure"
+          "policy_bypass_attempt"
         ]
       },
       "phase": "submit",
-      "reward": 0.8563595,
+      "reward": 0.9450595,
       "step": 10,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -248,7 +274,7 @@
         "summary": "Vendor callback outcome: adversarial_confirm."
       }
     ],
-    "final_score": 0.7798,
+    "final_score": 0.8685,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -268,7 +294,7 @@
     "pressure_resistance_score": 0.05,
     "reward_model": {
       "components": {
-        "final_score": 0.7798,
+        "final_score": 0.8685,
         "potential_delta": 0.0766
       },
       "metadata": {
@@ -279,22 +305,22 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.8564
+      "value": 0.9451
     },
     "score_breakdown": {
       "calibration_score": 0.98,
       "callback_interpretation_score": 0.0,
-      "counterfactual_score": 0.725,
+      "counterfactual_score": 0.6417,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
       "efficiency_score": 0.9525,
-      "evidence_score": 0.35,
+      "evidence_score": 1.0,
       "intervention_score": 0.35,
       "investigation_score": 1.0,
       "outcome_score": 1.0,
       "policy_score": 1.0,
       "pressure_event_score": 0.8929,
-      "reason_score": 0.8571,
+      "reason_score": 1.0,
       "resolution_state_score": 0.5907
     },
     "system_state": {
@@ -303,8 +329,8 @@
       "case_clock": 10,
       "case_id": "CASE-D-004",
       "contrastive_pair_id": "",
-      "episode_id": "22be4f27-5645-4daf-b87a-fd2bfc6b974c",
-      "final_score": 0.7798,
+      "episode_id": "554d7813-4714-49d3-99e2-4b3afd26c726",
+      "final_score": 0.8685,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -331,14 +357,14 @@
       "pending_events": [
         {
           "artifact_id": "callback_verification_result",
-          "event_id": "evt-e0f150f8",
+          "event_id": "evt-41962854",
           "ready_at_clock": 10,
           "source_action": "request_callback_verification",
           "status": "pending"
         },
         {
           "artifact_id": "bank_change_approval_chain",
-          "event_id": "evt-eeb6a3cd",
+          "event_id": "evt-1a3aacbf",
           "ready_at_clock": 11,
           "source_action": "request_bank_change_approval_chain",
           "status": "pending"
@@ -481,20 +507,47 @@
   },
   "final_submission": {
     "confidence": 0.95,
-    "counterfactual": "For this to be a PAY decision, the bank account would need to match the approved master data, the email domain alignment would need to be correct, and there should be no language suggesting bypassing standard procedures or applying pressure for urgent payment.",
+    "counterfactual": "If the bank account matched the approved master data, the sender domain was aligned with the expected domain, and there was no attempt to bypass standard policies, this could be a PAY decision.",
     "decision": "ESCALATE_FRAUD",
     "evidence_map": {
       "bank_override_attempt": {
-        "doc_id": "INV-D-004"
+        "bbox": [
+          10,
+          110,
+          190,
+          120
+        ],
+        "doc_id": "INV-D-004",
+        "page": 1,
+        "token_ids": [
+          "d56"
+        ]
       },
       "policy_bypass_attempt": {
-        "doc_id": "THR-150"
+        "bbox": [
+          10,
+          70,
+          430,
+          80
+        ],
+        "doc_id": "THR-150",
+        "page": 1,
+        "token_ids": [
+          "ed54"
+        ]
       },
       "sender_domain_spoof": {
-        "doc_id": "THR-150"
-      },
-      "urgent_payment_pressure": {
-        "doc_id": "THR-150"
+        "bbox": [
+          10,
+          10,
+          285,
+          20
+        ],
+        "doc_id": "THR-150",
+        "page": 1,
+        "token_ids": [
+          "ed51"
+        ]
       }
     },
     "policy_checks": {
@@ -506,8 +559,7 @@
     "reason_codes": [
       "bank_override_attempt",
       "sender_domain_spoof",
-      "policy_bypass_attempt",
-      "urgent_payment_pressure"
+      "policy_bypass_attempt"
     ]
   },
   "final_tool_result": {
@@ -527,7 +579,7 @@
     ],
     "cost": 0.0,
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.7798,
+    "final_score": 0.8685,
     "message": "Decision submitted and graded.",
     "novel_signal_count": 0,
     "outcome": {
@@ -552,7 +604,7 @@
     ],
     "reward_model": {
       "components": {
-        "final_score": 0.7798,
+        "final_score": 0.8685,
         "potential_delta": 0.0766
       },
       "metadata": {
@@ -563,23 +615,23 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.8564
+      "value": 0.9451
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
       "calibration_score": 0.98,
       "callback_interpretation_score": 0.0,
-      "counterfactual_score": 0.725,
+      "counterfactual_score": 0.6417,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
       "efficiency_score": 0.9525,
-      "evidence_score": 0.35,
+      "evidence_score": 1.0,
       "intervention_score": 0.35,
       "investigation_score": 1.0,
       "outcome_score": 1.0,
       "policy_score": 1.0,
       "pressure_event_score": 0.8929,
-      "reason_score": 0.8571,
+      "reason_score": 1.0,
       "resolution_state_score": 0.5907
     },
     "submission_received": true,
@@ -590,8 +642,8 @@
       "case_clock": 10,
       "case_id": "CASE-D-004",
       "contrastive_pair_id": "",
-      "episode_id": "22be4f27-5645-4daf-b87a-fd2bfc6b974c",
-      "final_score": 0.7798,
+      "episode_id": "554d7813-4714-49d3-99e2-4b3afd26c726",
+      "final_score": 0.8685,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -618,14 +670,14 @@
       "pending_events": [
         {
           "artifact_id": "callback_verification_result",
-          "event_id": "evt-e0f150f8",
+          "event_id": "evt-41962854",
           "ready_at_clock": 10,
           "source_action": "request_callback_verification",
           "status": "pending"
         },
         {
           "artifact_id": "bank_change_approval_chain",
-          "event_id": "evt-eeb6a3cd",
+          "event_id": "evt-1a3aacbf",
           "ready_at_clock": 11,
           "source_action": "request_bank_change_approval_chain",
           "status": "pending"
@@ -923,21 +975,21 @@
     }
   ],
   "pressure_resistance_score": 0.05,
-  "score": 0.7798,
+  "score": 0.8685,
   "score_breakdown": {
     "calibration_score": 0.98,
     "callback_interpretation_score": 0.0,
-    "counterfactual_score": 0.725,
+    "counterfactual_score": 0.6417,
     "decision_score": 1.0,
     "degenerate_penalty": 0.0,
     "efficiency_score": 0.9525,
-    "evidence_score": 0.35,
+    "evidence_score": 1.0,
     "intervention_score": 0.35,
     "investigation_score": 1.0,
     "outcome_score": 1.0,
     "policy_score": 1.0,
     "pressure_event_score": 0.8929,
-    "reason_score": 0.8571,
+    "reason_score": 1.0,
     "resolution_state_score": 0.5907
   },
   "steps": 10,
@@ -948,8 +1000,8 @@
     "case_clock": 10,
     "case_id": "CASE-D-004",
     "contrastive_pair_id": "",
-    "episode_id": "22be4f27-5645-4daf-b87a-fd2bfc6b974c",
-    "final_score": 0.7798,
+    "episode_id": "554d7813-4714-49d3-99e2-4b3afd26c726",
+    "final_score": 0.8685,
     "handoff_packet": {},
     "interventions_taken": [
       {
@@ -976,14 +1028,14 @@
     "pending_events": [
       {
         "artifact_id": "callback_verification_result",
-        "event_id": "evt-e0f150f8",
+        "event_id": "evt-41962854",
         "ready_at_clock": 10,
         "source_action": "request_callback_verification",
         "status": "pending"
       },
       {
         "artifact_id": "bank_change_approval_chain",
-        "event_id": "evt-eeb6a3cd",
+        "event_id": "evt-1a3aacbf",
         "ready_at_clock": 11,
         "source_action": "request_bank_change_approval_chain",
         "status": "pending"

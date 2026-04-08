@@ -100,7 +100,7 @@
           "shared_bank_account"
         ],
         "confidence": 1.0,
-        "counterfactual": "The invoices from Northwind Industrial Supplies Pvt Ltd exhibit a clear pattern of evasion of the dual-approval threshold by splitting the payments across three invoices with the same bank account. This coordinated attempt raises significant fraud concerns and warrants further investigation.",
+        "counterfactual": "The invoices from Northwind Industrial Supplies Pvt Ltd exhibit a clear pattern of evasion of the dual-approval threshold by splitting the payments across three invoices with the same suspicious bank account. This coordinated attempt raises significant fraud concerns and warrants further investigation.",
         "cross_invoice_links": [
           "INV-E-001",
           "INV-E-002",
@@ -109,7 +109,14 @@
         "decision": "ESCALATE_FRAUD",
         "evidence_map": {
           "approval_threshold_evasion": {
+            "bbox": [
+              10,
+              70,
+              420,
+              80
+            ],
             "doc_id": "THR-E-001",
+            "page": 1,
             "token_ids": [
               "ee4"
             ]
@@ -140,7 +147,7 @@
         ]
       },
       "phase": "submit",
-      "reward": 0.7568870000000001,
+      "reward": 0.764387,
       "step": 8,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -225,7 +232,7 @@
   },
   "error": "",
   "final_info": {
-    "final_score": 0.7587,
+    "final_score": 0.7662,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -245,7 +252,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.7587,
+        "final_score": 0.7662,
         "potential_delta": -0.0018
       },
       "metadata": {
@@ -256,14 +263,14 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.7569
+      "value": 0.7644
     },
     "score_breakdown": {
       "campaign_detection_score": 0.8,
       "cross_invoice_link_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
-      "evidence_score": 0.1667,
+      "evidence_score": 0.2417,
       "intervention_score": 0.4,
       "policy_score": 0.5,
       "pressure_event_score": 0.7143
@@ -274,8 +281,8 @@
       "case_clock": 8,
       "case_id": "CASE-E-001",
       "contrastive_pair_id": "",
-      "episode_id": "7349091d-5f53-4653-8748-d7aacb8389cd",
-      "final_score": 0.7587,
+      "episode_id": "9f2882c7-ffd7-4680-a3ed-5566928b3bd1",
+      "final_score": 0.7662,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -418,7 +425,7 @@
       "shared_bank_account"
     ],
     "confidence": 1.0,
-    "counterfactual": "The invoices from Northwind Industrial Supplies Pvt Ltd exhibit a clear pattern of evasion of the dual-approval threshold by splitting the payments across three invoices with the same bank account. This coordinated attempt raises significant fraud concerns and warrants further investigation.",
+    "counterfactual": "The invoices from Northwind Industrial Supplies Pvt Ltd exhibit a clear pattern of evasion of the dual-approval threshold by splitting the payments across three invoices with the same suspicious bank account. This coordinated attempt raises significant fraud concerns and warrants further investigation.",
     "cross_invoice_links": [
       "INV-E-001",
       "INV-E-002",
@@ -427,7 +434,14 @@
     "decision": "ESCALATE_FRAUD",
     "evidence_map": {
       "approval_threshold_evasion": {
+        "bbox": [
+          10,
+          70,
+          420,
+          80
+        ],
         "doc_id": "THR-E-001",
+        "page": 1,
         "token_ids": [
           "ee4"
         ]
@@ -460,7 +474,7 @@
   "final_tool_result": {
     "cost": 0.0,
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.7587,
+    "final_score": 0.7662,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "fraud_prevented",
@@ -481,7 +495,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.7587,
+        "final_score": 0.7662,
         "potential_delta": -0.0018
       },
       "metadata": {
@@ -492,7 +506,7 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.7569
+      "value": 0.7644
     },
     "risk_assessment": 0.39,
     "score_breakdown": {
@@ -500,7 +514,7 @@
       "cross_invoice_link_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
-      "evidence_score": 0.1667,
+      "evidence_score": 0.2417,
       "intervention_score": 0.4,
       "policy_score": 0.5,
       "pressure_event_score": 0.7143
@@ -513,8 +527,8 @@
       "case_clock": 8,
       "case_id": "CASE-E-001",
       "contrastive_pair_id": "",
-      "episode_id": "7349091d-5f53-4653-8748-d7aacb8389cd",
-      "final_score": 0.7587,
+      "episode_id": "9f2882c7-ffd7-4680-a3ed-5566928b3bd1",
+      "final_score": 0.7662,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -805,13 +819,13 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.7587,
+  "score": 0.7662,
   "score_breakdown": {
     "campaign_detection_score": 0.8,
     "cross_invoice_link_score": 1.0,
     "decision_score": 1.0,
     "degenerate_penalty": 0.0,
-    "evidence_score": 0.1667,
+    "evidence_score": 0.2417,
     "intervention_score": 0.4,
     "policy_score": 0.5,
     "pressure_event_score": 0.7143
@@ -824,8 +838,8 @@
     "case_clock": 8,
     "case_id": "CASE-E-001",
     "contrastive_pair_id": "",
-    "episode_id": "7349091d-5f53-4653-8748-d7aacb8389cd",
-    "final_score": 0.7587,
+    "episode_id": "9f2882c7-ffd7-4680-a3ed-5566928b3bd1",
+    "final_score": 0.7662,
     "handoff_packet": {},
     "interventions_taken": [
       {

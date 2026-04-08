@@ -101,12 +101,22 @@
             ]
           },
           "sender_domain_spoof": {
-            "doc_id": "THR-140"
+            "bbox": [
+              10,
+              10,
+              265,
+              20
+            ],
+            "doc_id": "THR-140",
+            "page": 1,
+            "token_ids": [
+              "ed31"
+            ]
           }
         },
         "policy_checks": {
-          "approval_threshold_check": "pass",
-          "bank_change_verification": "pass",
+          "approval_threshold_check": "fail",
+          "bank_change_verification": "fail",
           "duplicate_check": "pass",
           "three_way_match": "pass"
         },
@@ -117,7 +127,7 @@
         ]
       },
       "phase": "submit",
-      "reward": 0.63008595,
+      "reward": 0.70438595,
       "step": 6,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -205,7 +215,7 @@
         "summary": "Duplicate cluster review result: cluster_detected."
       }
     ],
-    "final_score": 0.5675,
+    "final_score": 0.6418,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -225,7 +235,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.5675,
+        "final_score": 0.6418,
         "potential_delta": 0.0626
       },
       "metadata": {
@@ -236,7 +246,7 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.6301
+      "value": 0.7044
     },
     "score_breakdown": {
       "calibration_score": 1.0,
@@ -245,11 +255,11 @@
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
       "efficiency_score": 0.975,
-      "evidence_score": 0.47,
+      "evidence_score": 0.6,
       "intervention_score": 0.25,
       "investigation_score": 0.0,
       "outcome_score": 0.95,
-      "policy_score": 0.25,
+      "policy_score": 0.75,
       "pressure_event_score": 0.7143,
       "reason_score": 0.75,
       "resolution_state_score": 0.3719
@@ -260,8 +270,8 @@
       "case_clock": 6,
       "case_id": "CASE-D-003",
       "contrastive_pair_id": "",
-      "episode_id": "dc113298-94ba-4667-add1-5f4b6623cacb",
-      "final_score": 0.5675,
+      "episode_id": "bf836ac0-0e4c-4fdf-b691-cf260b5de34d",
+      "final_score": 0.6418,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -277,7 +287,7 @@
       "pending_events": [
         {
           "artifact_id": "duplicate_cluster_report",
-          "event_id": "evt-9701f970",
+          "event_id": "evt-8994224e",
           "ready_at_clock": 6,
           "source_action": "flag_duplicate_cluster_review",
           "status": "pending"
@@ -404,12 +414,22 @@
         ]
       },
       "sender_domain_spoof": {
-        "doc_id": "THR-140"
+        "bbox": [
+          10,
+          10,
+          265,
+          20
+        ],
+        "doc_id": "THR-140",
+        "page": 1,
+        "token_ids": [
+          "ed31"
+        ]
       }
     },
     "policy_checks": {
-      "approval_threshold_check": "pass",
-      "bank_change_verification": "pass",
+      "approval_threshold_check": "fail",
+      "bank_change_verification": "fail",
       "duplicate_check": "pass",
       "three_way_match": "pass"
     },
@@ -436,7 +456,7 @@
     ],
     "cost": 0.0,
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.5675,
+    "final_score": 0.6418,
     "message": "Decision submitted and graded.",
     "novel_signal_count": 1,
     "outcome": {
@@ -461,7 +481,7 @@
     ],
     "reward_model": {
       "components": {
-        "final_score": 0.5675,
+        "final_score": 0.6418,
         "potential_delta": 0.0626
       },
       "metadata": {
@@ -472,7 +492,7 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.6301
+      "value": 0.7044
     },
     "risk_assessment": 0.22,
     "score_breakdown": {
@@ -482,11 +502,11 @@
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
       "efficiency_score": 0.975,
-      "evidence_score": 0.47,
+      "evidence_score": 0.6,
       "intervention_score": 0.25,
       "investigation_score": 0.0,
       "outcome_score": 0.95,
-      "policy_score": 0.25,
+      "policy_score": 0.75,
       "pressure_event_score": 0.7143,
       "reason_score": 0.75,
       "resolution_state_score": 0.3719
@@ -499,8 +519,8 @@
       "case_clock": 6,
       "case_id": "CASE-D-003",
       "contrastive_pair_id": "",
-      "episode_id": "dc113298-94ba-4667-add1-5f4b6623cacb",
-      "final_score": 0.5675,
+      "episode_id": "bf836ac0-0e4c-4fdf-b691-cf260b5de34d",
+      "final_score": 0.6418,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -516,7 +536,7 @@
       "pending_events": [
         {
           "artifact_id": "duplicate_cluster_report",
-          "event_id": "evt-9701f970",
+          "event_id": "evt-8994224e",
           "ready_at_clock": 6,
           "source_action": "flag_duplicate_cluster_review",
           "status": "pending"
@@ -739,7 +759,7 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.5675,
+  "score": 0.6418,
   "score_breakdown": {
     "calibration_score": 1.0,
     "callback_interpretation_score": 0.0,
@@ -747,25 +767,25 @@
     "decision_score": 1.0,
     "degenerate_penalty": 0.0,
     "efficiency_score": 0.975,
-    "evidence_score": 0.47,
+    "evidence_score": 0.6,
     "intervention_score": 0.25,
     "investigation_score": 0.0,
     "outcome_score": 0.95,
-    "policy_score": 0.25,
+    "policy_score": 0.75,
     "pressure_event_score": 0.7143,
     "reason_score": 0.75,
     "resolution_state_score": 0.3719
   },
   "steps": 6,
-  "success": false,
+  "success": true,
   "system_state": {
     "budget_remaining": 14.25,
     "budget_total": 18.0,
     "case_clock": 6,
     "case_id": "CASE-D-003",
     "contrastive_pair_id": "",
-    "episode_id": "dc113298-94ba-4667-add1-5f4b6623cacb",
-    "final_score": 0.5675,
+    "episode_id": "bf836ac0-0e4c-4fdf-b691-cf260b5de34d",
+    "final_score": 0.6418,
     "handoff_packet": {},
     "interventions_taken": [
       {
@@ -781,7 +801,7 @@
     "pending_events": [
       {
         "artifact_id": "duplicate_cluster_report",
-        "event_id": "evt-9701f970",
+        "event_id": "evt-8994224e",
         "ready_at_clock": 6,
         "source_action": "flag_duplicate_cluster_review",
         "status": "pending"

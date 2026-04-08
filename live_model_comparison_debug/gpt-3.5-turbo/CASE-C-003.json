@@ -178,7 +178,7 @@
       "case_clock": 5,
       "case_id": "CASE-C-003",
       "contrastive_pair_id": "",
-      "episode_id": "870c56f3-947e-4c0b-864a-b27dd58cae00",
+      "episode_id": "32dfee79-8371-4d51-b95b-375cdb3db063",
       "final_score": 0.0771,
       "handoff_packet": {},
       "interventions_taken": [
@@ -195,7 +195,7 @@
       "pending_events": [
         {
           "artifact_id": "duplicate_cluster_report",
-          "event_id": "evt-8778c49b",
+          "event_id": "evt-2673b74c",
           "ready_at_clock": 5,
           "source_action": "flag_duplicate_cluster_review",
           "status": "pending"
@@ -360,7 +360,7 @@
       "case_clock": 5,
       "case_id": "CASE-C-003",
       "contrastive_pair_id": "",
-      "episode_id": "870c56f3-947e-4c0b-864a-b27dd58cae00",
+      "episode_id": "32dfee79-8371-4d51-b95b-375cdb3db063",
       "final_score": 0.0771,
       "handoff_packet": {},
       "interventions_taken": [
@@ -377,7 +377,7 @@
       "pending_events": [
         {
           "artifact_id": "duplicate_cluster_report",
-          "event_id": "evt-8778c49b",
+          "event_id": "evt-2673b74c",
           "ready_at_clock": 5,
           "source_action": "flag_duplicate_cluster_review",
           "status": "pending"
@@ -577,7 +577,7 @@
     "case_clock": 5,
     "case_id": "CASE-C-003",
     "contrastive_pair_id": "",
-    "episode_id": "870c56f3-947e-4c0b-864a-b27dd58cae00",
+    "episode_id": "32dfee79-8371-4d51-b95b-375cdb3db063",
     "final_score": 0.0771,
     "handoff_packet": {},
     "interventions_taken": [
@@ -594,7 +594,7 @@
     "pending_events": [
       {
         "artifact_id": "duplicate_cluster_report",
-        "event_id": "evt-8778c49b",
+        "event_id": "evt-2673b74c",
         "ready_at_clock": 5,
         "source_action": "flag_duplicate_cluster_review",
         "status": "pending"

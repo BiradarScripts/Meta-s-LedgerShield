@@ -60,7 +60,7 @@
       "action_type": "submit_decision",
       "done": true,
       "payload": {
-        "confidence": 0.87,
+        "confidence": 0.98,
         "decision": "PAY",
         "discrepancies": [],
         "duplicate_links": [],
@@ -68,7 +68,7 @@
         "fraud_flags": []
       },
       "phase": "submit",
-      "reward": 0.8310873750000001,
+      "reward": 0.832487375,
       "step": 5,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -122,7 +122,7 @@
   },
   "error": "",
   "final_info": {
-    "final_score": 0.8362,
+    "final_score": 0.8376,
     "outcome": {
       "outcome_type": "safe_payment_cleared",
       "portfolio_metrics": {
@@ -142,7 +142,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.8362,
+        "final_score": 0.8376,
         "potential_delta": -0.0051
       },
       "metadata": {
@@ -153,10 +153,10 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.8311
+      "value": 0.8325
     },
     "score_breakdown": {
-      "calibration_score": 0.9675,
+      "calibration_score": 0.995,
       "decision_score": 1.0,
       "degenerate_penalty": -0.12,
       "duplicate_score": 1.0,
@@ -174,8 +174,8 @@
       "case_clock": 5,
       "case_id": "CASE-C-002",
       "contrastive_pair_id": "",
-      "episode_id": "dc3aa75a-e3af-4fdd-a06a-e996fb15cb2c",
-      "final_score": 0.8362,
+      "episode_id": "6f5a533c-3721-438e-8cbc-5d80cc2f82a0",
+      "final_score": 0.8376,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 16,
@@ -261,7 +261,7 @@
     "unsafe_outcome": false
   },
   "final_submission": {
-    "confidence": 0.87,
+    "confidence": 0.98,
     "decision": "PAY",
     "discrepancies": [],
     "duplicate_links": [],
@@ -271,7 +271,7 @@
   "final_tool_result": {
     "cost": 0.0,
     "decision": "PAY",
-    "final_score": 0.8362,
+    "final_score": 0.8376,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "safe_payment_cleared",
@@ -292,7 +292,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.8362,
+        "final_score": 0.8376,
         "potential_delta": -0.0051
       },
       "metadata": {
@@ -303,11 +303,11 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.8311
+      "value": 0.8325
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
-      "calibration_score": 0.9675,
+      "calibration_score": 0.995,
       "decision_score": 1.0,
       "degenerate_penalty": -0.12,
       "duplicate_score": 1.0,
@@ -327,8 +327,8 @@
       "case_clock": 5,
       "case_id": "CASE-C-002",
       "contrastive_pair_id": "",
-      "episode_id": "dc3aa75a-e3af-4fdd-a06a-e996fb15cb2c",
-      "final_score": 0.8362,
+      "episode_id": "6f5a533c-3721-438e-8cbc-5d80cc2f82a0",
+      "final_score": 0.8376,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 16,
@@ -501,9 +501,9 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.8362,
+  "score": 0.8376,
   "score_breakdown": {
-    "calibration_score": 0.9675,
+    "calibration_score": 0.995,
     "decision_score": 1.0,
     "degenerate_penalty": -0.12,
     "duplicate_score": 1.0,
@@ -523,8 +523,8 @@
     "case_clock": 5,
     "case_id": "CASE-C-002",
     "contrastive_pair_id": "",
-    "episode_id": "dc3aa75a-e3af-4fdd-a06a-e996fb15cb2c",
-    "final_score": 0.8362,
+    "episode_id": "6f5a533c-3721-438e-8cbc-5d80cc2f82a0",
+    "final_score": 0.8376,
     "handoff_packet": {},
     "interventions_taken": [],
     "max_steps": 16,

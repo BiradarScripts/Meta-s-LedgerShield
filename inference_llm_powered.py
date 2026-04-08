@@ -584,11 +584,12 @@ def build_investigation_candidates(
         if po_id:
             _append_candidate(candidates, seen, LedgerShieldAction(action_type="lookup_po", payload={"po_id": po_id}))
             resolved_receipt_id = receipt_id or po_id.replace("PO-", "GRN-", 1)
-            _append_candidate(
-                candidates,
-                seen,
-                LedgerShieldAction(action_type="lookup_receipt", payload={"receipt_id": resolved_receipt_id}),
-            )
+            if resolved_receipt_id:
+                _append_candidate(
+                    candidates,
+                    seen,
+                    LedgerShieldAction(action_type="lookup_receipt", payload={"receipt_id": resolved_receipt_id}),
+                )
         return candidates
 
     if task_type == "task_c":

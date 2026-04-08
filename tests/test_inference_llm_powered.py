@@ -82,6 +82,87 @@ def test_heuristic_task_b_uses_reconciliation_artifact_discrepancies():
     assert "quantity_mismatch" in result["evidence_map"]
 
 
+def test_task_b_investigation_candidates_keep_receipt_lookup_for_tax_only_instruction():
+    candidates = inference_llm_powered.build_investigation_candidates(
+        "task_b",
+        {
+            "case_instruction": "Verify tax calculations match between invoice and PO. Report any discrepancies.",
+            "invoice_fields": {"po_id": "PO-5501", "receipt_id": "GRN-5501"},
+        },
+        vendor_key="",
+        po_id="PO-5501",
+        receipt_id="GRN-5501",
+        invoice_total=595.0,
+        invoice_number="EC-5501",
+        proposed_bank_account="",
+        email_doc_id="",
+        executed_signatures=set(),
+    )
+
+    action_types = [candidate.action_type for candidate in candidates]
+    assert action_types == ["lookup_policy", "lookup_po", "lookup_receipt"]
+
+
+def test_task_b_investigation_candidates_keep_receipt_lookup_for_three_way_match():
+    candidates = inference_llm_powered.build_investigation_candidates(
+        "task_b",
+        {
+            "case_instruction": "Perform a 3-way match across invoice, PO, and receipt. Route the case safely and report discrepancies with evidence.",
+            "invoice_fields": {"po_id": "PO-7780", "receipt_id": "GRN-7780"},
+        },
+        vendor_key="",
+        po_id="PO-7780",
+        receipt_id="GRN-7780",
+        invoice_total=19900.0,
+        invoice_number="BLP-7780-APR",
+        proposed_bank_account="",
+        email_doc_id="",
+        executed_signatures=set(),
+    )
+
+    action_types = [candidate.action_type for candidate in candidates]
+    assert action_types == ["lookup_policy", "lookup_po", "lookup_receipt"]
+
+
+def test_llm_decision_task_b_recovers_grounded_pay_when_model_holds(monkeypatch):
+    class _DummyMessage:
+        content = "{\"decision\":\"HOLD\",\"confidence\":0.91,\"discrepancies\":[\"total_mismatch\"]}"
+
+    class _DummyChoice:
+        message = _DummyMessage()
+
+    class _DummyResponse:
+        choices = [_DummyChoice()]
+        usage = None
+
+    monkeypatch.setattr(
+        inference_llm_powered,
+        "create_json_chat_completion",
+        lambda *args, **kwargs: _DummyResponse(),
+    )
+
+    result = inference_llm_powered.llm_decision_task_b(
+        object(),
+        {
+            "invoice_doc_id": "INV-B-005",
+            "invoice_fields": {"po_id": "PO-5501", "receipt_id": "GRN-5501", "total": 595.0},
+            "invoice_evidence": {
+                "total": {"doc_id": "INV-B-005", "page": 1, "bbox": [0, 10, 10, 20], "token_ids": ["b57"]},
+                "receipt_id": {"doc_id": "INV-B-005", "page": 1, "bbox": [0, 0, 10, 10], "token_ids": ["b54"]},
+            },
+            "invoice_line_items": [],
+            "invoice_line_tokens": [],
+            "po": None,
+            "receipt": None,
+            "callback_result": {},
+        },
+    )
+
+    assert result["decision"] == "PAY"
+    assert result["discrepancies"] == []
+    assert result["policy_checks"]["three_way_match"] == "pass"
+
+
 def test_refresh_email_thread_from_ocr_merges_without_crashing():
     collected = {
         "email_tokens": [

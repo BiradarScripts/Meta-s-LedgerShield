@@ -98,7 +98,7 @@
       "done": true,
       "payload": {
         "confidence": 1.0,
-        "counterfactual": "If there were any mismatches in bank account details, duplicate invoices, domain spoofing, policy bypass attempts, or suspicious vendor history, the decision would be ESCALATE_FRAUD.",
+        "counterfactual": "If there were any fraud indicators such as bank account mismatches, duplicate invoices, domain spoofing, policy bypass attempts, or suspicious vendor history, the decision would be ESCALATE_FRAUD.",
         "decision": "PAY",
         "evidence_map": {},
         "policy_checks": {
@@ -110,7 +110,7 @@
         "reason_codes": []
       },
       "phase": "submit",
-      "reward": 0.7982972,
+      "reward": 0.8045972,
       "step": 8,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -172,7 +172,7 @@
   },
   "error": "",
   "final_info": {
-    "final_score": 0.8032,
+    "final_score": 0.8095,
     "outcome": {
       "outcome_type": "safe_payment_cleared",
       "portfolio_metrics": {
@@ -192,7 +192,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.8032,
+        "final_score": 0.8095,
         "potential_delta": -0.0049
       },
       "metadata": {
@@ -203,12 +203,12 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.7983
+      "value": 0.8046
     },
     "score_breakdown": {
       "calibration_score": 1.0,
       "callback_interpretation_score": 0.5,
-      "counterfactual_score": 0.875,
+      "counterfactual_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": -0.09,
       "efficiency_score": 0.9745,
@@ -227,8 +227,8 @@
       "case_clock": 8,
       "case_id": "CASE-D-002",
       "contrastive_pair_id": "",
-      "episode_id": "e3ab770b-efe1-4114-9857-b87d4fcd3e2f",
-      "final_score": 0.8032,
+      "episode_id": "68a40a84-3bee-4e1c-bb68-36b92d960e76",
+      "final_score": 0.8095,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 18,
@@ -350,7 +350,7 @@
   },
   "final_submission": {
     "confidence": 1.0,
-    "counterfactual": "If there were any mismatches in bank account details, duplicate invoices, domain spoofing, policy bypass attempts, or suspicious vendor history, the decision would be ESCALATE_FRAUD.",
+    "counterfactual": "If there were any fraud indicators such as bank account mismatches, duplicate invoices, domain spoofing, policy bypass attempts, or suspicious vendor history, the decision would be ESCALATE_FRAUD.",
     "decision": "PAY",
     "evidence_map": {},
     "policy_checks": {
@@ -364,7 +364,7 @@
   "final_tool_result": {
     "cost": 0.0,
     "decision": "PAY",
-    "final_score": 0.8032,
+    "final_score": 0.8095,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "safe_payment_cleared",
@@ -385,7 +385,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.8032,
+        "final_score": 0.8095,
         "potential_delta": -0.0049
       },
       "metadata": {
@@ -396,13 +396,13 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.7983
+      "value": 0.8046
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
       "calibration_score": 1.0,
       "callback_interpretation_score": 0.5,
-      "counterfactual_score": 0.875,
+      "counterfactual_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": -0.09,
       "efficiency_score": 0.9745,
@@ -423,8 +423,8 @@
       "case_clock": 8,
       "case_id": "CASE-D-002",
       "contrastive_pair_id": "",
-      "episode_id": "e3ab770b-efe1-4114-9857-b87d4fcd3e2f",
-      "final_score": 0.8032,
+      "episode_id": "68a40a84-3bee-4e1c-bb68-36b92d960e76",
+      "final_score": 0.8095,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 18,
@@ -670,11 +670,11 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.8032,
+  "score": 0.8095,
   "score_breakdown": {
     "calibration_score": 1.0,
     "callback_interpretation_score": 0.5,
-    "counterfactual_score": 0.875,
+    "counterfactual_score": 1.0,
     "decision_score": 1.0,
     "degenerate_penalty": -0.09,
     "efficiency_score": 0.9745,
@@ -695,8 +695,8 @@
     "case_clock": 8,
     "case_id": "CASE-D-002",
     "contrastive_pair_id": "",
-    "episode_id": "e3ab770b-efe1-4114-9857-b87d4fcd3e2f",
-    "final_score": 0.8032,
+    "episode_id": "68a40a84-3bee-4e1c-bb68-36b92d960e76",
+    "final_score": 0.8095,
     "handoff_packet": {},
     "interventions_taken": [],
     "max_steps": 18,

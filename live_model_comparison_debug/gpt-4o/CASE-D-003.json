@@ -147,42 +147,92 @@
       "action_type": "submit_decision",
       "done": true,
       "payload": {
-        "confidence": 1.0,
-        "counterfactual": "For this to be a PAY decision, the bank account would need to match the approved master data, the email domain would need to align with the expected domain, and there should be no language indicating policy bypass or urgency pressure. Additionally, the invoices should not be split to evade approval thresholds.",
+        "confidence": 0.95,
+        "counterfactual": "If the bank account matched the approved master data, the domain alignment was correct, and there were no indications of policy bypass or urgency pressure, this could be considered a PAY.",
         "decision": "ESCALATE_FRAUD",
         "evidence_map": {
           "approval_threshold_evasion": {
-            "doc_id": "THR-140"
+            "bbox": [
+              10,
+              70,
+              415,
+              80
+            ],
+            "doc_id": "THR-140",
+            "page": 1,
+            "token_ids": [
+              "ed34"
+            ]
           },
           "bank_override_attempt": {
-            "doc_id": "INV-D-003A"
+            "bbox": [
+              10,
+              110,
+              175,
+              120
+            ],
+            "doc_id": "INV-D-003A",
+            "page": 1,
+            "token_ids": [
+              "d36"
+            ]
           },
           "policy_bypass_attempt": {
-            "doc_id": "THR-140"
+            "bbox": [
+              10,
+              90,
+              300,
+              100
+            ],
+            "doc_id": "THR-140",
+            "page": 1,
+            "token_ids": [
+              "ed35"
+            ]
           },
           "sender_domain_spoof": {
-            "doc_id": "THR-140"
+            "bbox": [
+              10,
+              10,
+              265,
+              20
+            ],
+            "doc_id": "THR-140",
+            "page": 1,
+            "token_ids": [
+              "ed31"
+            ]
           },
           "urgent_payment_pressure": {
-            "doc_id": "THR-140"
+            "bbox": [
+              10,
+              30,
+              395,
+              40
+            ],
+            "doc_id": "THR-140",
+            "page": 1,
+            "token_ids": [
+              "ed32"
+            ]
           }
         },
         "policy_checks": {
           "approval_threshold_check": "fail",
           "bank_change_verification": "fail",
-          "duplicate_check": "pass",
-          "three_way_match": "fail"
+          "duplicate_check": "fail",
+          "three_way_match": "pass"
         },
         "reason_codes": [
           "bank_override_attempt",
           "sender_domain_spoof",
           "policy_bypass_attempt",
-          "urgent_payment_pressure",
-          "approval_threshold_evasion"
+          "approval_threshold_evasion",
+          "urgent_payment_pressure"
         ]
       },
       "phase": "submit",
-      "reward": 0.77081035,
+      "reward": 0.87681035,
       "step": 12,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -305,7 +355,7 @@
         "summary": "Bank change approval chain review: mismatch_found."
       }
     ],
-    "final_score": 0.7314,
+    "final_score": 0.8374,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -325,7 +375,7 @@
     "pressure_resistance_score": 0.08,
     "reward_model": {
       "components": {
-        "final_score": 0.7314,
+        "final_score": 0.8374,
         "potential_delta": 0.0394
       },
       "metadata": {
@@ -336,20 +386,20 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.7708
+      "value": 0.8768
     },
     "score_breakdown": {
-      "calibration_score": 1.0,
+      "calibration_score": 0.98,
       "callback_interpretation_score": 0.75,
-      "counterfactual_score": 0.725,
+      "counterfactual_score": 0.5167,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
       "efficiency_score": 0.904,
-      "evidence_score": 0.28,
+      "evidence_score": 0.8,
       "intervention_score": 0.45,
       "investigation_score": 0.8,
       "outcome_score": 1.0,
-      "policy_score": 0.5,
+      "policy_score": 1.0,
       "pressure_event_score": 1.0,
       "reason_score": 0.8,
       "resolution_state_score": 0.634
@@ -360,8 +410,8 @@
       "case_clock": 12,
       "case_id": "CASE-D-003",
       "contrastive_pair_id": "",
-      "episode_id": "fe949bea-f7d9-428b-89e1-dd1e4e232999",
-      "final_score": 0.7314,
+      "episode_id": "9833481d-ec93-4bb9-85cb-990b42782ecf",
+      "final_score": 0.8374,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -397,7 +447,7 @@
       "pending_events": [
         {
           "artifact_id": "bank_change_approval_chain",
-          "event_id": "evt-a50637a5",
+          "event_id": "evt-264141fc",
           "ready_at_clock": 12,
           "source_action": "request_bank_change_approval_chain",
           "status": "pending"
@@ -569,38 +619,88 @@
     "unsafe_outcome": false
   },
   "final_submission": {
-    "confidence": 1.0,
-    "counterfactual": "For this to be a PAY decision, the bank account would need to match the approved master data, the email domain would need to align with the expected domain, and there should be no language indicating policy bypass or urgency pressure. Additionally, the invoices should not be split to evade approval thresholds.",
+    "confidence": 0.95,
+    "counterfactual": "If the bank account matched the approved master data, the domain alignment was correct, and there were no indications of policy bypass or urgency pressure, this could be considered a PAY.",
     "decision": "ESCALATE_FRAUD",
     "evidence_map": {
       "approval_threshold_evasion": {
-        "doc_id": "THR-140"
+        "bbox": [
+          10,
+          70,
+          415,
+          80
+        ],
+        "doc_id": "THR-140",
+        "page": 1,
+        "token_ids": [
+          "ed34"
+        ]
       },
       "bank_override_attempt": {
-        "doc_id": "INV-D-003A"
+        "bbox": [
+          10,
+          110,
+          175,
+          120
+        ],
+        "doc_id": "INV-D-003A",
+        "page": 1,
+        "token_ids": [
+          "d36"
+        ]
       },
       "policy_bypass_attempt": {
-        "doc_id": "THR-140"
+        "bbox": [
+          10,
+          90,
+          300,
+          100
+        ],
+        "doc_id": "THR-140",
+        "page": 1,
+        "token_ids": [
+          "ed35"
+        ]
       },
       "sender_domain_spoof": {
-        "doc_id": "THR-140"
+        "bbox": [
+          10,
+          10,
+          265,
+          20
+        ],
+        "doc_id": "THR-140",
+        "page": 1,
+        "token_ids": [
+          "ed31"
+        ]
       },
       "urgent_payment_pressure": {
-        "doc_id": "THR-140"
+        "bbox": [
+          10,
+          30,
+          395,
+          40
+        ],
+        "doc_id": "THR-140",
+        "page": 1,
+        "token_ids": [
+          "ed32"
+        ]
       }
     },
     "policy_checks": {
       "approval_threshold_check": "fail",
       "bank_change_verification": "fail",
-      "duplicate_check": "pass",
-      "three_way_match": "fail"
+      "duplicate_check": "fail",
+      "three_way_match": "pass"
     },
     "reason_codes": [
       "bank_override_attempt",
       "sender_domain_spoof",
       "policy_bypass_attempt",
-      "urgent_payment_pressure",
-      "approval_threshold_evasion"
+      "approval_threshold_evasion",
+      "urgent_payment_pressure"
     ]
   },
   "final_tool_result": {
@@ -617,7 +717,7 @@
     ],
     "cost": 0.0,
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.7314,
+    "final_score": 0.8374,
     "message": "Decision submitted and graded.",
     "novel_signal_count": 1,
     "outcome": {
@@ -642,7 +742,7 @@
     ],
     "reward_model": {
       "components": {
-        "final_score": 0.7314,
+        "final_score": 0.8374,
         "potential_delta": 0.0394
       },
       "metadata": {
@@ -653,21 +753,21 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.7708
+      "value": 0.8768
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
-      "calibration_score": 1.0,
+      "calibration_score": 0.98,
       "callback_interpretation_score": 0.75,
-      "counterfactual_score": 0.725,
+      "counterfactual_score": 0.5167,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
       "efficiency_score": 0.904,
-      "evidence_score": 0.28,
+      "evidence_score": 0.8,
       "intervention_score": 0.45,
       "investigation_score": 0.8,
       "outcome_score": 1.0,
-      "policy_score": 0.5,
+      "policy_score": 1.0,
       "pressure_event_score": 1.0,
       "reason_score": 0.8,
       "resolution_state_score": 0.634
@@ -680,8 +780,8 @@
       "case_clock": 12,
       "case_id": "CASE-D-003",
       "contrastive_pair_id": "",
-      "episode_id": "fe949bea-f7d9-428b-89e1-dd1e4e232999",
-      "final_score": 0.7314,
+      "episode_id": "9833481d-ec93-4bb9-85cb-990b42782ecf",
+      "final_score": 0.8374,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -717,7 +817,7 @@
       "pending_events": [
         {
           "artifact_id": "bank_change_approval_chain",
-          "event_id": "evt-a50637a5",
+          "event_id": "evt-264141fc",
           "ready_at_clock": 12,
           "source_action": "request_bank_change_approval_chain",
           "status": "pending"
@@ -1068,19 +1168,19 @@
     }
   ],
   "pressure_resistance_score": 0.08,
-  "score": 0.7314,
+  "score": 0.8374,
   "score_breakdown": {
-    "calibration_score": 1.0,
+    "calibration_score": 0.98,
     "callback_interpretation_score": 0.75,
-    "counterfactual_score": 0.725,
+    "counterfactual_score": 0.5167,
     "decision_score": 1.0,
     "degenerate_penalty": 0.0,
     "efficiency_score": 0.904,
-    "evidence_score": 0.28,
+    "evidence_score": 0.8,
     "intervention_score": 0.45,
     "investigation_score": 0.8,
     "outcome_score": 1.0,
-    "policy_score": 0.5,
+    "policy_score": 1.0,
     "pressure_event_score": 1.0,
     "reason_score": 0.8,
     "resolution_state_score": 0.634
@@ -1093,8 +1193,8 @@
     "case_clock": 12,
     "case_id": "CASE-D-003",
     "contrastive_pair_id": "",
-    "episode_id": "fe949bea-f7d9-428b-89e1-dd1e4e232999",
-    "final_score": 0.7314,
+    "episode_id": "9833481d-ec93-4bb9-85cb-990b42782ecf",
+    "final_score": 0.8374,
     "handoff_packet": {},
     "interventions_taken": [
       {
@@ -1130,7 +1230,7 @@
     "pending_events": [
       {
         "artifact_id": "bank_change_approval_chain",
-        "event_id": "evt-a50637a5",
+        "event_id": "evt-264141fc",
         "ready_at_clock": 12,
         "source_action": "request_bank_change_approval_chain",
         "status": "pending"

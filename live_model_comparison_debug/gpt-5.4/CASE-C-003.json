@@ -97,8 +97,8 @@
         "decision": "ESCALATE_FRAUD",
         "discrepancies": [
           "bank_override_attempt",
-          "shared_bank_account",
-          "coordinated_timing"
+          "coordinated_timing",
+          "shared_bank_account"
         ],
         "duplicate_links": [],
         "evidence_map": {
@@ -144,8 +144,8 @@
         },
         "fraud_flags": [
           "bank_override_attempt",
-          "shared_bank_account",
-          "coordinated_timing"
+          "coordinated_timing",
+          "shared_bank_account"
         ]
       },
       "phase": "submit",
@@ -281,7 +281,7 @@
       "case_clock": 8,
       "case_id": "CASE-C-003",
       "contrastive_pair_id": "",
-      "episode_id": "655cefab-dcfa-4447-b60f-f1439cebcd8b",
+      "episode_id": "05af7b91-b21b-43c6-ad32-84cbd136bb76",
       "final_score": 0.6897,
       "handoff_packet": {},
       "interventions_taken": [
@@ -312,14 +312,14 @@
       "pending_events": [
         {
           "artifact_id": "bank_change_approval_chain",
-          "event_id": "evt-4c75dda3",
+          "event_id": "evt-eec17792",
           "ready_at_clock": 8,
           "source_action": "request_bank_change_approval_chain",
           "status": "pending"
         },
         {
           "artifact_id": "duplicate_cluster_report",
-          "event_id": "evt-dc5ad238",
+          "event_id": "evt-fb8064b7",
           "ready_at_clock": 8,
           "source_action": "flag_duplicate_cluster_review",
           "status": "pending"
@@ -440,8 +440,8 @@
     "decision": "ESCALATE_FRAUD",
     "discrepancies": [
       "bank_override_attempt",
-      "shared_bank_account",
-      "coordinated_timing"
+      "coordinated_timing",
+      "shared_bank_account"
     ],
     "duplicate_links": [],
     "evidence_map": {
@@ -487,8 +487,8 @@
     },
     "fraud_flags": [
       "bank_override_attempt",
-      "shared_bank_account",
-      "coordinated_timing"
+      "coordinated_timing",
+      "shared_bank_account"
     ]
   },
   "final_tool_result": {
@@ -581,7 +581,7 @@
       "case_clock": 8,
       "case_id": "CASE-C-003",
       "contrastive_pair_id": "",
-      "episode_id": "655cefab-dcfa-4447-b60f-f1439cebcd8b",
+      "episode_id": "05af7b91-b21b-43c6-ad32-84cbd136bb76",
       "final_score": 0.6897,
       "handoff_packet": {},
       "interventions_taken": [
@@ -612,14 +612,14 @@
       "pending_events": [
         {
           "artifact_id": "bank_change_approval_chain",
-          "event_id": "evt-4c75dda3",
+          "event_id": "evt-eec17792",
           "ready_at_clock": 8,
           "source_action": "request_bank_change_approval_chain",
           "status": "pending"
         },
         {
           "artifact_id": "duplicate_cluster_report",
-          "event_id": "evt-dc5ad238",
+          "event_id": "evt-fb8064b7",
           "ready_at_clock": 8,
           "source_action": "flag_duplicate_cluster_review",
           "status": "pending"
@@ -882,7 +882,7 @@
     "case_clock": 8,
     "case_id": "CASE-C-003",
     "contrastive_pair_id": "",
-    "episode_id": "655cefab-dcfa-4447-b60f-f1439cebcd8b",
+    "episode_id": "05af7b91-b21b-43c6-ad32-84cbd136bb76",
     "final_score": 0.6897,
     "handoff_packet": {},
     "interventions_taken": [
@@ -913,14 +913,14 @@
     "pending_events": [
       {
         "artifact_id": "bank_change_approval_chain",
-        "event_id": "evt-4c75dda3",
+        "event_id": "evt-eec17792",
         "ready_at_clock": 8,
         "source_action": "request_bank_change_approval_chain",
         "status": "pending"
       },
       {
         "artifact_id": "duplicate_cluster_report",
-        "event_id": "evt-dc5ad238",
+        "event_id": "evt-fb8064b7",
         "ready_at_clock": 8,
         "source_action": "flag_duplicate_cluster_review",
         "status": "pending"

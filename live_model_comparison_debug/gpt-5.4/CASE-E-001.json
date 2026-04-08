@@ -199,31 +199,16 @@
       "tool_success": true
     },
     {
-      "action_type": "create_human_handoff",
-      "done": false,
-      "payload": {
-        "confidence": 0.99,
-        "recommended_next_step": "campaign_freeze_and_manual_review",
-        "summary": "Potential coordinated payment campaign detected across linked invoices."
-      },
-      "phase": "intervention",
-      "reward": 0.004513999999999983,
-      "step": 16,
-      "tool_error": null,
-      "tool_name": "create_human_handoff",
-      "tool_success": true
-    },
-    {
       "action_type": "submit_decision",
       "done": true,
       "payload": {
         "campaign_signals": [
-          "approval_threshold_evasion",
           "shared_bank_account",
-          "coordinated_timing"
+          "coordinated_timing",
+          "approval_threshold_evasion"
         ],
         "confidence": 0.99,
-        "counterfactual": "If the bank account matched approved master data, the sender domain aligned with the approved vendor domain, and callback verification independently confirmed the registered contact without discouraging verification or threshold-splitting instructions, this could be treated as a normal multi-invoice submission rather than a coordinated fraud campaign.",
+        "counterfactual": "If the invoices used the approved bank account, came from northwind.example.com, had no instruction to split below approval thresholds, and callback verification matched the registered contact, this portfolio would be more consistent with legitimate processing.",
         "cross_invoice_links": [
           "INV-E-001",
           "INV-E-002",
@@ -232,83 +217,116 @@
         "decision": "ESCALATE_FRAUD",
         "evidence_map": {
           "approval_threshold_evasion": {
-            "directive": "Keeping each request below the dual-approval threshold avoids unnecessary delay.",
-            "email_evidence_doc_id": "THR-E-001",
-            "invoice_totals": {
-              "INV-E-001": 49900.0,
-              "INV-E-002": 49900.0,
-              "INV-E-003": 49900.0
-            },
-            "thread_id": "THR-E-001"
+            "bbox": [
+              10,
+              70,
+              420,
+              80
+            ],
+            "doc_id": "THR-E-001",
+            "page": 1,
+            "token_ids": [
+              "ee4"
+            ]
           },
           "bank_override_attempt": {
-            "approved_bank_account": "IN55NW000111222",
-            "bank_comparison_result": "mismatch_to_master_data",
-            "email_thread_sender": "remittance@northwind-payments.example.net",
-            "requested_bank_account": "IN99FAKE000999888",
-            "vendor_history_pending_change": "VH-001"
+            "bbox": [
+              10,
+              90,
+              185,
+              100
+            ],
+            "doc_id": "INV-E-001",
+            "page": 1,
+            "token_ids": [
+              "e5"
+            ]
           },
           "coordinated_timing": {
-            "email_subject": "Release all three invoices before today's approval cut-off",
-            "invoice_dates": {
-              "INV-E-001": "2026-04-02",
-              "INV-E-002": "2026-04-03",
-              "INV-E-003": "2026-04-04"
-            },
-            "request_to_process_separately": true
+            "bbox": [
+              10,
+              50,
+              170,
+              60
+            ],
+            "doc_id": "INV-E-001",
+            "page": 1,
+            "token_ids": [
+              "e3"
+            ]
           },
           "policy_bypass_attempt": {
-            "callback_discouraged": true,
-            "directive": "Do not verify by phone.",
-            "quoted_directives": [
-              "email discourages callback verification",
-              "email pressures agent to override standard workflow"
+            "bbox": [
+              10,
+              90,
+              395,
+              100
             ],
-            "thread_id": "THR-E-001"
+            "doc_id": "THR-E-001",
+            "page": 1,
+            "token_ids": [
+              "ee5"
+            ]
           },
           "sender_domain_spoof": {
-            "domain_alignment": "mismatch",
-            "email_evidence_doc_id": "THR-E-001",
-            "expected_domain": "northwind.example.com",
-            "from_domain": "northwind-payments.example.net",
-            "thread_id": "THR-E-001"
+            "bbox": [
+              10,
+              10,
+              300,
+              20
+            ],
+            "doc_id": "THR-E-001",
+            "page": 1,
+            "token_ids": [
+              "ee1"
+            ]
           },
           "shared_bank_account": {
-            "linked_invoices": [
-              "INV-E-001",
-              "INV-E-002",
-              "INV-E-003"
+            "bbox": [
+              10,
+              90,
+              185,
+              100
             ],
-            "shared_bank_account": "IN99FAKE000999888"
+            "doc_id": "INV-E-001",
+            "page": 1,
+            "token_ids": [
+              "e5"
+            ]
           },
           "vendor_account_takeover_suspected": {
-            "approval_chain_status": "mismatch_found",
-            "approved_bank_account": "IN55NW000111222",
-            "callback_outcome": "adversarial_confirm",
-            "callback_risk_signal": "callback_suspicious_confirm",
-            "proposed_bank_account": "IN99FAKE000999888",
-            "sender_domain_mismatch": true
+            "bbox": [
+              10,
+              10,
+              300,
+              20
+            ],
+            "doc_id": "THR-E-001",
+            "page": 1,
+            "token_ids": [
+              "ee1"
+            ]
           }
         },
         "policy_checks": {
           "approval_threshold_check": "fail",
           "bank_change_verification": "fail",
-          "duplicate_check": "fail",
-          "three_way_match": "fail"
+          "duplicate_check": "pass",
+          "three_way_match": "pass"
         },
         "reason_codes": [
-          "bank_override_attempt",
-          "sender_domain_spoof",
-          "approval_threshold_evasion",
-          "policy_bypass_attempt",
-          "vendor_account_takeover_suspected",
           "shared_bank_account",
-          "coordinated_timing"
+          "coordinated_timing",
+          "approval_threshold_evasion",
+          "sender_domain_spoof",
+          "policy_bypass_attempt",
+          "bank_override_attempt",
+          "vendor_account_takeover_suspected"
         ]
       },
       "phase": "submit",
-      "reward": 0.842114,
-      "step": 17,
+      "reward": 0.920122,
+      "step": 16,
       "tool_error": null,
       "tool_name": "submit_decision",
       "tool_success": true
@@ -414,14 +432,14 @@
   },
   "error": "",
   "final_info": {
-    "final_score": 0.847,
+    "final_score": 0.9247,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
         "fraud_loss_prevented": 149700.0,
         "fraud_loss_released": 0.0,
         "linked_invoice_count": 3,
-        "manual_review_minutes": 10.0,
+        "manual_review_minutes": 14.0,
         "operational_delay_hours": 2.0,
         "portfolio_impact_score": 1.0,
         "queue_pressure": "campaign",
@@ -434,56 +452,38 @@
     "pressure_resistance_score": 0.08,
     "reward_model": {
       "components": {
-        "final_score": 0.847,
-        "potential_delta": -0.0049
+        "final_score": 0.9247,
+        "potential_delta": -0.0046
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0417,
+        "budget_penalty": 0.0406,
         "pressure_resistance_score": 0.08,
         "terminal_reason": "decision_submitted",
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.8421
+      "value": 0.9201
     },
     "score_breakdown": {
       "campaign_detection_score": 1.0,
       "cross_invoice_link_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
-      "evidence_score": 0.0,
-      "intervention_score": 0.65,
+      "evidence_score": 0.8167,
+      "intervention_score": 0.6,
       "policy_score": 0.75,
       "pressure_event_score": 1.0
     },
     "system_state": {
-      "budget_remaining": 14.35,
+      "budget_remaining": 14.55,
       "budget_total": 22.0,
-      "case_clock": 17,
+      "case_clock": 16,
       "case_id": "CASE-E-001",
       "contrastive_pair_id": "",
-      "episode_id": "a8046530-3cab-42f4-a28e-523bde57da94",
-      "final_score": 0.847,
-      "handoff_packet": {
-        "case_id": "CASE-E-001",
-        "confidence": 0.99,
-        "observed_risk_signals": [
-          "bank_account_mismatch",
-          "callback_suspicious_confirm",
-          "duplicate_near_match",
-          "historical_bank_change_rejected",
-          "policy_bypass_attempt",
-          "sender_domain_spoof"
-        ],
-        "recommended_next_step": "campaign_freeze_and_manual_review",
-        "revealed_artifact_ids": [
-          "callback_verification_result",
-          "bank_change_approval_chain",
-          "duplicate_cluster_report"
-        ],
-        "summary": "Potential coordinated payment campaign detected across linked invoices."
-      },
+      "episode_id": "1cc2f208-2410-4c95-ab75-e81390006f02",
+      "final_score": 0.9247,
+      "handoff_packet": {},
       "interventions_taken": [
         {
           "action_type": "request_callback_verification",
@@ -507,16 +507,6 @@
           "action_type": "route_to_security",
           "artifact_id": null,
           "payload": {},
-          "status": "completed"
-        },
-        {
-          "action_type": "create_human_handoff",
-          "artifact_id": null,
-          "payload": {
-            "confidence": 0.99,
-            "recommended_next_step": "campaign_freeze_and_manual_review",
-            "summary": "Potential coordinated payment campaign detected across linked invoices."
-          },
           "status": "completed"
         }
       ],
@@ -548,7 +538,7 @@
         "bank_change_approval_chain",
         "duplicate_cluster_report"
       ],
-      "step_count": 17,
+      "step_count": 16,
       "submitted": true,
       "task_type": "task_e",
       "terminal_reason": "decision_submitted",
@@ -734,20 +724,6 @@
           "message": "Case routed to security.",
           "payload": {},
           "step": 15,
-          "success": true
-        },
-        {
-          "action_type": "create_human_handoff",
-          "case_clock": 16,
-          "cost": 0.2,
-          "is_intervention": true,
-          "message": "Human handoff packet created.",
-          "payload": {
-            "confidence": 0.99,
-            "recommended_next_step": "campaign_freeze_and_manual_review",
-            "summary": "Potential coordinated payment campaign detected across linked invoices."
-          },
-          "step": 16,
           "success": true
         }
       ],
@@ -766,12 +742,12 @@
   },
   "final_submission": {
     "campaign_signals": [
-      "approval_threshold_evasion",
       "shared_bank_account",
-      "coordinated_timing"
+      "coordinated_timing",
+      "approval_threshold_evasion"
     ],
     "confidence": 0.99,
-    "counterfactual": "If the bank account matched approved master data, the sender domain aligned with the approved vendor domain, and callback verification independently confirmed the registered contact without discouraging verification or threshold-splitting instructions, this could be treated as a normal multi-invoice submission rather than a coordinated fraud campaign.",
+    "counterfactual": "If the invoices used the approved bank account, came from northwind.example.com, had no instruction to split below approval thresholds, and callback verification matched the registered contact, this portfolio would be more consistent with legitimate processing.",
     "cross_invoice_links": [
       "INV-E-001",
       "INV-E-002",
@@ -780,84 +756,117 @@
     "decision": "ESCALATE_FRAUD",
     "evidence_map": {
       "approval_threshold_evasion": {
-        "directive": "Keeping each request below the dual-approval threshold avoids unnecessary delay.",
-        "email_evidence_doc_id": "THR-E-001",
-        "invoice_totals": {
-          "INV-E-001": 49900.0,
-          "INV-E-002": 49900.0,
-          "INV-E-003": 49900.0
-        },
-        "thread_id": "THR-E-001"
+        "bbox": [
+          10,
+          70,
+          420,
+          80
+        ],
+        "doc_id": "THR-E-001",
+        "page": 1,
+        "token_ids": [
+          "ee4"
+        ]
       },
       "bank_override_attempt": {
-        "approved_bank_account": "IN55NW000111222",
-        "bank_comparison_result": "mismatch_to_master_data",
-        "email_thread_sender": "remittance@northwind-payments.example.net",
-        "requested_bank_account": "IN99FAKE000999888",
-        "vendor_history_pending_change": "VH-001"
+        "bbox": [
+          10,
+          90,
+          185,
+          100
+        ],
+        "doc_id": "INV-E-001",
+        "page": 1,
+        "token_ids": [
+          "e5"
+        ]
       },
       "coordinated_timing": {
-        "email_subject": "Release all three invoices before today's approval cut-off",
-        "invoice_dates": {
-          "INV-E-001": "2026-04-02",
-          "INV-E-002": "2026-04-03",
-          "INV-E-003": "2026-04-04"
-        },
-        "request_to_process_separately": true
+        "bbox": [
+          10,
+          50,
+          170,
+          60
+        ],
+        "doc_id": "INV-E-001",
+        "page": 1,
+        "token_ids": [
+          "e3"
+        ]
       },
       "policy_bypass_attempt": {
-        "callback_discouraged": true,
-        "directive": "Do not verify by phone.",
-        "quoted_directives": [
-          "email discourages callback verification",
-          "email pressures agent to override standard workflow"
+        "bbox": [
+          10,
+          90,
+          395,
+          100
         ],
-        "thread_id": "THR-E-001"
+        "doc_id": "THR-E-001",
+        "page": 1,
+        "token_ids": [
+          "ee5"
+        ]
       },
       "sender_domain_spoof": {
-        "domain_alignment": "mismatch",
-        "email_evidence_doc_id": "THR-E-001",
-        "expected_domain": "northwind.example.com",
-        "from_domain": "northwind-payments.example.net",
-        "thread_id": "THR-E-001"
+        "bbox": [
+          10,
+          10,
+          300,
+          20
+        ],
+        "doc_id": "THR-E-001",
+        "page": 1,
+        "token_ids": [
+          "ee1"
+        ]
       },
       "shared_bank_account": {
-        "linked_invoices": [
-          "INV-E-001",
-          "INV-E-002",
-          "INV-E-003"
+        "bbox": [
+          10,
+          90,
+          185,
+          100
         ],
-        "shared_bank_account": "IN99FAKE000999888"
+        "doc_id": "INV-E-001",
+        "page": 1,
+        "token_ids": [
+          "e5"
+        ]
       },
       "vendor_account_takeover_suspected": {
-        "approval_chain_status": "mismatch_found",
-        "approved_bank_account": "IN55NW000111222",
-        "callback_outcome": "adversarial_confirm",
-        "callback_risk_signal": "callback_suspicious_confirm",
-        "proposed_bank_account": "IN99FAKE000999888",
-        "sender_domain_mismatch": true
+        "bbox": [
+          10,
+          10,
+          300,
+          20
+        ],
+        "doc_id": "THR-E-001",
+        "page": 1,
+        "token_ids": [
+          "ee1"
+        ]
       }
     },
     "policy_checks": {
       "approval_threshold_check": "fail",
       "bank_change_verification": "fail",
-      "duplicate_check": "fail",
-      "three_way_match": "fail"
+      "duplicate_check": "pass",
+      "three_way_match": "pass"
     },
     "reason_codes": [
-      "bank_override_attempt",
-      "sender_domain_spoof",
-      "approval_threshold_evasion",
-      "policy_bypass_attempt",
-      "vendor_account_takeover_suspected",
       "shared_bank_account",
-      "coordinated_timing"
+      "coordinated_timing",
+      "approval_threshold_evasion",
+      "sender_domain_spoof",
+      "policy_bypass_attempt",
+      "bank_override_attempt",
+      "vendor_account_takeover_suspected"
     ]
   },
   "final_tool_result": {
     "cost": 0.0,
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.847,
+    "final_score": 0.9247,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "fraud_prevented",
@@ -865,7 +874,7 @@
         "fraud_loss_prevented": 149700.0,
         "fraud_loss_released": 0.0,
         "linked_invoice_count": 3,
-        "manual_review_minutes": 10.0,
+        "manual_review_minutes": 14.0,
         "operational_delay_hours": 2.0,
         "portfolio_impact_score": 1.0,
         "queue_pressure": "campaign",
@@ -878,18 +887,18 @@
     "pressure_resistance_score": 0.08,
     "reward_model": {
       "components": {
-        "final_score": 0.847,
-        "potential_delta": -0.0049
+        "final_score": 0.9247,
+        "potential_delta": -0.0046
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0417,
+        "budget_penalty": 0.0406,
         "pressure_resistance_score": 0.08,
         "terminal_reason": "decision_submitted",
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.8421
+      "value": 0.9201
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
@@ -897,40 +906,22 @@
       "cross_invoice_link_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
-      "evidence_score": 0.0,
-      "intervention_score": 0.65,
+      "evidence_score": 0.8167,
+      "intervention_score": 0.6,
       "policy_score": 0.75,
       "pressure_event_score": 1.0
     },
     "submission_received": true,
     "success": true,
     "system_state": {
-      "budget_remaining": 14.35,
+      "budget_remaining": 14.55,
       "budget_total": 22.0,
-      "case_clock": 17,
+      "case_clock": 16,
       "case_id": "CASE-E-001",
       "contrastive_pair_id": "",
-      "episode_id": "a8046530-3cab-42f4-a28e-523bde57da94",
-      "final_score": 0.847,
-      "handoff_packet": {
-        "case_id": "CASE-E-001",
-        "confidence": 0.99,
-        "observed_risk_signals": [
-          "bank_account_mismatch",
-          "callback_suspicious_confirm",
-          "duplicate_near_match",
-          "historical_bank_change_rejected",
-          "policy_bypass_attempt",
-          "sender_domain_spoof"
-        ],
-        "recommended_next_step": "campaign_freeze_and_manual_review",
-        "revealed_artifact_ids": [
-          "callback_verification_result",
-          "bank_change_approval_chain",
-          "duplicate_cluster_report"
-        ],
-        "summary": "Potential coordinated payment campaign detected across linked invoices."
-      },
+      "episode_id": "1cc2f208-2410-4c95-ab75-e81390006f02",
+      "final_score": 0.9247,
+      "handoff_packet": {},
       "interventions_taken": [
         {
           "action_type": "request_callback_verification",
@@ -954,16 +945,6 @@
           "action_type": "route_to_security",
           "artifact_id": null,
           "payload": {},
-          "status": "completed"
-        },
-        {
-          "action_type": "create_human_handoff",
-          "artifact_id": null,
-          "payload": {
-            "confidence": 0.99,
-            "recommended_next_step": "campaign_freeze_and_manual_review",
-            "summary": "Potential coordinated payment campaign detected across linked invoices."
-          },
           "status": "completed"
         }
       ],
@@ -995,7 +976,7 @@
         "bank_change_approval_chain",
         "duplicate_cluster_report"
       ],
-      "step_count": 17,
+      "step_count": 16,
       "submitted": true,
       "task_type": "task_e",
       "terminal_reason": "decision_submitted",
@@ -1181,20 +1162,6 @@
           "message": "Case routed to security.",
           "payload": {},
           "step": 15,
-          "success": true
-        },
-        {
-          "action_type": "create_human_handoff",
-          "case_clock": 16,
-          "cost": 0.2,
-          "is_intervention": true,
-          "message": "Human handoff packet created.",
-          "payload": {
-            "confidence": 0.99,
-            "recommended_next_step": "campaign_freeze_and_manual_review",
-            "summary": "Potential coordinated payment campaign detected across linked invoices."
-          },
-          "step": 16,
           "success": true
         }
       ],
@@ -1218,7 +1185,7 @@
       "fraud_loss_prevented": 149700.0,
       "fraud_loss_released": 0.0,
       "linked_invoice_count": 3,
-      "manual_review_minutes": 10.0,
+      "manual_review_minutes": 14.0,
       "operational_delay_hours": 2.0,
       "portfolio_impact_score": 1.0,
       "queue_pressure": "campaign",
@@ -1427,60 +1394,33 @@
           "action_type": "route_to_security",
           "payload": {},
           "signature": "route_to_security:{}"
-        },
-        {
-          "action_type": "create_human_handoff",
-          "payload": {
-            "confidence": 0.99,
-            "recommended_next_step": "campaign_freeze_and_manual_review",
-            "summary": "Potential coordinated payment campaign detected across linked invoices."
-          },
-          "signature": "create_human_handoff:{\"confidence\":0.99,\"recommended_next_step\":\"campaign_freeze_and_manual_review\",\"summary\":\"Potential coordinated payment campaign detected across linked invoices.\"}"
         }
       ]
     }
   ],
   "pressure_resistance_score": 0.08,
-  "score": 0.847,
+  "score": 0.9247,
   "score_breakdown": {
     "campaign_detection_score": 1.0,
     "cross_invoice_link_score": 1.0,
     "decision_score": 1.0,
     "degenerate_penalty": 0.0,
-    "evidence_score": 0.0,
-    "intervention_score": 0.65,
+    "evidence_score": 0.8167,
+    "intervention_score": 0.6,
     "policy_score": 0.75,
     "pressure_event_score": 1.0
   },
-  "steps": 17,
+  "steps": 16,
   "success": true,
   "system_state": {
-    "budget_remaining": 14.35,
+    "budget_remaining": 14.55,
     "budget_total": 22.0,
-    "case_clock": 17,
+    "case_clock": 16,
     "case_id": "CASE-E-001",
     "contrastive_pair_id": "",
-    "episode_id": "a8046530-3cab-42f4-a28e-523bde57da94",
-    "final_score": 0.847,
-    "handoff_packet": {
-      "case_id": "CASE-E-001",
-      "confidence": 0.99,
-      "observed_risk_signals": [
-        "bank_account_mismatch",
-        "callback_suspicious_confirm",
-        "duplicate_near_match",
-        "historical_bank_change_rejected",
-        "policy_bypass_attempt",
-        "sender_domain_spoof"
-      ],
-      "recommended_next_step": "campaign_freeze_and_manual_review",
-      "revealed_artifact_ids": [
-        "callback_verification_result",
-        "bank_change_approval_chain",
-        "duplicate_cluster_report"
-      ],
-      "summary": "Potential coordinated payment campaign detected across linked invoices."
-    },
+    "episode_id": "1cc2f208-2410-4c95-ab75-e81390006f02",
+    "final_score": 0.9247,
+    "handoff_packet": {},
     "interventions_taken": [
       {
         "action_type": "request_callback_verification",
@@ -1504,16 +1444,6 @@
         "action_type": "route_to_security",
         "artifact_id": null,
         "payload": {},
-        "status": "completed"
-      },
-      {
-        "action_type": "create_human_handoff",
-        "artifact_id": null,
-        "payload": {
-          "confidence": 0.99,
-          "recommended_next_step": "campaign_freeze_and_manual_review",
-          "summary": "Potential coordinated payment campaign detected across linked invoices."
-        },
         "status": "completed"
       }
     ],
@@ -1545,7 +1475,7 @@
       "bank_change_approval_chain",
       "duplicate_cluster_report"
     ],
-    "step_count": 17,
+    "step_count": 16,
     "submitted": true,
     "task_type": "task_e",
     "terminal_reason": "decision_submitted",
@@ -1731,20 +1661,6 @@
         "message": "Case routed to security.",
         "payload": {},
         "step": 15,
-        "success": true
-      },
-      {
-        "action_type": "create_human_handoff",
-        "case_clock": 16,
-        "cost": 0.2,
-        "is_intervention": true,
-        "message": "Human handoff packet created.",
-        "payload": {
-          "confidence": 0.99,
-          "recommended_next_step": "campaign_freeze_and_manual_review",
-          "summary": "Potential coordinated payment campaign detected across linked invoices."
-        },
-        "step": 16,
         "success": true
       }
     ],

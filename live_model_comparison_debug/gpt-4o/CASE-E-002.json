@@ -190,29 +190,76 @@
         "decision": "ESCALATE_FRAUD",
         "evidence_map": {
           "bank_override_attempt": {
-            "email_thread": "THR-E-SC-001"
+            "bbox": [
+              10,
+              70,
+              190,
+              80
+            ],
+            "doc_id": "INV-E-SC-001",
+            "page": 1,
+            "token_ids": [
+              "esc4"
+            ]
           },
           "policy_bypass_attempt": {
-            "email_thread": "THR-E-SC-001"
+            "bbox": [
+              10,
+              30,
+              340,
+              40
+            ],
+            "doc_id": "THR-E-SC-001",
+            "page": 1,
+            "token_ids": [
+              "eesc2"
+            ]
           },
           "sender_domain_spoof": {
-            "email_thread": "THR-E-SC-001"
+            "bbox": [
+              10,
+              10,
+              280,
+              20
+            ],
+            "doc_id": "THR-E-SC-001",
+            "page": 1,
+            "token_ids": [
+              "eesc1"
+            ]
           },
           "shared_bank_account": {
-            "invoice_records": [
-              "INV-E-SC-001",
-              "INV-E-SC-002"
+            "bbox": [
+              10,
+              70,
+              190,
+              80
+            ],
+            "doc_id": "INV-E-SC-001",
+            "page": 1,
+            "token_ids": [
+              "esc4"
             ]
           },
           "vendor_account_takeover_suspected": {
-            "callback_result": "callback_verification_result"
+            "bbox": [
+              10,
+              10,
+              280,
+              20
+            ],
+            "doc_id": "THR-E-SC-001",
+            "page": 1,
+            "token_ids": [
+              "eesc1"
+            ]
           }
         },
         "policy_checks": {
           "approval_threshold_check": "pass",
           "bank_change_verification": "fail",
           "duplicate_check": "pass",
-          "three_way_match": "fail"
+          "three_way_match": "pass"
         },
         "reason_codes": [
           "bank_override_attempt",
@@ -222,7 +269,7 @@
         ]
       },
       "phase": "submit",
-      "reward": 0.848846,
+      "reward": 0.948846,
       "step": 14,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -307,7 +354,7 @@
   },
   "error": "",
   "final_info": {
-    "final_score": 0.8525,
+    "final_score": 0.9525,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -327,7 +374,7 @@
     "pressure_resistance_score": 0.05,
     "reward_model": {
       "components": {
-        "final_score": 0.8525,
+        "final_score": 0.9525,
         "potential_delta": -0.0037
       },
       "metadata": {
@@ -338,14 +385,14 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.8488
+      "value": 0.9488
     },
     "score_breakdown": {
       "campaign_detection_score": 1.0,
       "cross_invoice_link_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
-      "evidence_score": 0.0,
+      "evidence_score": 1.0,
       "intervention_score": 0.5,
       "policy_score": 1.0,
       "pressure_event_score": 0.8929
@@ -356,8 +403,8 @@
       "case_clock": 14,
       "case_id": "CASE-E-002",
       "contrastive_pair_id": "",
-      "episode_id": "a376a619-efae-490e-99ab-4c6defa6b255",
-      "final_score": 0.8525,
+      "episode_id": "1bdb15e7-c43b-49e8-b81a-e45a28c88b64",
+      "final_score": 0.9525,
       "handoff_packet": {
         "case_id": "CASE-E-002",
         "confidence": 0.95,
@@ -617,29 +664,76 @@
     "decision": "ESCALATE_FRAUD",
     "evidence_map": {
       "bank_override_attempt": {
-        "email_thread": "THR-E-SC-001"
+        "bbox": [
+          10,
+          70,
+          190,
+          80
+        ],
+        "doc_id": "INV-E-SC-001",
+        "page": 1,
+        "token_ids": [
+          "esc4"
+        ]
       },
       "policy_bypass_attempt": {
-        "email_thread": "THR-E-SC-001"
+        "bbox": [
+          10,
+          30,
+          340,
+          40
+        ],
+        "doc_id": "THR-E-SC-001",
+        "page": 1,
+        "token_ids": [
+          "eesc2"
+        ]
       },
       "sender_domain_spoof": {
-        "email_thread": "THR-E-SC-001"
+        "bbox": [
+          10,
+          10,
+          280,
+          20
+        ],
+        "doc_id": "THR-E-SC-001",
+        "page": 1,
+        "token_ids": [
+          "eesc1"
+        ]
       },
       "shared_bank_account": {
-        "invoice_records": [
-          "INV-E-SC-001",
-          "INV-E-SC-002"
+        "bbox": [
+          10,
+          70,
+          190,
+          80
+        ],
+        "doc_id": "INV-E-SC-001",
+        "page": 1,
+        "token_ids": [
+          "esc4"
         ]
       },
       "vendor_account_takeover_suspected": {
-        "callback_result": "callback_verification_result"
+        "bbox": [
+          10,
+          10,
+          280,
+          20
+        ],
+        "doc_id": "THR-E-SC-001",
+        "page": 1,
+        "token_ids": [
+          "eesc1"
+        ]
       }
     },
     "policy_checks": {
       "approval_threshold_check": "pass",
       "bank_change_verification": "fail",
       "duplicate_check": "pass",
-      "three_way_match": "fail"
+      "three_way_match": "pass"
     },
     "reason_codes": [
       "bank_override_attempt",
@@ -651,7 +745,7 @@
   "final_tool_result": {
     "cost": 0.0,
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.8525,
+    "final_score": 0.9525,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "fraud_prevented",
@@ -672,7 +766,7 @@
     "pressure_resistance_score": 0.05,
     "reward_model": {
       "components": {
-        "final_score": 0.8525,
+        "final_score": 0.9525,
         "potential_delta": -0.0037
       },
       "metadata": {
@@ -683,7 +777,7 @@
         "unsafe_outcome": false
       },
       "terminal": true,
-      "value": 0.8488
+      "value": 0.9488
     },
     "risk_assessment": 0.16,
     "score_breakdown": {
@@ -691,7 +785,7 @@
       "cross_invoice_link_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
-      "evidence_score": 0.0,
+      "evidence_score": 1.0,
       "intervention_score": 0.5,
       "policy_score": 1.0,
       "pressure_event_score": 0.8929
@@ -704,8 +798,8 @@
       "case_clock": 14,
       "case_id": "CASE-E-002",
       "contrastive_pair_id": "",
-      "episode_id": "a376a619-efae-490e-99ab-4c6defa6b255",
-      "final_score": 0.8525,
+      "episode_id": "1bdb15e7-c43b-49e8-b81a-e45a28c88b64",
+      "final_score": 0.9525,
       "handoff_packet": {
         "case_id": "CASE-E-002",
         "confidence": 0.95,
@@ -1161,13 +1255,13 @@
     }
   ],
   "pressure_resistance_score": 0.05,
-  "score": 0.8525,
+  "score": 0.9525,
   "score_breakdown": {
     "campaign_detection_score": 1.0,
     "cross_invoice_link_score": 1.0,
     "decision_score": 1.0,
     "degenerate_penalty": 0.0,
-    "evidence_score": 0.0,
+    "evidence_score": 1.0,
     "intervention_score": 0.5,
     "policy_score": 1.0,
     "pressure_event_score": 0.8929
@@ -1180,8 +1274,8 @@
     "case_clock": 14,
     "case_id": "CASE-E-002",
     "contrastive_pair_id": "",
-    "episode_id": "a376a619-efae-490e-99ab-4c6defa6b255",
-    "final_score": 0.8525,
+    "episode_id": "1bdb15e7-c43b-49e8-b81a-e45a28c88b64",
+    "final_score": 0.9525,
     "handoff_packet": {
       "case_id": "CASE-E-002",
       "confidence": 0.95,

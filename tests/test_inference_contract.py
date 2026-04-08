@@ -78,6 +78,26 @@ def test_default_cases_cover_clean_and_adversarial_paths():
     assert expected.issubset(set(inference.DEFAULT_CASES))
 
 
+def test_build_investigation_candidates_keep_receipt_lookup_for_tax_only_task_b():
+    candidates = inference.build_investigation_candidates(
+        "task_b",
+        {
+            "case_instruction": "Verify tax calculations match between invoice and PO. Report any discrepancies.",
+            "invoice_fields": {"po_id": "PO-5501", "receipt_id": "GRN-5501"},
+        },
+        vendor_key="",
+        po_id="PO-5501",
+        receipt_id="GRN-5501",
+        invoice_total=595.0,
+        invoice_number="EC-5501",
+        proposed_bank_account="",
+        email_doc_id="",
+        executed_signatures=set(),
+    )
+
+    assert [candidate.action_type for candidate in candidates] == ["lookup_policy", "lookup_po", "lookup_receipt"]
+
+
 def test_email_thread_signal_derivation_uses_structured_email_view():
     signals = inference.derive_email_thread_signals(
         {
