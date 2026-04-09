@@ -208,11 +208,29 @@ The workspace also contains a fresh full-suite local comparison from **April 9, 
 
 | Model | Average Score | Success Rate | Failed Cases |
 |---|---:|---:|---|
-| `gpt-3.5-turbo` | 0.6837 | 33.3% | 14 |
-| `gpt-4o` | 0.8746 | 85.7% | 3 |
-| `gpt-5.4` | 0.9108 | 95.2% | 1 |
+| `gpt-3.5-turbo` | 0.7009 | 38.1% | 13 |
+| `gpt-4o` | 0.8663 | 81.0% | 4 |
+| `gpt-5.4` | 0.9305 | 100.0% | 0 |
 
-That run preserves the intended capability ordering and, more importantly, removes the old saturation problem: `gpt-4o` now fails `CASE-B-002`, `CASE-B-004`, and `CASE-B-005`, while `gpt-5.4` only misses `CASE-B-005`. The resulting `0.0362` average-score gap and equal `64` API-call budget make the benchmark's model separation much more believable.
+
+## 🔍 Key Takeaways
+
+- **Performance ranking:**  
+  `gpt-5.4` > `gpt-4o` > `gpt-3.5-turbo`
+
+- **Frontier gap (gpt-5.4 vs gpt-4o):**
+  - **+0.0642** average score  
+  - **+19.0%** success rate  
+
+- **Reliability:**
+  - `gpt-5.4`: Perfect (0 failures ✅)  
+  - `gpt-4o`: Strong but still misses edge cases  
+  - `gpt-3.5-turbo`: Struggles on complex tasks  
+
+- **Failure trend:**
+  - Failures concentrated in **B–E difficulty tiers**  
+  - Benchmark effectively separates model capability levels  
+
 
 ## What To Read Next
 
