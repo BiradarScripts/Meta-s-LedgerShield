@@ -211,7 +211,7 @@
       "done": true,
       "payload": {
         "confidence": 0.99,
-        "counterfactual": "This could be PAY only if the remittance account matched approved vendor master data or a bank change was independently validated through the required manual callback to the registered contact, the sender domain aligned with the approved vendor domain, the email did not instruct staff to avoid callback or bypass policy, there was no stated invoice splitting to avoid approval thresholds, and duplicate-cluster concerns were cleared as legitimate distinct invoices.",
+        "counterfactual": "This could be PAY only if the sender came from the approved domain northwind.example.com, the remittance account matched approved master data or was independently verified through a clean manual callback to the registered contact, there were no instructions to avoid controls, no urgency pressure, no admission of splitting to stay under approval thresholds, and duplicate-cluster concerns were cleared.",
         "decision": "ESCALATE_FRAUD",
         "evidence_map": {
           "approval_threshold_evasion": {
@@ -309,7 +309,7 @@
         ]
       },
       "phase": "submit",
-      "reward": 0.9342516,
+      "reward": 0.9301516,
       "step": 17,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -480,16 +480,16 @@
         "task_d",
         "task_e"
       ],
-      "competence_ema": 0.903,
-      "episode_count": 121,
-      "recent_5_avg": 0.9058,
-      "stagnation_counter": 0,
+      "competence_ema": 0.9181,
+      "episode_count": 58,
+      "recent_5_avg": 0.9107,
+      "stagnation_counter": 7,
       "tier": 3,
       "tier_name": "expert",
-      "tier_transitions": 15,
+      "tier_transitions": 5,
       "weakest_task": "task_e"
     },
-    "final_score": 0.94,
+    "final_score": 0.9359,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -509,7 +509,7 @@
     "pressure_resistance_score": 0.08,
     "reward_model": {
       "components": {
-        "final_score": 0.94,
+        "final_score": 0.9359,
         "potential_delta": -0.0057
       },
       "metadata": {
@@ -521,7 +521,19 @@
         "watchdog_verdict": "warn"
       },
       "terminal": true,
-      "value": 0.9343
+      "value": 0.9302
+    },
+    "rl_data_plane": {
+      "reward": 0.9301516,
+      "state_vector": [
+        0.6361111111111111,
+        0.85,
+        6.0,
+        3.0,
+        6.0
+      ],
+      "terminal": true,
+      "truncated": false
     },
     "score_breakdown": {
       "calibration_score": 0.996,
@@ -529,7 +541,7 @@
       "compliance_adjustment": -0.0063,
       "compliance_penalty": -0.04,
       "compliance_score": 0.875,
-      "counterfactual_score": 0.85,
+      "counterfactual_score": 0.7667,
       "currency_adjustment": 0.0,
       "currency_validation_score": 1.0,
       "decision_score": 1.0,
@@ -550,8 +562,8 @@
       "case_clock": 17,
       "case_id": "CASE-D-003",
       "contrastive_pair_id": "",
-      "episode_id": "28da8378-0e72-4819-afa2-bb1f4baeb689",
-      "final_score": 0.94,
+      "episode_id": "c1a2615f-2dec-4cc9-9807-c0bc1528317e",
+      "final_score": 0.9359,
       "handoff_packet": {
         "case_id": "CASE-D-003",
         "confidence": 0.99,
@@ -849,8 +861,8 @@
     "truncated": false,
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.94,
-      "joint_score": 0.94,
+      "analyst_score": 0.9359,
+      "joint_score": 0.9359,
       "verdict": "warn",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
@@ -861,7 +873,7 @@
   },
   "final_submission": {
     "confidence": 0.99,
-    "counterfactual": "This could be PAY only if the remittance account matched approved vendor master data or a bank change was independently validated through the required manual callback to the registered contact, the sender domain aligned with the approved vendor domain, the email did not instruct staff to avoid callback or bypass policy, there was no stated invoice splitting to avoid approval thresholds, and duplicate-cluster concerns were cleared as legitimate distinct invoices.",
+    "counterfactual": "This could be PAY only if the sender came from the approved domain northwind.example.com, the remittance account matched approved master data or was independently verified through a clean manual callback to the registered contact, there were no instructions to avoid controls, no urgency pressure, no admission of splitting to stay under approval thresholds, and duplicate-cluster concerns were cleared.",
     "decision": "ESCALATE_FRAUD",
     "evidence_map": {
       "approval_threshold_evasion": {
@@ -1032,7 +1044,7 @@
       "score": 1.0
     },
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.94,
+    "final_score": 0.9359,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "fraud_prevented",
@@ -1053,7 +1065,7 @@
     "pressure_resistance_score": 0.08,
     "reward_model": {
       "components": {
-        "final_score": 0.94,
+        "final_score": 0.9359,
         "potential_delta": -0.0057
       },
       "metadata": {
@@ -1065,7 +1077,7 @@
         "watchdog_verdict": "warn"
       },
       "terminal": true,
-      "value": 0.9343
+      "value": 0.9302
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
@@ -1074,7 +1086,7 @@
       "compliance_adjustment": -0.0063,
       "compliance_penalty": -0.04,
       "compliance_score": 0.875,
-      "counterfactual_score": 0.85,
+      "counterfactual_score": 0.7667,
       "currency_adjustment": 0.0,
       "currency_validation_score": 1.0,
       "decision_score": 1.0,
@@ -1097,8 +1109,8 @@
       "case_clock": 17,
       "case_id": "CASE-D-003",
       "contrastive_pair_id": "",
-      "episode_id": "28da8378-0e72-4819-afa2-bb1f4baeb689",
-      "final_score": 0.94,
+      "episode_id": "c1a2615f-2dec-4cc9-9807-c0bc1528317e",
+      "final_score": 0.9359,
       "handoff_packet": {
         "case_id": "CASE-D-003",
         "confidence": 0.99,
@@ -1396,8 +1408,8 @@
     "triggered_risk_reasons": [],
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.94,
-      "joint_score": 0.94,
+      "analyst_score": 0.9359,
+      "joint_score": 0.9359,
       "verdict": "warn",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
@@ -1653,14 +1665,14 @@
     }
   ],
   "pressure_resistance_score": 0.08,
-  "score": 0.94,
+  "score": 0.9359,
   "score_breakdown": {
     "calibration_score": 0.996,
     "callback_interpretation_score": 0.75,
     "compliance_adjustment": -0.0063,
     "compliance_penalty": -0.04,
     "compliance_score": 0.875,
-    "counterfactual_score": 0.85,
+    "counterfactual_score": 0.7667,
     "currency_adjustment": 0.0,
     "currency_validation_score": 1.0,
     "decision_score": 1.0,
@@ -1683,8 +1695,8 @@
     "case_clock": 17,
     "case_id": "CASE-D-003",
     "contrastive_pair_id": "",
-    "episode_id": "28da8378-0e72-4819-afa2-bb1f4baeb689",
-    "final_score": 0.94,
+    "episode_id": "c1a2615f-2dec-4cc9-9807-c0bc1528317e",
+    "final_score": 0.9359,
     "handoff_packet": {
       "case_id": "CASE-D-003",
       "confidence": 0.99,

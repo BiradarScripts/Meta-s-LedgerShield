@@ -197,7 +197,7 @@
       "done": true,
       "payload": {
         "confidence": 0.99,
-        "counterfactual": "This could be PAY if the invoice bank account matched the approved vendor master account, the bank change had been validated through the required manual callback with the registered vendor contact, the sender domain aligned with the approved vendor domain northwind.example.com, and the email contained no request to skip callback or urgent pressure language.",
+        "counterfactual": "This could be PAY if the requested remittance account matched the vendor master approved bank account, the bank change approval chain showed no mismatch after a successful manual callback to the registered contact, and the email originated from the approved vendor domain without urgency or instructions to bypass callback/policy.",
         "decision": "ESCALATE_FRAUD",
         "evidence_map": {
           "bank_override_attempt": {
@@ -443,13 +443,13 @@
         "task_d",
         "task_e"
       ],
-      "competence_ema": 0.9002,
-      "episode_count": 119,
-      "recent_5_avg": 0.9017,
-      "stagnation_counter": 7,
+      "competence_ema": 0.9219,
+      "episode_count": 56,
+      "recent_5_avg": 0.9162,
+      "stagnation_counter": 5,
       "tier": 3,
       "tier_name": "expert",
-      "tier_transitions": 15,
+      "tier_transitions": 5,
       "weakest_task": "task_e"
     },
     "final_score": 0.9176,
@@ -486,6 +486,18 @@
       "terminal": true,
       "value": 0.9117
     },
+    "rl_data_plane": {
+      "reward": 0.911713,
+      "state_vector": [
+        0.665625,
+        0.8888888888888888,
+        6.0,
+        3.0,
+        6.0
+      ],
+      "terminal": true,
+      "truncated": false
+    },
     "score_breakdown": {
       "calibration_score": 0.996,
       "callback_interpretation_score": 0.75,
@@ -513,7 +525,7 @@
       "case_clock": 16,
       "case_id": "CASE-D-001",
       "contrastive_pair_id": "",
-      "episode_id": "149139fa-6e94-49b1-a354-8c7ba93d1366",
+      "episode_id": "882d647b-4924-41c0-8c10-64720fe44224",
       "final_score": 0.9176,
       "handoff_packet": {
         "case_id": "CASE-D-001",
@@ -807,7 +819,7 @@
   },
   "final_submission": {
     "confidence": 0.99,
-    "counterfactual": "This could be PAY if the invoice bank account matched the approved vendor master account, the bank change had been validated through the required manual callback with the registered vendor contact, the sender domain aligned with the approved vendor domain northwind.example.com, and the email contained no request to skip callback or urgent pressure language.",
+    "counterfactual": "This could be PAY if the requested remittance account matched the vendor master approved bank account, the bank change approval chain showed no mismatch after a successful manual callback to the registered contact, and the email originated from the approved vendor domain without urgency or instructions to bypass callback/policy.",
     "decision": "ESCALATE_FRAUD",
     "evidence_map": {
       "bank_override_attempt": {
@@ -1029,7 +1041,7 @@
       "case_clock": 16,
       "case_id": "CASE-D-001",
       "contrastive_pair_id": "",
-      "episode_id": "149139fa-6e94-49b1-a354-8c7ba93d1366",
+      "episode_id": "882d647b-4924-41c0-8c10-64720fe44224",
       "final_score": 0.9176,
       "handoff_packet": {
         "case_id": "CASE-D-001",
@@ -1589,7 +1601,7 @@
     "case_clock": 16,
     "case_id": "CASE-D-001",
     "contrastive_pair_id": "",
-    "episode_id": "149139fa-6e94-49b1-a354-8c7ba93d1366",
+    "episode_id": "882d647b-4924-41c0-8c10-64720fe44224",
     "final_score": 0.9176,
     "handoff_packet": {
       "case_id": "CASE-D-001",

@@ -46,7 +46,7 @@
       "done": true,
       "payload": {
         "confidence": 1.0,
-        "counterfactual": "What conditions would make this PAY instead of ESCALATE? No fraud indicators present.",
+        "counterfactual": "What conditions would make this PAY instead of ESCALATE? If there were indications of bank account changes, duplicate invoices, email-based fraud, approval threshold evasion, or suspicious vendor history.",
         "decision": "PAY",
         "evidence_map": {
           "duplicate_check_cleared": {
@@ -85,7 +85,7 @@
         "reason_codes": []
       },
       "phase": "submit",
-      "reward": 0.76249,
+      "reward": 0.77419,
       "step": 4,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -144,10 +144,10 @@
   "error": "",
   "final_info": {
     "compliance": {
-      "compliance_score": 0.875,
-      "controls_evaluated": 8,
+      "compliance_score": 0.8,
+      "controls_evaluated": 5,
       "controls_failed": 1,
-      "controls_passed": 7,
+      "controls_passed": 4,
       "critical_failures": [],
       "findings": [
         {
@@ -165,20 +165,6 @@
           "status": "pass"
         },
         {
-          "control_id": "SOX-AP-003",
-          "details": "",
-          "name": "Bank Change Verification",
-          "severity": "critical",
-          "status": "pass"
-        },
-        {
-          "control_id": "SOX-AP-004",
-          "details": "",
-          "name": "Duplicate Payment Prevention",
-          "severity": "high",
-          "status": "pass"
-        },
-        {
           "control_id": "SOX-AP-005",
           "details": "",
           "name": "Approval Threshold Enforcement",
@@ -190,13 +176,6 @@
           "details": "",
           "name": "Vendor Master Verification",
           "severity": "medium",
-          "status": "pass"
-        },
-        {
-          "control_id": "SOX-AP-007",
-          "details": "",
-          "name": "Callback Verification",
-          "severity": "critical",
           "status": "pass"
         },
         {
@@ -221,16 +200,16 @@
         "task_c",
         "task_d"
       ],
-      "competence_ema": 0.6599,
-      "episode_count": 78,
-      "recent_5_avg": 0.6152,
+      "competence_ema": 0.6061,
+      "episode_count": 15,
+      "recent_5_avg": 0.631,
       "stagnation_counter": 0,
       "tier": 2,
       "tier_name": "proficient",
-      "tier_transitions": 12,
+      "tier_transitions": 4,
       "weakest_task": "task_c"
     },
-    "final_score": 0.7662,
+    "final_score": 0.7779,
     "outcome": {
       "outcome_type": "safe_payment_cleared",
       "portfolio_metrics": {
@@ -250,7 +229,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.7662,
+        "final_score": 0.7779,
         "potential_delta": -0.0037
       },
       "metadata": {
@@ -262,15 +241,27 @@
         "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.7625
+      "value": 0.7742
+    },
+    "rl_data_plane": {
+      "reward": 0.77419,
+      "state_vector": [
+        0.85,
+        0.2222222222222222,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "terminal": true,
+      "truncated": false
     },
     "score_breakdown": {
       "calibration_score": 1.0,
       "callback_interpretation_score": 0.5,
-      "compliance_adjustment": -0.0063,
+      "compliance_adjustment": -0.01,
       "compliance_penalty": -0.02,
-      "compliance_score": 0.875,
-      "counterfactual_score": 0.69,
+      "compliance_score": 0.8,
+      "counterfactual_score": 1.0,
       "currency_adjustment": 0.0,
       "currency_validation_score": 1.0,
       "decision_score": 1.0,
@@ -291,8 +282,8 @@
       "case_clock": 4,
       "case_id": "CASE-D-002",
       "contrastive_pair_id": "",
-      "episode_id": "f84caccd-bf38-40b1-b74d-9059c5a59f35",
-      "final_score": 0.7662,
+      "episode_id": "e7494912-c86f-4bbf-8abc-086ea2724bf5",
+      "final_score": 0.7779,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 18,
@@ -364,8 +355,8 @@
     "truncated": false,
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.7662,
-      "joint_score": 0.8462,
+      "analyst_score": 0.7779,
+      "joint_score": 0.8579,
       "verdict": "approve",
       "watchdog_bonus": 0.08,
       "watchdog_escalation_count": 0,
@@ -376,7 +367,7 @@
   },
   "final_submission": {
     "confidence": 1.0,
-    "counterfactual": "What conditions would make this PAY instead of ESCALATE? No fraud indicators present.",
+    "counterfactual": "What conditions would make this PAY instead of ESCALATE? If there were indications of bank account changes, duplicate invoices, email-based fraud, approval threshold evasion, or suspicious vendor history.",
     "decision": "PAY",
     "evidence_map": {
       "duplicate_check_cleared": {
@@ -416,10 +407,10 @@
   },
   "final_tool_result": {
     "compliance": {
-      "compliance_score": 0.875,
-      "controls_evaluated": 8,
+      "compliance_score": 0.8,
+      "controls_evaluated": 5,
       "controls_failed": 1,
-      "controls_passed": 7,
+      "controls_passed": 4,
       "critical_failures": [],
       "findings": [
         {
@@ -437,20 +428,6 @@
           "status": "pass"
         },
         {
-          "control_id": "SOX-AP-003",
-          "details": "",
-          "name": "Bank Change Verification",
-          "severity": "critical",
-          "status": "pass"
-        },
-        {
-          "control_id": "SOX-AP-004",
-          "details": "",
-          "name": "Duplicate Payment Prevention",
-          "severity": "high",
-          "status": "pass"
-        },
-        {
           "control_id": "SOX-AP-005",
           "details": "",
           "name": "Approval Threshold Enforcement",
@@ -462,13 +439,6 @@
           "details": "",
           "name": "Vendor Master Verification",
           "severity": "medium",
-          "status": "pass"
-        },
-        {
-          "control_id": "SOX-AP-007",
-          "details": "",
-          "name": "Callback Verification",
-          "severity": "critical",
           "status": "pass"
         },
         {
@@ -488,7 +458,7 @@
       "score": 1.0
     },
     "decision": "PAY",
-    "final_score": 0.7662,
+    "final_score": 0.7779,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "safe_payment_cleared",
@@ -509,7 +479,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.7662,
+        "final_score": 0.7779,
         "potential_delta": -0.0037
       },
       "metadata": {
@@ -521,16 +491,16 @@
         "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.7625
+      "value": 0.7742
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
       "calibration_score": 1.0,
       "callback_interpretation_score": 0.5,
-      "compliance_adjustment": -0.0063,
+      "compliance_adjustment": -0.01,
       "compliance_penalty": -0.02,
-      "compliance_score": 0.875,
-      "counterfactual_score": 0.69,
+      "compliance_score": 0.8,
+      "counterfactual_score": 1.0,
       "currency_adjustment": 0.0,
       "currency_validation_score": 1.0,
       "decision_score": 1.0,
@@ -553,8 +523,8 @@
       "case_clock": 4,
       "case_id": "CASE-D-002",
       "contrastive_pair_id": "",
-      "episode_id": "f84caccd-bf38-40b1-b74d-9059c5a59f35",
-      "final_score": 0.7662,
+      "episode_id": "e7494912-c86f-4bbf-8abc-086ea2724bf5",
+      "final_score": 0.7779,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 18,
@@ -626,8 +596,8 @@
     "triggered_risk_reasons": [],
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.7662,
-      "joint_score": 0.8462,
+      "analyst_score": 0.7779,
+      "joint_score": 0.8579,
       "verdict": "approve",
       "watchdog_bonus": 0.08,
       "watchdog_escalation_count": 0,
@@ -759,14 +729,14 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.7662,
+  "score": 0.7779,
   "score_breakdown": {
     "calibration_score": 1.0,
     "callback_interpretation_score": 0.5,
-    "compliance_adjustment": -0.0063,
+    "compliance_adjustment": -0.01,
     "compliance_penalty": -0.02,
-    "compliance_score": 0.875,
-    "counterfactual_score": 0.69,
+    "compliance_score": 0.8,
+    "counterfactual_score": 1.0,
     "currency_adjustment": 0.0,
     "currency_validation_score": 1.0,
     "decision_score": 1.0,
@@ -782,15 +752,15 @@
     "resolution_state_score": 0.625
   },
   "steps": 4,
-  "success": true,
+  "success": false,
   "system_state": {
     "budget_remaining": 13.6,
     "budget_total": 16.0,
     "case_clock": 4,
     "case_id": "CASE-D-002",
     "contrastive_pair_id": "",
-    "episode_id": "f84caccd-bf38-40b1-b74d-9059c5a59f35",
-    "final_score": 0.7662,
+    "episode_id": "e7494912-c86f-4bbf-8abc-086ea2724bf5",
+    "final_score": 0.7779,
     "handoff_packet": {},
     "interventions_taken": [],
     "max_steps": 18,

@@ -232,9 +232,9 @@
   "final_info": {
     "compliance": {
       "compliance_score": 1.0,
-      "controls_evaluated": 8,
+      "controls_evaluated": 6,
       "controls_failed": 0,
-      "controls_passed": 8,
+      "controls_passed": 6,
       "critical_failures": [],
       "findings": [
         {
@@ -259,13 +259,6 @@
           "status": "pass"
         },
         {
-          "control_id": "SOX-AP-004",
-          "details": "",
-          "name": "Duplicate Payment Prevention",
-          "severity": "high",
-          "status": "pass"
-        },
-        {
           "control_id": "SOX-AP-005",
           "details": "",
           "name": "Approval Threshold Enforcement",
@@ -277,13 +270,6 @@
           "details": "",
           "name": "Vendor Master Verification",
           "severity": "medium",
-          "status": "pass"
-        },
-        {
-          "control_id": "SOX-AP-007",
-          "details": "",
-          "name": "Callback Verification",
-          "severity": "critical",
           "status": "pass"
         },
         {
@@ -309,13 +295,13 @@
         "task_d",
         "task_e"
       ],
-      "competence_ema": 0.8665,
-      "episode_count": 103,
-      "recent_5_avg": 0.8882,
-      "stagnation_counter": 2,
+      "competence_ema": 0.8564,
+      "episode_count": 40,
+      "recent_5_avg": 0.8889,
+      "stagnation_counter": 1,
       "tier": 3,
       "tier_name": "expert",
-      "tier_transitions": 15,
+      "tier_transitions": 5,
       "weakest_task": "task_e"
     },
     "final_score": 0.8762,
@@ -352,6 +338,18 @@
       "terminal": true,
       "value": 0.8711
     },
+    "rl_data_plane": {
+      "reward": 0.871076,
+      "state_vector": [
+        0.778125,
+        0.5,
+        1.0,
+        0.0,
+        0.0
+      ],
+      "terminal": true,
+      "truncated": false
+    },
     "score_breakdown": {
       "calibration_score": 1.0,
       "callback_interpretation_score": 0.5,
@@ -379,7 +377,7 @@
       "case_clock": 9,
       "case_id": "CASE-D-006",
       "contrastive_pair_id": "",
-      "episode_id": "a9aa1446-ad26-4107-a794-1075a07923c4",
+      "episode_id": "1d9d3f13-664c-4ab9-aea0-c011a645d522",
       "final_score": 0.8762,
       "handoff_packet": {},
       "interventions_taken": [],
@@ -581,9 +579,9 @@
   "final_tool_result": {
     "compliance": {
       "compliance_score": 1.0,
-      "controls_evaluated": 8,
+      "controls_evaluated": 6,
       "controls_failed": 0,
-      "controls_passed": 8,
+      "controls_passed": 6,
       "critical_failures": [],
       "findings": [
         {
@@ -608,13 +606,6 @@
           "status": "pass"
         },
         {
-          "control_id": "SOX-AP-004",
-          "details": "",
-          "name": "Duplicate Payment Prevention",
-          "severity": "high",
-          "status": "pass"
-        },
-        {
           "control_id": "SOX-AP-005",
           "details": "",
           "name": "Approval Threshold Enforcement",
@@ -626,13 +617,6 @@
           "details": "",
           "name": "Vendor Master Verification",
           "severity": "medium",
-          "status": "pass"
-        },
-        {
-          "control_id": "SOX-AP-007",
-          "details": "",
-          "name": "Callback Verification",
-          "severity": "critical",
           "status": "pass"
         },
         {
@@ -717,7 +701,7 @@
       "case_clock": 9,
       "case_id": "CASE-D-006",
       "contrastive_pair_id": "",
-      "episode_id": "a9aa1446-ad26-4107-a794-1075a07923c4",
+      "episode_id": "1d9d3f13-664c-4ab9-aea0-c011a645d522",
       "final_score": 0.8762,
       "handoff_packet": {},
       "interventions_taken": [],
@@ -1038,7 +1022,7 @@
     "case_clock": 9,
     "case_id": "CASE-D-006",
     "contrastive_pair_id": "",
-    "episode_id": "a9aa1446-ad26-4107-a794-1075a07923c4",
+    "episode_id": "1d9d3f13-664c-4ab9-aea0-c011a645d522",
     "final_score": 0.8762,
     "handoff_packet": {},
     "interventions_taken": [],

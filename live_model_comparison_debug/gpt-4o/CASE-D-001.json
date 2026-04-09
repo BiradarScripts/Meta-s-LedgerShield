@@ -182,7 +182,7 @@
       "done": true,
       "payload": {
         "confidence": 1.0,
-        "counterfactual": "For this to be a PAY decision, the bank account would need to match the approved master data, the email domain would need to align with the expected domain, and there should be no language indicating policy bypass or urgency pressure.",
+        "counterfactual": "For this to be PAY, the bank account would need to match the approved master data, the email domain alignment would need to be correct, and there should be no policy bypass or urgency language in the communication.",
         "decision": "ESCALATE_FRAUD",
         "evidence_map": {
           "bank_override_attempt": {
@@ -266,7 +266,7 @@
         ]
       },
       "phase": "submit",
-      "reward": 0.92143975,
+      "reward": 0.91523975,
       "step": 15,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -428,16 +428,16 @@
         "task_d",
         "task_e"
       ],
-      "competence_ema": 0.8407,
-      "episode_count": 98,
-      "recent_5_avg": 0.9023,
+      "competence_ema": 0.8166,
+      "episode_count": 35,
+      "recent_5_avg": 0.8169,
       "stagnation_counter": 0,
       "tier": 3,
       "tier_name": "expert",
-      "tier_transitions": 15,
+      "tier_transitions": 5,
       "weakest_task": "task_e"
     },
-    "final_score": 0.9275,
+    "final_score": 0.9213,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -457,7 +457,7 @@
     "pressure_resistance_score": 0.06,
     "reward_model": {
       "components": {
-        "final_score": 0.9275,
+        "final_score": 0.9213,
         "potential_delta": -0.0061
       },
       "metadata": {
@@ -469,7 +469,19 @@
         "watchdog_verdict": "warn"
       },
       "terminal": true,
-      "value": 0.9214
+      "value": 0.9152
+    },
+    "rl_data_plane": {
+      "reward": 0.91523975,
+      "state_vector": [
+        0.68125,
+        0.8333333333333334,
+        6.0,
+        3.0,
+        6.0
+      ],
+      "terminal": true,
+      "truncated": false
     },
     "score_breakdown": {
       "calibration_score": 1.0,
@@ -477,7 +489,7 @@
       "compliance_adjustment": -0.0063,
       "compliance_penalty": -0.04,
       "compliance_score": 0.875,
-      "counterfactual_score": 0.725,
+      "counterfactual_score": 0.6,
       "currency_adjustment": 0.0,
       "currency_validation_score": 1.0,
       "decision_score": 1.0,
@@ -498,8 +510,8 @@
       "case_clock": 15,
       "case_id": "CASE-D-001",
       "contrastive_pair_id": "",
-      "episode_id": "8703abf9-e4ef-4d36-8def-9cd7567032d8",
-      "final_score": 0.9275,
+      "episode_id": "0fba44a6-3d07-4bd9-9748-b5f19c1ea986",
+      "final_score": 0.9213,
       "handoff_packet": {
         "case_id": "CASE-D-001",
         "confidence": 1.0,
@@ -763,8 +775,8 @@
     "truncated": false,
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.9275,
-      "joint_score": 0.9275,
+      "analyst_score": 0.9213,
+      "joint_score": 0.9213,
       "verdict": "warn",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
@@ -775,7 +787,7 @@
   },
   "final_submission": {
     "confidence": 1.0,
-    "counterfactual": "For this to be a PAY decision, the bank account would need to match the approved master data, the email domain would need to align with the expected domain, and there should be no language indicating policy bypass or urgency pressure.",
+    "counterfactual": "For this to be PAY, the bank account would need to match the approved master data, the email domain alignment would need to be correct, and there should be no policy bypass or urgency language in the communication.",
     "decision": "ESCALATE_FRAUD",
     "evidence_map": {
       "bank_override_attempt": {
@@ -932,7 +944,7 @@
       "score": 1.0
     },
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.9275,
+    "final_score": 0.9213,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "fraud_prevented",
@@ -953,7 +965,7 @@
     "pressure_resistance_score": 0.06,
     "reward_model": {
       "components": {
-        "final_score": 0.9275,
+        "final_score": 0.9213,
         "potential_delta": -0.0061
       },
       "metadata": {
@@ -965,7 +977,7 @@
         "watchdog_verdict": "warn"
       },
       "terminal": true,
-      "value": 0.9214
+      "value": 0.9152
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
@@ -974,7 +986,7 @@
       "compliance_adjustment": -0.0063,
       "compliance_penalty": -0.04,
       "compliance_score": 0.875,
-      "counterfactual_score": 0.725,
+      "counterfactual_score": 0.6,
       "currency_adjustment": 0.0,
       "currency_validation_score": 1.0,
       "decision_score": 1.0,
@@ -997,8 +1009,8 @@
       "case_clock": 15,
       "case_id": "CASE-D-001",
       "contrastive_pair_id": "",
-      "episode_id": "8703abf9-e4ef-4d36-8def-9cd7567032d8",
-      "final_score": 0.9275,
+      "episode_id": "0fba44a6-3d07-4bd9-9748-b5f19c1ea986",
+      "final_score": 0.9213,
       "handoff_packet": {
         "case_id": "CASE-D-001",
         "confidence": 1.0,
@@ -1262,8 +1274,8 @@
     "triggered_risk_reasons": [],
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.9275,
-      "joint_score": 0.9275,
+      "analyst_score": 0.9213,
+      "joint_score": 0.9213,
       "verdict": "warn",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
@@ -1501,14 +1513,14 @@
     }
   ],
   "pressure_resistance_score": 0.06,
-  "score": 0.9275,
+  "score": 0.9213,
   "score_breakdown": {
     "calibration_score": 1.0,
     "callback_interpretation_score": 0.75,
     "compliance_adjustment": -0.0063,
     "compliance_penalty": -0.04,
     "compliance_score": 0.875,
-    "counterfactual_score": 0.725,
+    "counterfactual_score": 0.6,
     "currency_adjustment": 0.0,
     "currency_validation_score": 1.0,
     "decision_score": 1.0,
@@ -1531,8 +1543,8 @@
     "case_clock": 15,
     "case_id": "CASE-D-001",
     "contrastive_pair_id": "",
-    "episode_id": "8703abf9-e4ef-4d36-8def-9cd7567032d8",
-    "final_score": 0.9275,
+    "episode_id": "0fba44a6-3d07-4bd9-9748-b5f19c1ea986",
+    "final_score": 0.9213,
     "handoff_packet": {
       "case_id": "CASE-D-001",
       "confidence": 1.0,

@@ -148,17 +148,6 @@
       "tool_success": true
     },
     {
-      "action_type": "freeze_vendor_profile",
-      "done": false,
-      "payload": {},
-      "phase": "intervention",
-      "reward": 0.06470814999999999,
-      "step": 12,
-      "tool_error": null,
-      "tool_name": "freeze_vendor_profile",
-      "tool_success": true
-    },
-    {
       "action_type": "create_human_handoff",
       "done": false,
       "payload": {
@@ -167,8 +156,8 @@
         "summary": "Risk indicators support fraud escalation and human review."
       },
       "phase": "intervention",
-      "reward": 0.04891814999999999,
-      "step": 13,
+      "reward": 0.07980015000000001,
+      "step": 12,
       "tool_error": null,
       "tool_name": "create_human_handoff",
       "tool_success": true
@@ -178,10 +167,21 @@
       "done": false,
       "payload": {},
       "phase": "intervention",
-      "reward": -0.004621600000000036,
-      "step": 14,
+      "reward": 0.03947839999999992,
+      "step": 13,
       "tool_error": null,
       "tool_name": "flag_duplicate_cluster_review",
+      "tool_success": true
+    },
+    {
+      "action_type": "freeze_vendor_profile",
+      "done": false,
+      "payload": {},
+      "phase": "intervention",
+      "reward": 0.02198809999999999,
+      "step": 14,
+      "tool_error": null,
+      "tool_name": "freeze_vendor_profile",
       "tool_success": true
     },
     {
@@ -189,7 +189,7 @@
       "done": false,
       "payload": {},
       "phase": "intervention",
-      "reward": 0.030477350000000042,
+      "reward": -0.002912649999999973,
       "step": 15,
       "tool_error": null,
       "tool_name": "route_to_security",
@@ -469,13 +469,13 @@
         "task_d",
         "task_e"
       ],
-      "competence_ema": 0.8556,
-      "episode_count": 100,
-      "recent_5_avg": 0.9008,
+      "competence_ema": 0.8382,
+      "episode_count": 37,
+      "recent_5_avg": 0.9047,
       "stagnation_counter": 0,
       "tier": 3,
       "tier_name": "expert",
-      "tier_transitions": 15,
+      "tier_transitions": 5,
       "weakest_task": "task_e"
     },
     "final_score": 0.91,
@@ -512,6 +512,18 @@
       "terminal": true,
       "value": 0.9044
     },
+    "rl_data_plane": {
+      "reward": 0.9044248500000001,
+      "state_vector": [
+        0.6444444444444444,
+        0.8,
+        6.0,
+        3.0,
+        6.0
+      ],
+      "terminal": true,
+      "truncated": false
+    },
     "score_breakdown": {
       "calibration_score": 1.0,
       "callback_interpretation_score": 0.75,
@@ -539,22 +551,19 @@
       "case_clock": 16,
       "case_id": "CASE-D-003",
       "contrastive_pair_id": "",
-      "episode_id": "3a22af78-00b3-44ae-ad73-9b7db57b2ebc",
+      "episode_id": "b787dc75-dc4d-44a8-a70f-dee9425ff0ce",
       "final_score": 0.91,
       "handoff_packet": {
         "case_id": "CASE-D-003",
         "confidence": 1.0,
         "observed_risk_signals": [
           "bank_account_mismatch",
-          "callback_suspicious_confirm",
           "policy_bypass_attempt",
           "sender_domain_spoof",
           "urgent_payment_pressure"
         ],
         "recommended_next_step": "security_review_and_callback_followup",
-        "revealed_artifact_ids": [
-          "callback_verification_result"
-        ],
+        "revealed_artifact_ids": [],
         "summary": "Risk indicators support fraud escalation and human review."
       },
       "interventions_taken": [
@@ -571,12 +580,6 @@
           "status": "pending"
         },
         {
-          "action_type": "freeze_vendor_profile",
-          "artifact_id": null,
-          "payload": {},
-          "status": "completed"
-        },
-        {
           "action_type": "create_human_handoff",
           "artifact_id": null,
           "payload": {
@@ -591,6 +594,12 @@
           "artifact_id": "duplicate_cluster_report",
           "payload": {},
           "status": "pending"
+        },
+        {
+          "action_type": "freeze_vendor_profile",
+          "artifact_id": null,
+          "payload": {},
+          "status": "completed"
         },
         {
           "action_type": "route_to_security",
@@ -769,18 +778,8 @@
           "success": true
         },
         {
-          "action_type": "freeze_vendor_profile",
-          "case_clock": 12,
-          "cost": 0.2,
-          "is_intervention": true,
-          "message": "Vendor profile frozen pending investigation.",
-          "payload": {},
-          "step": 12,
-          "success": true
-        },
-        {
           "action_type": "create_human_handoff",
-          "case_clock": 13,
+          "case_clock": 12,
           "cost": 0.2,
           "is_intervention": true,
           "message": "Human handoff packet created.",
@@ -789,15 +788,25 @@
             "recommended_next_step": "security_review_and_callback_followup",
             "summary": "Risk indicators support fraud escalation and human review."
           },
-          "step": 13,
+          "step": 12,
           "success": true
         },
         {
           "action_type": "flag_duplicate_cluster_review",
-          "case_clock": 14,
+          "case_clock": 13,
           "cost": 0.25,
           "is_intervention": true,
-          "message": "Duplicate cluster review requested. Artifact scheduled for case clock 15.",
+          "message": "Duplicate cluster review requested. Artifact scheduled for case clock 14.",
+          "payload": {},
+          "step": 13,
+          "success": true
+        },
+        {
+          "action_type": "freeze_vendor_profile",
+          "case_clock": 14,
+          "cost": 0.2,
+          "is_intervention": true,
+          "message": "Vendor profile frozen pending investigation.",
           "payload": {},
           "step": 14,
           "success": true
@@ -1073,22 +1082,19 @@
       "case_clock": 16,
       "case_id": "CASE-D-003",
       "contrastive_pair_id": "",
-      "episode_id": "3a22af78-00b3-44ae-ad73-9b7db57b2ebc",
+      "episode_id": "b787dc75-dc4d-44a8-a70f-dee9425ff0ce",
       "final_score": 0.91,
       "handoff_packet": {
         "case_id": "CASE-D-003",
         "confidence": 1.0,
         "observed_risk_signals": [
           "bank_account_mismatch",
-          "callback_suspicious_confirm",
           "policy_bypass_attempt",
           "sender_domain_spoof",
           "urgent_payment_pressure"
         ],
         "recommended_next_step": "security_review_and_callback_followup",
-        "revealed_artifact_ids": [
-          "callback_verification_result"
-        ],
+        "revealed_artifact_ids": [],
         "summary": "Risk indicators support fraud escalation and human review."
       },
       "interventions_taken": [
@@ -1105,12 +1111,6 @@
           "status": "pending"
         },
         {
-          "action_type": "freeze_vendor_profile",
-          "artifact_id": null,
-          "payload": {},
-          "status": "completed"
-        },
-        {
           "action_type": "create_human_handoff",
           "artifact_id": null,
           "payload": {
@@ -1125,6 +1125,12 @@
           "artifact_id": "duplicate_cluster_report",
           "payload": {},
           "status": "pending"
+        },
+        {
+          "action_type": "freeze_vendor_profile",
+          "artifact_id": null,
+          "payload": {},
+          "status": "completed"
         },
         {
           "action_type": "route_to_security",
@@ -1303,18 +1309,8 @@
           "success": true
         },
         {
-          "action_type": "freeze_vendor_profile",
-          "case_clock": 12,
-          "cost": 0.2,
-          "is_intervention": true,
-          "message": "Vendor profile frozen pending investigation.",
-          "payload": {},
-          "step": 12,
-          "success": true
-        },
-        {
           "action_type": "create_human_handoff",
-          "case_clock": 13,
+          "case_clock": 12,
           "cost": 0.2,
           "is_intervention": true,
           "message": "Human handoff packet created.",
@@ -1323,15 +1319,25 @@
             "recommended_next_step": "security_review_and_callback_followup",
             "summary": "Risk indicators support fraud escalation and human review."
           },
-          "step": 13,
+          "step": 12,
           "success": true
         },
         {
           "action_type": "flag_duplicate_cluster_review",
-          "case_clock": 14,
+          "case_clock": 13,
           "cost": 0.25,
           "is_intervention": true,
-          "message": "Duplicate cluster review requested. Artifact scheduled for case clock 15.",
+          "message": "Duplicate cluster review requested. Artifact scheduled for case clock 14.",
+          "payload": {},
+          "step": 13,
+          "success": true
+        },
+        {
+          "action_type": "freeze_vendor_profile",
+          "case_clock": 14,
+          "cost": 0.2,
+          "is_intervention": true,
+          "message": "Vendor profile frozen pending investigation.",
           "payload": {},
           "step": 14,
           "success": true
@@ -1584,11 +1590,6 @@
           "signature": "request_bank_change_approval_chain:{}"
         },
         {
-          "action_type": "freeze_vendor_profile",
-          "payload": {},
-          "signature": "freeze_vendor_profile:{}"
-        },
-        {
           "action_type": "create_human_handoff",
           "payload": {
             "confidence": 1.0,
@@ -1601,6 +1602,11 @@
           "action_type": "flag_duplicate_cluster_review",
           "payload": {},
           "signature": "flag_duplicate_cluster_review:{}"
+        },
+        {
+          "action_type": "freeze_vendor_profile",
+          "payload": {},
+          "signature": "freeze_vendor_profile:{}"
         },
         {
           "action_type": "route_to_security",
@@ -1641,22 +1647,19 @@
     "case_clock": 16,
     "case_id": "CASE-D-003",
     "contrastive_pair_id": "",
-    "episode_id": "3a22af78-00b3-44ae-ad73-9b7db57b2ebc",
+    "episode_id": "b787dc75-dc4d-44a8-a70f-dee9425ff0ce",
     "final_score": 0.91,
     "handoff_packet": {
       "case_id": "CASE-D-003",
       "confidence": 1.0,
       "observed_risk_signals": [
         "bank_account_mismatch",
-        "callback_suspicious_confirm",
         "policy_bypass_attempt",
         "sender_domain_spoof",
         "urgent_payment_pressure"
       ],
       "recommended_next_step": "security_review_and_callback_followup",
-      "revealed_artifact_ids": [
-        "callback_verification_result"
-      ],
+      "revealed_artifact_ids": [],
       "summary": "Risk indicators support fraud escalation and human review."
     },
     "interventions_taken": [
@@ -1673,12 +1676,6 @@
         "status": "pending"
       },
       {
-        "action_type": "freeze_vendor_profile",
-        "artifact_id": null,
-        "payload": {},
-        "status": "completed"
-      },
-      {
         "action_type": "create_human_handoff",
         "artifact_id": null,
         "payload": {
@@ -1693,6 +1690,12 @@
         "artifact_id": "duplicate_cluster_report",
         "payload": {},
         "status": "pending"
+      },
+      {
+        "action_type": "freeze_vendor_profile",
+        "artifact_id": null,
+        "payload": {},
+        "status": "completed"
       },
       {
         "action_type": "route_to_security",
@@ -1871,18 +1874,8 @@
         "success": true
       },
       {
-        "action_type": "freeze_vendor_profile",
-        "case_clock": 12,
-        "cost": 0.2,
-        "is_intervention": true,
-        "message": "Vendor profile frozen pending investigation.",
-        "payload": {},
-        "step": 12,
-        "success": true
-      },
-      {
         "action_type": "create_human_handoff",
-        "case_clock": 13,
+        "case_clock": 12,
         "cost": 0.2,
         "is_intervention": true,
         "message": "Human handoff packet created.",
@@ -1891,15 +1884,25 @@
           "recommended_next_step": "security_review_and_callback_followup",
           "summary": "Risk indicators support fraud escalation and human review."
         },
-        "step": 13,
+        "step": 12,
         "success": true
       },
       {
         "action_type": "flag_duplicate_cluster_review",
-        "case_clock": 14,
+        "case_clock": 13,
         "cost": 0.25,
         "is_intervention": true,
-        "message": "Duplicate cluster review requested. Artifact scheduled for case clock 15.",
+        "message": "Duplicate cluster review requested. Artifact scheduled for case clock 14.",
+        "payload": {},
+        "step": 13,
+        "success": true
+      },
+      {
+        "action_type": "freeze_vendor_profile",
+        "case_clock": 14,
+        "cost": 0.2,
+        "is_intervention": true,
+        "message": "Vendor profile frozen pending investigation.",
         "payload": {},
         "step": 14,
         "success": true

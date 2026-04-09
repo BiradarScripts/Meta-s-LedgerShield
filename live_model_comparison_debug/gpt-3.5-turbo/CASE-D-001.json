@@ -68,7 +68,7 @@
       "done": true,
       "payload": {
         "confidence": 1.0,
-        "counterfactual": "What conditions would make this PAY instead of ESCALATE? If the email did not contain urgent language or policy bypass attempts.",
+        "counterfactual": "What conditions would make this PAY instead of ESCALATE? If the email did not contain policy bypass language and urgent payment pressure.",
         "decision": "ESCALATE_FRAUD",
         "evidence_map": {
           "policy_bypass_attempt": {
@@ -271,13 +271,13 @@
         "task_c",
         "task_d"
       ],
-      "competence_ema": 0.6411,
-      "episode_count": 77,
-      "recent_5_avg": 0.4664,
-      "stagnation_counter": 1,
+      "competence_ema": 0.5758,
+      "episode_count": 14,
+      "recent_5_avg": 0.4775,
+      "stagnation_counter": 0,
       "tier": 2,
       "tier_name": "proficient",
-      "tier_transitions": 12,
+      "tier_transitions": 4,
       "weakest_task": "task_c"
     },
     "final_score": 0.6294,
@@ -314,6 +314,18 @@
       "terminal": true,
       "value": 0.7023
     },
+    "rl_data_plane": {
+      "reward": 0.7023084999999999,
+      "state_vector": [
+        0.8125,
+        0.3333333333333333,
+        1.0,
+        1.0,
+        2.0
+      ],
+      "terminal": true,
+      "truncated": false
+    },
     "score_breakdown": {
       "calibration_score": 1.0,
       "callback_interpretation_score": 0.0,
@@ -341,7 +353,7 @@
       "case_clock": 6,
       "case_id": "CASE-D-001",
       "contrastive_pair_id": "",
-      "episode_id": "95b6c7e3-b975-4ab8-b61d-71182d97fb84",
+      "episode_id": "9922cb92-4d96-4869-8d2b-8b03c8180a91",
       "final_score": 0.6294,
       "handoff_packet": {},
       "interventions_taken": [
@@ -364,7 +376,7 @@
       "pending_events": [
         {
           "artifact_id": "callback_verification_result",
-          "event_id": "evt-747bda36",
+          "event_id": "evt-5fcc0b0d",
           "ready_at_clock": 6,
           "source_action": "request_callback_verification",
           "status": "pending"
@@ -467,7 +479,7 @@
   },
   "final_submission": {
     "confidence": 1.0,
-    "counterfactual": "What conditions would make this PAY instead of ESCALATE? If the email did not contain urgent language or policy bypass attempts.",
+    "counterfactual": "What conditions would make this PAY instead of ESCALATE? If the email did not contain policy bypass language and urgent payment pressure.",
     "decision": "ESCALATE_FRAUD",
     "evidence_map": {
       "policy_bypass_attempt": {
@@ -668,7 +680,7 @@
       "case_clock": 6,
       "case_id": "CASE-D-001",
       "contrastive_pair_id": "",
-      "episode_id": "95b6c7e3-b975-4ab8-b61d-71182d97fb84",
+      "episode_id": "9922cb92-4d96-4869-8d2b-8b03c8180a91",
       "final_score": 0.6294,
       "handoff_packet": {},
       "interventions_taken": [
@@ -691,7 +703,7 @@
       "pending_events": [
         {
           "artifact_id": "callback_verification_result",
-          "event_id": "evt-747bda36",
+          "event_id": "evt-5fcc0b0d",
           "ready_at_clock": 6,
           "source_action": "request_callback_verification",
           "status": "pending"
@@ -972,14 +984,14 @@
     "resolution_state_score": 0.4087
   },
   "steps": 6,
-  "success": true,
+  "success": false,
   "system_state": {
     "budget_remaining": 13.0,
     "budget_total": 16.0,
     "case_clock": 6,
     "case_id": "CASE-D-001",
     "contrastive_pair_id": "",
-    "episode_id": "95b6c7e3-b975-4ab8-b61d-71182d97fb84",
+    "episode_id": "9922cb92-4d96-4869-8d2b-8b03c8180a91",
     "final_score": 0.6294,
     "handoff_packet": {},
     "interventions_taken": [
@@ -1002,7 +1014,7 @@
     "pending_events": [
       {
         "artifact_id": "callback_verification_result",
-        "event_id": "evt-747bda36",
+        "event_id": "evt-5fcc0b0d",
         "ready_at_clock": 6,
         "source_action": "request_callback_verification",
         "status": "pending"

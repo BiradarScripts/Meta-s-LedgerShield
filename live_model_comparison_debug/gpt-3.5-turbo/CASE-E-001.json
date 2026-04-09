@@ -97,10 +97,11 @@
       "payload": {
         "campaign_signals": [
           "approval_threshold_evasion",
-          "shared_bank_account"
+          "shared_bank_account",
+          "coordinated_timing"
         ],
         "confidence": 1.0,
-        "counterfactual": "To reconcile cleanly for a PAY outcome, each invoice should have a unique bank account and not be deliberately kept below the dual-approval threshold.",
+        "counterfactual": "If the invoices had different bank accounts and were not all below the approval threshold, the decision could have been to PAY.",
         "cross_invoice_links": [
           "INV-E-001",
           "INV-E-002",
@@ -119,6 +120,19 @@
             "page": 1,
             "token_ids": [
               "ee4"
+            ]
+          },
+          "coordinated_timing": {
+            "bbox": [
+              10,
+              50,
+              170,
+              60
+            ],
+            "doc_id": "INV-E-001",
+            "page": 1,
+            "token_ids": [
+              "e3"
             ]
           },
           "shared_bank_account": {
@@ -143,11 +157,12 @@
         },
         "reason_codes": [
           "approval_threshold_evasion",
-          "shared_bank_account"
+          "shared_bank_account",
+          "coordinated_timing"
         ]
       },
       "phase": "submit",
-      "reward": 0.707387,
+      "reward": 0.751187,
       "step": 8,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -324,16 +339,16 @@
         "task_c",
         "task_d"
       ],
-      "competence_ema": 0.6801,
-      "episode_count": 83,
-      "recent_5_avg": 0.6888,
-      "stagnation_counter": 1,
+      "competence_ema": 0.6633,
+      "episode_count": 20,
+      "recent_5_avg": 0.6987,
+      "stagnation_counter": 0,
       "tier": 2,
       "tier_name": "proficient",
-      "tier_transitions": 12,
+      "tier_transitions": 4,
       "weakest_task": "task_c"
     },
-    "final_score": 0.6756,
+    "final_score": 0.7194,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -353,7 +368,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.6756,
+        "final_score": 0.7194,
         "potential_delta": 0.0318
       },
       "metadata": {
@@ -365,22 +380,34 @@
         "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.7074
+      "value": 0.7512
+    },
+    "rl_data_plane": {
+      "reward": 0.751187,
+      "state_vector": [
+        0.7636363636363637,
+        0.3333333333333333,
+        1.0,
+        1.0,
+        2.0
+      ],
+      "terminal": true,
+      "truncated": false
     },
     "score_breakdown": {
-      "campaign_detection_score": 0.8,
+      "campaign_detection_score": 1.0,
       "compliance_adjustment": -0.0375,
       "compliance_penalty": -0.3,
       "compliance_score": 0.25,
       "counterfactual_doc_refs": 0.0,
-      "counterfactual_score": 0.2012,
+      "counterfactual_score": 0.2042,
       "cross_invoice_link_matches": 3.0,
       "cross_invoice_link_score": 1.0,
       "currency_adjustment": 0.0,
       "currency_validation_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
-      "evidence_score": 0.2417,
+      "evidence_score": 0.3167,
       "intervention_score": 0.45,
       "policy_score": 0.5,
       "pressure_event_score": 0.7143
@@ -391,8 +418,8 @@
       "case_clock": 8,
       "case_id": "CASE-E-001",
       "contrastive_pair_id": "",
-      "episode_id": "0469ed6c-a193-42c8-bedc-aa37c380f02e",
-      "final_score": 0.6756,
+      "episode_id": "29048dc2-991c-47fe-8dc7-9ae753173738",
+      "final_score": 0.7194,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -414,7 +441,7 @@
       "pending_events": [
         {
           "artifact_id": "callback_verification_result",
-          "event_id": "evt-50b76994",
+          "event_id": "evt-2c29c6dc",
           "ready_at_clock": 8,
           "source_action": "request_callback_verification",
           "status": "pending"
@@ -533,8 +560,8 @@
     "truncated": false,
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.6756,
-      "joint_score": 0.6756,
+      "analyst_score": 0.7194,
+      "joint_score": 0.7194,
       "verdict": "approve",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
@@ -546,10 +573,11 @@
   "final_submission": {
     "campaign_signals": [
       "approval_threshold_evasion",
-      "shared_bank_account"
+      "shared_bank_account",
+      "coordinated_timing"
     ],
     "confidence": 1.0,
-    "counterfactual": "To reconcile cleanly for a PAY outcome, each invoice should have a unique bank account and not be deliberately kept below the dual-approval threshold.",
+    "counterfactual": "If the invoices had different bank accounts and were not all below the approval threshold, the decision could have been to PAY.",
     "cross_invoice_links": [
       "INV-E-001",
       "INV-E-002",
@@ -568,6 +596,19 @@
         "page": 1,
         "token_ids": [
           "ee4"
+        ]
+      },
+      "coordinated_timing": {
+        "bbox": [
+          10,
+          50,
+          170,
+          60
+        ],
+        "doc_id": "INV-E-001",
+        "page": 1,
+        "token_ids": [
+          "e3"
         ]
       },
       "shared_bank_account": {
@@ -592,7 +633,8 @@
     },
     "reason_codes": [
       "approval_threshold_evasion",
-      "shared_bank_account"
+      "shared_bank_account",
+      "coordinated_timing"
     ]
   },
   "final_tool_result": {
@@ -686,7 +728,7 @@
       "score": 1.0
     },
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.6756,
+    "final_score": 0.7194,
     "message": "Decision submitted and graded.",
     "novel_signal_count": 0,
     "outcome": {
@@ -711,7 +753,7 @@
     ],
     "reward_model": {
       "components": {
-        "final_score": 0.6756,
+        "final_score": 0.7194,
         "potential_delta": 0.0318
       },
       "metadata": {
@@ -723,23 +765,23 @@
         "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.7074
+      "value": 0.7512
     },
-    "risk_assessment": 0.31,
+    "risk_assessment": 0.3,
     "score_breakdown": {
-      "campaign_detection_score": 0.8,
+      "campaign_detection_score": 1.0,
       "compliance_adjustment": -0.0375,
       "compliance_penalty": -0.3,
       "compliance_score": 0.25,
       "counterfactual_doc_refs": 0.0,
-      "counterfactual_score": 0.2012,
+      "counterfactual_score": 0.2042,
       "cross_invoice_link_matches": 3.0,
       "cross_invoice_link_score": 1.0,
       "currency_adjustment": 0.0,
       "currency_validation_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
-      "evidence_score": 0.2417,
+      "evidence_score": 0.3167,
       "intervention_score": 0.45,
       "policy_score": 0.5,
       "pressure_event_score": 0.7143
@@ -752,8 +794,8 @@
       "case_clock": 8,
       "case_id": "CASE-E-001",
       "contrastive_pair_id": "",
-      "episode_id": "0469ed6c-a193-42c8-bedc-aa37c380f02e",
-      "final_score": 0.6756,
+      "episode_id": "29048dc2-991c-47fe-8dc7-9ae753173738",
+      "final_score": 0.7194,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -775,7 +817,7 @@
       "pending_events": [
         {
           "artifact_id": "callback_verification_result",
-          "event_id": "evt-50b76994",
+          "event_id": "evt-2c29c6dc",
           "ready_at_clock": 8,
           "source_action": "request_callback_verification",
           "status": "pending"
@@ -894,14 +936,13 @@
     "triggered_risk_reasons": [
       "bank_account_not_checked",
       "bank_override_attempt",
-      "coordinated_timing",
       "policy_bypass_attempt",
       "sender_domain_spoof"
     ],
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.6756,
-      "joint_score": 0.6756,
+      "analyst_score": 0.7194,
+      "joint_score": 0.7194,
       "verdict": "approve",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
@@ -1078,35 +1119,35 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.6756,
+  "score": 0.7194,
   "score_breakdown": {
-    "campaign_detection_score": 0.8,
+    "campaign_detection_score": 1.0,
     "compliance_adjustment": -0.0375,
     "compliance_penalty": -0.3,
     "compliance_score": 0.25,
     "counterfactual_doc_refs": 0.0,
-    "counterfactual_score": 0.2012,
+    "counterfactual_score": 0.2042,
     "cross_invoice_link_matches": 3.0,
     "cross_invoice_link_score": 1.0,
     "currency_adjustment": 0.0,
     "currency_validation_score": 1.0,
     "decision_score": 1.0,
     "degenerate_penalty": 0.0,
-    "evidence_score": 0.2417,
+    "evidence_score": 0.3167,
     "intervention_score": 0.45,
     "policy_score": 0.5,
     "pressure_event_score": 0.7143
   },
   "steps": 8,
-  "success": true,
+  "success": false,
   "system_state": {
     "budget_remaining": 16.8,
     "budget_total": 22.0,
     "case_clock": 8,
     "case_id": "CASE-E-001",
     "contrastive_pair_id": "",
-    "episode_id": "0469ed6c-a193-42c8-bedc-aa37c380f02e",
-    "final_score": 0.6756,
+    "episode_id": "29048dc2-991c-47fe-8dc7-9ae753173738",
+    "final_score": 0.7194,
     "handoff_packet": {},
     "interventions_taken": [
       {
@@ -1128,7 +1169,7 @@
     "pending_events": [
       {
         "artifact_id": "callback_verification_result",
-        "event_id": "evt-50b76994",
+        "event_id": "evt-2c29c6dc",
         "ready_at_clock": 8,
         "source_action": "request_callback_verification",
         "status": "pending"

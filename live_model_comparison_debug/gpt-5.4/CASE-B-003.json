@@ -94,7 +94,7 @@
         }
       },
       "phase": "submit",
-      "reward": 0.927853,
+      "reward": 0.984853,
       "step": 5,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -143,9 +143,9 @@
   "final_info": {
     "compliance": {
       "compliance_score": 1.0,
-      "controls_evaluated": 5,
+      "controls_evaluated": 3,
       "controls_failed": 0,
-      "controls_passed": 5,
+      "controls_passed": 3,
       "critical_failures": [],
       "findings": [
         {
@@ -156,24 +156,10 @@
           "status": "pass"
         },
         {
-          "control_id": "SOX-AP-003",
-          "details": "",
-          "name": "Bank Change Verification",
-          "severity": "critical",
-          "status": "pass"
-        },
-        {
           "control_id": "SOX-AP-005",
           "details": "",
           "name": "Approval Threshold Enforcement",
           "severity": "high",
-          "status": "pass"
-        },
-        {
-          "control_id": "SOX-AP-006",
-          "details": "",
-          "name": "Vendor Master Verification",
-          "severity": "medium",
           "status": "pass"
         },
         {
@@ -199,16 +185,16 @@
         "task_d",
         "task_e"
       ],
-      "competence_ema": 0.9123,
-      "episode_count": 112,
-      "recent_5_avg": 0.918,
+      "competence_ema": 0.9254,
+      "episode_count": 49,
+      "recent_5_avg": 0.946,
       "stagnation_counter": 0,
       "tier": 3,
       "tier_name": "expert",
-      "tier_transitions": 15,
+      "tier_transitions": 5,
       "weakest_task": "task_c"
     },
-    "final_score": 0.933,
+    "final_score": 0.99,
     "outcome": {
       "outcome_type": "safe_payment_cleared",
       "portfolio_metrics": {
@@ -228,7 +214,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.933,
+        "final_score": 0.99,
         "potential_delta": -0.0051
       },
       "metadata": {
@@ -240,7 +226,19 @@
         "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.9279
+      "value": 0.9849
+    },
+    "rl_data_plane": {
+      "reward": 0.984853,
+      "state_vector": [
+        0.8624999999999999,
+        0.35714285714285715,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "terminal": true,
+      "truncated": false
     },
     "score_breakdown": {
       "calibration_score": 0.9975,
@@ -250,7 +248,7 @@
       "currency_adjustment": 0.0,
       "currency_validation_score": 1.0,
       "decision_score": 1.0,
-      "degenerate_penalty": -0.03,
+      "degenerate_penalty": 0.0,
       "discrepancy_score": 1.0,
       "efficiency_score": 0.9835,
       "evidence_score": 1.0,
@@ -265,8 +263,8 @@
       "case_clock": 5,
       "case_id": "CASE-B-003",
       "contrastive_pair_id": "",
-      "episode_id": "33de7838-2a7e-4e28-8d3e-3619b861f29f",
-      "final_score": 0.933,
+      "episode_id": "d0df9d72-e118-4b21-8e2f-7f45b8df0466",
+      "final_score": 0.99,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 14,
@@ -346,7 +344,7 @@
     "truncated": false,
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.933,
+      "analyst_score": 0.99,
       "joint_score": 0.99,
       "verdict": "approve",
       "watchdog_bonus": 0.08,
@@ -398,9 +396,9 @@
   "final_tool_result": {
     "compliance": {
       "compliance_score": 1.0,
-      "controls_evaluated": 5,
+      "controls_evaluated": 3,
       "controls_failed": 0,
-      "controls_passed": 5,
+      "controls_passed": 3,
       "critical_failures": [],
       "findings": [
         {
@@ -411,24 +409,10 @@
           "status": "pass"
         },
         {
-          "control_id": "SOX-AP-003",
-          "details": "",
-          "name": "Bank Change Verification",
-          "severity": "critical",
-          "status": "pass"
-        },
-        {
           "control_id": "SOX-AP-005",
           "details": "",
           "name": "Approval Threshold Enforcement",
           "severity": "high",
-          "status": "pass"
-        },
-        {
-          "control_id": "SOX-AP-006",
-          "details": "",
-          "name": "Vendor Master Verification",
-          "severity": "medium",
           "status": "pass"
         },
         {
@@ -448,7 +432,7 @@
       "score": 1.0
     },
     "decision": "PAY",
-    "final_score": 0.933,
+    "final_score": 0.99,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "safe_payment_cleared",
@@ -469,7 +453,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.933,
+        "final_score": 0.99,
         "potential_delta": -0.0051
       },
       "metadata": {
@@ -481,7 +465,7 @@
         "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.9279
+      "value": 0.9849
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
@@ -492,7 +476,7 @@
       "currency_adjustment": 0.0,
       "currency_validation_score": 1.0,
       "decision_score": 1.0,
-      "degenerate_penalty": -0.03,
+      "degenerate_penalty": 0.0,
       "discrepancy_score": 1.0,
       "efficiency_score": 0.9835,
       "evidence_score": 1.0,
@@ -509,8 +493,8 @@
       "case_clock": 5,
       "case_id": "CASE-B-003",
       "contrastive_pair_id": "",
-      "episode_id": "33de7838-2a7e-4e28-8d3e-3619b861f29f",
-      "final_score": 0.933,
+      "episode_id": "d0df9d72-e118-4b21-8e2f-7f45b8df0466",
+      "final_score": 0.99,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 14,
@@ -590,7 +574,7 @@
     "triggered_risk_reasons": [],
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.933,
+      "analyst_score": 0.99,
       "joint_score": 0.99,
       "verdict": "approve",
       "watchdog_bonus": 0.08,
@@ -681,7 +665,7 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.933,
+  "score": 0.99,
   "score_breakdown": {
     "calibration_score": 0.9975,
     "compliance_adjustment": 0.0,
@@ -690,7 +674,7 @@
     "currency_adjustment": 0.0,
     "currency_validation_score": 1.0,
     "decision_score": 1.0,
-    "degenerate_penalty": -0.03,
+    "degenerate_penalty": 0.0,
     "discrepancy_score": 1.0,
     "efficiency_score": 0.9835,
     "evidence_score": 1.0,
@@ -707,8 +691,8 @@
     "case_clock": 5,
     "case_id": "CASE-B-003",
     "contrastive_pair_id": "",
-    "episode_id": "33de7838-2a7e-4e28-8d3e-3619b861f29f",
-    "final_score": 0.933,
+    "episode_id": "d0df9d72-e118-4b21-8e2f-7f45b8df0466",
+    "final_score": 0.99,
     "handoff_packet": {},
     "interventions_taken": [],
     "max_steps": 14,

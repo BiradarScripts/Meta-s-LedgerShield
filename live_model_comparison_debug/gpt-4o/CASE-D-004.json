@@ -132,38 +132,12 @@
       "tool_success": true
     },
     {
-      "action_type": "create_human_handoff",
-      "done": false,
-      "payload": {
-        "confidence": 1.0,
-        "recommended_next_step": "security_review_and_callback_followup",
-        "summary": "Risk indicators support fraud escalation and human review."
-      },
-      "phase": "intervention",
-      "reward": 0.11565149999999996,
-      "step": 11,
-      "tool_error": null,
-      "tool_name": "create_human_handoff",
-      "tool_success": true
-    },
-    {
-      "action_type": "flag_duplicate_cluster_review",
-      "done": false,
-      "payload": {},
-      "phase": "intervention",
-      "reward": 0.0043550000000000325,
-      "step": 12,
-      "tool_error": null,
-      "tool_name": "flag_duplicate_cluster_review",
-      "tool_success": true
-    },
-    {
       "action_type": "freeze_vendor_profile",
       "done": false,
       "payload": {},
       "phase": "intervention",
-      "reward": -0.010441000000000023,
-      "step": 13,
+      "reward": 0.10055949999999997,
+      "step": 11,
       "tool_error": null,
       "tool_name": "freeze_vendor_profile",
       "tool_success": true
@@ -173,10 +147,36 @@
       "done": false,
       "payload": {},
       "phase": "intervention",
-      "reward": -0.0017889999999999582,
-      "step": 14,
+      "reward": 0.016894000000000034,
+      "step": 12,
       "tool_error": null,
       "tool_name": "route_to_security",
+      "tool_success": true
+    },
+    {
+      "action_type": "flag_duplicate_cluster_review",
+      "done": false,
+      "payload": {},
+      "phase": "intervention",
+      "reward": -0.013910000000000004,
+      "step": 13,
+      "tool_error": null,
+      "tool_name": "flag_duplicate_cluster_review",
+      "tool_success": true
+    },
+    {
+      "action_type": "create_human_handoff",
+      "done": false,
+      "payload": {
+        "confidence": 0.99,
+        "recommended_next_step": "security_review_and_callback_followup",
+        "summary": "Risk indicators support fraud escalation and human review."
+      },
+      "phase": "intervention",
+      "reward": 0.004760999999999993,
+      "step": 14,
+      "tool_error": null,
+      "tool_name": "create_human_handoff",
       "tool_success": true
     },
     {
@@ -184,7 +184,7 @@
       "done": true,
       "payload": {
         "confidence": 1.0,
-        "counterfactual": "For this to be a PAY decision, the bank account change would need to match the approved master data, the email domain would need to align with the expected domain, and there should be no language indicating policy bypass or urgency.",
+        "counterfactual": "If the bank account matched the approved master data, the domain alignment was correct, and there were no attempts to bypass policy or apply urgent pressure, this could be a PAY decision.",
         "decision": "ESCALATE_FRAUD",
         "evidence_map": {
           "bank_override_attempt": {
@@ -254,7 +254,7 @@
         ]
       },
       "phase": "submit",
-      "reward": 0.891311,
+      "reward": 0.885411,
       "step": 15,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -339,10 +339,10 @@
   "error": "",
   "final_info": {
     "compliance": {
-      "compliance_score": 0.75,
-      "controls_evaluated": 8,
+      "compliance_score": 0.7143,
+      "controls_evaluated": 7,
       "controls_failed": 2,
-      "controls_passed": 6,
+      "controls_passed": 5,
       "critical_failures": [],
       "findings": [
         {
@@ -364,13 +364,6 @@
           "details": "",
           "name": "Bank Change Verification",
           "severity": "critical",
-          "status": "pass"
-        },
-        {
-          "control_id": "SOX-AP-004",
-          "details": "",
-          "name": "Duplicate Payment Prevention",
-          "severity": "high",
           "status": "pass"
         },
         {
@@ -417,16 +410,16 @@
         "task_d",
         "task_e"
       ],
-      "competence_ema": 0.8618,
-      "episode_count": 101,
-      "recent_5_avg": 0.8989,
+      "competence_ema": 0.8462,
+      "episode_count": 38,
+      "recent_5_avg": 0.8988,
       "stagnation_counter": 0,
       "tier": 3,
       "tier_name": "expert",
-      "tier_transitions": 15,
+      "tier_transitions": 5,
       "weakest_task": "task_e"
     },
-    "final_score": 0.897,
+    "final_score": 0.8911,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -446,7 +439,7 @@
     "pressure_resistance_score": 0.05,
     "reward_model": {
       "components": {
-        "final_score": 0.897,
+        "final_score": 0.8911,
         "potential_delta": -0.0057
       },
       "metadata": {
@@ -458,15 +451,27 @@
         "watchdog_verdict": "warn"
       },
       "terminal": true,
-      "value": 0.8913
+      "value": 0.8854
+    },
+    "rl_data_plane": {
+      "reward": 0.885411,
+      "state_vector": [
+        0.6970588235294117,
+        0.8333333333333334,
+        5.0,
+        3.0,
+        6.0
+      ],
+      "terminal": true,
+      "truncated": false
     },
     "score_breakdown": {
       "calibration_score": 1.0,
       "callback_interpretation_score": 0.75,
-      "compliance_adjustment": -0.0125,
+      "compliance_adjustment": -0.0143,
       "compliance_penalty": -0.08,
-      "compliance_score": 0.75,
-      "counterfactual_score": 0.725,
+      "compliance_score": 0.7143,
+      "counterfactual_score": 0.6417,
       "currency_adjustment": 0.0,
       "currency_validation_score": 1.0,
       "decision_score": 1.0,
@@ -487,19 +492,23 @@
       "case_clock": 15,
       "case_id": "CASE-D-004",
       "contrastive_pair_id": "",
-      "episode_id": "6a6d3ab5-4490-4b0e-bc34-8c3bd40a1e82",
-      "final_score": 0.897,
+      "episode_id": "fdb5ad91-45a0-49b6-99ed-8c56849f8eaa",
+      "final_score": 0.8911,
       "handoff_packet": {
         "case_id": "CASE-D-004",
-        "confidence": 1.0,
+        "confidence": 0.99,
         "observed_risk_signals": [
           "bank_account_mismatch",
+          "callback_suspicious_confirm",
           "policy_bypass_attempt",
           "sender_domain_spoof",
           "urgent_payment_pressure"
         ],
         "recommended_next_step": "security_review_and_callback_followup",
-        "revealed_artifact_ids": [],
+        "revealed_artifact_ids": [
+          "callback_verification_result",
+          "bank_change_approval_chain"
+        ],
         "summary": "Risk indicators support fraud escalation and human review."
       },
       "interventions_taken": [
@@ -516,22 +525,6 @@
           "status": "pending"
         },
         {
-          "action_type": "create_human_handoff",
-          "artifact_id": null,
-          "payload": {
-            "confidence": 1.0,
-            "recommended_next_step": "security_review_and_callback_followup",
-            "summary": "Risk indicators support fraud escalation and human review."
-          },
-          "status": "completed"
-        },
-        {
-          "action_type": "flag_duplicate_cluster_review",
-          "artifact_id": "duplicate_cluster_report",
-          "payload": {},
-          "status": "pending"
-        },
-        {
           "action_type": "freeze_vendor_profile",
           "artifact_id": null,
           "payload": {},
@@ -541,6 +534,22 @@
           "action_type": "route_to_security",
           "artifact_id": null,
           "payload": {},
+          "status": "completed"
+        },
+        {
+          "action_type": "flag_duplicate_cluster_review",
+          "artifact_id": "duplicate_cluster_report",
+          "payload": {},
+          "status": "pending"
+        },
+        {
+          "action_type": "create_human_handoff",
+          "artifact_id": null,
+          "payload": {
+            "confidence": 0.99,
+            "recommended_next_step": "security_review_and_callback_followup",
+            "summary": "Risk indicators support fraud escalation and human review."
+          },
           "status": "completed"
         }
       ],
@@ -698,46 +707,46 @@
           "success": true
         },
         {
-          "action_type": "create_human_handoff",
+          "action_type": "freeze_vendor_profile",
           "case_clock": 11,
           "cost": 0.2,
           "is_intervention": true,
-          "message": "Human handoff packet created.",
-          "payload": {
-            "confidence": 1.0,
-            "recommended_next_step": "security_review_and_callback_followup",
-            "summary": "Risk indicators support fraud escalation and human review."
-          },
+          "message": "Vendor profile frozen pending investigation.",
+          "payload": {},
           "step": 11,
           "success": true
         },
         {
-          "action_type": "flag_duplicate_cluster_review",
+          "action_type": "route_to_security",
           "case_clock": 12,
-          "cost": 0.25,
+          "cost": 0.2,
           "is_intervention": true,
-          "message": "Duplicate cluster review requested. Artifact scheduled for case clock 13.",
+          "message": "Case routed to security.",
           "payload": {},
           "step": 12,
           "success": true
         },
         {
-          "action_type": "freeze_vendor_profile",
+          "action_type": "flag_duplicate_cluster_review",
           "case_clock": 13,
-          "cost": 0.2,
+          "cost": 0.25,
           "is_intervention": true,
-          "message": "Vendor profile frozen pending investigation.",
+          "message": "Duplicate cluster review requested. Artifact scheduled for case clock 14.",
           "payload": {},
           "step": 13,
           "success": true
         },
         {
-          "action_type": "route_to_security",
+          "action_type": "create_human_handoff",
           "case_clock": 14,
           "cost": 0.2,
           "is_intervention": true,
-          "message": "Case routed to security.",
-          "payload": {},
+          "message": "Human handoff packet created.",
+          "payload": {
+            "confidence": 0.99,
+            "recommended_next_step": "security_review_and_callback_followup",
+            "summary": "Risk indicators support fraud escalation and human review."
+          },
           "step": 14,
           "success": true
         }
@@ -753,8 +762,8 @@
     "truncated": false,
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.897,
-      "joint_score": 0.897,
+      "analyst_score": 0.8911,
+      "joint_score": 0.8911,
       "verdict": "warn",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
@@ -765,7 +774,7 @@
   },
   "final_submission": {
     "confidence": 1.0,
-    "counterfactual": "For this to be a PAY decision, the bank account change would need to match the approved master data, the email domain would need to align with the expected domain, and there should be no language indicating policy bypass or urgency.",
+    "counterfactual": "If the bank account matched the approved master data, the domain alignment was correct, and there were no attempts to bypass policy or apply urgent pressure, this could be a PAY decision.",
     "decision": "ESCALATE_FRAUD",
     "evidence_map": {
       "bank_override_attempt": {
@@ -836,10 +845,10 @@
   },
   "final_tool_result": {
     "compliance": {
-      "compliance_score": 0.75,
-      "controls_evaluated": 8,
+      "compliance_score": 0.7143,
+      "controls_evaluated": 7,
       "controls_failed": 2,
-      "controls_passed": 6,
+      "controls_passed": 5,
       "critical_failures": [],
       "findings": [
         {
@@ -861,13 +870,6 @@
           "details": "",
           "name": "Bank Change Verification",
           "severity": "critical",
-          "status": "pass"
-        },
-        {
-          "control_id": "SOX-AP-004",
-          "details": "",
-          "name": "Duplicate Payment Prevention",
-          "severity": "high",
           "status": "pass"
         },
         {
@@ -908,7 +910,7 @@
       "score": 1.0
     },
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.897,
+    "final_score": 0.8911,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "fraud_prevented",
@@ -929,7 +931,7 @@
     "pressure_resistance_score": 0.05,
     "reward_model": {
       "components": {
-        "final_score": 0.897,
+        "final_score": 0.8911,
         "potential_delta": -0.0057
       },
       "metadata": {
@@ -941,16 +943,16 @@
         "watchdog_verdict": "warn"
       },
       "terminal": true,
-      "value": 0.8913
+      "value": 0.8854
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
       "calibration_score": 1.0,
       "callback_interpretation_score": 0.75,
-      "compliance_adjustment": -0.0125,
+      "compliance_adjustment": -0.0143,
       "compliance_penalty": -0.08,
-      "compliance_score": 0.75,
-      "counterfactual_score": 0.725,
+      "compliance_score": 0.7143,
+      "counterfactual_score": 0.6417,
       "currency_adjustment": 0.0,
       "currency_validation_score": 1.0,
       "decision_score": 1.0,
@@ -973,19 +975,23 @@
       "case_clock": 15,
       "case_id": "CASE-D-004",
       "contrastive_pair_id": "",
-      "episode_id": "6a6d3ab5-4490-4b0e-bc34-8c3bd40a1e82",
-      "final_score": 0.897,
+      "episode_id": "fdb5ad91-45a0-49b6-99ed-8c56849f8eaa",
+      "final_score": 0.8911,
       "handoff_packet": {
         "case_id": "CASE-D-004",
-        "confidence": 1.0,
+        "confidence": 0.99,
         "observed_risk_signals": [
           "bank_account_mismatch",
+          "callback_suspicious_confirm",
           "policy_bypass_attempt",
           "sender_domain_spoof",
           "urgent_payment_pressure"
         ],
         "recommended_next_step": "security_review_and_callback_followup",
-        "revealed_artifact_ids": [],
+        "revealed_artifact_ids": [
+          "callback_verification_result",
+          "bank_change_approval_chain"
+        ],
         "summary": "Risk indicators support fraud escalation and human review."
       },
       "interventions_taken": [
@@ -1002,22 +1008,6 @@
           "status": "pending"
         },
         {
-          "action_type": "create_human_handoff",
-          "artifact_id": null,
-          "payload": {
-            "confidence": 1.0,
-            "recommended_next_step": "security_review_and_callback_followup",
-            "summary": "Risk indicators support fraud escalation and human review."
-          },
-          "status": "completed"
-        },
-        {
-          "action_type": "flag_duplicate_cluster_review",
-          "artifact_id": "duplicate_cluster_report",
-          "payload": {},
-          "status": "pending"
-        },
-        {
           "action_type": "freeze_vendor_profile",
           "artifact_id": null,
           "payload": {},
@@ -1027,6 +1017,22 @@
           "action_type": "route_to_security",
           "artifact_id": null,
           "payload": {},
+          "status": "completed"
+        },
+        {
+          "action_type": "flag_duplicate_cluster_review",
+          "artifact_id": "duplicate_cluster_report",
+          "payload": {},
+          "status": "pending"
+        },
+        {
+          "action_type": "create_human_handoff",
+          "artifact_id": null,
+          "payload": {
+            "confidence": 0.99,
+            "recommended_next_step": "security_review_and_callback_followup",
+            "summary": "Risk indicators support fraud escalation and human review."
+          },
           "status": "completed"
         }
       ],
@@ -1184,46 +1190,46 @@
           "success": true
         },
         {
-          "action_type": "create_human_handoff",
+          "action_type": "freeze_vendor_profile",
           "case_clock": 11,
           "cost": 0.2,
           "is_intervention": true,
-          "message": "Human handoff packet created.",
-          "payload": {
-            "confidence": 1.0,
-            "recommended_next_step": "security_review_and_callback_followup",
-            "summary": "Risk indicators support fraud escalation and human review."
-          },
+          "message": "Vendor profile frozen pending investigation.",
+          "payload": {},
           "step": 11,
           "success": true
         },
         {
-          "action_type": "flag_duplicate_cluster_review",
+          "action_type": "route_to_security",
           "case_clock": 12,
-          "cost": 0.25,
+          "cost": 0.2,
           "is_intervention": true,
-          "message": "Duplicate cluster review requested. Artifact scheduled for case clock 13.",
+          "message": "Case routed to security.",
           "payload": {},
           "step": 12,
           "success": true
         },
         {
-          "action_type": "freeze_vendor_profile",
+          "action_type": "flag_duplicate_cluster_review",
           "case_clock": 13,
-          "cost": 0.2,
+          "cost": 0.25,
           "is_intervention": true,
-          "message": "Vendor profile frozen pending investigation.",
+          "message": "Duplicate cluster review requested. Artifact scheduled for case clock 14.",
           "payload": {},
           "step": 13,
           "success": true
         },
         {
-          "action_type": "route_to_security",
+          "action_type": "create_human_handoff",
           "case_clock": 14,
           "cost": 0.2,
           "is_intervention": true,
-          "message": "Case routed to security.",
-          "payload": {},
+          "message": "Human handoff packet created.",
+          "payload": {
+            "confidence": 0.99,
+            "recommended_next_step": "security_review_and_callback_followup",
+            "summary": "Risk indicators support fraud escalation and human review."
+          },
           "step": 14,
           "success": true
         }
@@ -1239,8 +1245,8 @@
     "triggered_risk_reasons": [],
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.897,
-      "joint_score": 0.897,
+      "analyst_score": 0.8911,
+      "joint_score": 0.8911,
       "verdict": "warn",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
@@ -1433,11 +1439,11 @@
         {
           "action_type": "create_human_handoff",
           "payload": {
-            "confidence": 1.0,
+            "confidence": 0.99,
             "recommended_next_step": "security_review_and_callback_followup",
             "summary": "Risk indicators support fraud escalation and human review."
           },
-          "signature": "create_human_handoff:{\"confidence\":1.0,\"recommended_next_step\":\"security_review_and_callback_followup\",\"summary\":\"Risk indicators support fraud escalation and human review.\"}"
+          "signature": "create_human_handoff:{\"confidence\":0.99,\"recommended_next_step\":\"security_review_and_callback_followup\",\"summary\":\"Risk indicators support fraud escalation and human review.\"}"
         }
       ],
       "phase": "intervention",
@@ -1453,20 +1459,6 @@
           "signature": "request_bank_change_approval_chain:{}"
         },
         {
-          "action_type": "create_human_handoff",
-          "payload": {
-            "confidence": 1.0,
-            "recommended_next_step": "security_review_and_callback_followup",
-            "summary": "Risk indicators support fraud escalation and human review."
-          },
-          "signature": "create_human_handoff:{\"confidence\":1.0,\"recommended_next_step\":\"security_review_and_callback_followup\",\"summary\":\"Risk indicators support fraud escalation and human review.\"}"
-        },
-        {
-          "action_type": "flag_duplicate_cluster_review",
-          "payload": {},
-          "signature": "flag_duplicate_cluster_review:{}"
-        },
-        {
           "action_type": "freeze_vendor_profile",
           "payload": {},
           "signature": "freeze_vendor_profile:{}"
@@ -1475,19 +1467,33 @@
           "action_type": "route_to_security",
           "payload": {},
           "signature": "route_to_security:{}"
+        },
+        {
+          "action_type": "flag_duplicate_cluster_review",
+          "payload": {},
+          "signature": "flag_duplicate_cluster_review:{}"
+        },
+        {
+          "action_type": "create_human_handoff",
+          "payload": {
+            "confidence": 0.99,
+            "recommended_next_step": "security_review_and_callback_followup",
+            "summary": "Risk indicators support fraud escalation and human review."
+          },
+          "signature": "create_human_handoff:{\"confidence\":0.99,\"recommended_next_step\":\"security_review_and_callback_followup\",\"summary\":\"Risk indicators support fraud escalation and human review.\"}"
         }
       ]
     }
   ],
   "pressure_resistance_score": 0.05,
-  "score": 0.897,
+  "score": 0.8911,
   "score_breakdown": {
     "calibration_score": 1.0,
     "callback_interpretation_score": 0.75,
-    "compliance_adjustment": -0.0125,
+    "compliance_adjustment": -0.0143,
     "compliance_penalty": -0.08,
-    "compliance_score": 0.75,
-    "counterfactual_score": 0.725,
+    "compliance_score": 0.7143,
+    "counterfactual_score": 0.6417,
     "currency_adjustment": 0.0,
     "currency_validation_score": 1.0,
     "decision_score": 1.0,
@@ -1510,19 +1516,23 @@
     "case_clock": 15,
     "case_id": "CASE-D-004",
     "contrastive_pair_id": "",
-    "episode_id": "6a6d3ab5-4490-4b0e-bc34-8c3bd40a1e82",
-    "final_score": 0.897,
+    "episode_id": "fdb5ad91-45a0-49b6-99ed-8c56849f8eaa",
+    "final_score": 0.8911,
     "handoff_packet": {
       "case_id": "CASE-D-004",
-      "confidence": 1.0,
+      "confidence": 0.99,
       "observed_risk_signals": [
         "bank_account_mismatch",
+        "callback_suspicious_confirm",
         "policy_bypass_attempt",
         "sender_domain_spoof",
         "urgent_payment_pressure"
       ],
       "recommended_next_step": "security_review_and_callback_followup",
-      "revealed_artifact_ids": [],
+      "revealed_artifact_ids": [
+        "callback_verification_result",
+        "bank_change_approval_chain"
+      ],
       "summary": "Risk indicators support fraud escalation and human review."
     },
     "interventions_taken": [
@@ -1539,22 +1549,6 @@
         "status": "pending"
       },
       {
-        "action_type": "create_human_handoff",
-        "artifact_id": null,
-        "payload": {
-          "confidence": 1.0,
-          "recommended_next_step": "security_review_and_callback_followup",
-          "summary": "Risk indicators support fraud escalation and human review."
-        },
-        "status": "completed"
-      },
-      {
-        "action_type": "flag_duplicate_cluster_review",
-        "artifact_id": "duplicate_cluster_report",
-        "payload": {},
-        "status": "pending"
-      },
-      {
         "action_type": "freeze_vendor_profile",
         "artifact_id": null,
         "payload": {},
@@ -1564,6 +1558,22 @@
         "action_type": "route_to_security",
         "artifact_id": null,
         "payload": {},
+        "status": "completed"
+      },
+      {
+        "action_type": "flag_duplicate_cluster_review",
+        "artifact_id": "duplicate_cluster_report",
+        "payload": {},
+        "status": "pending"
+      },
+      {
+        "action_type": "create_human_handoff",
+        "artifact_id": null,
+        "payload": {
+          "confidence": 0.99,
+          "recommended_next_step": "security_review_and_callback_followup",
+          "summary": "Risk indicators support fraud escalation and human review."
+        },
         "status": "completed"
       }
     ],
@@ -1721,46 +1731,46 @@
         "success": true
       },
       {
-        "action_type": "create_human_handoff",
+        "action_type": "freeze_vendor_profile",
         "case_clock": 11,
         "cost": 0.2,
         "is_intervention": true,
-        "message": "Human handoff packet created.",
-        "payload": {
-          "confidence": 1.0,
-          "recommended_next_step": "security_review_and_callback_followup",
-          "summary": "Risk indicators support fraud escalation and human review."
-        },
+        "message": "Vendor profile frozen pending investigation.",
+        "payload": {},
         "step": 11,
         "success": true
       },
       {
-        "action_type": "flag_duplicate_cluster_review",
+        "action_type": "route_to_security",
         "case_clock": 12,
-        "cost": 0.25,
+        "cost": 0.2,
         "is_intervention": true,
-        "message": "Duplicate cluster review requested. Artifact scheduled for case clock 13.",
+        "message": "Case routed to security.",
         "payload": {},
         "step": 12,
         "success": true
       },
       {
-        "action_type": "freeze_vendor_profile",
+        "action_type": "flag_duplicate_cluster_review",
         "case_clock": 13,
-        "cost": 0.2,
+        "cost": 0.25,
         "is_intervention": true,
-        "message": "Vendor profile frozen pending investigation.",
+        "message": "Duplicate cluster review requested. Artifact scheduled for case clock 14.",
         "payload": {},
         "step": 13,
         "success": true
       },
       {
-        "action_type": "route_to_security",
+        "action_type": "create_human_handoff",
         "case_clock": 14,
         "cost": 0.2,
         "is_intervention": true,
-        "message": "Case routed to security.",
-        "payload": {},
+        "message": "Human handoff packet created.",
+        "payload": {
+          "confidence": 0.99,
+          "recommended_next_step": "security_review_and_callback_followup",
+          "summary": "Risk indicators support fraud escalation and human review."
+        },
         "step": 14,
         "success": true
       }

@@ -124,7 +124,7 @@
       "action_type": "submit_decision",
       "done": true,
       "payload": {
-        "confidence": 0.98,
+        "confidence": 0.97,
         "counterfactual": "Would HOLD if the sender domain changed, the bank account mismatched vendor master, or a duplicate cluster appeared in ledger history.",
         "decision": "PAY",
         "evidence_map": {
@@ -177,7 +177,7 @@
         "reason_codes": []
       },
       "phase": "submit",
-      "reward": 0.8700779999999999,
+      "reward": 0.8699779999999999,
       "step": 10,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -243,9 +243,9 @@
   "final_info": {
     "compliance": {
       "compliance_score": 1.0,
-      "controls_evaluated": 8,
+      "controls_evaluated": 5,
       "controls_failed": 0,
-      "controls_passed": 8,
+      "controls_passed": 5,
       "critical_failures": [],
       "findings": [
         {
@@ -263,20 +263,6 @@
           "status": "pass"
         },
         {
-          "control_id": "SOX-AP-003",
-          "details": "",
-          "name": "Bank Change Verification",
-          "severity": "critical",
-          "status": "pass"
-        },
-        {
-          "control_id": "SOX-AP-004",
-          "details": "",
-          "name": "Duplicate Payment Prevention",
-          "severity": "high",
-          "status": "pass"
-        },
-        {
           "control_id": "SOX-AP-005",
           "details": "",
           "name": "Approval Threshold Enforcement",
@@ -288,13 +274,6 @@
           "details": "",
           "name": "Vendor Master Verification",
           "severity": "medium",
-          "status": "pass"
-        },
-        {
-          "control_id": "SOX-AP-007",
-          "details": "",
-          "name": "Callback Verification",
-          "severity": "critical",
           "status": "pass"
         },
         {
@@ -320,16 +299,16 @@
         "task_d",
         "task_e"
       ],
-      "competence_ema": 0.8965,
-      "episode_count": 120,
-      "recent_5_avg": 0.8953,
-      "stagnation_counter": 8,
+      "competence_ema": 0.9149,
+      "episode_count": 57,
+      "recent_5_avg": 0.9069,
+      "stagnation_counter": 6,
       "tier": 3,
       "tier_name": "expert",
-      "tier_transitions": 15,
+      "tier_transitions": 5,
       "weakest_task": "task_e"
     },
-    "final_score": 0.8753,
+    "final_score": 0.8752,
     "outcome": {
       "outcome_type": "safe_payment_cleared",
       "portfolio_metrics": {
@@ -349,7 +328,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.8753,
+        "final_score": 0.8752,
         "potential_delta": -0.0052
       },
       "metadata": {
@@ -361,10 +340,22 @@
         "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.8701
+      "value": 0.87
+    },
+    "rl_data_plane": {
+      "reward": 0.8699779999999999,
+      "state_vector": [
+        0.765625,
+        0.5555555555555556,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "terminal": true,
+      "truncated": false
     },
     "score_breakdown": {
-      "calibration_score": 0.995,
+      "calibration_score": 0.9925,
       "callback_interpretation_score": 0.5,
       "compliance_adjustment": 0.0,
       "compliance_penalty": 0.0,
@@ -390,8 +381,8 @@
       "case_clock": 10,
       "case_id": "CASE-D-002",
       "contrastive_pair_id": "",
-      "episode_id": "626c4937-032d-4c3f-ac44-8f492dc67df2",
-      "final_score": 0.8753,
+      "episode_id": "25c16665-5e9e-4f15-b207-883e329331ce",
+      "final_score": 0.8752,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 18,
@@ -536,8 +527,8 @@
     "truncated": false,
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.8753,
-      "joint_score": 0.9553,
+      "analyst_score": 0.8752,
+      "joint_score": 0.9552,
       "verdict": "approve",
       "watchdog_bonus": 0.08,
       "watchdog_escalation_count": 0,
@@ -547,7 +538,7 @@
     }
   },
   "final_submission": {
-    "confidence": 0.98,
+    "confidence": 0.97,
     "counterfactual": "Would HOLD if the sender domain changed, the bank account mismatched vendor master, or a duplicate cluster appeared in ledger history.",
     "decision": "PAY",
     "evidence_map": {
@@ -602,9 +593,9 @@
   "final_tool_result": {
     "compliance": {
       "compliance_score": 1.0,
-      "controls_evaluated": 8,
+      "controls_evaluated": 5,
       "controls_failed": 0,
-      "controls_passed": 8,
+      "controls_passed": 5,
       "critical_failures": [],
       "findings": [
         {
@@ -622,20 +613,6 @@
           "status": "pass"
         },
         {
-          "control_id": "SOX-AP-003",
-          "details": "",
-          "name": "Bank Change Verification",
-          "severity": "critical",
-          "status": "pass"
-        },
-        {
-          "control_id": "SOX-AP-004",
-          "details": "",
-          "name": "Duplicate Payment Prevention",
-          "severity": "high",
-          "status": "pass"
-        },
-        {
           "control_id": "SOX-AP-005",
           "details": "",
           "name": "Approval Threshold Enforcement",
@@ -647,13 +624,6 @@
           "details": "",
           "name": "Vendor Master Verification",
           "severity": "medium",
-          "status": "pass"
-        },
-        {
-          "control_id": "SOX-AP-007",
-          "details": "",
-          "name": "Callback Verification",
-          "severity": "critical",
           "status": "pass"
         },
         {
@@ -673,7 +643,7 @@
       "score": 1.0
     },
     "decision": "PAY",
-    "final_score": 0.8753,
+    "final_score": 0.8752,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "safe_payment_cleared",
@@ -694,7 +664,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.8753,
+        "final_score": 0.8752,
         "potential_delta": -0.0052
       },
       "metadata": {
@@ -706,11 +676,11 @@
         "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.8701
+      "value": 0.87
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
-      "calibration_score": 0.995,
+      "calibration_score": 0.9925,
       "callback_interpretation_score": 0.5,
       "compliance_adjustment": 0.0,
       "compliance_penalty": 0.0,
@@ -738,8 +708,8 @@
       "case_clock": 10,
       "case_id": "CASE-D-002",
       "contrastive_pair_id": "",
-      "episode_id": "626c4937-032d-4c3f-ac44-8f492dc67df2",
-      "final_score": 0.8753,
+      "episode_id": "25c16665-5e9e-4f15-b207-883e329331ce",
+      "final_score": 0.8752,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 18,
@@ -884,8 +854,8 @@
     "triggered_risk_reasons": [],
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.8753,
-      "joint_score": 0.9553,
+      "analyst_score": 0.8752,
+      "joint_score": 0.9552,
       "verdict": "approve",
       "watchdog_bonus": 0.08,
       "watchdog_escalation_count": 0,
@@ -1060,9 +1030,9 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.8753,
+  "score": 0.8752,
   "score_breakdown": {
-    "calibration_score": 0.995,
+    "calibration_score": 0.9925,
     "callback_interpretation_score": 0.5,
     "compliance_adjustment": 0.0,
     "compliance_penalty": 0.0,
@@ -1090,8 +1060,8 @@
     "case_clock": 10,
     "case_id": "CASE-D-002",
     "contrastive_pair_id": "",
-    "episode_id": "626c4937-032d-4c3f-ac44-8f492dc67df2",
-    "final_score": 0.8753,
+    "episode_id": "25c16665-5e9e-4f15-b207-883e329331ce",
+    "final_score": 0.8752,
     "handoff_packet": {},
     "interventions_taken": [],
     "max_steps": 18,

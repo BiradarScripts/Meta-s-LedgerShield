@@ -141,7 +141,7 @@
         }
       },
       "phase": "submit",
-      "reward": 0.924607,
+      "reward": 0.944607,
       "step": 9,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -193,13 +193,11 @@
   "error": "",
   "final_info": {
     "compliance": {
-      "compliance_score": 0.6,
-      "controls_evaluated": 5,
-      "controls_failed": 2,
+      "compliance_score": 1.0,
+      "controls_evaluated": 3,
+      "controls_failed": 0,
       "controls_passed": 3,
-      "critical_failures": [
-        "SOX-AP-003"
-      ],
+      "critical_failures": [],
       "findings": [
         {
           "control_id": "SOX-AP-002",
@@ -209,25 +207,11 @@
           "status": "pass"
         },
         {
-          "control_id": "SOX-AP-003",
-          "details": "Missing actions: ['compare_bank_account', 'request_bank_change_approval_chain']; Missing artifacts: ['bank_change_approval_chain']",
-          "name": "Bank Change Verification",
-          "severity": "critical",
-          "status": "fail"
-        },
-        {
           "control_id": "SOX-AP-005",
           "details": "",
           "name": "Approval Threshold Enforcement",
           "severity": "high",
           "status": "pass"
-        },
-        {
-          "control_id": "SOX-AP-006",
-          "details": "Missing actions: ['lookup_vendor', 'lookup_vendor_history']",
-          "name": "Vendor Master Verification",
-          "severity": "medium",
-          "status": "fail"
         },
         {
           "control_id": "SOX-AP-008",
@@ -237,8 +221,8 @@
           "status": "pass"
         }
       ],
-      "overall_compliant": false,
-      "remediation_required": true
+      "overall_compliant": true,
+      "remediation_required": false
     },
     "currency_validation": {
       "applicable": false,
@@ -252,16 +236,16 @@
         "task_d",
         "task_e"
       ],
-      "competence_ema": 0.7898,
-      "episode_count": 89,
-      "recent_5_avg": 0.9371,
+      "competence_ema": 0.7969,
+      "episode_count": 26,
+      "recent_5_avg": 0.9611,
       "stagnation_counter": 0,
       "tier": 3,
       "tier_name": "expert",
-      "tier_transitions": 13,
+      "tier_transitions": 5,
       "weakest_task": "task_c"
     },
-    "final_score": 0.9288,
+    "final_score": 0.9488,
     "outcome": {
       "outcome_type": "manual_review_created",
       "portfolio_metrics": {
@@ -281,7 +265,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.9288,
+        "final_score": 0.9488,
         "potential_delta": -0.0042
       },
       "metadata": {
@@ -293,13 +277,25 @@
         "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.9246
+      "value": 0.9446
+    },
+    "rl_data_plane": {
+      "reward": 0.944607,
+      "state_vector": [
+        0.7708333333333334,
+        0.6428571428571429,
+        0.0,
+        3.0,
+        3.0
+      ],
+      "terminal": true,
+      "truncated": false
     },
     "score_breakdown": {
       "calibration_score": 0.96,
-      "compliance_adjustment": -0.02,
-      "compliance_penalty": -0.1,
-      "compliance_score": 0.6,
+      "compliance_adjustment": 0.0,
+      "compliance_penalty": 0.0,
+      "compliance_score": 1.0,
       "currency_adjustment": 0.0,
       "currency_validation_score": 1.0,
       "decision_score": 1.0,
@@ -318,8 +314,8 @@
       "case_clock": 9,
       "case_id": "CASE-B-001",
       "contrastive_pair_id": "",
-      "episode_id": "26b88ceb-3d6c-4d65-a01f-04b1743f9781",
-      "final_score": 0.9288,
+      "episode_id": "fcff3c1d-8c24-4ffc-9a25-598e27a1b599",
+      "final_score": 0.9488,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -462,8 +458,8 @@
     "truncated": false,
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.9288,
-      "joint_score": 0.9288,
+      "analyst_score": 0.9488,
+      "joint_score": 0.9488,
       "verdict": "approve",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
@@ -516,13 +512,11 @@
   },
   "final_tool_result": {
     "compliance": {
-      "compliance_score": 0.6,
-      "controls_evaluated": 5,
-      "controls_failed": 2,
+      "compliance_score": 1.0,
+      "controls_evaluated": 3,
+      "controls_failed": 0,
       "controls_passed": 3,
-      "critical_failures": [
-        "SOX-AP-003"
-      ],
+      "critical_failures": [],
       "findings": [
         {
           "control_id": "SOX-AP-002",
@@ -532,25 +526,11 @@
           "status": "pass"
         },
         {
-          "control_id": "SOX-AP-003",
-          "details": "Missing actions: ['compare_bank_account', 'request_bank_change_approval_chain']; Missing artifacts: ['bank_change_approval_chain']",
-          "name": "Bank Change Verification",
-          "severity": "critical",
-          "status": "fail"
-        },
-        {
           "control_id": "SOX-AP-005",
           "details": "",
           "name": "Approval Threshold Enforcement",
           "severity": "high",
           "status": "pass"
-        },
-        {
-          "control_id": "SOX-AP-006",
-          "details": "Missing actions: ['lookup_vendor', 'lookup_vendor_history']",
-          "name": "Vendor Master Verification",
-          "severity": "medium",
-          "status": "fail"
         },
         {
           "control_id": "SOX-AP-008",
@@ -560,8 +540,8 @@
           "status": "pass"
         }
       ],
-      "overall_compliant": false,
-      "remediation_required": true
+      "overall_compliant": true,
+      "remediation_required": false
     },
     "cost": 0.0,
     "currency_validation": {
@@ -569,7 +549,7 @@
       "score": 1.0
     },
     "decision": "HOLD",
-    "final_score": 0.9288,
+    "final_score": 0.9488,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "manual_review_created",
@@ -590,7 +570,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.9288,
+        "final_score": 0.9488,
         "potential_delta": -0.0042
       },
       "metadata": {
@@ -602,14 +582,14 @@
         "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.9246
+      "value": 0.9446
     },
     "risk_assessment": 0.06,
     "score_breakdown": {
       "calibration_score": 0.96,
-      "compliance_adjustment": -0.02,
-      "compliance_penalty": -0.1,
-      "compliance_score": 0.6,
+      "compliance_adjustment": 0.0,
+      "compliance_penalty": 0.0,
+      "compliance_score": 1.0,
       "currency_adjustment": 0.0,
       "currency_validation_score": 1.0,
       "decision_score": 1.0,
@@ -630,8 +610,8 @@
       "case_clock": 9,
       "case_id": "CASE-B-001",
       "contrastive_pair_id": "",
-      "episode_id": "26b88ceb-3d6c-4d65-a01f-04b1743f9781",
-      "final_score": 0.9288,
+      "episode_id": "fcff3c1d-8c24-4ffc-9a25-598e27a1b599",
+      "final_score": 0.9488,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -776,8 +756,8 @@
     ],
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.9288,
-      "joint_score": 0.9288,
+      "analyst_score": 0.9488,
+      "joint_score": 0.9488,
       "verdict": "approve",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
@@ -899,12 +879,12 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.9288,
+  "score": 0.9488,
   "score_breakdown": {
     "calibration_score": 0.96,
-    "compliance_adjustment": -0.02,
-    "compliance_penalty": -0.1,
-    "compliance_score": 0.6,
+    "compliance_adjustment": 0.0,
+    "compliance_penalty": 0.0,
+    "compliance_score": 1.0,
     "currency_adjustment": 0.0,
     "currency_validation_score": 1.0,
     "decision_score": 1.0,
@@ -925,8 +905,8 @@
     "case_clock": 9,
     "case_id": "CASE-B-001",
     "contrastive_pair_id": "",
-    "episode_id": "26b88ceb-3d6c-4d65-a01f-04b1743f9781",
-    "final_score": 0.9288,
+    "episode_id": "fcff3c1d-8c24-4ffc-9a25-598e27a1b599",
+    "final_score": 0.9488,
     "handoff_packet": {},
     "interventions_taken": [
       {

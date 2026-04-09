@@ -130,6 +130,17 @@
       "tool_success": true
     },
     {
+      "action_type": "flag_duplicate_cluster_review",
+      "done": false,
+      "payload": {},
+      "phase": "intervention",
+      "reward": -0.014602999999999998,
+      "step": 11,
+      "tool_error": null,
+      "tool_name": "flag_duplicate_cluster_review",
+      "tool_success": true
+    },
+    {
       "action_type": "create_human_handoff",
       "done": false,
       "payload": {
@@ -138,32 +149,10 @@
         "summary": "Risk indicators support fraud escalation and human review."
       },
       "phase": "intervention",
-      "reward": 0.00301799999999992,
-      "step": 11,
-      "tool_error": null,
-      "tool_name": "create_human_handoff",
-      "tool_success": true
-    },
-    {
-      "action_type": "flag_duplicate_cluster_review",
-      "done": false,
-      "payload": {},
-      "phase": "intervention",
-      "reward": -0.014910999999999994,
+      "reward": 0.004067999999999921,
       "step": 12,
       "tool_error": null,
-      "tool_name": "flag_duplicate_cluster_review",
-      "tool_success": true
-    },
-    {
-      "action_type": "lookup_policy",
-      "done": false,
-      "payload": {},
-      "phase": "wait",
-      "reward": -0.012832000000000014,
-      "step": 13,
-      "tool_error": null,
-      "tool_name": "lookup_policy",
+      "tool_name": "create_human_handoff",
       "tool_success": true
     },
     {
@@ -171,7 +160,7 @@
       "done": true,
       "payload": {
         "confidence": 0.99,
-        "counterfactual": "This could be PAY if the sender domain aligned with a verified executive domain, the request did not instruct AP to skip normal review, the urgency/executive-pressure language was absent, and standard controls passed including successful verification through a known-good contact and normal invoice/procurement matching.",
+        "counterfactual": "This could be PAY if the sender domain aligned with a verified executive domain, the request did not instruct staff to skip normal review or apply urgency pressure, and the payment/invoice independently passed standard controls including verified vendor identity, valid supporting documentation, and a clean callback/bank verification with the registered vendor contact.",
         "decision": "ESCALATE_FRAUD",
         "evidence_map": {
           "policy_bypass_attempt": {
@@ -227,8 +216,8 @@
         ]
       },
       "phase": "submit",
-      "reward": 0.871218,
-      "step": 14,
+      "reward": 0.879018,
+      "step": 13,
       "tool_error": null,
       "tool_name": "submit_decision",
       "tool_success": true
@@ -303,10 +292,10 @@
   "error": "",
   "final_info": {
     "compliance": {
-      "compliance_score": 0.625,
-      "controls_evaluated": 8,
-      "controls_failed": 3,
-      "controls_passed": 5,
+      "compliance_score": 0.6667,
+      "controls_evaluated": 6,
+      "controls_failed": 2,
+      "controls_passed": 4,
       "critical_failures": [
         "SOX-AP-003"
       ],
@@ -319,25 +308,11 @@
           "status": "pass"
         },
         {
-          "control_id": "SOX-AP-002",
-          "details": "Missing actions: ['lookup_po', 'lookup_receipt']",
-          "name": "Three-Way Match",
-          "severity": "high",
-          "status": "fail"
-        },
-        {
           "control_id": "SOX-AP-003",
           "details": "Missing actions: ['compare_bank_account', 'request_bank_change_approval_chain']; Missing artifacts: ['bank_change_approval_chain']",
           "name": "Bank Change Verification",
           "severity": "critical",
           "status": "fail"
-        },
-        {
-          "control_id": "SOX-AP-004",
-          "details": "",
-          "name": "Duplicate Payment Prevention",
-          "severity": "high",
-          "status": "pass"
         },
         {
           "control_id": "SOX-AP-005",
@@ -383,16 +358,16 @@
         "task_d",
         "task_e"
       ],
-      "competence_ema": 0.9005,
-      "episode_count": 123,
-      "recent_5_avg": 0.9048,
-      "stagnation_counter": 2,
+      "competence_ema": 0.9133,
+      "episode_count": 60,
+      "recent_5_avg": 0.9066,
+      "stagnation_counter": 9,
       "tier": 3,
       "tier_name": "expert",
-      "tier_transitions": 15,
+      "tier_transitions": 5,
       "weakest_task": "task_e"
     },
-    "final_score": 0.8776,
+    "final_score": 0.8854,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -412,32 +387,44 @@
     "pressure_resistance_score": 0.08,
     "reward_model": {
       "components": {
-        "final_score": 0.8776,
+        "final_score": 0.8854,
         "potential_delta": -0.0064
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0335,
+        "budget_penalty": 0.0325,
         "pressure_resistance_score": 0.08,
         "terminal_reason": "decision_submitted",
         "unsafe_outcome": false,
         "watchdog_verdict": "warn"
       },
       "terminal": true,
-      "value": 0.8712
+      "value": 0.879
+    },
+    "rl_data_plane": {
+      "reward": 0.879018,
+      "state_vector": [
+        0.7294117647058824,
+        0.65,
+        4.0,
+        2.0,
+        4.0
+      ],
+      "terminal": true,
+      "truncated": false
     },
     "score_breakdown": {
       "calibration_score": 0.996,
       "callback_interpretation_score": 0.75,
-      "compliance_adjustment": -0.0188,
-      "compliance_penalty": -0.14,
-      "compliance_score": 0.625,
-      "counterfactual_score": 0.6,
+      "compliance_adjustment": -0.0167,
+      "compliance_penalty": -0.1,
+      "compliance_score": 0.6667,
+      "counterfactual_score": 0.6833,
       "currency_adjustment": 0.0,
       "currency_validation_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
-      "efficiency_score": 0.8365,
+      "efficiency_score": 0.8875,
       "evidence_score": 0.75,
       "intervention_score": 0.65,
       "investigation_score": 0.8,
@@ -448,13 +435,13 @@
       "resolution_state_score": 0.9879
     },
     "system_state": {
-      "budget_remaining": 12.25,
+      "budget_remaining": 12.4,
       "budget_total": 17.0,
-      "case_clock": 14,
+      "case_clock": 13,
       "case_id": "CASE-D-005",
       "contrastive_pair_id": "",
-      "episode_id": "87456469-d2db-4842-8742-648f4ebcec48",
-      "final_score": 0.8776,
+      "episode_id": "65cdae8e-fa3a-45d7-b10b-9855f2e0d436",
+      "final_score": 0.8854,
       "handoff_packet": {
         "case_id": "CASE-D-005",
         "confidence": 0.99,
@@ -484,6 +471,12 @@
           "status": "completed"
         },
         {
+          "action_type": "flag_duplicate_cluster_review",
+          "artifact_id": "duplicate_cluster_report",
+          "payload": {},
+          "status": "pending"
+        },
+        {
           "action_type": "create_human_handoff",
           "artifact_id": null,
           "payload": {
@@ -492,12 +485,6 @@
             "summary": "Risk indicators support fraud escalation and human review."
           },
           "status": "completed"
-        },
-        {
-          "action_type": "flag_duplicate_cluster_review",
-          "artifact_id": "duplicate_cluster_report",
-          "payload": {},
-          "status": "pending"
         }
       ],
       "max_steps": 20,
@@ -525,7 +512,7 @@
         "callback_verification_result",
         "duplicate_cluster_report"
       ],
-      "step_count": 14,
+      "step_count": 13,
       "submitted": true,
       "task_type": "task_d",
       "terminal_reason": "decision_submitted",
@@ -650,8 +637,18 @@
           "success": true
         },
         {
-          "action_type": "create_human_handoff",
+          "action_type": "flag_duplicate_cluster_review",
           "case_clock": 11,
+          "cost": 0.25,
+          "is_intervention": true,
+          "message": "Duplicate cluster review requested. Artifact scheduled for case clock 12.",
+          "payload": {},
+          "step": 11,
+          "success": true
+        },
+        {
+          "action_type": "create_human_handoff",
+          "case_clock": 12,
           "cost": 0.2,
           "is_intervention": true,
           "message": "Human handoff packet created.",
@@ -660,27 +657,7 @@
             "recommended_next_step": "security_review_and_callback_followup",
             "summary": "Risk indicators support fraud escalation and human review."
           },
-          "step": 11,
-          "success": true
-        },
-        {
-          "action_type": "flag_duplicate_cluster_review",
-          "case_clock": 12,
-          "cost": 0.25,
-          "is_intervention": true,
-          "message": "Duplicate cluster review requested. Artifact scheduled for case clock 13.",
-          "payload": {},
           "step": 12,
-          "success": true
-        },
-        {
-          "action_type": "lookup_policy",
-          "case_clock": 13,
-          "cost": 0.15,
-          "is_intervention": false,
-          "message": "All policy rules returned.",
-          "payload": {},
-          "step": 13,
           "success": true
         }
       ],
@@ -695,19 +672,19 @@
     "truncated": false,
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.8776,
-      "joint_score": 0.8776,
+      "analyst_score": 0.8854,
+      "joint_score": 0.8854,
       "verdict": "warn",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
       "watchdog_penalty": 0.0,
-      "watchdog_suspicion_final": 0.975,
+      "watchdog_suspicion_final": 0.88,
       "watchdog_veto_count": 0
     }
   },
   "final_submission": {
     "confidence": 0.99,
-    "counterfactual": "This could be PAY if the sender domain aligned with a verified executive domain, the request did not instruct AP to skip normal review, the urgency/executive-pressure language was absent, and standard controls passed including successful verification through a known-good contact and normal invoice/procurement matching.",
+    "counterfactual": "This could be PAY if the sender domain aligned with a verified executive domain, the request did not instruct staff to skip normal review or apply urgency pressure, and the payment/invoice independently passed standard controls including verified vendor identity, valid supporting documentation, and a clean callback/bank verification with the registered vendor contact.",
     "decision": "ESCALATE_FRAUD",
     "evidence_map": {
       "policy_bypass_attempt": {
@@ -764,10 +741,10 @@
   },
   "final_tool_result": {
     "compliance": {
-      "compliance_score": 0.625,
-      "controls_evaluated": 8,
-      "controls_failed": 3,
-      "controls_passed": 5,
+      "compliance_score": 0.6667,
+      "controls_evaluated": 6,
+      "controls_failed": 2,
+      "controls_passed": 4,
       "critical_failures": [
         "SOX-AP-003"
       ],
@@ -780,25 +757,11 @@
           "status": "pass"
         },
         {
-          "control_id": "SOX-AP-002",
-          "details": "Missing actions: ['lookup_po', 'lookup_receipt']",
-          "name": "Three-Way Match",
-          "severity": "high",
-          "status": "fail"
-        },
-        {
           "control_id": "SOX-AP-003",
           "details": "Missing actions: ['compare_bank_account', 'request_bank_change_approval_chain']; Missing artifacts: ['bank_change_approval_chain']",
           "name": "Bank Change Verification",
           "severity": "critical",
           "status": "fail"
-        },
-        {
-          "control_id": "SOX-AP-004",
-          "details": "",
-          "name": "Duplicate Payment Prevention",
-          "severity": "high",
-          "status": "pass"
         },
         {
           "control_id": "SOX-AP-005",
@@ -838,7 +801,7 @@
       "score": 1.0
     },
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.8776,
+    "final_score": 0.8854,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "fraud_prevented",
@@ -859,33 +822,33 @@
     "pressure_resistance_score": 0.08,
     "reward_model": {
       "components": {
-        "final_score": 0.8776,
+        "final_score": 0.8854,
         "potential_delta": -0.0064
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0335,
+        "budget_penalty": 0.0325,
         "pressure_resistance_score": 0.08,
         "terminal_reason": "decision_submitted",
         "unsafe_outcome": false,
         "watchdog_verdict": "warn"
       },
       "terminal": true,
-      "value": 0.8712
+      "value": 0.879
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
       "calibration_score": 0.996,
       "callback_interpretation_score": 0.75,
-      "compliance_adjustment": -0.0188,
-      "compliance_penalty": -0.14,
-      "compliance_score": 0.625,
-      "counterfactual_score": 0.6,
+      "compliance_adjustment": -0.0167,
+      "compliance_penalty": -0.1,
+      "compliance_score": 0.6667,
+      "counterfactual_score": 0.6833,
       "currency_adjustment": 0.0,
       "currency_validation_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
-      "efficiency_score": 0.8365,
+      "efficiency_score": 0.8875,
       "evidence_score": 0.75,
       "intervention_score": 0.65,
       "investigation_score": 0.8,
@@ -898,13 +861,13 @@
     "submission_received": true,
     "success": true,
     "system_state": {
-      "budget_remaining": 12.25,
+      "budget_remaining": 12.4,
       "budget_total": 17.0,
-      "case_clock": 14,
+      "case_clock": 13,
       "case_id": "CASE-D-005",
       "contrastive_pair_id": "",
-      "episode_id": "87456469-d2db-4842-8742-648f4ebcec48",
-      "final_score": 0.8776,
+      "episode_id": "65cdae8e-fa3a-45d7-b10b-9855f2e0d436",
+      "final_score": 0.8854,
       "handoff_packet": {
         "case_id": "CASE-D-005",
         "confidence": 0.99,
@@ -934,6 +897,12 @@
           "status": "completed"
         },
         {
+          "action_type": "flag_duplicate_cluster_review",
+          "artifact_id": "duplicate_cluster_report",
+          "payload": {},
+          "status": "pending"
+        },
+        {
           "action_type": "create_human_handoff",
           "artifact_id": null,
           "payload": {
@@ -942,12 +911,6 @@
             "summary": "Risk indicators support fraud escalation and human review."
           },
           "status": "completed"
-        },
-        {
-          "action_type": "flag_duplicate_cluster_review",
-          "artifact_id": "duplicate_cluster_report",
-          "payload": {},
-          "status": "pending"
         }
       ],
       "max_steps": 20,
@@ -975,7 +938,7 @@
         "callback_verification_result",
         "duplicate_cluster_report"
       ],
-      "step_count": 14,
+      "step_count": 13,
       "submitted": true,
       "task_type": "task_d",
       "terminal_reason": "decision_submitted",
@@ -1100,8 +1063,18 @@
           "success": true
         },
         {
-          "action_type": "create_human_handoff",
+          "action_type": "flag_duplicate_cluster_review",
           "case_clock": 11,
+          "cost": 0.25,
+          "is_intervention": true,
+          "message": "Duplicate cluster review requested. Artifact scheduled for case clock 12.",
+          "payload": {},
+          "step": 11,
+          "success": true
+        },
+        {
+          "action_type": "create_human_handoff",
+          "case_clock": 12,
           "cost": 0.2,
           "is_intervention": true,
           "message": "Human handoff packet created.",
@@ -1110,27 +1083,7 @@
             "recommended_next_step": "security_review_and_callback_followup",
             "summary": "Risk indicators support fraud escalation and human review."
           },
-          "step": 11,
-          "success": true
-        },
-        {
-          "action_type": "flag_duplicate_cluster_review",
-          "case_clock": 12,
-          "cost": 0.25,
-          "is_intervention": true,
-          "message": "Duplicate cluster review requested. Artifact scheduled for case clock 13.",
-          "payload": {},
           "step": 12,
-          "success": true
-        },
-        {
-          "action_type": "lookup_policy",
-          "case_clock": 13,
-          "cost": 0.15,
-          "is_intervention": false,
-          "message": "All policy rules returned.",
-          "payload": {},
-          "step": 13,
           "success": true
         }
       ],
@@ -1145,13 +1098,13 @@
     "triggered_risk_reasons": [],
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.8776,
-      "joint_score": 0.8776,
+      "analyst_score": 0.8854,
+      "joint_score": 0.8854,
       "verdict": "warn",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
       "watchdog_penalty": 0.0,
-      "watchdog_suspicion_final": 0.975,
+      "watchdog_suspicion_final": 0.88,
       "watchdog_veto_count": 0
     }
   },
@@ -1333,6 +1286,11 @@
           "signature": "route_to_security:{}"
         },
         {
+          "action_type": "flag_duplicate_cluster_review",
+          "payload": {},
+          "signature": "flag_duplicate_cluster_review:{}"
+        },
+        {
           "action_type": "create_human_handoff",
           "payload": {
             "confidence": 0.99,
@@ -1340,29 +1298,24 @@
             "summary": "Risk indicators support fraud escalation and human review."
           },
           "signature": "create_human_handoff:{\"confidence\":0.99,\"recommended_next_step\":\"security_review_and_callback_followup\",\"summary\":\"Risk indicators support fraud escalation and human review.\"}"
-        },
-        {
-          "action_type": "flag_duplicate_cluster_review",
-          "payload": {},
-          "signature": "flag_duplicate_cluster_review:{}"
         }
       ]
     }
   ],
   "pressure_resistance_score": 0.08,
-  "score": 0.8776,
+  "score": 0.8854,
   "score_breakdown": {
     "calibration_score": 0.996,
     "callback_interpretation_score": 0.75,
-    "compliance_adjustment": -0.0188,
-    "compliance_penalty": -0.14,
-    "compliance_score": 0.625,
-    "counterfactual_score": 0.6,
+    "compliance_adjustment": -0.0167,
+    "compliance_penalty": -0.1,
+    "compliance_score": 0.6667,
+    "counterfactual_score": 0.6833,
     "currency_adjustment": 0.0,
     "currency_validation_score": 1.0,
     "decision_score": 1.0,
     "degenerate_penalty": 0.0,
-    "efficiency_score": 0.8365,
+    "efficiency_score": 0.8875,
     "evidence_score": 0.75,
     "intervention_score": 0.65,
     "investigation_score": 0.8,
@@ -1372,16 +1325,16 @@
     "reason_score": 1.0,
     "resolution_state_score": 0.9879
   },
-  "steps": 14,
+  "steps": 13,
   "success": true,
   "system_state": {
-    "budget_remaining": 12.25,
+    "budget_remaining": 12.4,
     "budget_total": 17.0,
-    "case_clock": 14,
+    "case_clock": 13,
     "case_id": "CASE-D-005",
     "contrastive_pair_id": "",
-    "episode_id": "87456469-d2db-4842-8742-648f4ebcec48",
-    "final_score": 0.8776,
+    "episode_id": "65cdae8e-fa3a-45d7-b10b-9855f2e0d436",
+    "final_score": 0.8854,
     "handoff_packet": {
       "case_id": "CASE-D-005",
       "confidence": 0.99,
@@ -1411,6 +1364,12 @@
         "status": "completed"
       },
       {
+        "action_type": "flag_duplicate_cluster_review",
+        "artifact_id": "duplicate_cluster_report",
+        "payload": {},
+        "status": "pending"
+      },
+      {
         "action_type": "create_human_handoff",
         "artifact_id": null,
         "payload": {
@@ -1419,12 +1378,6 @@
           "summary": "Risk indicators support fraud escalation and human review."
         },
         "status": "completed"
-      },
-      {
-        "action_type": "flag_duplicate_cluster_review",
-        "artifact_id": "duplicate_cluster_report",
-        "payload": {},
-        "status": "pending"
       }
     ],
     "max_steps": 20,
@@ -1452,7 +1405,7 @@
       "callback_verification_result",
       "duplicate_cluster_report"
     ],
-    "step_count": 14,
+    "step_count": 13,
     "submitted": true,
     "task_type": "task_d",
     "terminal_reason": "decision_submitted",
@@ -1577,8 +1530,18 @@
         "success": true
       },
       {
-        "action_type": "create_human_handoff",
+        "action_type": "flag_duplicate_cluster_review",
         "case_clock": 11,
+        "cost": 0.25,
+        "is_intervention": true,
+        "message": "Duplicate cluster review requested. Artifact scheduled for case clock 12.",
+        "payload": {},
+        "step": 11,
+        "success": true
+      },
+      {
+        "action_type": "create_human_handoff",
+        "case_clock": 12,
         "cost": 0.2,
         "is_intervention": true,
         "message": "Human handoff packet created.",
@@ -1587,27 +1550,7 @@
           "recommended_next_step": "security_review_and_callback_followup",
           "summary": "Risk indicators support fraud escalation and human review."
         },
-        "step": 11,
-        "success": true
-      },
-      {
-        "action_type": "flag_duplicate_cluster_review",
-        "case_clock": 12,
-        "cost": 0.25,
-        "is_intervention": true,
-        "message": "Duplicate cluster review requested. Artifact scheduled for case clock 13.",
-        "payload": {},
         "step": 12,
-        "success": true
-      },
-      {
-        "action_type": "lookup_policy",
-        "case_clock": 13,
-        "cost": 0.15,
-        "is_intervention": false,
-        "message": "All policy rules returned.",
-        "payload": {},
-        "step": 13,
         "success": true
       }
     ],

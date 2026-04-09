@@ -28,28 +28,28 @@
       "tool_success": false
     },
     {
+      "action_type": "lookup_policy",
+      "done": false,
+      "payload": {},
+      "phase": "investigation",
+      "reward": 0.011442999999999998,
+      "step": 3,
+      "tool_error": null,
+      "tool_name": "lookup_policy",
+      "tool_success": true
+    },
+    {
       "action_type": "lookup_receipt",
       "done": false,
       "payload": {
         "receipt_id": "GRN-5501"
       },
       "phase": "investigation",
-      "reward": -0.06369499999999999,
-      "step": 3,
+      "reward": -0.06418,
+      "step": 4,
       "tool_error": "receipt not found: GRN-5501",
       "tool_name": "lookup_receipt",
       "tool_success": false
-    },
-    {
-      "action_type": "lookup_policy",
-      "done": false,
-      "payload": {},
-      "phase": "investigation",
-      "reward": 0.01142000000000002,
-      "step": 4,
-      "tool_error": null,
-      "tool_name": "lookup_policy",
-      "tool_success": true
     },
     {
       "action_type": "request_po_reconciliation",
@@ -138,7 +138,7 @@
         }
       },
       "phase": "submit",
-      "reward": 0.841345,
+      "reward": 0.984445,
       "step": 9,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -194,9 +194,9 @@
   "final_info": {
     "compliance": {
       "compliance_score": 1.0,
-      "controls_evaluated": 5,
+      "controls_evaluated": 3,
       "controls_failed": 0,
-      "controls_passed": 5,
+      "controls_passed": 3,
       "critical_failures": [],
       "findings": [
         {
@@ -207,24 +207,10 @@
           "status": "pass"
         },
         {
-          "control_id": "SOX-AP-003",
-          "details": "",
-          "name": "Bank Change Verification",
-          "severity": "critical",
-          "status": "pass"
-        },
-        {
           "control_id": "SOX-AP-005",
           "details": "",
           "name": "Approval Threshold Enforcement",
           "severity": "high",
-          "status": "pass"
-        },
-        {
-          "control_id": "SOX-AP-006",
-          "details": "",
-          "name": "Vendor Master Verification",
-          "severity": "medium",
           "status": "pass"
         },
         {
@@ -250,16 +236,16 @@
         "task_d",
         "task_e"
       ],
-      "competence_ema": 0.7616,
-      "episode_count": 93,
-      "recent_5_avg": 0.7632,
+      "competence_ema": 0.7959,
+      "episode_count": 30,
+      "recent_5_avg": 0.8126,
       "stagnation_counter": 0,
       "tier": 3,
       "tier_name": "expert",
-      "tier_transitions": 15,
+      "tier_transitions": 5,
       "weakest_task": "task_c"
     },
-    "final_score": 0.8469,
+    "final_score": 0.99,
     "outcome": {
       "outcome_type": "safe_payment_cleared",
       "portfolio_metrics": {
@@ -279,7 +265,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.8469,
+        "final_score": 0.99,
         "potential_delta": -0.0056
       },
       "metadata": {
@@ -291,7 +277,19 @@
         "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.8413
+      "value": 0.9844
+    },
+    "rl_data_plane": {
+      "reward": 0.984445,
+      "state_vector": [
+        0.7708333333333334,
+        0.6428571428571429,
+        0.0,
+        3.0,
+        3.0
+      ],
+      "terminal": true,
+      "truncated": false
     },
     "score_breakdown": {
       "calibration_score": 0.9875,
@@ -301,7 +299,7 @@
       "currency_adjustment": 0.0,
       "currency_validation_score": 1.0,
       "decision_score": 1.0,
-      "degenerate_penalty": -0.03,
+      "degenerate_penalty": 0.0,
       "discrepancy_score": 1.0,
       "efficiency_score": 0.9425,
       "evidence_score": 1.0,
@@ -316,8 +314,8 @@
       "case_clock": 9,
       "case_id": "CASE-B-005",
       "contrastive_pair_id": "",
-      "episode_id": "287156ac-d5f0-4cbf-9abf-947ca92df4d0",
-      "final_score": 0.8469,
+      "episode_id": "fd12f958-f86c-496c-9b8a-964a567ea187",
+      "final_score": 0.99,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -389,26 +387,26 @@
           "success": false
         },
         {
-          "action_type": "lookup_receipt",
+          "action_type": "lookup_policy",
           "case_clock": 3,
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "All policy rules returned.",
+          "payload": {},
+          "step": 3,
+          "success": true
+        },
+        {
+          "action_type": "lookup_receipt",
+          "case_clock": 4,
           "cost": 0.2,
           "is_intervention": false,
           "message": "receipt not found: GRN-5501",
           "payload": {
             "receipt_id": "GRN-5501"
           },
-          "step": 3,
-          "success": false
-        },
-        {
-          "action_type": "lookup_policy",
-          "case_clock": 4,
-          "cost": 0.15,
-          "is_intervention": false,
-          "message": "All policy rules returned.",
-          "payload": {},
           "step": 4,
-          "success": true
+          "success": false
         },
         {
           "action_type": "request_po_reconciliation",
@@ -460,8 +458,8 @@
     "truncated": false,
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.8469,
-      "joint_score": 0.9269,
+      "analyst_score": 0.99,
+      "joint_score": 0.99,
       "verdict": "approve",
       "watchdog_bonus": 0.08,
       "watchdog_escalation_count": 0,
@@ -512,9 +510,9 @@
   "final_tool_result": {
     "compliance": {
       "compliance_score": 1.0,
-      "controls_evaluated": 5,
+      "controls_evaluated": 3,
       "controls_failed": 0,
-      "controls_passed": 5,
+      "controls_passed": 3,
       "critical_failures": [],
       "findings": [
         {
@@ -525,24 +523,10 @@
           "status": "pass"
         },
         {
-          "control_id": "SOX-AP-003",
-          "details": "",
-          "name": "Bank Change Verification",
-          "severity": "critical",
-          "status": "pass"
-        },
-        {
           "control_id": "SOX-AP-005",
           "details": "",
           "name": "Approval Threshold Enforcement",
           "severity": "high",
-          "status": "pass"
-        },
-        {
-          "control_id": "SOX-AP-006",
-          "details": "",
-          "name": "Vendor Master Verification",
-          "severity": "medium",
           "status": "pass"
         },
         {
@@ -562,7 +546,7 @@
       "score": 1.0
     },
     "decision": "PAY",
-    "final_score": 0.8469,
+    "final_score": 0.99,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "safe_payment_cleared",
@@ -583,7 +567,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.8469,
+        "final_score": 0.99,
         "potential_delta": -0.0056
       },
       "metadata": {
@@ -595,7 +579,7 @@
         "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.8413
+      "value": 0.9844
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
@@ -606,7 +590,7 @@
       "currency_adjustment": 0.0,
       "currency_validation_score": 1.0,
       "decision_score": 1.0,
-      "degenerate_penalty": -0.03,
+      "degenerate_penalty": 0.0,
       "discrepancy_score": 1.0,
       "efficiency_score": 0.9425,
       "evidence_score": 1.0,
@@ -623,8 +607,8 @@
       "case_clock": 9,
       "case_id": "CASE-B-005",
       "contrastive_pair_id": "",
-      "episode_id": "287156ac-d5f0-4cbf-9abf-947ca92df4d0",
-      "final_score": 0.8469,
+      "episode_id": "fd12f958-f86c-496c-9b8a-964a567ea187",
+      "final_score": 0.99,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -696,26 +680,26 @@
           "success": false
         },
         {
-          "action_type": "lookup_receipt",
+          "action_type": "lookup_policy",
           "case_clock": 3,
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "All policy rules returned.",
+          "payload": {},
+          "step": 3,
+          "success": true
+        },
+        {
+          "action_type": "lookup_receipt",
+          "case_clock": 4,
           "cost": 0.2,
           "is_intervention": false,
           "message": "receipt not found: GRN-5501",
           "payload": {
             "receipt_id": "GRN-5501"
           },
-          "step": 3,
-          "success": false
-        },
-        {
-          "action_type": "lookup_policy",
-          "case_clock": 4,
-          "cost": 0.15,
-          "is_intervention": false,
-          "message": "All policy rules returned.",
-          "payload": {},
           "step": 4,
-          "success": true
+          "success": false
         },
         {
           "action_type": "request_po_reconciliation",
@@ -767,8 +751,8 @@
     "triggered_risk_reasons": [],
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.8469,
-      "joint_score": 0.9269,
+      "analyst_score": 0.99,
+      "joint_score": 0.99,
       "verdict": "approve",
       "watchdog_bonus": 0.08,
       "watchdog_escalation_count": 0,
@@ -838,16 +822,16 @@
           "signature": "lookup_po:{\"po_id\":\"PO-5501\"}"
         },
         {
+          "action_type": "lookup_policy",
+          "payload": {},
+          "signature": "lookup_policy:{}"
+        },
+        {
           "action_type": "lookup_receipt",
           "payload": {
             "receipt_id": "GRN-5501"
           },
           "signature": "lookup_receipt:{\"receipt_id\":\"GRN-5501\"}"
-        },
-        {
-          "action_type": "lookup_policy",
-          "payload": {},
-          "signature": "lookup_policy:{}"
         }
       ]
     },
@@ -890,7 +874,7 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.8469,
+  "score": 0.99,
   "score_breakdown": {
     "calibration_score": 0.9875,
     "compliance_adjustment": 0.0,
@@ -899,7 +883,7 @@
     "currency_adjustment": 0.0,
     "currency_validation_score": 1.0,
     "decision_score": 1.0,
-    "degenerate_penalty": -0.03,
+    "degenerate_penalty": 0.0,
     "discrepancy_score": 1.0,
     "efficiency_score": 0.9425,
     "evidence_score": 1.0,
@@ -916,8 +900,8 @@
     "case_clock": 9,
     "case_id": "CASE-B-005",
     "contrastive_pair_id": "",
-    "episode_id": "287156ac-d5f0-4cbf-9abf-947ca92df4d0",
-    "final_score": 0.8469,
+    "episode_id": "fd12f958-f86c-496c-9b8a-964a567ea187",
+    "final_score": 0.99,
     "handoff_packet": {},
     "interventions_taken": [
       {
@@ -989,26 +973,26 @@
         "success": false
       },
       {
-        "action_type": "lookup_receipt",
+        "action_type": "lookup_policy",
         "case_clock": 3,
+        "cost": 0.15,
+        "is_intervention": false,
+        "message": "All policy rules returned.",
+        "payload": {},
+        "step": 3,
+        "success": true
+      },
+      {
+        "action_type": "lookup_receipt",
+        "case_clock": 4,
         "cost": 0.2,
         "is_intervention": false,
         "message": "receipt not found: GRN-5501",
         "payload": {
           "receipt_id": "GRN-5501"
         },
-        "step": 3,
-        "success": false
-      },
-      {
-        "action_type": "lookup_policy",
-        "case_clock": 4,
-        "cost": 0.15,
-        "is_intervention": false,
-        "message": "All policy rules returned.",
-        "payload": {},
         "step": 4,
-        "success": true
+        "success": false
       },
       {
         "action_type": "request_po_reconciliation",
