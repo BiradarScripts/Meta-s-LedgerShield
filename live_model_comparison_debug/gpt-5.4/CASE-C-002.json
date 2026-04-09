@@ -28,19 +28,6 @@
       "tool_success": true
     },
     {
-      "action_type": "lookup_vendor_history",
-      "done": false,
-      "payload": {
-        "vendor_key": "eurocaps components gmbh"
-      },
-      "phase": "investigation",
-      "reward": -0.01618637500000002,
-      "step": 3,
-      "tool_error": null,
-      "tool_name": "lookup_vendor_history",
-      "tool_success": true
-    },
-    {
       "action_type": "compare_bank_account",
       "done": false,
       "payload": {
@@ -48,8 +35,8 @@
         "vendor_key": "eurocaps components gmbh"
       },
       "phase": "investigation",
-      "reward": 0.0227505,
-      "step": 4,
+      "reward": 0.02277062499999998,
+      "step": 3,
       "tool_error": null,
       "tool_name": "compare_bank_account",
       "tool_success": true
@@ -63,10 +50,23 @@
         "vendor_key": "eurocaps components gmbh"
       },
       "phase": "investigation",
-      "reward": 0.22203737499999998,
-      "step": 5,
+      "reward": 0.07205749999999997,
+      "step": 4,
       "tool_error": null,
       "tool_name": "search_ledger",
+      "tool_success": true
+    },
+    {
+      "action_type": "lookup_vendor_history",
+      "done": false,
+      "payload": {
+        "vendor_key": "eurocaps components gmbh"
+      },
+      "phase": "investigation",
+      "reward": -0.017612625,
+      "step": 5,
+      "tool_error": null,
+      "tool_name": "lookup_vendor_history",
       "tool_success": true
     },
     {
@@ -87,7 +87,7 @@
       "action_type": "submit_decision",
       "done": true,
       "payload": {
-        "confidence": 0.96,
+        "confidence": 0.98,
         "decision": "PAY",
         "discrepancies": [],
         "duplicate_links": [],
@@ -122,7 +122,7 @@
         "fraud_flags": []
       },
       "phase": "submit",
-      "reward": 0.9119471250000001,
+      "reward": 0.912247125,
       "step": 7,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -161,18 +161,9 @@
     "ledger_search": {
       "exact_duplicate_count": 0,
       "near_duplicate_count": 0,
-      "top_hits": [
-        {
-          "amount": 843.4215982796088,
-          "invoice_number": "INV-6724",
-          "ledger_id": null,
-          "match_score": 0.6044
-        }
-      ]
+      "top_hits": []
     },
-    "observed_risk_signals": [
-      "duplicate_near_match"
-    ],
+    "observed_risk_signals": [],
     "pending_event_count": 0,
     "revealed_artifacts": [],
     "tool_failures": {},
@@ -230,16 +221,16 @@
         "task_d",
         "task_e"
       ],
-      "competence_ema": 0.9269,
+      "competence_ema": 0.9097,
       "episode_count": 53,
-      "recent_5_avg": 0.9405,
+      "recent_5_avg": 0.9406,
       "stagnation_counter": 2,
       "tier": 3,
       "tier_name": "expert",
       "tier_transitions": 5,
       "weakest_task": "task_e"
     },
-    "final_score": 0.9171,
+    "final_score": 0.9174,
     "outcome": {
       "outcome_type": "safe_payment_cleared",
       "portfolio_metrics": {
@@ -259,7 +250,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.9171,
+        "final_score": 0.9174,
         "potential_delta": -0.0052
       },
       "metadata": {
@@ -271,14 +262,14 @@
         "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.9119
+      "value": 0.9122
     },
     "rl_data_plane": {
-      "reward": 0.9119471250000001,
+      "reward": 0.912247125,
       "state_vector": [
         0.8153846153846154,
         0.4375,
-        1.0,
+        0.0,
         0.0,
         0.0
       ],
@@ -286,7 +277,7 @@
       "truncated": false
     },
     "score_breakdown": {
-      "calibration_score": 0.99,
+      "calibration_score": 0.995,
       "compliance_adjustment": 0.0,
       "compliance_penalty": 0.0,
       "compliance_score": 1.0,
@@ -309,14 +300,12 @@
       "case_clock": 7,
       "case_id": "CASE-C-002",
       "contrastive_pair_id": "",
-      "episode_id": "1cca5d00-c86a-4f8b-88d0-d0b6d85040d0",
-      "final_score": 0.9171,
+      "episode_id": "74fba176-a084-4df1-8f3d-234c629e2b95",
+      "final_score": 0.9174,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 16,
-      "observed_risk_signals": [
-        "duplicate_near_match"
-      ],
+      "observed_risk_signals": [],
       "pending_event_count": 0,
       "pending_events": [],
       "portfolio_context": {
@@ -361,20 +350,8 @@
           "success": true
         },
         {
-          "action_type": "lookup_vendor_history",
-          "case_clock": 3,
-          "cost": 0.25,
-          "is_intervention": false,
-          "message": "Vendor history returned.",
-          "payload": {
-            "vendor_key": "eurocaps components gmbh"
-          },
-          "step": 3,
-          "success": true
-        },
-        {
           "action_type": "compare_bank_account",
-          "case_clock": 4,
+          "case_clock": 3,
           "cost": 0.15,
           "is_intervention": false,
           "message": "Compared proposed bank account to approved master data.",
@@ -382,18 +359,30 @@
             "proposed_bank_account": "DE04500105175407324931",
             "vendor_key": "eurocaps components gmbh"
           },
-          "step": 4,
+          "step": 3,
           "success": true
         },
         {
           "action_type": "search_ledger",
-          "case_clock": 5,
+          "case_clock": 4,
           "cost": 0.35,
           "is_intervention": false,
           "message": "Ledger search complete.",
           "payload": {
             "amount": 845.0,
             "invoice_number": "EC-4402-26",
+            "vendor_key": "eurocaps components gmbh"
+          },
+          "step": 4,
+          "success": true
+        },
+        {
+          "action_type": "lookup_vendor_history",
+          "case_clock": 5,
+          "cost": 0.25,
+          "is_intervention": false,
+          "message": "Vendor history returned.",
+          "payload": {
             "vendor_key": "eurocaps components gmbh"
           },
           "step": 5,
@@ -422,18 +411,18 @@
     "truncated": false,
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.9171,
+      "analyst_score": 0.9174,
       "joint_score": 0.99,
       "verdict": "approve",
       "watchdog_bonus": 0.08,
       "watchdog_escalation_count": 0,
       "watchdog_penalty": 0.0,
-      "watchdog_suspicion_final": 0.21,
+      "watchdog_suspicion_final": 0.12,
       "watchdog_veto_count": 0
     }
   },
   "final_submission": {
-    "confidence": 0.96,
+    "confidence": 0.98,
     "decision": "PAY",
     "discrepancies": [],
     "duplicate_links": [],
@@ -506,7 +495,7 @@
       "score": 1.0
     },
     "decision": "PAY",
-    "final_score": 0.9171,
+    "final_score": 0.9174,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "safe_payment_cleared",
@@ -527,7 +516,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.9171,
+        "final_score": 0.9174,
         "potential_delta": -0.0052
       },
       "metadata": {
@@ -539,11 +528,11 @@
         "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.9119
+      "value": 0.9122
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
-      "calibration_score": 0.99,
+      "calibration_score": 0.995,
       "compliance_adjustment": 0.0,
       "compliance_penalty": 0.0,
       "compliance_score": 1.0,
@@ -568,14 +557,12 @@
       "case_clock": 7,
       "case_id": "CASE-C-002",
       "contrastive_pair_id": "",
-      "episode_id": "1cca5d00-c86a-4f8b-88d0-d0b6d85040d0",
-      "final_score": 0.9171,
+      "episode_id": "74fba176-a084-4df1-8f3d-234c629e2b95",
+      "final_score": 0.9174,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 16,
-      "observed_risk_signals": [
-        "duplicate_near_match"
-      ],
+      "observed_risk_signals": [],
       "pending_event_count": 0,
       "pending_events": [],
       "portfolio_context": {
@@ -620,20 +607,8 @@
           "success": true
         },
         {
-          "action_type": "lookup_vendor_history",
-          "case_clock": 3,
-          "cost": 0.25,
-          "is_intervention": false,
-          "message": "Vendor history returned.",
-          "payload": {
-            "vendor_key": "eurocaps components gmbh"
-          },
-          "step": 3,
-          "success": true
-        },
-        {
           "action_type": "compare_bank_account",
-          "case_clock": 4,
+          "case_clock": 3,
           "cost": 0.15,
           "is_intervention": false,
           "message": "Compared proposed bank account to approved master data.",
@@ -641,18 +616,30 @@
             "proposed_bank_account": "DE04500105175407324931",
             "vendor_key": "eurocaps components gmbh"
           },
-          "step": 4,
+          "step": 3,
           "success": true
         },
         {
           "action_type": "search_ledger",
-          "case_clock": 5,
+          "case_clock": 4,
           "cost": 0.35,
           "is_intervention": false,
           "message": "Ledger search complete.",
           "payload": {
             "amount": 845.0,
             "invoice_number": "EC-4402-26",
+            "vendor_key": "eurocaps components gmbh"
+          },
+          "step": 4,
+          "success": true
+        },
+        {
+          "action_type": "lookup_vendor_history",
+          "case_clock": 5,
+          "cost": 0.25,
+          "is_intervention": false,
+          "message": "Vendor history returned.",
+          "payload": {
             "vendor_key": "eurocaps components gmbh"
           },
           "step": 5,
@@ -681,13 +668,13 @@
     "triggered_risk_reasons": [],
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.9171,
+      "analyst_score": 0.9174,
       "joint_score": 0.99,
       "verdict": "approve",
       "watchdog_bonus": 0.08,
       "watchdog_escalation_count": 0,
       "watchdog_penalty": 0.0,
-      "watchdog_suspicion_final": 0.21,
+      "watchdog_suspicion_final": 0.12,
       "watchdog_veto_count": 0
     }
   },
@@ -772,13 +759,6 @@
           "signature": "lookup_vendor:{\"vendor_key\":\"eurocaps components gmbh\"}"
         },
         {
-          "action_type": "lookup_vendor_history",
-          "payload": {
-            "vendor_key": "eurocaps components gmbh"
-          },
-          "signature": "lookup_vendor_history:{\"vendor_key\":\"eurocaps components gmbh\"}"
-        },
-        {
           "action_type": "compare_bank_account",
           "payload": {
             "proposed_bank_account": "DE04500105175407324931",
@@ -794,6 +774,13 @@
             "vendor_key": "eurocaps components gmbh"
           },
           "signature": "search_ledger:{\"amount\":845.0,\"invoice_number\":\"EC-4402-26\",\"vendor_key\":\"eurocaps components gmbh\"}"
+        },
+        {
+          "action_type": "lookup_vendor_history",
+          "payload": {
+            "vendor_key": "eurocaps components gmbh"
+          },
+          "signature": "lookup_vendor_history:{\"vendor_key\":\"eurocaps components gmbh\"}"
         },
         {
           "action_type": "search_ledger",
@@ -812,9 +799,9 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.9171,
+  "score": 0.9174,
   "score_breakdown": {
-    "calibration_score": 0.99,
+    "calibration_score": 0.995,
     "compliance_adjustment": 0.0,
     "compliance_penalty": 0.0,
     "compliance_score": 1.0,
@@ -839,14 +826,12 @@
     "case_clock": 7,
     "case_id": "CASE-C-002",
     "contrastive_pair_id": "",
-    "episode_id": "1cca5d00-c86a-4f8b-88d0-d0b6d85040d0",
-    "final_score": 0.9171,
+    "episode_id": "74fba176-a084-4df1-8f3d-234c629e2b95",
+    "final_score": 0.9174,
     "handoff_packet": {},
     "interventions_taken": [],
     "max_steps": 16,
-    "observed_risk_signals": [
-      "duplicate_near_match"
-    ],
+    "observed_risk_signals": [],
     "pending_event_count": 0,
     "pending_events": [],
     "portfolio_context": {
@@ -891,20 +876,8 @@
         "success": true
       },
       {
-        "action_type": "lookup_vendor_history",
-        "case_clock": 3,
-        "cost": 0.25,
-        "is_intervention": false,
-        "message": "Vendor history returned.",
-        "payload": {
-          "vendor_key": "eurocaps components gmbh"
-        },
-        "step": 3,
-        "success": true
-      },
-      {
         "action_type": "compare_bank_account",
-        "case_clock": 4,
+        "case_clock": 3,
         "cost": 0.15,
         "is_intervention": false,
         "message": "Compared proposed bank account to approved master data.",
@@ -912,18 +885,30 @@
           "proposed_bank_account": "DE04500105175407324931",
           "vendor_key": "eurocaps components gmbh"
         },
-        "step": 4,
+        "step": 3,
         "success": true
       },
       {
         "action_type": "search_ledger",
-        "case_clock": 5,
+        "case_clock": 4,
         "cost": 0.35,
         "is_intervention": false,
         "message": "Ledger search complete.",
         "payload": {
           "amount": 845.0,
           "invoice_number": "EC-4402-26",
+          "vendor_key": "eurocaps components gmbh"
+        },
+        "step": 4,
+        "success": true
+      },
+      {
+        "action_type": "lookup_vendor_history",
+        "case_clock": 5,
+        "cost": 0.25,
+        "is_intervention": false,
+        "message": "Vendor history returned.",
+        "payload": {
           "vendor_key": "eurocaps components gmbh"
         },
         "step": 5,

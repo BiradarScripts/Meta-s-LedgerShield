@@ -275,7 +275,7 @@
       "case_clock": 6,
       "case_id": "CASE-B-002",
       "contrastive_pair_id": "",
-      "episode_id": "2040e4ce-bfce-4907-9fc7-4002dd5f5d68",
+      "episode_id": "84691219-41b0-485c-88ec-5a80cb2717bd",
       "final_score": 0.8708,
       "handoff_packet": {},
       "interventions_taken": [
@@ -298,7 +298,7 @@
       "pending_events": [
         {
           "artifact_id": "receipt_reconciliation_report",
-          "event_id": "evt-37c533bf",
+          "event_id": "evt-29af911d",
           "ready_at_clock": 6,
           "source_action": "request_additional_receipt_evidence",
           "status": "pending"
@@ -542,7 +542,7 @@
       "case_clock": 6,
       "case_id": "CASE-B-002",
       "contrastive_pair_id": "",
-      "episode_id": "2040e4ce-bfce-4907-9fc7-4002dd5f5d68",
+      "episode_id": "84691219-41b0-485c-88ec-5a80cb2717bd",
       "final_score": 0.8708,
       "handoff_packet": {},
       "interventions_taken": [
@@ -565,7 +565,7 @@
       "pending_events": [
         {
           "artifact_id": "receipt_reconciliation_report",
-          "event_id": "evt-37c533bf",
+          "event_id": "evt-29af911d",
           "ready_at_clock": 6,
           "source_action": "request_additional_receipt_evidence",
           "status": "pending"
@@ -794,7 +794,7 @@
     "case_clock": 6,
     "case_id": "CASE-B-002",
     "contrastive_pair_id": "",
-    "episode_id": "2040e4ce-bfce-4907-9fc7-4002dd5f5d68",
+    "episode_id": "84691219-41b0-485c-88ec-5a80cb2717bd",
     "final_score": 0.8708,
     "handoff_packet": {},
     "interventions_taken": [
@@ -817,7 +817,7 @@
     "pending_events": [
       {
         "artifact_id": "receipt_reconciliation_report",
-        "event_id": "evt-37c533bf",
+        "event_id": "evt-29af911d",
         "ready_at_clock": 6,
         "source_action": "request_additional_receipt_evidence",
         "status": "pending"

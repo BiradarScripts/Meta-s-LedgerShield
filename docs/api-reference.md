@@ -219,19 +219,21 @@ Returns leaderboard entries if a leaderboard artifact exists, otherwise derives 
 Typical response shape:
 
 ```json
+<!-- sync:api-leaderboard-example:start -->
 {
   "benchmark": "ledgershield-v3",
-  "generated_at": "2026-04-08T12:00:00+00:00",
+  "generated_at": "2026-04-09T22:31:03.657660+00:00",
   "entries": [
     {
-      "model": "openai/gpt-4.1-mini",
+      "model": "ledgershield/deterministic-baseline",
       "type": "deterministic-policy",
-      "public_mean": 0.9674,
-      "holdout_mean": 0.6649,
-      "holdout_pass_k_consistent": 0.619
+      "public_mean": 0.9142,
+      "holdout_mean": 0.7245,
+      "holdout_pass_k_consistent": 0.25
     }
   ]
 }
+<!-- sync:api-leaderboard-example:end -->
 ```
 
 ### `GET /benchmark-report`

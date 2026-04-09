@@ -264,9 +264,9 @@
         "task_c",
         "task_d"
       ],
-      "competence_ema": 0.608,
+      "competence_ema": 0.6013,
       "episode_count": 17,
-      "recent_5_avg": 0.6882,
+      "recent_5_avg": 0.6688,
       "stagnation_counter": 1,
       "tier": 2,
       "tier_name": "proficient",
@@ -346,7 +346,7 @@
       "case_clock": 6,
       "case_id": "CASE-D-004",
       "contrastive_pair_id": "",
-      "episode_id": "194b74cf-934e-43a5-96c7-5aba43036a21",
+      "episode_id": "11ff4228-d1df-4ec1-a574-e0431d9a5e3c",
       "final_score": 0.5932,
       "handoff_packet": {},
       "interventions_taken": [
@@ -369,7 +369,7 @@
       "pending_events": [
         {
           "artifact_id": "callback_verification_result",
-          "event_id": "evt-cecbdf8e",
+          "event_id": "evt-484ca798",
           "ready_at_clock": 6,
           "source_action": "request_callback_verification",
           "status": "pending"
@@ -666,7 +666,7 @@
       "case_clock": 6,
       "case_id": "CASE-D-004",
       "contrastive_pair_id": "",
-      "episode_id": "194b74cf-934e-43a5-96c7-5aba43036a21",
+      "episode_id": "11ff4228-d1df-4ec1-a574-e0431d9a5e3c",
       "final_score": 0.5932,
       "handoff_packet": {},
       "interventions_taken": [
@@ -689,7 +689,7 @@
       "pending_events": [
         {
           "artifact_id": "callback_verification_result",
-          "event_id": "evt-cecbdf8e",
+          "event_id": "evt-484ca798",
           "ready_at_clock": 6,
           "source_action": "request_callback_verification",
           "status": "pending"
@@ -978,7 +978,7 @@
     "case_clock": 6,
     "case_id": "CASE-D-004",
     "contrastive_pair_id": "",
-    "episode_id": "194b74cf-934e-43a5-96c7-5aba43036a21",
+    "episode_id": "11ff4228-d1df-4ec1-a574-e0431d9a5e3c",
     "final_score": 0.5932,
     "handoff_packet": {},
     "interventions_taken": [
@@ -1001,7 +1001,7 @@
     "pending_events": [
       {
         "artifact_id": "callback_verification_result",
-        "event_id": "evt-cecbdf8e",
+        "event_id": "evt-484ca798",
         "ready_at_clock": 6,
         "source_action": "request_callback_verification",
         "status": "pending"

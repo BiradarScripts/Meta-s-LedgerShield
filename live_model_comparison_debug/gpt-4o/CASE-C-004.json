@@ -34,10 +34,24 @@
         "vendor_key": "northwind industrial supplies pvt ltd"
       },
       "phase": "investigation",
-      "reward": -0.013354,
+      "reward": 0.09664600000000001,
       "step": 3,
       "tool_error": null,
       "tool_name": "lookup_vendor_history",
+      "tool_success": true
+    },
+    {
+      "action_type": "compare_bank_account",
+      "done": false,
+      "payload": {
+        "proposed_bank_account": "IN55NW000111222",
+        "vendor_key": "northwind industrial supplies pvt ltd"
+      },
+      "phase": "investigation",
+      "reward": 0.014283999999999991,
+      "step": 4,
+      "tool_error": null,
+      "tool_name": "compare_bank_account",
       "tool_success": true
     },
     {
@@ -49,24 +63,10 @@
         "vendor_key": "northwind industrial supplies pvt ltd"
       },
       "phase": "investigation",
-      "reward": 0.004283999999999993,
-      "step": 4,
-      "tool_error": null,
-      "tool_name": "search_ledger",
-      "tool_success": true
-    },
-    {
-      "action_type": "compare_bank_account",
-      "done": false,
-      "payload": {
-        "proposed_bank_account": "IN55NW000111222",
-        "vendor_key": "northwind industrial supplies pvt ltd"
-      },
-      "phase": "investigation",
-      "reward": 0.013822000000000001,
+      "reward": 0.0038220000000000025,
       "step": 5,
       "tool_error": null,
-      "tool_name": "compare_bank_account",
+      "tool_name": "search_ledger",
       "tool_success": true
     },
     {
@@ -98,7 +98,7 @@
         "vendor_key": "northwind-industrial"
       },
       "phase": "wait",
-      "reward": 0.07150699999999999,
+      "reward": 0.02150699999999999,
       "step": 8,
       "tool_error": null,
       "tool_name": "lookup_vendor",
@@ -176,7 +176,8 @@
       "top_hits": []
     },
     "observed_risk_signals": [
-      "duplicate_near_match"
+      "duplicate_near_match",
+      "historical_bank_change_rejected"
     ],
     "pending_event_count": 0,
     "revealed_artifacts": [
@@ -190,7 +191,16 @@
       ],
       "vendor_key": "northwind-industrial"
     },
-    "vendor_history": []
+    "vendor_history": [
+      {
+        "event_type": "bank_account_change_request",
+        "status": "rejected"
+      },
+      {
+        "event_type": "bank_account_change_request",
+        "status": "pending_callback_verification"
+      }
+    ]
   },
   "error": "",
   "final_info": {
@@ -252,9 +262,9 @@
         "task_d",
         "task_e"
       ],
-      "competence_ema": 0.7982,
+      "competence_ema": 0.8502,
       "episode_count": 34,
-      "recent_5_avg": 0.8306,
+      "recent_5_avg": 0.9288,
       "stagnation_counter": 0,
       "tier": 3,
       "tier_name": "expert",
@@ -300,7 +310,7 @@
       "state_vector": [
         0.7769230769230769,
         0.5625,
-        1.0,
+        2.0,
         2.0,
         2.0
       ],
@@ -331,7 +341,7 @@
       "case_clock": 9,
       "case_id": "CASE-C-004",
       "contrastive_pair_id": "",
-      "episode_id": "65b64362-2528-4ce3-8622-6c679706f0f3",
+      "episode_id": "a0223fb3-1561-4d85-9943-e869c55fdb9f",
       "final_score": 0.8952,
       "handoff_packet": {},
       "interventions_taken": [
@@ -350,7 +360,8 @@
       ],
       "max_steps": 16,
       "observed_risk_signals": [
-        "duplicate_near_match"
+        "duplicate_near_match",
+        "historical_bank_change_rejected"
       ],
       "pending_event_count": 0,
       "pending_events": [],
@@ -411,27 +422,27 @@
           "success": true
         },
         {
-          "action_type": "search_ledger",
+          "action_type": "compare_bank_account",
           "case_clock": 4,
-          "cost": 0.35,
+          "cost": 0.15,
           "is_intervention": false,
-          "message": "Ledger search complete.",
+          "message": "Compared proposed bank account to approved master data.",
           "payload": {
-            "amount": 4950.0,
-            "invoice_number": "INV-SPLIT-A",
+            "proposed_bank_account": "IN55NW000111222",
             "vendor_key": "northwind industrial supplies pvt ltd"
           },
           "step": 4,
           "success": true
         },
         {
-          "action_type": "compare_bank_account",
+          "action_type": "search_ledger",
           "case_clock": 5,
-          "cost": 0.15,
+          "cost": 0.35,
           "is_intervention": false,
-          "message": "Compared proposed bank account to approved master data.",
+          "message": "Ledger search complete.",
           "payload": {
-            "proposed_bank_account": "IN55NW000111222",
+            "amount": 4950.0,
+            "invoice_number": "INV-SPLIT-A",
             "vendor_key": "northwind industrial supplies pvt ltd"
           },
           "step": 5,
@@ -630,7 +641,7 @@
       "case_clock": 9,
       "case_id": "CASE-C-004",
       "contrastive_pair_id": "",
-      "episode_id": "65b64362-2528-4ce3-8622-6c679706f0f3",
+      "episode_id": "a0223fb3-1561-4d85-9943-e869c55fdb9f",
       "final_score": 0.8952,
       "handoff_packet": {},
       "interventions_taken": [
@@ -649,7 +660,8 @@
       ],
       "max_steps": 16,
       "observed_risk_signals": [
-        "duplicate_near_match"
+        "duplicate_near_match",
+        "historical_bank_change_rejected"
       ],
       "pending_event_count": 0,
       "pending_events": [],
@@ -710,27 +722,27 @@
           "success": true
         },
         {
-          "action_type": "search_ledger",
+          "action_type": "compare_bank_account",
           "case_clock": 4,
-          "cost": 0.35,
+          "cost": 0.15,
           "is_intervention": false,
-          "message": "Ledger search complete.",
+          "message": "Compared proposed bank account to approved master data.",
           "payload": {
-            "amount": 4950.0,
-            "invoice_number": "INV-SPLIT-A",
+            "proposed_bank_account": "IN55NW000111222",
             "vendor_key": "northwind industrial supplies pvt ltd"
           },
           "step": 4,
           "success": true
         },
         {
-          "action_type": "compare_bank_account",
+          "action_type": "search_ledger",
           "case_clock": 5,
-          "cost": 0.15,
+          "cost": 0.35,
           "is_intervention": false,
-          "message": "Compared proposed bank account to approved master data.",
+          "message": "Ledger search complete.",
           "payload": {
-            "proposed_bank_account": "IN55NW000111222",
+            "amount": 4950.0,
+            "invoice_number": "INV-SPLIT-A",
             "vendor_key": "northwind industrial supplies pvt ltd"
           },
           "step": 5,
@@ -881,6 +893,14 @@
           "signature": "lookup_vendor_history:{\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
         },
         {
+          "action_type": "compare_bank_account",
+          "payload": {
+            "proposed_bank_account": "IN55NW000111222",
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          },
+          "signature": "compare_bank_account:{\"proposed_bank_account\":\"IN55NW000111222\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
+        },
+        {
           "action_type": "search_ledger",
           "payload": {
             "amount": 4950.0,
@@ -888,14 +908,6 @@
             "vendor_key": "northwind industrial supplies pvt ltd"
           },
           "signature": "search_ledger:{\"amount\":4950.0,\"invoice_number\":\"INV-SPLIT-A\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
-        },
-        {
-          "action_type": "compare_bank_account",
-          "payload": {
-            "proposed_bank_account": "IN55NW000111222",
-            "vendor_key": "northwind industrial supplies pvt ltd"
-          },
-          "signature": "compare_bank_account:{\"proposed_bank_account\":\"IN55NW000111222\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
         }
       ]
     },
@@ -955,7 +967,7 @@
     "case_clock": 9,
     "case_id": "CASE-C-004",
     "contrastive_pair_id": "",
-    "episode_id": "65b64362-2528-4ce3-8622-6c679706f0f3",
+    "episode_id": "a0223fb3-1561-4d85-9943-e869c55fdb9f",
     "final_score": 0.8952,
     "handoff_packet": {},
     "interventions_taken": [
@@ -974,7 +986,8 @@
     ],
     "max_steps": 16,
     "observed_risk_signals": [
-      "duplicate_near_match"
+      "duplicate_near_match",
+      "historical_bank_change_rejected"
     ],
     "pending_event_count": 0,
     "pending_events": [],
@@ -1035,27 +1048,27 @@
         "success": true
       },
       {
-        "action_type": "search_ledger",
+        "action_type": "compare_bank_account",
         "case_clock": 4,
-        "cost": 0.35,
+        "cost": 0.15,
         "is_intervention": false,
-        "message": "Ledger search complete.",
+        "message": "Compared proposed bank account to approved master data.",
         "payload": {
-          "amount": 4950.0,
-          "invoice_number": "INV-SPLIT-A",
+          "proposed_bank_account": "IN55NW000111222",
           "vendor_key": "northwind industrial supplies pvt ltd"
         },
         "step": 4,
         "success": true
       },
       {
-        "action_type": "compare_bank_account",
+        "action_type": "search_ledger",
         "case_clock": 5,
-        "cost": 0.15,
+        "cost": 0.35,
         "is_intervention": false,
-        "message": "Compared proposed bank account to approved master data.",
+        "message": "Ledger search complete.",
         "payload": {
-          "proposed_bank_account": "IN55NW000111222",
+          "amount": 4950.0,
+          "invoice_number": "INV-SPLIT-A",
           "vendor_key": "northwind industrial supplies pvt ltd"
         },
         "step": 5,

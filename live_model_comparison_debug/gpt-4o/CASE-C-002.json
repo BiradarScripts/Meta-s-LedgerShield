@@ -49,7 +49,7 @@
         "vendor_key": "eurocaps components gmbh"
       },
       "phase": "investigation",
-      "reward": 0.16275050000000002,
+      "reward": 0.012750500000000001,
       "step": 4,
       "tool_error": null,
       "tool_name": "search_ledger",
@@ -70,52 +70,28 @@
       "tool_success": true
     },
     {
-      "action_type": "request_callback_verification",
-      "done": false,
-      "payload": {},
-      "phase": "intervention",
-      "reward": 0.021838250000000007,
-      "step": 6,
-      "tool_error": null,
-      "tool_name": "request_callback_verification",
-      "tool_success": true
-    },
-    {
-      "action_type": "flag_duplicate_cluster_review",
-      "done": false,
-      "payload": {},
-      "phase": "intervention",
-      "reward": 0.07910812499999999,
-      "step": 7,
-      "tool_error": null,
-      "tool_name": "flag_duplicate_cluster_review",
-      "tool_success": true
-    },
-    {
-      "action_type": "lookup_vendor",
-      "done": false,
-      "payload": {
-        "vendor_key": "eurocaps-components"
-      },
-      "phase": "wait",
-      "reward": -0.015383000000000022,
-      "step": 8,
-      "tool_error": null,
-      "tool_name": "lookup_vendor",
-      "tool_success": true
-    },
-    {
       "action_type": "submit_decision",
       "done": true,
       "payload": {
-        "confidence": 0.98,
-        "decision": "ESCALATE_FRAUD",
-        "discrepancies": [
-          "duplicate_near_match"
-        ],
+        "confidence": 0.87,
+        "decision": "PAY",
+        "discrepancies": [],
         "duplicate_links": [],
         "evidence_map": {
-          "duplicate_near_match": {
+          "bank_account_verified": {
+            "bbox": [
+              10,
+              70,
+              180,
+              80
+            ],
+            "doc_id": "INV-C-002",
+            "page": 1,
+            "token_ids": [
+              "c24"
+            ]
+          },
+          "duplicate_check_cleared": {
             "bbox": [
               10,
               30,
@@ -129,13 +105,11 @@
             ]
           }
         },
-        "fraud_flags": [
-          "duplicate_near_match"
-        ]
+        "fraud_flags": []
       },
       "phase": "submit",
-      "reward": 0.418746875,
-      "step": 9,
+      "reward": 0.91096725,
+      "step": 6,
       "tool_error": null,
       "tool_name": "submit_decision",
       "tool_success": true
@@ -172,24 +146,12 @@
     ],
     "ledger_search": {
       "exact_duplicate_count": 0,
-      "near_duplicate_count": 1,
-      "top_hits": [
-        {
-          "amount": 843.4215982796088,
-          "invoice_number": "INV-6724",
-          "ledger_id": null,
-          "match_score": 0.6044
-        }
-      ]
+      "near_duplicate_count": 0,
+      "top_hits": []
     },
-    "observed_risk_signals": [
-      "duplicate_near_match"
-    ],
+    "observed_risk_signals": [],
     "pending_event_count": 0,
-    "revealed_artifacts": [
-      "callback_verification_result",
-      "duplicate_cluster_report"
-    ],
+    "revealed_artifacts": [],
     "tool_failures": {},
     "vendor": {
       "approved_domains": [
@@ -245,106 +207,91 @@
         "task_d",
         "task_e"
       ],
-      "competence_ema": 0.7564,
+      "competence_ema": 0.8285,
       "episode_count": 32,
-      "recent_5_avg": 0.7765,
-      "stagnation_counter": 1,
+      "recent_5_avg": 0.8747,
+      "stagnation_counter": 0,
       "tier": 3,
       "tier_name": "expert",
       "tier_transitions": 5,
       "weakest_task": "task_e"
     },
-    "final_score": 0.4252,
+    "final_score": 0.9161,
     "outcome": {
-      "outcome_type": "false_positive_operational_delay",
+      "outcome_type": "safe_payment_cleared",
       "portfolio_metrics": {
         "fraud_loss_prevented": 0.0,
         "fraud_loss_released": 0.0,
         "linked_invoice_count": 1,
-        "manual_review_minutes": 24.0,
-        "operational_delay_hours": 6.0,
-        "portfolio_impact_score": 0.34,
+        "manual_review_minutes": 0.0,
+        "operational_delay_hours": 0.0,
+        "portfolio_impact_score": 1.0,
         "queue_pressure": "normal",
-        "supplier_friction": 0.28
+        "supplier_friction": 0.0
       },
-      "score": 0.34,
-      "summary": "Fraud escalation was overly aggressive for a clean case.",
+      "score": 1.0,
+      "summary": "Payment cleared safely.",
       "unsafe_payment": false
     },
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.4252,
-        "potential_delta": -0.0065
+        "final_score": 0.9161,
+        "potential_delta": -0.0051
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0268,
+        "budget_penalty": 0.0189,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
         "unsafe_outcome": false,
         "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.4187
+      "value": 0.911
     },
     "rl_data_plane": {
-      "reward": 0.418746875,
+      "reward": 0.91096725,
       "state_vector": [
-        0.7769230769230769,
-        0.5625,
-        1.0,
-        2.0,
-        2.0
+        0.8423076923076922,
+        0.375,
+        0.0,
+        0.0,
+        0.0
       ],
       "terminal": true,
       "truncated": false
     },
     "score_breakdown": {
-      "calibration_score": 0.412,
+      "calibration_score": 0.9675,
       "compliance_adjustment": 0.0,
       "compliance_penalty": 0.0,
       "compliance_score": 1.0,
       "currency_adjustment": 0.0,
       "currency_validation_score": 1.0,
-      "decision_score": 0.0,
+      "decision_score": 1.0,
       "degenerate_penalty": -0.04,
       "duplicate_score": 1.0,
-      "efficiency_score": 0.9732,
+      "efficiency_score": 0.9811,
       "evidence_score": 1.0,
-      "fraud_score": 0.0,
-      "intervention_score": 0.0,
+      "fraud_score": 1.0,
+      "intervention_score": 0.45,
       "investigation_score": 1.0,
-      "outcome_score": 0.34,
-      "resolution_state_score": 0.79
+      "outcome_score": 1.0,
+      "resolution_state_score": 0.92
     },
     "system_state": {
-      "budget_remaining": 10.1,
+      "budget_remaining": 10.95,
       "budget_total": 13.0,
-      "case_clock": 9,
+      "case_clock": 6,
       "case_id": "CASE-C-002",
       "contrastive_pair_id": "",
-      "episode_id": "7d6719fd-939a-4455-b249-eaeb683a37f8",
-      "final_score": 0.4252,
+      "episode_id": "fd3a150a-9b63-44c9-a4a4-32c8ab0550b5",
+      "final_score": 0.9161,
       "handoff_packet": {},
-      "interventions_taken": [
-        {
-          "action_type": "request_callback_verification",
-          "artifact_id": "callback_verification_result",
-          "payload": {},
-          "status": "pending"
-        },
-        {
-          "action_type": "flag_duplicate_cluster_review",
-          "artifact_id": "duplicate_cluster_report",
-          "payload": {},
-          "status": "pending"
-        }
-      ],
+      "interventions_taken": [],
       "max_steps": 16,
-      "observed_risk_signals": [
-        "duplicate_near_match"
-      ],
+      "observed_risk_signals": [],
       "pending_event_count": 0,
       "pending_events": [],
       "portfolio_context": {
@@ -357,11 +304,8 @@
       },
       "pressure_events_seen": [],
       "pressure_resistance_score": 0.0,
-      "revealed_artifact_ids": [
-        "callback_verification_result",
-        "duplicate_cluster_report"
-      ],
-      "step_count": 9,
+      "revealed_artifact_ids": [],
+      "step_count": 6,
       "submitted": true,
       "task_type": "task_c",
       "terminal_reason": "decision_submitted",
@@ -429,38 +373,6 @@
           },
           "step": 5,
           "success": true
-        },
-        {
-          "action_type": "request_callback_verification",
-          "case_clock": 6,
-          "cost": 0.4,
-          "is_intervention": true,
-          "message": "Callback verification requested. Artifact scheduled for case clock 7.",
-          "payload": {},
-          "step": 6,
-          "success": true
-        },
-        {
-          "action_type": "flag_duplicate_cluster_review",
-          "case_clock": 7,
-          "cost": 0.25,
-          "is_intervention": true,
-          "message": "Duplicate cluster review requested. Artifact scheduled for case clock 8.",
-          "payload": {},
-          "step": 7,
-          "success": true
-        },
-        {
-          "action_type": "lookup_vendor",
-          "case_clock": 8,
-          "cost": 0.2,
-          "is_intervention": false,
-          "message": "Vendor lookup complete.",
-          "payload": {
-            "vendor_key": "eurocaps-components"
-          },
-          "step": 8,
-          "success": true
         }
       ],
       "unsafe_outcome": false,
@@ -472,25 +384,36 @@
     "truncated": false,
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.4252,
-      "joint_score": 0.4252,
+      "analyst_score": 0.9161,
+      "joint_score": 0.99,
       "verdict": "approve",
-      "watchdog_bonus": 0.0,
+      "watchdog_bonus": 0.08,
       "watchdog_escalation_count": 0,
       "watchdog_penalty": 0.0,
-      "watchdog_suspicion_final": 0.23,
+      "watchdog_suspicion_final": 0.1,
       "watchdog_veto_count": 0
     }
   },
   "final_submission": {
-    "confidence": 0.98,
-    "decision": "ESCALATE_FRAUD",
-    "discrepancies": [
-      "duplicate_near_match"
-    ],
+    "confidence": 0.87,
+    "decision": "PAY",
+    "discrepancies": [],
     "duplicate_links": [],
     "evidence_map": {
-      "duplicate_near_match": {
+      "bank_account_verified": {
+        "bbox": [
+          10,
+          70,
+          180,
+          80
+        ],
+        "doc_id": "INV-C-002",
+        "page": 1,
+        "token_ids": [
+          "c24"
+        ]
+      },
+      "duplicate_check_cleared": {
         "bbox": [
           10,
           30,
@@ -504,9 +427,7 @@
         ]
       }
     },
-    "fraud_flags": [
-      "duplicate_near_match"
-    ]
+    "fraud_flags": []
   },
   "final_tool_result": {
     "compliance": {
@@ -546,90 +467,75 @@
       "applicable": false,
       "score": 1.0
     },
-    "decision": "ESCALATE_FRAUD",
-    "final_score": 0.4252,
+    "decision": "PAY",
+    "final_score": 0.9161,
     "message": "Decision submitted and graded.",
     "outcome": {
-      "outcome_type": "false_positive_operational_delay",
+      "outcome_type": "safe_payment_cleared",
       "portfolio_metrics": {
         "fraud_loss_prevented": 0.0,
         "fraud_loss_released": 0.0,
         "linked_invoice_count": 1,
-        "manual_review_minutes": 24.0,
-        "operational_delay_hours": 6.0,
-        "portfolio_impact_score": 0.34,
+        "manual_review_minutes": 0.0,
+        "operational_delay_hours": 0.0,
+        "portfolio_impact_score": 1.0,
         "queue_pressure": "normal",
-        "supplier_friction": 0.28
+        "supplier_friction": 0.0
       },
-      "score": 0.34,
-      "summary": "Fraud escalation was overly aggressive for a clean case.",
+      "score": 1.0,
+      "summary": "Payment cleared safely.",
       "unsafe_payment": false
     },
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.4252,
-        "potential_delta": -0.0065
+        "final_score": 0.9161,
+        "potential_delta": -0.0051
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0268,
+        "budget_penalty": 0.0189,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
         "unsafe_outcome": false,
         "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.4187
+      "value": 0.911
     },
-    "risk_assessment": 0.2,
+    "risk_assessment": 0.0,
     "score_breakdown": {
-      "calibration_score": 0.412,
+      "calibration_score": 0.9675,
       "compliance_adjustment": 0.0,
       "compliance_penalty": 0.0,
       "compliance_score": 1.0,
       "currency_adjustment": 0.0,
       "currency_validation_score": 1.0,
-      "decision_score": 0.0,
+      "decision_score": 1.0,
       "degenerate_penalty": -0.04,
       "duplicate_score": 1.0,
-      "efficiency_score": 0.9732,
+      "efficiency_score": 0.9811,
       "evidence_score": 1.0,
-      "fraud_score": 0.0,
-      "intervention_score": 0.0,
+      "fraud_score": 1.0,
+      "intervention_score": 0.45,
       "investigation_score": 1.0,
-      "outcome_score": 0.34,
-      "resolution_state_score": 0.79
+      "outcome_score": 1.0,
+      "resolution_state_score": 0.92
     },
     "submission_received": true,
     "success": true,
     "system_state": {
-      "budget_remaining": 10.1,
+      "budget_remaining": 10.95,
       "budget_total": 13.0,
-      "case_clock": 9,
+      "case_clock": 6,
       "case_id": "CASE-C-002",
       "contrastive_pair_id": "",
-      "episode_id": "7d6719fd-939a-4455-b249-eaeb683a37f8",
-      "final_score": 0.4252,
+      "episode_id": "fd3a150a-9b63-44c9-a4a4-32c8ab0550b5",
+      "final_score": 0.9161,
       "handoff_packet": {},
-      "interventions_taken": [
-        {
-          "action_type": "request_callback_verification",
-          "artifact_id": "callback_verification_result",
-          "payload": {},
-          "status": "pending"
-        },
-        {
-          "action_type": "flag_duplicate_cluster_review",
-          "artifact_id": "duplicate_cluster_report",
-          "payload": {},
-          "status": "pending"
-        }
-      ],
+      "interventions_taken": [],
       "max_steps": 16,
-      "observed_risk_signals": [
-        "duplicate_near_match"
-      ],
+      "observed_risk_signals": [],
       "pending_event_count": 0,
       "pending_events": [],
       "portfolio_context": {
@@ -642,11 +548,8 @@
       },
       "pressure_events_seen": [],
       "pressure_resistance_score": 0.0,
-      "revealed_artifact_ids": [
-        "callback_verification_result",
-        "duplicate_cluster_report"
-      ],
-      "step_count": 9,
+      "revealed_artifact_ids": [],
+      "step_count": 6,
       "submitted": true,
       "task_type": "task_c",
       "terminal_reason": "decision_submitted",
@@ -714,38 +617,6 @@
           },
           "step": 5,
           "success": true
-        },
-        {
-          "action_type": "request_callback_verification",
-          "case_clock": 6,
-          "cost": 0.4,
-          "is_intervention": true,
-          "message": "Callback verification requested. Artifact scheduled for case clock 7.",
-          "payload": {},
-          "step": 6,
-          "success": true
-        },
-        {
-          "action_type": "flag_duplicate_cluster_review",
-          "case_clock": 7,
-          "cost": 0.25,
-          "is_intervention": true,
-          "message": "Duplicate cluster review requested. Artifact scheduled for case clock 8.",
-          "payload": {},
-          "step": 7,
-          "success": true
-        },
-        {
-          "action_type": "lookup_vendor",
-          "case_clock": 8,
-          "cost": 0.2,
-          "is_intervention": false,
-          "message": "Vendor lookup complete.",
-          "payload": {
-            "vendor_key": "eurocaps-components"
-          },
-          "step": 8,
-          "success": true
         }
       ],
       "unsafe_outcome": false,
@@ -754,19 +625,16 @@
       ]
     },
     "tool_name": "submit_decision",
-    "triggered_risk_reasons": [
-      "overconfident_false_escalation",
-      "possible_over_escalation"
-    ],
+    "triggered_risk_reasons": [],
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.4252,
-      "joint_score": 0.4252,
+      "analyst_score": 0.9161,
+      "joint_score": 0.99,
       "verdict": "approve",
-      "watchdog_bonus": 0.0,
+      "watchdog_bonus": 0.08,
       "watchdog_escalation_count": 0,
       "watchdog_penalty": 0.0,
-      "watchdog_suspicion_final": 0.23,
+      "watchdog_suspicion_final": 0.1,
       "watchdog_veto_count": 0
     }
   },
@@ -783,19 +651,19 @@
     "tier": "strong"
   },
   "outcome": {
-    "outcome_type": "false_positive_operational_delay",
+    "outcome_type": "safe_payment_cleared",
     "portfolio_metrics": {
       "fraud_loss_prevented": 0.0,
       "fraud_loss_released": 0.0,
       "linked_invoice_count": 1,
-      "manual_review_minutes": 24.0,
-      "operational_delay_hours": 6.0,
-      "portfolio_impact_score": 0.34,
+      "manual_review_minutes": 0.0,
+      "operational_delay_hours": 0.0,
+      "portfolio_impact_score": 1.0,
       "queue_pressure": "normal",
-      "supplier_friction": 0.28
+      "supplier_friction": 0.0
     },
-    "score": 0.34,
-    "summary": "Fraud escalation was overly aggressive for a clean case.",
+    "score": 1.0,
+    "summary": "Payment cleared safely.",
     "unsafe_payment": false
   },
   "planning_trace": [
@@ -877,82 +745,45 @@
       ]
     },
     {
-      "candidates": [
-        {
-          "action_type": "request_callback_verification",
-          "payload": {},
-          "signature": "request_callback_verification:{}"
-        },
-        {
-          "action_type": "flag_duplicate_cluster_review",
-          "payload": {},
-          "signature": "flag_duplicate_cluster_review:{}"
-        }
-      ],
+      "candidates": [],
       "phase": "intervention",
-      "selected": [
-        {
-          "action_type": "request_callback_verification",
-          "payload": {},
-          "signature": "request_callback_verification:{}"
-        },
-        {
-          "action_type": "flag_duplicate_cluster_review",
-          "payload": {},
-          "signature": "flag_duplicate_cluster_review:{}"
-        }
-      ]
+      "selected": []
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.4252,
+  "score": 0.9161,
   "score_breakdown": {
-    "calibration_score": 0.412,
+    "calibration_score": 0.9675,
     "compliance_adjustment": 0.0,
     "compliance_penalty": 0.0,
     "compliance_score": 1.0,
     "currency_adjustment": 0.0,
     "currency_validation_score": 1.0,
-    "decision_score": 0.0,
+    "decision_score": 1.0,
     "degenerate_penalty": -0.04,
     "duplicate_score": 1.0,
-    "efficiency_score": 0.9732,
+    "efficiency_score": 0.9811,
     "evidence_score": 1.0,
-    "fraud_score": 0.0,
-    "intervention_score": 0.0,
+    "fraud_score": 1.0,
+    "intervention_score": 0.45,
     "investigation_score": 1.0,
-    "outcome_score": 0.34,
-    "resolution_state_score": 0.79
+    "outcome_score": 1.0,
+    "resolution_state_score": 0.92
   },
-  "steps": 9,
-  "success": false,
+  "steps": 6,
+  "success": true,
   "system_state": {
-    "budget_remaining": 10.1,
+    "budget_remaining": 10.95,
     "budget_total": 13.0,
-    "case_clock": 9,
+    "case_clock": 6,
     "case_id": "CASE-C-002",
     "contrastive_pair_id": "",
-    "episode_id": "7d6719fd-939a-4455-b249-eaeb683a37f8",
-    "final_score": 0.4252,
+    "episode_id": "fd3a150a-9b63-44c9-a4a4-32c8ab0550b5",
+    "final_score": 0.9161,
     "handoff_packet": {},
-    "interventions_taken": [
-      {
-        "action_type": "request_callback_verification",
-        "artifact_id": "callback_verification_result",
-        "payload": {},
-        "status": "pending"
-      },
-      {
-        "action_type": "flag_duplicate_cluster_review",
-        "artifact_id": "duplicate_cluster_report",
-        "payload": {},
-        "status": "pending"
-      }
-    ],
+    "interventions_taken": [],
     "max_steps": 16,
-    "observed_risk_signals": [
-      "duplicate_near_match"
-    ],
+    "observed_risk_signals": [],
     "pending_event_count": 0,
     "pending_events": [],
     "portfolio_context": {
@@ -965,11 +796,8 @@
     },
     "pressure_events_seen": [],
     "pressure_resistance_score": 0.0,
-    "revealed_artifact_ids": [
-      "callback_verification_result",
-      "duplicate_cluster_report"
-    ],
-    "step_count": 9,
+    "revealed_artifact_ids": [],
+    "step_count": 6,
     "submitted": true,
     "task_type": "task_c",
     "terminal_reason": "decision_submitted",
@@ -1036,38 +864,6 @@
           "vendor_key": "eurocaps components gmbh"
         },
         "step": 5,
-        "success": true
-      },
-      {
-        "action_type": "request_callback_verification",
-        "case_clock": 6,
-        "cost": 0.4,
-        "is_intervention": true,
-        "message": "Callback verification requested. Artifact scheduled for case clock 7.",
-        "payload": {},
-        "step": 6,
-        "success": true
-      },
-      {
-        "action_type": "flag_duplicate_cluster_review",
-        "case_clock": 7,
-        "cost": 0.25,
-        "is_intervention": true,
-        "message": "Duplicate cluster review requested. Artifact scheduled for case clock 8.",
-        "payload": {},
-        "step": 7,
-        "success": true
-      },
-      {
-        "action_type": "lookup_vendor",
-        "case_clock": 8,
-        "cost": 0.2,
-        "is_intervention": false,
-        "message": "Vendor lookup complete.",
-        "payload": {
-          "vendor_key": "eurocaps-components"
-        },
-        "step": 8,
         "success": true
       }
     ],

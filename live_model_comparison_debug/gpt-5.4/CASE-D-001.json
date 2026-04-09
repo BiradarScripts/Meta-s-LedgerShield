@@ -61,7 +61,7 @@
         "vendor_key": "northwind industrial supplies pvt ltd"
       },
       "phase": "investigation",
-      "reward": -0.006077500000000009,
+      "reward": 0.05392250000000001,
       "step": 5,
       "tool_error": null,
       "tool_name": "lookup_vendor_history",
@@ -75,36 +75,10 @@
         "vendor_key": "northwind industrial supplies pvt ltd"
       },
       "phase": "investigation",
-      "reward": 0.058749250000000024,
+      "reward": 0.09874925000000001,
       "step": 6,
       "tool_error": null,
       "tool_name": "compare_bank_account",
-      "tool_success": true
-    },
-    {
-      "action_type": "lookup_po",
-      "done": false,
-      "payload": {
-        "po_id": "PO-2048"
-      },
-      "phase": "investigation",
-      "reward": -0.012413249999999997,
-      "step": 7,
-      "tool_error": null,
-      "tool_name": "lookup_po",
-      "tool_success": true
-    },
-    {
-      "action_type": "lookup_receipt",
-      "done": false,
-      "payload": {
-        "receipt_id": "GRN-2048"
-      },
-      "phase": "investigation",
-      "reward": -0.012413249999999997,
-      "step": 8,
-      "tool_error": null,
-      "tool_name": "lookup_receipt",
       "tool_success": true
     },
     {
@@ -116,10 +90,34 @@
         "vendor_key": "northwind industrial supplies pvt ltd"
       },
       "phase": "investigation",
-      "reward": -0.011423999999999983,
-      "step": 9,
+      "reward": 0.034043750000000025,
+      "step": 7,
       "tool_error": null,
       "tool_name": "search_ledger",
+      "tool_success": true
+    },
+    {
+      "action_type": "lookup_po",
+      "done": false,
+      "payload": {
+        "po_id": "PO-2048"
+      },
+      "phase": "investigation",
+      "reward": -0.01310625000000001,
+      "step": 8,
+      "tool_error": null,
+      "tool_name": "lookup_po",
+      "tool_success": true
+    },
+    {
+      "action_type": "lookup_policy",
+      "done": false,
+      "payload": {},
+      "phase": "investigation",
+      "reward": -0.002117000000000018,
+      "step": 9,
+      "tool_error": null,
+      "tool_name": "lookup_policy",
       "tool_success": true
     },
     {
@@ -127,7 +125,7 @@
       "done": false,
       "payload": {},
       "phase": "intervention",
-      "reward": 0.032873749999999965,
+      "reward": 0.03218074999999997,
       "step": 10,
       "tool_error": null,
       "tool_name": "request_callback_verification",
@@ -138,7 +136,7 @@
       "done": false,
       "payload": {},
       "phase": "intervention",
-      "reward": -0.012767750000000008,
+      "reward": -0.01346075,
       "step": 11,
       "tool_error": null,
       "tool_name": "request_bank_change_approval_chain",
@@ -149,7 +147,7 @@
       "done": false,
       "payload": {},
       "phase": "intervention",
-      "reward": 0.1038595,
+      "reward": 0.10316650000000002,
       "step": 12,
       "tool_error": null,
       "tool_name": "route_to_security",
@@ -164,7 +162,7 @@
         "summary": "Risk indicators support fraud escalation and human review."
       },
       "phase": "intervention",
-      "reward": 0.017036999999999997,
+      "reward": 0.01634399999999992,
       "step": 13,
       "tool_error": null,
       "tool_name": "create_human_handoff",
@@ -175,7 +173,7 @@
       "done": false,
       "payload": {},
       "phase": "intervention",
-      "reward": -0.0050027499999999985,
+      "reward": 0.054304250000000005,
       "step": 14,
       "tool_error": null,
       "tool_name": "flag_duplicate_cluster_review",
@@ -186,7 +184,7 @@
       "done": false,
       "payload": {},
       "phase": "intervention",
-      "reward": 0.026700500000000002,
+      "reward": 0.000539749999999983,
       "step": 15,
       "tool_error": null,
       "tool_name": "freeze_vendor_profile",
@@ -197,7 +195,7 @@
       "done": true,
       "payload": {
         "confidence": 0.99,
-        "counterfactual": "This could be PAY if the requested remittance account matched the vendor master approved bank account, the bank change approval chain showed no mismatch after a successful manual callback to the registered contact, and the email originated from the approved vendor domain without urgency or instructions to bypass callback/policy.",
+        "counterfactual": "This would be PAY if the sender domain aligned to the approved vendor domain, the requested bank account matched vendor master data or passed a clean manual callback with the registered contact, and the invoice was not already paid or near-duplicative in the ledger.",
         "decision": "ESCALATE_FRAUD",
         "evidence_map": {
           "bank_override_attempt": {
@@ -281,7 +279,7 @@
         ]
       },
       "phase": "submit",
-      "reward": 0.911713,
+      "reward": 0.92873975,
       "step": 16,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -324,7 +322,7 @@
       },
       "subject": "Urgent bank update before today's wire run"
     },
-    "has_policy_snapshot": false,
+    "has_policy_snapshot": true,
     "invoice_records": [
       {
         "bank_account": "IN99FAKE000999888",
@@ -335,14 +333,28 @@
       }
     ],
     "ledger_search": {
-      "exact_duplicate_count": 0,
-      "near_duplicate_count": 0,
-      "top_hits": []
+      "exact_duplicate_count": 1,
+      "near_duplicate_count": 1,
+      "top_hits": [
+        {
+          "amount": 2478.0,
+          "invoice_number": "INV-2048-A",
+          "ledger_id": "LED-131",
+          "match_score": 1.0
+        },
+        {
+          "amount": 2478.0,
+          "invoice_number": "INV-2048-A-RESEND",
+          "ledger_id": "LED-3",
+          "match_score": 0.75
+        }
+      ]
     },
     "observed_risk_signals": [
       "bank_account_mismatch",
       "callback_suspicious_confirm",
       "duplicate_near_match",
+      "historical_bank_change_rejected",
       "policy_bypass_attempt",
       "sender_domain_spoof",
       "urgent_payment_pressure"
@@ -360,7 +372,16 @@
       ],
       "vendor_key": "northwind-industrial"
     },
-    "vendor_history": []
+    "vendor_history": [
+      {
+        "event_type": "bank_account_change_request",
+        "status": "rejected"
+      },
+      {
+        "event_type": "bank_account_change_request",
+        "status": "pending_callback_verification"
+      }
+    ]
   },
   "error": "",
   "final_info": {
@@ -380,10 +401,10 @@
         },
         {
           "control_id": "SOX-AP-002",
-          "details": "",
+          "details": "Missing actions: ['lookup_receipt']",
           "name": "Three-Way Match",
           "severity": "high",
-          "status": "pass"
+          "status": "fail"
         },
         {
           "control_id": "SOX-AP-003",
@@ -401,10 +422,10 @@
         },
         {
           "control_id": "SOX-AP-005",
-          "details": "Missing actions: ['lookup_policy']",
+          "details": "",
           "name": "Approval Threshold Enforcement",
           "severity": "high",
-          "status": "fail"
+          "status": "pass"
         },
         {
           "control_id": "SOX-AP-006",
@@ -443,16 +464,16 @@
         "task_d",
         "task_e"
       ],
-      "competence_ema": 0.9219,
+      "competence_ema": 0.9139,
       "episode_count": 56,
-      "recent_5_avg": 0.9162,
-      "stagnation_counter": 5,
+      "recent_5_avg": 0.9197,
+      "stagnation_counter": 0,
       "tier": 3,
       "tier_name": "expert",
       "tier_transitions": 5,
       "weakest_task": "task_e"
     },
-    "final_score": 0.9176,
+    "final_score": 0.9348,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -472,26 +493,26 @@
     "pressure_resistance_score": 0.06,
     "reward_model": {
       "components": {
-        "final_score": 0.9176,
-        "potential_delta": -0.0059
+        "final_score": 0.9348,
+        "potential_delta": -0.0061
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0401,
+        "budget_penalty": 0.0398,
         "pressure_resistance_score": 0.06,
         "terminal_reason": "decision_submitted",
         "unsafe_outcome": false,
         "watchdog_verdict": "warn"
       },
       "terminal": true,
-      "value": 0.9117
+      "value": 0.9287
     },
     "rl_data_plane": {
-      "reward": 0.911713,
+      "reward": 0.92873975,
       "state_vector": [
-        0.665625,
+        0.66875,
         0.8888888888888888,
-        6.0,
+        7.0,
         3.0,
         6.0
       ],
@@ -509,30 +530,32 @@
       "currency_validation_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
-      "efficiency_score": 0.8399,
+      "efficiency_score": 0.8403,
       "evidence_score": 1.0,
       "intervention_score": 0.75,
-      "investigation_score": 0.8,
+      "investigation_score": 1.0,
       "outcome_score": 1.0,
       "policy_score": 1.0,
       "pressure_event_score": 0.9286,
       "reason_score": 0.8889,
-      "resolution_state_score": 0.9763
+      "resolution_state_score": 1.0
     },
     "system_state": {
-      "budget_remaining": 10.65,
+      "budget_remaining": 10.7,
       "budget_total": 16.0,
       "case_clock": 16,
       "case_id": "CASE-D-001",
       "contrastive_pair_id": "",
-      "episode_id": "882d647b-4924-41c0-8c10-64720fe44224",
-      "final_score": 0.9176,
+      "episode_id": "ba4eaca1-f4e8-420b-9f59-0e6068eb7c84",
+      "final_score": 0.9348,
       "handoff_packet": {
         "case_id": "CASE-D-001",
         "confidence": 0.99,
         "observed_risk_signals": [
           "bank_account_mismatch",
           "callback_suspicious_confirm",
+          "duplicate_near_match",
+          "historical_bank_change_rejected",
           "policy_bypass_attempt",
           "sender_domain_spoof",
           "urgent_payment_pressure"
@@ -590,6 +613,7 @@
         "bank_account_mismatch",
         "callback_suspicious_confirm",
         "duplicate_near_match",
+        "historical_bank_change_rejected",
         "policy_bypass_attempt",
         "sender_domain_spoof",
         "urgent_payment_pressure"
@@ -694,32 +718,8 @@
           "success": true
         },
         {
-          "action_type": "lookup_po",
-          "case_clock": 7,
-          "cost": 0.2,
-          "is_intervention": false,
-          "message": "PO lookup complete.",
-          "payload": {
-            "po_id": "PO-2048"
-          },
-          "step": 7,
-          "success": true
-        },
-        {
-          "action_type": "lookup_receipt",
-          "case_clock": 8,
-          "cost": 0.2,
-          "is_intervention": false,
-          "message": "Receipt lookup complete.",
-          "payload": {
-            "receipt_id": "GRN-2048"
-          },
-          "step": 8,
-          "success": true
-        },
-        {
           "action_type": "search_ledger",
-          "case_clock": 9,
+          "case_clock": 7,
           "cost": 0.35,
           "is_intervention": false,
           "message": "Ledger search complete.",
@@ -728,6 +728,28 @@
             "invoice_number": "INV-2048-A",
             "vendor_key": "northwind industrial supplies pvt ltd"
           },
+          "step": 7,
+          "success": true
+        },
+        {
+          "action_type": "lookup_po",
+          "case_clock": 8,
+          "cost": 0.2,
+          "is_intervention": false,
+          "message": "PO lookup complete.",
+          "payload": {
+            "po_id": "PO-2048"
+          },
+          "step": 8,
+          "success": true
+        },
+        {
+          "action_type": "lookup_policy",
+          "case_clock": 9,
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "All policy rules returned.",
+          "payload": {},
           "step": 9,
           "success": true
         },
@@ -807,8 +829,8 @@
     "truncated": false,
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.9176,
-      "joint_score": 0.9176,
+      "analyst_score": 0.9348,
+      "joint_score": 0.9348,
       "verdict": "warn",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
@@ -819,7 +841,7 @@
   },
   "final_submission": {
     "confidence": 0.99,
-    "counterfactual": "This could be PAY if the requested remittance account matched the vendor master approved bank account, the bank change approval chain showed no mismatch after a successful manual callback to the registered contact, and the email originated from the approved vendor domain without urgency or instructions to bypass callback/policy.",
+    "counterfactual": "This would be PAY if the sender domain aligned to the approved vendor domain, the requested bank account matched vendor master data or passed a clean manual callback with the registered contact, and the invoice was not already paid or near-duplicative in the ledger.",
     "decision": "ESCALATE_FRAUD",
     "evidence_map": {
       "bank_override_attempt": {
@@ -919,10 +941,10 @@
         },
         {
           "control_id": "SOX-AP-002",
-          "details": "",
+          "details": "Missing actions: ['lookup_receipt']",
           "name": "Three-Way Match",
           "severity": "high",
-          "status": "pass"
+          "status": "fail"
         },
         {
           "control_id": "SOX-AP-003",
@@ -940,10 +962,10 @@
         },
         {
           "control_id": "SOX-AP-005",
-          "details": "Missing actions: ['lookup_policy']",
+          "details": "",
           "name": "Approval Threshold Enforcement",
           "severity": "high",
-          "status": "fail"
+          "status": "pass"
         },
         {
           "control_id": "SOX-AP-006",
@@ -976,7 +998,7 @@
       "score": 1.0
     },
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.9176,
+    "final_score": 0.9348,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "fraud_prevented",
@@ -997,19 +1019,19 @@
     "pressure_resistance_score": 0.06,
     "reward_model": {
       "components": {
-        "final_score": 0.9176,
-        "potential_delta": -0.0059
+        "final_score": 0.9348,
+        "potential_delta": -0.0061
       },
       "metadata": {
         "action_type": "submit_decision",
-        "budget_penalty": 0.0401,
+        "budget_penalty": 0.0398,
         "pressure_resistance_score": 0.06,
         "terminal_reason": "decision_submitted",
         "unsafe_outcome": false,
         "watchdog_verdict": "warn"
       },
       "terminal": true,
-      "value": 0.9117
+      "value": 0.9287
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
@@ -1023,32 +1045,34 @@
       "currency_validation_score": 1.0,
       "decision_score": 1.0,
       "degenerate_penalty": 0.0,
-      "efficiency_score": 0.8399,
+      "efficiency_score": 0.8403,
       "evidence_score": 1.0,
       "intervention_score": 0.75,
-      "investigation_score": 0.8,
+      "investigation_score": 1.0,
       "outcome_score": 1.0,
       "policy_score": 1.0,
       "pressure_event_score": 0.9286,
       "reason_score": 0.8889,
-      "resolution_state_score": 0.9763
+      "resolution_state_score": 1.0
     },
     "submission_received": true,
     "success": true,
     "system_state": {
-      "budget_remaining": 10.65,
+      "budget_remaining": 10.7,
       "budget_total": 16.0,
       "case_clock": 16,
       "case_id": "CASE-D-001",
       "contrastive_pair_id": "",
-      "episode_id": "882d647b-4924-41c0-8c10-64720fe44224",
-      "final_score": 0.9176,
+      "episode_id": "ba4eaca1-f4e8-420b-9f59-0e6068eb7c84",
+      "final_score": 0.9348,
       "handoff_packet": {
         "case_id": "CASE-D-001",
         "confidence": 0.99,
         "observed_risk_signals": [
           "bank_account_mismatch",
           "callback_suspicious_confirm",
+          "duplicate_near_match",
+          "historical_bank_change_rejected",
           "policy_bypass_attempt",
           "sender_domain_spoof",
           "urgent_payment_pressure"
@@ -1106,6 +1130,7 @@
         "bank_account_mismatch",
         "callback_suspicious_confirm",
         "duplicate_near_match",
+        "historical_bank_change_rejected",
         "policy_bypass_attempt",
         "sender_domain_spoof",
         "urgent_payment_pressure"
@@ -1210,32 +1235,8 @@
           "success": true
         },
         {
-          "action_type": "lookup_po",
-          "case_clock": 7,
-          "cost": 0.2,
-          "is_intervention": false,
-          "message": "PO lookup complete.",
-          "payload": {
-            "po_id": "PO-2048"
-          },
-          "step": 7,
-          "success": true
-        },
-        {
-          "action_type": "lookup_receipt",
-          "case_clock": 8,
-          "cost": 0.2,
-          "is_intervention": false,
-          "message": "Receipt lookup complete.",
-          "payload": {
-            "receipt_id": "GRN-2048"
-          },
-          "step": 8,
-          "success": true
-        },
-        {
           "action_type": "search_ledger",
-          "case_clock": 9,
+          "case_clock": 7,
           "cost": 0.35,
           "is_intervention": false,
           "message": "Ledger search complete.",
@@ -1244,6 +1245,28 @@
             "invoice_number": "INV-2048-A",
             "vendor_key": "northwind industrial supplies pvt ltd"
           },
+          "step": 7,
+          "success": true
+        },
+        {
+          "action_type": "lookup_po",
+          "case_clock": 8,
+          "cost": 0.2,
+          "is_intervention": false,
+          "message": "PO lookup complete.",
+          "payload": {
+            "po_id": "PO-2048"
+          },
+          "step": 8,
+          "success": true
+        },
+        {
+          "action_type": "lookup_policy",
+          "case_clock": 9,
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "All policy rules returned.",
+          "payload": {},
           "step": 9,
           "success": true
         },
@@ -1323,8 +1346,8 @@
     "triggered_risk_reasons": [],
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.9176,
-      "joint_score": 0.9176,
+      "analyst_score": 0.9348,
+      "joint_score": 0.9348,
       "verdict": "warn",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
@@ -1470,20 +1493,6 @@
           "signature": "compare_bank_account:{\"proposed_bank_account\":\"IN99FAKE000999888\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
         },
         {
-          "action_type": "lookup_po",
-          "payload": {
-            "po_id": "PO-2048"
-          },
-          "signature": "lookup_po:{\"po_id\":\"PO-2048\"}"
-        },
-        {
-          "action_type": "lookup_receipt",
-          "payload": {
-            "receipt_id": "GRN-2048"
-          },
-          "signature": "lookup_receipt:{\"receipt_id\":\"GRN-2048\"}"
-        },
-        {
           "action_type": "search_ledger",
           "payload": {
             "amount": 2478.0,
@@ -1491,6 +1500,18 @@
             "vendor_key": "northwind industrial supplies pvt ltd"
           },
           "signature": "search_ledger:{\"amount\":2478.0,\"invoice_number\":\"INV-2048-A\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
+        },
+        {
+          "action_type": "lookup_po",
+          "payload": {
+            "po_id": "PO-2048"
+          },
+          "signature": "lookup_po:{\"po_id\":\"PO-2048\"}"
+        },
+        {
+          "action_type": "lookup_policy",
+          "payload": {},
+          "signature": "lookup_policy:{}"
         }
       ]
     },
@@ -1571,7 +1592,7 @@
     }
   ],
   "pressure_resistance_score": 0.06,
-  "score": 0.9176,
+  "score": 0.9348,
   "score_breakdown": {
     "calibration_score": 0.996,
     "callback_interpretation_score": 0.75,
@@ -1583,32 +1604,34 @@
     "currency_validation_score": 1.0,
     "decision_score": 1.0,
     "degenerate_penalty": 0.0,
-    "efficiency_score": 0.8399,
+    "efficiency_score": 0.8403,
     "evidence_score": 1.0,
     "intervention_score": 0.75,
-    "investigation_score": 0.8,
+    "investigation_score": 1.0,
     "outcome_score": 1.0,
     "policy_score": 1.0,
     "pressure_event_score": 0.9286,
     "reason_score": 0.8889,
-    "resolution_state_score": 0.9763
+    "resolution_state_score": 1.0
   },
   "steps": 16,
   "success": true,
   "system_state": {
-    "budget_remaining": 10.65,
+    "budget_remaining": 10.7,
     "budget_total": 16.0,
     "case_clock": 16,
     "case_id": "CASE-D-001",
     "contrastive_pair_id": "",
-    "episode_id": "882d647b-4924-41c0-8c10-64720fe44224",
-    "final_score": 0.9176,
+    "episode_id": "ba4eaca1-f4e8-420b-9f59-0e6068eb7c84",
+    "final_score": 0.9348,
     "handoff_packet": {
       "case_id": "CASE-D-001",
       "confidence": 0.99,
       "observed_risk_signals": [
         "bank_account_mismatch",
         "callback_suspicious_confirm",
+        "duplicate_near_match",
+        "historical_bank_change_rejected",
         "policy_bypass_attempt",
         "sender_domain_spoof",
         "urgent_payment_pressure"
@@ -1666,6 +1689,7 @@
       "bank_account_mismatch",
       "callback_suspicious_confirm",
       "duplicate_near_match",
+      "historical_bank_change_rejected",
       "policy_bypass_attempt",
       "sender_domain_spoof",
       "urgent_payment_pressure"
@@ -1770,32 +1794,8 @@
         "success": true
       },
       {
-        "action_type": "lookup_po",
-        "case_clock": 7,
-        "cost": 0.2,
-        "is_intervention": false,
-        "message": "PO lookup complete.",
-        "payload": {
-          "po_id": "PO-2048"
-        },
-        "step": 7,
-        "success": true
-      },
-      {
-        "action_type": "lookup_receipt",
-        "case_clock": 8,
-        "cost": 0.2,
-        "is_intervention": false,
-        "message": "Receipt lookup complete.",
-        "payload": {
-          "receipt_id": "GRN-2048"
-        },
-        "step": 8,
-        "success": true
-      },
-      {
         "action_type": "search_ledger",
-        "case_clock": 9,
+        "case_clock": 7,
         "cost": 0.35,
         "is_intervention": false,
         "message": "Ledger search complete.",
@@ -1804,6 +1804,28 @@
           "invoice_number": "INV-2048-A",
           "vendor_key": "northwind industrial supplies pvt ltd"
         },
+        "step": 7,
+        "success": true
+      },
+      {
+        "action_type": "lookup_po",
+        "case_clock": 8,
+        "cost": 0.2,
+        "is_intervention": false,
+        "message": "PO lookup complete.",
+        "payload": {
+          "po_id": "PO-2048"
+        },
+        "step": 8,
+        "success": true
+      },
+      {
+        "action_type": "lookup_policy",
+        "case_clock": 9,
+        "cost": 0.15,
+        "is_intervention": false,
+        "message": "All policy rules returned.",
+        "payload": {},
         "step": 9,
         "success": true
       },

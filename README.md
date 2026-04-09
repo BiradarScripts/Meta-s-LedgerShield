@@ -171,16 +171,16 @@ Then inspect:
 <!-- sync:readme-live-comparison:start -->
 ## Live Comparison Snapshot
 
-Generated on **April 9, 2026 (IST)** from `live_model_comparison.json`.
+Generated on **April 10, 2026 (IST)** from `live_model_comparison.json`.
 
 | Model | Tier | Capability | Average Score | Success Rate | Min Score | Max Score | API Calls |
 |---|---|---:|---:|---:|---:|---:|---:|
-| `gpt-3.5-turbo` | standard | 3.2 | 0.7009 | 38.1% | 0.01 | 0.99 | 63 |
-| `gpt-4o` | strong | 4.6 | 0.8663 | 81.0% | 0.43 | 0.99 | 65 |
-| `gpt-5.4` | elite | 5.4 | 0.9305 | 100.0% | 0.88 | 0.99 | 64 |
+| `gpt-3.5-turbo` | standard | 3.2 | 0.6965 | 38.1% | 0.06 | 0.99 | 63 |
+| `gpt-4o` | strong | 4.6 | 0.8947 | 90.5% | 0.56 | 0.99 | 64 |
+| `gpt-5.4` | elite | 5.4 | 0.9177 | 95.2% | 0.58 | 0.99 | 64 |
 
 - Capability ordering is monotonic across the compared models: `true`.
-- Current frontier gap (`gpt-5.4` vs `gpt-4o`): `+0.0642` average score and `+19.1%` success rate.
+- Current frontier gap (`gpt-5.4` vs `gpt-4o`): `+0.0229` average score and `+4.8%` success rate.
 - Refresh after rerunning the live comparison artifact:
 ```bash
 python compare_models_live.py \
@@ -194,10 +194,11 @@ The repo keeps the generated artifact and full trace folder so readers can verif
 
 Published benchmark metadata in [`openenv.yaml`](./openenv.yaml) records meaningful public-vs-holdout separation for the packaged baseline report. That report is distinct from `live_model_comparison.json`, which tracks external live-model runs:
 
+<!-- sync:readme-benchmark-summary:start -->
 | Agent | Public mean | Holdout mean | Holdout consistent pass rate |
 |---|---:|---:|---:|
-| Deterministic baseline | 0.9674 | 0.6649 | 0.6190 |
-| Published external LLM agent | not listed | 0.3847 | 0.2222 |
+| ledgershield/deterministic-baseline (deterministic-policy) | 0.9142 | 0.7245 | 0.2500 |
+<!-- sync:readme-benchmark-summary:end -->
 
 That gap is deliberate: the benchmark looks easy on clean public cases and much harder on generated holdouts, adversarial variants, and expert Task E scenarios.
 

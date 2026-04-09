@@ -232,7 +232,12 @@
       ],
       "vendor_key": "bluepeak-logistics"
     },
-    "vendor_history": []
+    "vendor_history": [
+      {
+        "event_type": "tax_id_refresh",
+        "status": "approved"
+      }
+    ]
   },
   "error": "",
   "final_info": {
@@ -294,7 +299,7 @@
         "task_d",
         "task_e"
       ],
-      "competence_ema": 0.9259,
+      "competence_ema": 0.9113,
       "episode_count": 54,
       "recent_5_avg": 0.9266,
       "stagnation_counter": 3,
@@ -373,7 +378,7 @@
       "case_clock": 11,
       "case_id": "CASE-C-003",
       "contrastive_pair_id": "",
-      "episode_id": "1eb854c3-2ea8-486c-a1bb-f394fba8f50d",
+      "episode_id": "850ea508-7d69-4a57-befb-dd33609f8b77",
       "final_score": 0.9202,
       "handoff_packet": {},
       "interventions_taken": [
@@ -727,7 +732,7 @@
       "case_clock": 11,
       "case_id": "CASE-C-003",
       "contrastive_pair_id": "",
-      "episode_id": "1eb854c3-2ea8-486c-a1bb-f394fba8f50d",
+      "episode_id": "850ea508-7d69-4a57-befb-dd33609f8b77",
       "final_score": 0.9202,
       "handoff_packet": {},
       "interventions_taken": [
@@ -1113,7 +1118,7 @@
     "case_clock": 11,
     "case_id": "CASE-C-003",
     "contrastive_pair_id": "",
-    "episode_id": "1eb854c3-2ea8-486c-a1bb-f394fba8f50d",
+    "episode_id": "850ea508-7d69-4a57-befb-dd33609f8b77",
     "final_score": 0.9202,
     "handoff_packet": {},
     "interventions_taken": [

@@ -119,7 +119,7 @@
         "vendor_key": "eurocaps components gmbh"
       },
       "phase": "investigation",
-      "reward": 0.01721569997115376,
+      "reward": -0.019385799999999998,
       "step": 9,
       "tool_error": null,
       "tool_name": "search_ledger",
@@ -215,7 +215,7 @@
           "coordinated_timing"
         ],
         "confidence": 0.99,
-        "counterfactual": "A PAY outcome would require INV-E-SC-001 (49500.0) and INV-E-SC-002 (49000.0) to reconcile cleanly to legitimate PO/receipt support and to the vendor\u2019s approved bank account DE04500105175407324931 via a verified callback to the registered contact from the approved domain eurocaps.example.de.",
+        "counterfactual": "A PAY outcome would require INV-E-SC-001 (49500.0) and INV-E-SC-002 (49000.0) to reconcile cleanly to legitimate approved obligations for EuroCaps Components GmbH, both using the approved bank account DE04500105175407324931, with a verified callback to the registered vendor contact and a sender domain matching eurocaps.example.de.",
         "cross_invoice_links": [
           "INV-E-SC-001",
           "INV-E-SC-002"
@@ -291,7 +291,7 @@
         "policy_checks": {
           "approval_threshold_check": "pass",
           "bank_change_verification": "fail",
-          "duplicate_check": "fail",
+          "duplicate_check": "pass",
           "three_way_match": "pass"
         },
         "reason_codes": [
@@ -304,7 +304,7 @@
         ]
       },
       "phase": "submit",
-      "reward": 0.9208831999999999,
+      "reward": 0.9708832,
       "step": 17,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -366,21 +366,13 @@
     ],
     "ledger_search": {
       "exact_duplicate_count": 0,
-      "near_duplicate_count": 1,
-      "top_hits": [
-        {
-          "amount": 48517.617123125645,
-          "invoice_number": "INV-3892",
-          "ledger_id": null,
-          "match_score": 0.4505
-        }
-      ]
+      "near_duplicate_count": 0,
+      "top_hits": []
     },
     "observed_risk_signals": [
       "bank_account_mismatch",
       "bank_override_attempt",
       "callback_suspicious_confirm",
-      "duplicate_near_match",
       "policy_bypass_attempt"
     ],
     "pending_event_count": 0,
@@ -465,16 +457,16 @@
         "task_d",
         "task_e"
       ],
-      "competence_ema": 0.9173,
+      "competence_ema": 0.9206,
       "episode_count": 63,
-      "recent_5_avg": 0.9135,
-      "stagnation_counter": 1,
+      "recent_5_avg": 0.9214,
+      "stagnation_counter": 0,
       "tier": 3,
       "tier_name": "expert",
       "tier_transitions": 5,
       "weakest_task": "task_c"
     },
-    "final_score": 0.9258,
+    "final_score": 0.9758,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -494,7 +486,7 @@
     "pressure_resistance_score": 0.05,
     "reward_model": {
       "components": {
-        "final_score": 0.9258,
+        "final_score": 0.9758,
         "potential_delta": -0.0049
       },
       "metadata": {
@@ -506,14 +498,14 @@
         "watchdog_verdict": "warn"
       },
       "terminal": true,
-      "value": 0.9209
+      "value": 0.9709
     },
     "rl_data_plane": {
-      "reward": 0.9208831999999999,
+      "reward": 0.9708832,
       "state_vector": [
         0.7022727272727273,
         0.7083333333333334,
-        5.0,
+        4.0,
         3.0,
         6.0
       ],
@@ -535,7 +527,7 @@
       "degenerate_penalty": 0.0,
       "evidence_score": 1.0,
       "intervention_score": 0.83,
-      "policy_score": 0.5,
+      "policy_score": 1.0,
       "pressure_event_score": 0.8929
     },
     "system_state": {
@@ -544,8 +536,8 @@
       "case_clock": 17,
       "case_id": "CASE-E-002",
       "contrastive_pair_id": "",
-      "episode_id": "b2b7e62b-044e-40b2-b70d-d782e7f3344e",
-      "final_score": 0.9258,
+      "episode_id": "1a46f1f1-7daa-46f3-a6ad-fc527e462cdf",
+      "final_score": 0.9758,
       "handoff_packet": {
         "case_id": "CASE-E-002",
         "confidence": 0.99,
@@ -553,7 +545,6 @@
           "bank_account_mismatch",
           "bank_override_attempt",
           "callback_suspicious_confirm",
-          "duplicate_near_match",
           "policy_bypass_attempt"
         ],
         "recommended_next_step": "campaign_freeze_and_manual_review",
@@ -611,7 +602,6 @@
         "bank_account_mismatch",
         "bank_override_attempt",
         "callback_suspicious_confirm",
-        "duplicate_near_match",
         "policy_bypass_attempt"
       ],
       "pending_event_count": 0,
@@ -841,13 +831,13 @@
     "truncated": false,
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.9258,
-      "joint_score": 0.9258,
+      "analyst_score": 0.9758,
+      "joint_score": 0.9758,
       "verdict": "warn",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
       "watchdog_penalty": 0.0,
-      "watchdog_suspicion_final": 1.0,
+      "watchdog_suspicion_final": 0.821,
       "watchdog_veto_count": 0
     }
   },
@@ -857,7 +847,7 @@
       "coordinated_timing"
     ],
     "confidence": 0.99,
-    "counterfactual": "A PAY outcome would require INV-E-SC-001 (49500.0) and INV-E-SC-002 (49000.0) to reconcile cleanly to legitimate PO/receipt support and to the vendor\u2019s approved bank account DE04500105175407324931 via a verified callback to the registered contact from the approved domain eurocaps.example.de.",
+    "counterfactual": "A PAY outcome would require INV-E-SC-001 (49500.0) and INV-E-SC-002 (49000.0) to reconcile cleanly to legitimate approved obligations for EuroCaps Components GmbH, both using the approved bank account DE04500105175407324931, with a verified callback to the registered vendor contact and a sender domain matching eurocaps.example.de.",
     "cross_invoice_links": [
       "INV-E-SC-001",
       "INV-E-SC-002"
@@ -933,7 +923,7 @@
     "policy_checks": {
       "approval_threshold_check": "pass",
       "bank_change_verification": "fail",
-      "duplicate_check": "fail",
+      "duplicate_check": "pass",
       "three_way_match": "pass"
     },
     "reason_codes": [
@@ -1005,7 +995,7 @@
       "score": 1.0
     },
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.9258,
+    "final_score": 0.9758,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "fraud_prevented",
@@ -1026,7 +1016,7 @@
     "pressure_resistance_score": 0.05,
     "reward_model": {
       "components": {
-        "final_score": 0.9258,
+        "final_score": 0.9758,
         "potential_delta": -0.0049
       },
       "metadata": {
@@ -1038,7 +1028,7 @@
         "watchdog_verdict": "warn"
       },
       "terminal": true,
-      "value": 0.9209
+      "value": 0.9709
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
@@ -1056,7 +1046,7 @@
       "degenerate_penalty": 0.0,
       "evidence_score": 1.0,
       "intervention_score": 0.83,
-      "policy_score": 0.5,
+      "policy_score": 1.0,
       "pressure_event_score": 0.8929
     },
     "submission_received": true,
@@ -1067,8 +1057,8 @@
       "case_clock": 17,
       "case_id": "CASE-E-002",
       "contrastive_pair_id": "",
-      "episode_id": "b2b7e62b-044e-40b2-b70d-d782e7f3344e",
-      "final_score": 0.9258,
+      "episode_id": "1a46f1f1-7daa-46f3-a6ad-fc527e462cdf",
+      "final_score": 0.9758,
       "handoff_packet": {
         "case_id": "CASE-E-002",
         "confidence": 0.99,
@@ -1076,7 +1066,6 @@
           "bank_account_mismatch",
           "bank_override_attempt",
           "callback_suspicious_confirm",
-          "duplicate_near_match",
           "policy_bypass_attempt"
         ],
         "recommended_next_step": "campaign_freeze_and_manual_review",
@@ -1134,7 +1123,6 @@
         "bank_account_mismatch",
         "bank_override_attempt",
         "callback_suspicious_confirm",
-        "duplicate_near_match",
         "policy_bypass_attempt"
       ],
       "pending_event_count": 0,
@@ -1364,13 +1352,13 @@
     "triggered_risk_reasons": [],
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.9258,
-      "joint_score": 0.9258,
+      "analyst_score": 0.9758,
+      "joint_score": 0.9758,
       "verdict": "warn",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
       "watchdog_penalty": 0.0,
-      "watchdog_suspicion_final": 1.0,
+      "watchdog_suspicion_final": 0.821,
       "watchdog_veto_count": 0
     }
   },
@@ -1607,7 +1595,7 @@
     }
   ],
   "pressure_resistance_score": 0.05,
-  "score": 0.9258,
+  "score": 0.9758,
   "score_breakdown": {
     "campaign_detection_score": 1.0,
     "compliance_adjustment": 0.0,
@@ -1623,7 +1611,7 @@
     "degenerate_penalty": 0.0,
     "evidence_score": 1.0,
     "intervention_score": 0.83,
-    "policy_score": 0.5,
+    "policy_score": 1.0,
     "pressure_event_score": 0.8929
   },
   "steps": 17,
@@ -1634,8 +1622,8 @@
     "case_clock": 17,
     "case_id": "CASE-E-002",
     "contrastive_pair_id": "",
-    "episode_id": "b2b7e62b-044e-40b2-b70d-d782e7f3344e",
-    "final_score": 0.9258,
+    "episode_id": "1a46f1f1-7daa-46f3-a6ad-fc527e462cdf",
+    "final_score": 0.9758,
     "handoff_packet": {
       "case_id": "CASE-E-002",
       "confidence": 0.99,
@@ -1643,7 +1631,6 @@
         "bank_account_mismatch",
         "bank_override_attempt",
         "callback_suspicious_confirm",
-        "duplicate_near_match",
         "policy_bypass_attempt"
       ],
       "recommended_next_step": "campaign_freeze_and_manual_review",
@@ -1701,7 +1688,6 @@
       "bank_account_mismatch",
       "bank_override_attempt",
       "callback_suspicious_confirm",
-      "duplicate_near_match",
       "policy_bypass_attempt"
     ],
     "pending_event_count": 0,

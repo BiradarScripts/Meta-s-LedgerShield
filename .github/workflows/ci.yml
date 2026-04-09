@@ -64,16 +64,18 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyyaml
+          pip install pyyaml openenv-core
+          pip install -e . || pip install .
 
-      - name: Validate openenv.yaml
+      - name: Run openenv validate
         run: |
-          python -c "
-          import yaml
-          with open('openenv.yaml') as f:
-              config = yaml.safe_load(f)
-          assert config['spec_version'] == 1
-          assert config['name'] == 'ledgershield'
-          assert config['type'] == 'space'
-          print('openenv.yaml validation passed')
-          "
+          openenv validate
+
+      - name: Build Benchmark Artifacts
+        run: |
+          python benchmark_report.py --format json
+          python sync_benchmark_metadata.py
+
+      - name: Check Metadata Sync
+        run: |
+          git diff --exit-code README.md docs/index.md docs/api-reference.md openenv.yaml

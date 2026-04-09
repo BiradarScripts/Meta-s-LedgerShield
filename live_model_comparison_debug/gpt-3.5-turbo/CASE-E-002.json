@@ -250,14 +250,14 @@
         "task_c",
         "task_d"
       ],
-      "competence_ema": 0.596,
+      "competence_ema": 0.5869,
       "episode_count": 21,
-      "recent_5_avg": 0.6144,
+      "recent_5_avg": 0.6057,
       "stagnation_counter": 1,
       "tier": 2,
       "tier_name": "proficient",
       "tier_transitions": 4,
-      "weakest_task": "task_c"
+      "weakest_task": "task_e"
     },
     "final_score": 0.2142,
     "outcome": {
@@ -329,7 +329,7 @@
       "case_clock": 7,
       "case_id": "CASE-E-002",
       "contrastive_pair_id": "",
-      "episode_id": "62f1df86-9b95-4dd5-9627-442fc839245c",
+      "episode_id": "148ea674-e52b-4981-a388-6fc5448910bf",
       "final_score": 0.2142,
       "handoff_packet": {},
       "interventions_taken": [
@@ -352,7 +352,7 @@
       "pending_events": [
         {
           "artifact_id": "callback_verification_result",
-          "event_id": "evt-7a1d89f8",
+          "event_id": "evt-a4df9db4",
           "ready_at_clock": 7,
           "source_action": "request_callback_verification",
           "status": "pending"
@@ -625,7 +625,7 @@
       "case_clock": 7,
       "case_id": "CASE-E-002",
       "contrastive_pair_id": "",
-      "episode_id": "62f1df86-9b95-4dd5-9627-442fc839245c",
+      "episode_id": "148ea674-e52b-4981-a388-6fc5448910bf",
       "final_score": 0.2142,
       "handoff_packet": {},
       "interventions_taken": [
@@ -648,7 +648,7 @@
       "pending_events": [
         {
           "artifact_id": "callback_verification_result",
-          "event_id": "evt-7a1d89f8",
+          "event_id": "evt-a4df9db4",
           "ready_at_clock": 7,
           "source_action": "request_callback_verification",
           "status": "pending"
@@ -951,7 +951,7 @@
     "case_clock": 7,
     "case_id": "CASE-E-002",
     "contrastive_pair_id": "",
-    "episode_id": "62f1df86-9b95-4dd5-9627-442fc839245c",
+    "episode_id": "148ea674-e52b-4981-a388-6fc5448910bf",
     "final_score": 0.2142,
     "handoff_packet": {},
     "interventions_taken": [
@@ -974,7 +974,7 @@
     "pending_events": [
       {
         "artifact_id": "callback_verification_result",
-        "event_id": "evt-7a1d89f8",
+        "event_id": "evt-a4df9db4",
         "ready_at_clock": 7,
         "source_action": "request_callback_verification",
         "status": "pending"

@@ -260,9 +260,9 @@
         "task_c",
         "task_d"
       ],
-      "competence_ema": 0.6339,
+      "competence_ema": 0.6283,
       "episode_count": 18,
-      "recent_5_avg": 0.6835,
+      "recent_5_avg": 0.6641,
       "stagnation_counter": 0,
       "tier": 2,
       "tier_name": "proficient",
@@ -342,7 +342,7 @@
       "case_clock": 6,
       "case_id": "CASE-D-005",
       "contrastive_pair_id": "",
-      "episode_id": "316cd0f4-e013-414a-a790-4a89a40e233e",
+      "episode_id": "da7e5255-24d4-4c28-a801-cc343a0c6426",
       "final_score": 0.7809,
       "handoff_packet": {},
       "interventions_taken": [
@@ -646,7 +646,7 @@
       "case_clock": 6,
       "case_id": "CASE-D-005",
       "contrastive_pair_id": "",
-      "episode_id": "316cd0f4-e013-414a-a790-4a89a40e233e",
+      "episode_id": "da7e5255-24d4-4c28-a801-cc343a0c6426",
       "final_score": 0.7809,
       "handoff_packet": {},
       "interventions_taken": [
@@ -938,7 +938,7 @@
     "case_clock": 6,
     "case_id": "CASE-D-005",
     "contrastive_pair_id": "",
-    "episode_id": "316cd0f4-e013-414a-a790-4a89a40e233e",
+    "episode_id": "da7e5255-24d4-4c28-a801-cc343a0c6426",
     "final_score": 0.7809,
     "handoff_packet": {},
     "interventions_taken": [

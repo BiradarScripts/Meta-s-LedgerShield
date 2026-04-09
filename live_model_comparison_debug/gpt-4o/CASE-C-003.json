@@ -41,20 +41,6 @@
       "tool_success": true
     },
     {
-      "action_type": "compare_bank_account",
-      "done": false,
-      "payload": {
-        "proposed_bank_account": "IN99FAKE000999888",
-        "vendor_key": "bluepeak logistics llp"
-      },
-      "phase": "investigation",
-      "reward": 0.10202300002884623,
-      "step": 4,
-      "tool_error": null,
-      "tool_name": "compare_bank_account",
-      "tool_success": true
-    },
-    {
       "action_type": "search_ledger",
       "done": false,
       "payload": {
@@ -63,10 +49,24 @@
         "vendor_key": "bluepeak logistics llp"
       },
       "phase": "investigation",
-      "reward": -0.0017220000000000048,
-      "step": 5,
+      "reward": -0.0013755000000000052,
+      "step": 4,
       "tool_error": null,
       "tool_name": "search_ledger",
+      "tool_success": true
+    },
+    {
+      "action_type": "compare_bank_account",
+      "done": false,
+      "payload": {
+        "proposed_bank_account": "IN99FAKE000999888",
+        "vendor_key": "bluepeak logistics llp"
+      },
+      "phase": "investigation",
+      "reward": 0.10167650002884623,
+      "step": 5,
+      "tool_error": null,
+      "tool_name": "compare_bank_account",
       "tool_success": true
     },
     {
@@ -218,7 +218,12 @@
       ],
       "vendor_key": "bluepeak-logistics"
     },
-    "vendor_history": []
+    "vendor_history": [
+      {
+        "event_type": "tax_id_refresh",
+        "status": "approved"
+      }
+    ]
   },
   "error": "",
   "final_info": {
@@ -280,9 +285,9 @@
         "task_d",
         "task_e"
       ],
-      "competence_ema": 0.781,
+      "competence_ema": 0.8423,
       "episode_count": 33,
-      "recent_5_avg": 0.7626,
+      "recent_5_avg": 0.8608,
       "stagnation_counter": 0,
       "tier": 3,
       "tier_name": "expert",
@@ -359,7 +364,7 @@
       "case_clock": 10,
       "case_id": "CASE-C-003",
       "contrastive_pair_id": "",
-      "episode_id": "140a3b15-ba06-46be-a9fa-05185b4f699a",
+      "episode_id": "92efad1a-fb3f-4ec7-aac0-c5483fababdf",
       "final_score": 0.9207,
       "handoff_packet": {},
       "interventions_taken": [
@@ -455,27 +460,27 @@
           "success": true
         },
         {
-          "action_type": "compare_bank_account",
-          "case_clock": 4,
-          "cost": 0.15,
-          "is_intervention": false,
-          "message": "Compared proposed bank account to approved master data.",
-          "payload": {
-            "proposed_bank_account": "IN99FAKE000999888",
-            "vendor_key": "bluepeak logistics llp"
-          },
-          "step": 4,
-          "success": true
-        },
-        {
           "action_type": "search_ledger",
-          "case_clock": 5,
+          "case_clock": 4,
           "cost": 0.35,
           "is_intervention": false,
           "message": "Ledger search complete.",
           "payload": {
             "amount": 4999.0,
             "invoice_number": "BLP-DUPL-001",
+            "vendor_key": "bluepeak logistics llp"
+          },
+          "step": 4,
+          "success": true
+        },
+        {
+          "action_type": "compare_bank_account",
+          "case_clock": 5,
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "Compared proposed bank account to approved master data.",
+          "payload": {
+            "proposed_bank_account": "IN99FAKE000999888",
             "vendor_key": "bluepeak logistics llp"
           },
           "step": 5,
@@ -700,7 +705,7 @@
       "case_clock": 10,
       "case_id": "CASE-C-003",
       "contrastive_pair_id": "",
-      "episode_id": "140a3b15-ba06-46be-a9fa-05185b4f699a",
+      "episode_id": "92efad1a-fb3f-4ec7-aac0-c5483fababdf",
       "final_score": 0.9207,
       "handoff_packet": {},
       "interventions_taken": [
@@ -796,27 +801,27 @@
           "success": true
         },
         {
-          "action_type": "compare_bank_account",
-          "case_clock": 4,
-          "cost": 0.15,
-          "is_intervention": false,
-          "message": "Compared proposed bank account to approved master data.",
-          "payload": {
-            "proposed_bank_account": "IN99FAKE000999888",
-            "vendor_key": "bluepeak logistics llp"
-          },
-          "step": 4,
-          "success": true
-        },
-        {
           "action_type": "search_ledger",
-          "case_clock": 5,
+          "case_clock": 4,
           "cost": 0.35,
           "is_intervention": false,
           "message": "Ledger search complete.",
           "payload": {
             "amount": 4999.0,
             "invoice_number": "BLP-DUPL-001",
+            "vendor_key": "bluepeak logistics llp"
+          },
+          "step": 4,
+          "success": true
+        },
+        {
+          "action_type": "compare_bank_account",
+          "case_clock": 5,
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "Compared proposed bank account to approved master data.",
+          "payload": {
+            "proposed_bank_account": "IN99FAKE000999888",
             "vendor_key": "bluepeak logistics llp"
           },
           "step": 5,
@@ -971,14 +976,6 @@
           "signature": "lookup_vendor_history:{\"vendor_key\":\"bluepeak logistics llp\"}"
         },
         {
-          "action_type": "compare_bank_account",
-          "payload": {
-            "proposed_bank_account": "IN99FAKE000999888",
-            "vendor_key": "bluepeak logistics llp"
-          },
-          "signature": "compare_bank_account:{\"proposed_bank_account\":\"IN99FAKE000999888\",\"vendor_key\":\"bluepeak logistics llp\"}"
-        },
-        {
           "action_type": "search_ledger",
           "payload": {
             "amount": 4999.0,
@@ -986,6 +983,14 @@
             "vendor_key": "bluepeak logistics llp"
           },
           "signature": "search_ledger:{\"amount\":4999.0,\"invoice_number\":\"BLP-DUPL-001\",\"vendor_key\":\"bluepeak logistics llp\"}"
+        },
+        {
+          "action_type": "compare_bank_account",
+          "payload": {
+            "proposed_bank_account": "IN99FAKE000999888",
+            "vendor_key": "bluepeak logistics llp"
+          },
+          "signature": "compare_bank_account:{\"proposed_bank_account\":\"IN99FAKE000999888\",\"vendor_key\":\"bluepeak logistics llp\"}"
         }
       ]
     },
@@ -1065,7 +1070,7 @@
     "case_clock": 10,
     "case_id": "CASE-C-003",
     "contrastive_pair_id": "",
-    "episode_id": "140a3b15-ba06-46be-a9fa-05185b4f699a",
+    "episode_id": "92efad1a-fb3f-4ec7-aac0-c5483fababdf",
     "final_score": 0.9207,
     "handoff_packet": {},
     "interventions_taken": [
@@ -1161,27 +1166,27 @@
         "success": true
       },
       {
-        "action_type": "compare_bank_account",
-        "case_clock": 4,
-        "cost": 0.15,
-        "is_intervention": false,
-        "message": "Compared proposed bank account to approved master data.",
-        "payload": {
-          "proposed_bank_account": "IN99FAKE000999888",
-          "vendor_key": "bluepeak logistics llp"
-        },
-        "step": 4,
-        "success": true
-      },
-      {
         "action_type": "search_ledger",
-        "case_clock": 5,
+        "case_clock": 4,
         "cost": 0.35,
         "is_intervention": false,
         "message": "Ledger search complete.",
         "payload": {
           "amount": 4999.0,
           "invoice_number": "BLP-DUPL-001",
+          "vendor_key": "bluepeak logistics llp"
+        },
+        "step": 4,
+        "success": true
+      },
+      {
+        "action_type": "compare_bank_account",
+        "case_clock": 5,
+        "cost": 0.15,
+        "is_intervention": false,
+        "message": "Compared proposed bank account to approved master data.",
+        "payload": {
+          "proposed_bank_account": "IN99FAKE000999888",
           "vendor_key": "bluepeak logistics llp"
         },
         "step": 5,

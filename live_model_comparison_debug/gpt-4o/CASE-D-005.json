@@ -122,7 +122,7 @@
       "action_type": "create_human_handoff",
       "done": false,
       "payload": {
-        "confidence": 0.99,
+        "confidence": 1.0,
         "recommended_next_step": "security_review_and_callback_followup",
         "summary": "Risk indicators support fraud escalation and human review."
       },
@@ -358,10 +358,10 @@
         "task_d",
         "task_e"
       ],
-      "competence_ema": 0.8529,
+      "competence_ema": 0.877,
       "episode_count": 39,
-      "recent_5_avg": 0.8979,
-      "stagnation_counter": 0,
+      "recent_5_avg": 0.9,
+      "stagnation_counter": 1,
       "tier": 3,
       "tier_name": "expert",
       "tier_transitions": 5,
@@ -440,11 +440,11 @@
       "case_clock": 13,
       "case_id": "CASE-D-005",
       "contrastive_pair_id": "",
-      "episode_id": "6552230e-2f62-4ddc-9e5f-908520f89137",
+      "episode_id": "40dc9e75-4e79-4d1b-a24d-755faff29ce3",
       "final_score": 0.8909,
       "handoff_packet": {
         "case_id": "CASE-D-005",
-        "confidence": 0.99,
+        "confidence": 1.0,
         "observed_risk_signals": [
           "policy_bypass_attempt",
           "sender_domain_spoof",
@@ -465,7 +465,7 @@
           "action_type": "create_human_handoff",
           "artifact_id": null,
           "payload": {
-            "confidence": 0.99,
+            "confidence": 1.0,
             "recommended_next_step": "security_review_and_callback_followup",
             "summary": "Risk indicators support fraud escalation and human review."
           },
@@ -630,7 +630,7 @@
           "is_intervention": true,
           "message": "Human handoff packet created.",
           "payload": {
-            "confidence": 0.99,
+            "confidence": 1.0,
             "recommended_next_step": "security_review_and_callback_followup",
             "summary": "Risk indicators support fraud escalation and human review."
           },
@@ -863,11 +863,11 @@
       "case_clock": 13,
       "case_id": "CASE-D-005",
       "contrastive_pair_id": "",
-      "episode_id": "6552230e-2f62-4ddc-9e5f-908520f89137",
+      "episode_id": "40dc9e75-4e79-4d1b-a24d-755faff29ce3",
       "final_score": 0.8909,
       "handoff_packet": {
         "case_id": "CASE-D-005",
-        "confidence": 0.99,
+        "confidence": 1.0,
         "observed_risk_signals": [
           "policy_bypass_attempt",
           "sender_domain_spoof",
@@ -888,7 +888,7 @@
           "action_type": "create_human_handoff",
           "artifact_id": null,
           "payload": {
-            "confidence": 0.99,
+            "confidence": 1.0,
             "recommended_next_step": "security_review_and_callback_followup",
             "summary": "Risk indicators support fraud escalation and human review."
           },
@@ -1053,7 +1053,7 @@
           "is_intervention": true,
           "message": "Human handoff packet created.",
           "payload": {
-            "confidence": 0.99,
+            "confidence": 1.0,
             "recommended_next_step": "security_review_and_callback_followup",
             "summary": "Risk indicators support fraud escalation and human review."
           },
@@ -1260,11 +1260,11 @@
         {
           "action_type": "create_human_handoff",
           "payload": {
-            "confidence": 0.99,
+            "confidence": 1.0,
             "recommended_next_step": "security_review_and_callback_followup",
             "summary": "Risk indicators support fraud escalation and human review."
           },
-          "signature": "create_human_handoff:{\"confidence\":0.99,\"recommended_next_step\":\"security_review_and_callback_followup\",\"summary\":\"Risk indicators support fraud escalation and human review.\"}"
+          "signature": "create_human_handoff:{\"confidence\":1.0,\"recommended_next_step\":\"security_review_and_callback_followup\",\"summary\":\"Risk indicators support fraud escalation and human review.\"}"
         }
       ],
       "phase": "intervention",
@@ -1277,11 +1277,11 @@
         {
           "action_type": "create_human_handoff",
           "payload": {
-            "confidence": 0.99,
+            "confidence": 1.0,
             "recommended_next_step": "security_review_and_callback_followup",
             "summary": "Risk indicators support fraud escalation and human review."
           },
-          "signature": "create_human_handoff:{\"confidence\":0.99,\"recommended_next_step\":\"security_review_and_callback_followup\",\"summary\":\"Risk indicators support fraud escalation and human review.\"}"
+          "signature": "create_human_handoff:{\"confidence\":1.0,\"recommended_next_step\":\"security_review_and_callback_followup\",\"summary\":\"Risk indicators support fraud escalation and human review.\"}"
         },
         {
           "action_type": "flag_duplicate_cluster_review",
@@ -1327,11 +1327,11 @@
     "case_clock": 13,
     "case_id": "CASE-D-005",
     "contrastive_pair_id": "",
-    "episode_id": "6552230e-2f62-4ddc-9e5f-908520f89137",
+    "episode_id": "40dc9e75-4e79-4d1b-a24d-755faff29ce3",
     "final_score": 0.8909,
     "handoff_packet": {
       "case_id": "CASE-D-005",
-      "confidence": 0.99,
+      "confidence": 1.0,
       "observed_risk_signals": [
         "policy_bypass_attempt",
         "sender_domain_spoof",
@@ -1352,7 +1352,7 @@
         "action_type": "create_human_handoff",
         "artifact_id": null,
         "payload": {
-          "confidence": 0.99,
+          "confidence": 1.0,
           "recommended_next_step": "security_review_and_callback_followup",
           "summary": "Risk indicators support fraud escalation and human review."
         },
@@ -1517,7 +1517,7 @@
         "is_intervention": true,
         "message": "Human handoff packet created.",
         "payload": {
-          "confidence": 0.99,
+          "confidence": 1.0,
           "recommended_next_step": "security_review_and_callback_followup",
           "summary": "Risk indicators support fraud escalation and human review."
         },

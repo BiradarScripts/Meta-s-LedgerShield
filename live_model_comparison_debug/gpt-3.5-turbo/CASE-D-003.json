@@ -82,7 +82,7 @@
       "done": true,
       "payload": {
         "confidence": 1.0,
-        "counterfactual": "What conditions would make this PAY instead of ESCALATE?",
+        "counterfactual": "What conditions would make this PAY instead of ESCALATE? If the invoices were not split to evade approval thresholds and there were no policy bypass attempts or sender domain spoofing.",
         "decision": "ESCALATE_FRAUD",
         "evidence_map": {
           "approval_threshold_evasion": {
@@ -138,7 +138,7 @@
         ]
       },
       "phase": "submit",
-      "reward": 0.7417517,
+      "reward": 0.7477517,
       "step": 7,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -320,16 +320,16 @@
         "task_c",
         "task_d"
       ],
-      "competence_ema": 0.6106,
+      "competence_ema": 0.6027,
       "episode_count": 16,
-      "recent_5_avg": 0.5967,
+      "recent_5_avg": 0.5773,
       "stagnation_counter": 0,
       "tier": 2,
       "tier_name": "proficient",
       "tier_transitions": 4,
       "weakest_task": "task_c"
     },
-    "final_score": 0.6361,
+    "final_score": 0.6421,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -349,7 +349,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.6361,
+        "final_score": 0.6421,
         "potential_delta": 0.1057
       },
       "metadata": {
@@ -361,10 +361,10 @@
         "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.7418
+      "value": 0.7478
     },
     "rl_data_plane": {
-      "reward": 0.7417517,
+      "reward": 0.7477517,
       "state_vector": [
         0.7694444444444444,
         0.35,
@@ -381,7 +381,7 @@
       "compliance_adjustment": -0.0375,
       "compliance_penalty": -0.3,
       "compliance_score": 0.25,
-      "counterfactual_score": 0.505,
+      "counterfactual_score": 0.625,
       "currency_adjustment": 0.0,
       "currency_validation_score": 1.0,
       "decision_score": 1.0,
@@ -402,8 +402,8 @@
       "case_clock": 7,
       "case_id": "CASE-D-003",
       "contrastive_pair_id": "",
-      "episode_id": "3d318b87-007d-4f5a-a346-9f7709036af3",
-      "final_score": 0.6361,
+      "episode_id": "d4590eb7-89d0-49a6-a6c6-c4bb273f0b26",
+      "final_score": 0.6421,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -425,14 +425,14 @@
       "pending_events": [
         {
           "artifact_id": "callback_verification_result",
-          "event_id": "evt-8086ab8b",
+          "event_id": "evt-a1066eee",
           "ready_at_clock": 7,
           "source_action": "request_callback_verification",
           "status": "pending"
         },
         {
           "artifact_id": "duplicate_cluster_report",
-          "event_id": "evt-34b00bf4",
+          "event_id": "evt-e4a165b0",
           "ready_at_clock": 7,
           "source_action": "flag_duplicate_cluster_review",
           "status": "pending"
@@ -537,8 +537,8 @@
     "truncated": false,
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.6361,
-      "joint_score": 0.6361,
+      "analyst_score": 0.6421,
+      "joint_score": 0.6421,
       "verdict": "approve",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
@@ -549,7 +549,7 @@
   },
   "final_submission": {
     "confidence": 1.0,
-    "counterfactual": "What conditions would make this PAY instead of ESCALATE?",
+    "counterfactual": "What conditions would make this PAY instead of ESCALATE? If the invoices were not split to evade approval thresholds and there were no policy bypass attempts or sender domain spoofing.",
     "decision": "ESCALATE_FRAUD",
     "evidence_map": {
       "approval_threshold_evasion": {
@@ -707,7 +707,7 @@
       "score": 1.0
     },
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.6361,
+    "final_score": 0.6421,
     "message": "Decision submitted and graded.",
     "novel_signal_count": 1,
     "outcome": {
@@ -733,7 +733,7 @@
     ],
     "reward_model": {
       "components": {
-        "final_score": 0.6361,
+        "final_score": 0.6421,
         "potential_delta": 0.1057
       },
       "metadata": {
@@ -745,7 +745,7 @@
         "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.7418
+      "value": 0.7478
     },
     "risk_assessment": 0.14,
     "score_breakdown": {
@@ -754,7 +754,7 @@
       "compliance_adjustment": -0.0375,
       "compliance_penalty": -0.3,
       "compliance_score": 0.25,
-      "counterfactual_score": 0.505,
+      "counterfactual_score": 0.625,
       "currency_adjustment": 0.0,
       "currency_validation_score": 1.0,
       "decision_score": 1.0,
@@ -777,8 +777,8 @@
       "case_clock": 7,
       "case_id": "CASE-D-003",
       "contrastive_pair_id": "",
-      "episode_id": "3d318b87-007d-4f5a-a346-9f7709036af3",
-      "final_score": 0.6361,
+      "episode_id": "d4590eb7-89d0-49a6-a6c6-c4bb273f0b26",
+      "final_score": 0.6421,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -800,14 +800,14 @@
       "pending_events": [
         {
           "artifact_id": "callback_verification_result",
-          "event_id": "evt-8086ab8b",
+          "event_id": "evt-a1066eee",
           "ready_at_clock": 7,
           "source_action": "request_callback_verification",
           "status": "pending"
         },
         {
           "artifact_id": "duplicate_cluster_report",
-          "event_id": "evt-34b00bf4",
+          "event_id": "evt-e4a165b0",
           "ready_at_clock": 7,
           "source_action": "flag_duplicate_cluster_review",
           "status": "pending"
@@ -915,8 +915,8 @@
     ],
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.6361,
-      "joint_score": 0.6361,
+      "analyst_score": 0.6421,
+      "joint_score": 0.6421,
       "verdict": "approve",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
@@ -1093,14 +1093,14 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.6361,
+  "score": 0.6421,
   "score_breakdown": {
     "calibration_score": 1.0,
     "callback_interpretation_score": 0.0,
     "compliance_adjustment": -0.0375,
     "compliance_penalty": -0.3,
     "compliance_score": 0.25,
-    "counterfactual_score": 0.505,
+    "counterfactual_score": 0.625,
     "currency_adjustment": 0.0,
     "currency_validation_score": 1.0,
     "decision_score": 1.0,
@@ -1123,8 +1123,8 @@
     "case_clock": 7,
     "case_id": "CASE-D-003",
     "contrastive_pair_id": "",
-    "episode_id": "3d318b87-007d-4f5a-a346-9f7709036af3",
-    "final_score": 0.6361,
+    "episode_id": "d4590eb7-89d0-49a6-a6c6-c4bb273f0b26",
+    "final_score": 0.6421,
     "handoff_packet": {},
     "interventions_taken": [
       {
@@ -1146,14 +1146,14 @@
     "pending_events": [
       {
         "artifact_id": "callback_verification_result",
-        "event_id": "evt-8086ab8b",
+        "event_id": "evt-a1066eee",
         "ready_at_clock": 7,
         "source_action": "request_callback_verification",
         "status": "pending"
       },
       {
         "artifact_id": "duplicate_cluster_report",
-        "event_id": "evt-34b00bf4",
+        "event_id": "evt-e4a165b0",
         "ready_at_clock": 7,
         "source_action": "flag_duplicate_cluster_review",
         "status": "pending"

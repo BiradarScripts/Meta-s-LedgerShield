@@ -23,6 +23,7 @@ DEFAULT_TEMPERATURE = 0.0
 ARTIFACT_DIR = Path("artifacts")
 DEFAULT_REPORT_PATH = ARTIFACT_DIR / "benchmark_report_latest.json"
 DEFAULT_LEADERBOARD_PATH = ARTIFACT_DIR / "leaderboard.json"
+DETERMINISTIC_BASELINE_MODEL = "ledgershield/deterministic-baseline"
 
 
 def _stats(values: list[float]) -> dict[str, float]:
@@ -220,6 +221,12 @@ def _section_summary(section: dict[str, Any], *, pass_threshold: float) -> dict[
     }
 
 
+def _report_identity(*, model_name: str = "", client: Any = None) -> tuple[str, str]:
+    if client is None:
+        return DETERMINISTIC_BASELINE_MODEL, "deterministic-policy"
+    return model_name or inference.MODEL_NAME, "llm-agent"
+
+
 def build_report(
     *,
     holdout_seeds: list[int] | None = None,
@@ -231,6 +238,7 @@ def build_report(
     model_name: str = "",
 ) -> dict[str, Any]:
     base_db = load_all()
+    resolved_model_name, agent_type = _report_identity(model_name=model_name, client=client)
     public_cases = _benchmark_cases(base_db)
     public_eval = _evaluate_cases(
         public_cases,
@@ -312,8 +320,8 @@ def build_report(
             "pass_k": int(pass_k),
             "temperature": round(float(temperature), 4),
             "holdout_seeds": seeds,
-            "model_name": model_name or inference.MODEL_NAME,
-            "agent_type": "llm-agent" if client is not None else "deterministic-policy",
+            "model_name": resolved_model_name,
+            "agent_type": agent_type,
             "pass_k_definition": (
                 "A case is counted as pass^k-consistent only if all k repeated trials "
                 "score at or above the pass threshold."
@@ -356,16 +364,114 @@ def build_leaderboard_entry(
     }
 
 
+def _float_field(entry: dict[str, Any], field: str, default: float = 0.0) -> float:
+    try:
+        return float(entry.get(field, default) or default)
+    except (TypeError, ValueError):
+        return default
+
+
+def _int_field(entry: dict[str, Any], field: str, default: int = 0) -> int:
+    try:
+        return int(entry.get(field, default) or default)
+    except (TypeError, ValueError):
+        return default
+
+
+def _looks_like_llm_model_name(model_name: str) -> bool:
+    lowered = normalize_text(model_name)
+    llm_prefixes = (
+        "gpt-",
+        "openai/",
+        "openai:",
+        "claude",
+        "anthropic/",
+        "gemini",
+        "google/",
+        "meta-llama/",
+        "llama-",
+        "mistral",
+        "deepseek",
+        "qwen",
+    )
+    return any(lowered.startswith(prefix) for prefix in llm_prefixes)
+
+
+def _is_legacy_deterministic_alias(existing: dict[str, Any], canonical: dict[str, Any]) -> bool:
+    if str(canonical.get("model")) != DETERMINISTIC_BASELINE_MODEL:
+        return False
+    if str(canonical.get("type")) != "deterministic-policy":
+        return False
+    if str(existing.get("type")) != "deterministic-policy":
+        return False
+    if str(existing.get("model")) == DETERMINISTIC_BASELINE_MODEL:
+        return False
+    if str(existing.get("provenance")) != "generated-from-report":
+        return False
+    if _int_field(existing, "pass_k", 1) != _int_field(canonical, "pass_k", 1):
+        return False
+    if not math.isclose(
+        _float_field(existing, "temperature"),
+        _float_field(canonical, "temperature"),
+        abs_tol=1e-9,
+    ):
+        return False
+    return _looks_like_llm_model_name(str(existing.get("model", "")))
+
+
+def _dedupe_leaderboard_entries(entries: list[dict[str, Any]], canonical: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+    deduped: list[dict[str, Any]] = []
+    seen_keys: set[tuple[str, str, float, int]] = set()
+    for entry in entries:
+        if canonical is not None and _is_legacy_deterministic_alias(entry, canonical):
+            continue
+        key = (
+            str(entry.get("model", "")),
+            str(entry.get("type", "")),
+            _float_field(entry, "temperature"),
+            _int_field(entry, "pass_k", 1),
+        )
+        if key in seen_keys:
+            continue
+        seen_keys.add(key)
+        deduped.append(entry)
+    deduped.sort(
+        key=lambda row: (
+            _float_field(row, "holdout_pass_k_consistent"),
+            _float_field(row, "holdout_mean"),
+            _float_field(row, "public_mean"),
+        ),
+        reverse=True,
+    )
+    return deduped
+
+
 def load_leaderboard_payload(
     *,
     leaderboard_path: Path = DEFAULT_LEADERBOARD_PATH,
     report_path: Path = DEFAULT_REPORT_PATH,
 ) -> dict[str, Any]:
-    if leaderboard_path.exists():
-        return json.loads(leaderboard_path.read_text(encoding="utf-8"))
-
+    report: dict[str, Any] | None = None
+    canonical_entry: dict[str, Any] | None = None
     if report_path.exists():
         report = json.loads(report_path.read_text(encoding="utf-8"))
+        canonical_entry = build_leaderboard_entry(
+            report,
+            model_name=report.get("evaluation_protocol", {}).get("model_name", DETERMINISTIC_BASELINE_MODEL),
+            agent_type=report.get("evaluation_protocol", {}).get("agent_type", "deterministic-policy"),
+        )
+
+    if leaderboard_path.exists():
+        payload = json.loads(leaderboard_path.read_text(encoding="utf-8"))
+        entries = _dedupe_leaderboard_entries(list(payload.get("entries", [])), canonical=canonical_entry)
+        if entries != list(payload.get("entries", [])):
+            payload = {
+                **payload,
+                "entries": entries,
+            }
+        return payload
+
+    if report is not None:
         entry = build_leaderboard_entry(
             report,
             model_name=report.get("evaluation_protocol", {}).get("model_name", "ledgershield-baseline-v3"),
@@ -404,12 +510,12 @@ def upsert_leaderboard_entry(
         if not (
             str(existing.get("model")) == str(entry.get("model"))
             and str(existing.get("type")) == str(entry.get("type"))
-            and float(existing.get("temperature", 0.0) or 0.0) == float(entry.get("temperature", 0.0) or 0.0)
-            and int(existing.get("pass_k", 1) or 1) == int(entry.get("pass_k", 1) or 1)
+            and _float_field(existing, "temperature") == _float_field(entry, "temperature")
+            and _int_field(existing, "pass_k", 1) == _int_field(entry, "pass_k", 1)
         )
     ]
     retained.append(entry)
-    retained.sort(key=lambda row: (float(row.get("holdout_pass_k_consistent", 0.0) or 0.0), float(row.get("holdout_mean", 0.0) or 0.0)), reverse=True)
+    retained = _dedupe_leaderboard_entries(retained, canonical=entry)
     updated = {
         "benchmark": "ledgershield-v3",
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -518,10 +624,11 @@ def main() -> None:
         write_json_artifact(report_path, report)
 
     if not args.skip_leaderboard:
+        resolved_model_name, agent_type = _report_identity(model_name=args.model, client=client)
         leaderboard_entry = build_leaderboard_entry(
             report,
-            model_name=args.model,
-            agent_type="llm-agent" if client is not None else "deterministic-policy",
+            model_name=resolved_model_name,
+            agent_type=agent_type,
         )
         upsert_leaderboard_entry(leaderboard_entry, leaderboard_path=Path(args.leaderboard_path))
 

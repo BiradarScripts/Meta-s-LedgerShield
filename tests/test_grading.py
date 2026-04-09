@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from server.compliance_engine import ComplianceResult
+from server.data_loader import load_all
 from server.environment import LedgerShieldEnvironment
 from server.grading import DEGENERATE_EVIDENCE_CAP, evidence_score, score_submission
 from server.outcome_simulator import simulate_outcome
@@ -115,3 +116,67 @@ def test_task_a_currency_validation_penalizes_invalid_bank_format():
     assert valid_breakdown["currency_validation_score"] == 1.0
     assert invalid_breakdown["currency_validation_score"] < 1.0
     assert invalid_score < valid_score
+
+
+def test_task_d_graph_state_is_read_from_top_level_case_context():
+    db = load_all()
+    case = db["cases_by_id"]["CASE-D-001::variant-0"]
+    gold = case["gold"]
+    counterfactual = (
+        "If the invoice only claims identity and the payment request did not contradict "
+        "the approved bank, then I would pay after review."
+    )
+    submission = {
+        "decision": gold["decision"],
+        "confidence": 0.98,
+        "reason_codes": list(gold["reason_codes"]),
+        "policy_checks": dict(gold["policy_checks"]),
+        "evidence_map": dict(gold["evidence_targets"]),
+        "counterfactual": counterfactual,
+    }
+    compliant = ComplianceResult(
+        overall_compliant=True,
+        controls_evaluated=1,
+        controls_passed=1,
+        controls_failed=0,
+        compliance_score=1.0,
+    )
+
+    top_level_score, top_level_breakdown = score_submission(
+        "task_d",
+        submission,
+        gold,
+        trajectory=[],
+        outcome={},
+        final_state={},
+        case_context={"graph_state": case["graph_state"]},
+        compliance_result=compliant,
+        currency_validation={"score": 1.0, "applicable": False},
+    )
+    nested_score, nested_breakdown = score_submission(
+        "task_d",
+        submission,
+        gold,
+        trajectory=[],
+        outcome={},
+        final_state={},
+        case_context={"case_snapshot": {"graph_state": case["graph_state"]}},
+        compliance_result=compliant,
+        currency_validation={"score": 1.0, "applicable": False},
+    )
+    plain_score, plain_breakdown = score_submission(
+        "task_d",
+        submission,
+        gold,
+        trajectory=[],
+        outcome={},
+        final_state={},
+        case_context={},
+        compliance_result=compliant,
+        currency_validation={"score": 1.0, "applicable": False},
+    )
+
+    assert top_level_breakdown["counterfactual_score"] == nested_breakdown["counterfactual_score"]
+    assert top_level_breakdown["counterfactual_score"] > plain_breakdown["counterfactual_score"]
+    assert top_level_score == nested_score
+    assert top_level_score > plain_score

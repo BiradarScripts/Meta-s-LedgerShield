@@ -2440,6 +2440,11 @@ def update_collected_from_tool_result(
     elif tool_name == "compare_bank_account" and tool.get("success"):
         collected["bank_compare"] = tool
         collected["bank_compares"].append(tool)
+        canonical_vendor_key = normalize_text(tool.get("vendor_key"))
+        if canonical_vendor_key:
+            vendor_snapshot = dict(collected.get("vendor") or {})
+            vendor_snapshot.setdefault("vendor_key", canonical_vendor_key)
+            collected["vendor"] = vendor_snapshot
     elif tool_name == "lookup_policy" and tool.get("success"):
         collected["policies"] = list(tool.get("policies", []) or [])
     elif tool_name == "ocr" and tool.get("success") and tool.get("doc_id") == email_doc_id:

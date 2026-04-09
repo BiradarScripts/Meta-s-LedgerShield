@@ -721,7 +721,9 @@ def score_submission(
     s_outcome = downstream_outcome_score(outcome)
     s_resolution = resolution_state_score(submitted, final_state, gold, outcome)
     
-    graph_state = case_context.get("case_snapshot", {}).get("graph_state") if case_context else None
+    graph_state = None
+    if case_context:
+        graph_state = case_context.get("graph_state") or case_context.get("case_snapshot", {}).get("graph_state")
 
     # Phase 2.3: Degenerate submission penalty
     degen_penalty = _degenerate_submission_check(submitted, task_type, gold=gold)

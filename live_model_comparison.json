@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-04-08T23:04:55.197968+00:00",
+  "generated_at_utc": "2026-04-09T22:50:19.323544+00:00",
   "models": [
     "gpt-3.5-turbo",
     "gpt-4o",
@@ -49,8 +49,8 @@
         "stronger_model": "gpt-4o",
         "weaker_tier": "standard",
         "stronger_tier": "strong",
-        "average_score_gap": 0.1654,
-        "success_rate_gap": 0.4286,
+        "average_score_gap": 0.1983,
+        "success_rate_gap": 0.5238,
         "ordering_ok": true
       },
       {
@@ -58,8 +58,8 @@
         "stronger_model": "gpt-5.4",
         "weaker_tier": "strong",
         "stronger_tier": "elite",
-        "average_score_gap": 0.0642,
-        "success_rate_gap": 0.1905,
+        "average_score_gap": 0.0229,
+        "success_rate_gap": 0.0476,
         "ordering_ok": true
       }
     ],
@@ -79,9 +79,9 @@
         "repair_level": "none",
         "tier": "standard"
       },
-      "average_score": 0.7009,
+      "average_score": 0.6965,
       "success_rate": 0.381,
-      "min_score": 0.01,
+      "min_score": 0.0582,
       "max_score": 0.99,
       "api_calls": 63,
       "debug_artifact_dir": "live_model_comparison_debug/gpt-3.5-turbo",
@@ -110,17 +110,17 @@
         "CASE-B-003": 0.99,
         "CASE-B-004": 0.8558,
         "CASE-B-005": 0.3919,
-        "CASE-C-001": 0.01,
+        "CASE-C-001": 0.0582,
         "CASE-C-002": 0.8078,
         "CASE-C-003": 0.1357,
         "CASE-C-004": 0.8044,
-        "CASE-D-001": 0.6294,
-        "CASE-D-002": 0.7779,
-        "CASE-D-003": 0.6361,
+        "CASE-D-001": 0.5417,
+        "CASE-D-002": 0.7624,
+        "CASE-D-003": 0.6421,
         "CASE-D-004": 0.5932,
         "CASE-D-005": 0.7809,
         "CASE-D-006": 0.7641,
-        "CASE-E-001": 0.7194,
+        "CASE-E-001": 0.6759,
         "CASE-E-002": 0.2142
       }
     },
@@ -137,40 +137,38 @@
         "repair_level": "partial",
         "tier": "strong"
       },
-      "average_score": 0.8663,
-      "success_rate": 0.8095,
-      "min_score": 0.4252,
+      "average_score": 0.8947,
+      "success_rate": 0.9048,
+      "min_score": 0.5551,
       "max_score": 0.99,
-      "api_calls": 65,
+      "api_calls": 64,
       "debug_artifact_dir": "live_model_comparison_debug/gpt-4o",
       "failed_cases": [
         "CASE-B-002",
-        "CASE-B-004",
-        "CASE-C-002",
-        "CASE-E-001"
+        "CASE-B-004"
       ],
       "case_scores": {
         "CASE-A-001": 0.9882,
         "CASE-A-002": 0.9882,
         "CASE-A-003": 0.9402,
         "CASE-A-004": 0.9403,
-        "CASE-B-001": 0.9488,
+        "CASE-B-001": 0.9478,
         "CASE-B-002": 0.579,
         "CASE-B-003": 0.99,
         "CASE-B-004": 0.5551,
         "CASE-B-005": 0.99,
         "CASE-C-001": 0.9221,
-        "CASE-C-002": 0.4252,
+        "CASE-C-002": 0.9161,
         "CASE-C-003": 0.9207,
         "CASE-C-004": 0.8952,
-        "CASE-D-001": 0.9213,
+        "CASE-D-001": 0.9275,
         "CASE-D-002": 0.8762,
         "CASE-D-003": 0.91,
-        "CASE-D-004": 0.8911,
+        "CASE-D-004": 0.8953,
         "CASE-D-005": 0.8909,
         "CASE-D-006": 0.8762,
-        "CASE-E-001": 0.84,
-        "CASE-E-002": 0.903
+        "CASE-E-001": 0.8901,
+        "CASE-E-002": 0.9506
       }
     },
     {
@@ -186,35 +184,37 @@
         "repair_level": "partial",
         "tier": "elite"
       },
-      "average_score": 0.9305,
-      "success_rate": 1.0,
-      "min_score": 0.8752,
+      "average_score": 0.9177,
+      "success_rate": 0.9524,
+      "min_score": 0.579,
       "max_score": 0.99,
       "api_calls": 64,
       "debug_artifact_dir": "live_model_comparison_debug/gpt-5.4",
-      "failed_cases": [],
+      "failed_cases": [
+        "CASE-B-002"
+      ],
       "case_scores": {
         "CASE-A-001": 0.9882,
         "CASE-A-002": 0.9882,
         "CASE-A-003": 0.9402,
         "CASE-A-004": 0.9403,
         "CASE-B-001": 0.9504,
-        "CASE-B-002": 0.9092,
+        "CASE-B-002": 0.579,
         "CASE-B-003": 0.99,
         "CASE-B-004": 0.8839,
         "CASE-B-005": 0.99,
         "CASE-C-001": 0.9216,
-        "CASE-C-002": 0.9171,
+        "CASE-C-002": 0.9174,
         "CASE-C-003": 0.9202,
         "CASE-C-004": 0.9046,
-        "CASE-D-001": 0.9176,
-        "CASE-D-002": 0.8752,
-        "CASE-D-003": 0.9359,
+        "CASE-D-001": 0.9348,
+        "CASE-D-002": 0.8753,
+        "CASE-D-003": 0.94,
         "CASE-D-004": 0.9188,
-        "CASE-D-005": 0.8854,
-        "CASE-D-006": 0.8759,
-        "CASE-E-001": 0.9618,
-        "CASE-E-002": 0.9258
+        "CASE-D-005": 0.8997,
+        "CASE-D-006": 0.876,
+        "CASE-E-001": 0.9368,
+        "CASE-E-002": 0.9758
       }
     }
   ]

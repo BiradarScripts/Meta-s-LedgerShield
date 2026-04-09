@@ -111,7 +111,7 @@
       "action_type": "submit_decision",
       "done": true,
       "payload": {
-        "confidence": 0.97,
+        "confidence": 0.98,
         "counterfactual": "Would HOLD if the sender domain changed, the bank account mismatched vendor master, or a duplicate cluster appeared in ledger history.",
         "decision": "PAY",
         "evidence_map": {
@@ -164,7 +164,7 @@
         "reason_codes": []
       },
       "phase": "submit",
-      "reward": 0.870776,
+      "reward": 0.870876,
       "step": 9,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -226,7 +226,12 @@
       ],
       "vendor_key": "bluepeak-logistics"
     },
-    "vendor_history": []
+    "vendor_history": [
+      {
+        "event_type": "tax_id_refresh",
+        "status": "approved"
+      }
+    ]
   },
   "error": "",
   "final_info": {
@@ -295,16 +300,16 @@
         "task_d",
         "task_e"
       ],
-      "competence_ema": 0.9077,
+      "competence_ema": 0.9063,
       "episode_count": 61,
-      "recent_5_avg": 0.8982,
-      "stagnation_counter": 10,
+      "recent_5_avg": 0.902,
+      "stagnation_counter": 3,
       "tier": 3,
       "tier_name": "expert",
       "tier_transitions": 5,
       "weakest_task": "task_e"
     },
-    "final_score": 0.8759,
+    "final_score": 0.876,
     "outcome": {
       "outcome_type": "safe_payment_cleared",
       "portfolio_metrics": {
@@ -324,7 +329,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.8759,
+        "final_score": 0.876,
         "potential_delta": -0.0051
       },
       "metadata": {
@@ -336,10 +341,10 @@
         "watchdog_verdict": "veto"
       },
       "terminal": true,
-      "value": 0.8708
+      "value": 0.8709
     },
     "rl_data_plane": {
-      "reward": 0.870776,
+      "reward": 0.870876,
       "state_vector": [
         0.778125,
         0.5,
@@ -351,7 +356,7 @@
       "truncated": false
     },
     "score_breakdown": {
-      "calibration_score": 0.9925,
+      "calibration_score": 0.995,
       "callback_interpretation_score": 0.5,
       "compliance_adjustment": 0.0,
       "compliance_penalty": 0.0,
@@ -377,8 +382,8 @@
       "case_clock": 9,
       "case_id": "CASE-D-006",
       "contrastive_pair_id": "",
-      "episode_id": "b2fc7349-e816-42f5-bd9c-f013b103e9b2",
-      "final_score": 0.8759,
+      "episode_id": "132ec843-c7e0-4f23-a306-64f2bf0296f6",
+      "final_score": 0.876,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 18,
@@ -513,8 +518,8 @@
     "truncated": false,
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.8759,
-      "joint_score": 0.7559,
+      "analyst_score": 0.876,
+      "joint_score": 0.756,
       "verdict": "veto",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
@@ -524,7 +529,7 @@
     }
   },
   "final_submission": {
-    "confidence": 0.97,
+    "confidence": 0.98,
     "counterfactual": "Would HOLD if the sender domain changed, the bank account mismatched vendor master, or a duplicate cluster appeared in ledger history.",
     "decision": "PAY",
     "evidence_map": {
@@ -636,7 +641,7 @@
       "score": 1.0
     },
     "decision": "PAY",
-    "final_score": 0.8759,
+    "final_score": 0.876,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "safe_payment_cleared",
@@ -657,7 +662,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.8759,
+        "final_score": 0.876,
         "potential_delta": -0.0051
       },
       "metadata": {
@@ -669,11 +674,11 @@
         "watchdog_verdict": "veto"
       },
       "terminal": true,
-      "value": 0.8708
+      "value": 0.8709
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
-      "calibration_score": 0.9925,
+      "calibration_score": 0.995,
       "callback_interpretation_score": 0.5,
       "compliance_adjustment": 0.0,
       "compliance_penalty": 0.0,
@@ -701,8 +706,8 @@
       "case_clock": 9,
       "case_id": "CASE-D-006",
       "contrastive_pair_id": "",
-      "episode_id": "b2fc7349-e816-42f5-bd9c-f013b103e9b2",
-      "final_score": 0.8759,
+      "episode_id": "132ec843-c7e0-4f23-a306-64f2bf0296f6",
+      "final_score": 0.876,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 18,
@@ -837,8 +842,8 @@
     "triggered_risk_reasons": [],
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.8759,
-      "joint_score": 0.7559,
+      "analyst_score": 0.876,
+      "joint_score": 0.756,
       "verdict": "veto",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
@@ -992,9 +997,9 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.8759,
+  "score": 0.876,
   "score_breakdown": {
-    "calibration_score": 0.9925,
+    "calibration_score": 0.995,
     "callback_interpretation_score": 0.5,
     "compliance_adjustment": 0.0,
     "compliance_penalty": 0.0,
@@ -1022,8 +1027,8 @@
     "case_clock": 9,
     "case_id": "CASE-D-006",
     "contrastive_pair_id": "",
-    "episode_id": "b2fc7349-e816-42f5-bd9c-f013b103e9b2",
-    "final_score": 0.8759,
+    "episode_id": "132ec843-c7e0-4f23-a306-64f2bf0296f6",
+    "final_score": 0.876,
     "handoff_packet": {},
     "interventions_taken": [],
     "max_steps": 18,

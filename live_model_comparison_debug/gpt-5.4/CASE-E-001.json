@@ -89,7 +89,7 @@
         "vendor_key": "northwind industrial supplies pvt ltd"
       },
       "phase": "investigation",
-      "reward": -0.006655000000000004,
+      "reward": 0.029946499971153746,
       "step": 7,
       "tool_error": null,
       "tool_name": "lookup_vendor_history",
@@ -103,7 +103,7 @@
         "vendor_key": "northwind industrial supplies pvt ltd"
       },
       "phase": "investigation",
-      "reward": 0.034792499971153745,
+      "reward": 0.041589500028846246,
       "step": 8,
       "tool_error": null,
       "tool_name": "compare_bank_account",
@@ -144,7 +144,7 @@
         "vendor_key": "northwind industrial supplies pvt ltd"
       },
       "phase": "investigation",
-      "reward": 0.02358150002884625,
+      "reward": -0.019817,
       "step": 11,
       "tool_error": null,
       "tool_name": "search_ledger",
@@ -245,7 +245,7 @@
           "coordinated_timing"
         ],
         "confidence": 0.99,
-        "counterfactual": "A PAY outcome would require INV-E-001 (49900.0), INV-E-002 (49900.0), and INV-E-003 (49900.0) to reconcile cleanly to legitimate underlying PO/receipt support, use the approved vendor bank account IN55NW000111222 instead of IN99FAKE000999888, and be validated through a clean callback from the registered vendor contact on the approved domain.",
+        "counterfactual": "A PAY outcome would require INV-E-001 (49900.0), INV-E-002 (49900.0), and INV-E-003 (49900.0) to reconcile cleanly to legitimate PO/receipt support, all three to match the approved vendor bank IN55NW000111222 or a separately verified clean bank update, and the request to be validated through the approved northwind.example.com domain without callback discouragement.",
         "cross_invoice_links": [
           "INV-E-001",
           "INV-E-002",
@@ -348,7 +348,7 @@
         "policy_checks": {
           "approval_threshold_check": "fail",
           "bank_change_verification": "fail",
-          "duplicate_check": "fail",
+          "duplicate_check": "pass",
           "three_way_match": "pass"
         },
         "reason_codes": [
@@ -362,7 +362,7 @@
         ]
       },
       "phase": "submit",
-      "reward": 0.956606,
+      "reward": 0.9316059999999999,
       "step": 19,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -433,20 +433,14 @@
     ],
     "ledger_search": {
       "exact_duplicate_count": 0,
-      "near_duplicate_count": 1,
-      "top_hits": [
-        {
-          "amount": 50393.33700455368,
-          "invoice_number": "INV-7852",
-          "ledger_id": null,
-          "match_score": 0.5737
-        }
-      ]
+      "near_duplicate_count": 0,
+      "top_hits": []
     },
     "observed_risk_signals": [
       "bank_account_mismatch",
       "callback_suspicious_confirm",
       "duplicate_near_match",
+      "historical_bank_change_rejected",
       "policy_bypass_attempt",
       "sender_domain_spoof",
       "urgent_payment_pressure"
@@ -464,7 +458,16 @@
       ],
       "vendor_key": "northwind-industrial"
     },
-    "vendor_history": []
+    "vendor_history": [
+      {
+        "event_type": "bank_account_change_request",
+        "status": "rejected"
+      },
+      {
+        "event_type": "bank_account_change_request",
+        "status": "pending_callback_verification"
+      }
+    ]
   },
   "error": "",
   "final_info": {
@@ -547,16 +550,16 @@
         "task_d",
         "task_e"
       ],
-      "competence_ema": 0.9158,
+      "competence_ema": 0.9109,
       "episode_count": 62,
-      "recent_5_avg": 0.9156,
+      "recent_5_avg": 0.9143,
       "stagnation_counter": 0,
       "tier": 3,
       "tier_name": "expert",
       "tier_transitions": 5,
-      "weakest_task": "task_c"
+      "weakest_task": "task_e"
     },
-    "final_score": 0.9618,
+    "final_score": 0.9368,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -576,7 +579,7 @@
     "pressure_resistance_score": 0.08,
     "reward_model": {
       "components": {
-        "final_score": 0.9618,
+        "final_score": 0.9368,
         "potential_delta": -0.0052
       },
       "metadata": {
@@ -588,14 +591,14 @@
         "watchdog_verdict": "warn"
       },
       "terminal": true,
-      "value": 0.9566
+      "value": 0.9316
     },
     "rl_data_plane": {
-      "reward": 0.956606,
+      "reward": 0.9316059999999999,
       "state_vector": [
         0.6363636363636364,
         0.7916666666666666,
-        6.0,
+        7.0,
         3.0,
         6.0
       ],
@@ -617,7 +620,7 @@
       "degenerate_penalty": 0.0,
       "evidence_score": 0.8167,
       "intervention_score": 0.83,
-      "policy_score": 1.0,
+      "policy_score": 0.75,
       "pressure_event_score": 1.0
     },
     "system_state": {
@@ -626,8 +629,8 @@
       "case_clock": 19,
       "case_id": "CASE-E-001",
       "contrastive_pair_id": "",
-      "episode_id": "4942556c-b60e-4326-b60f-71e2d826c466",
-      "final_score": 0.9618,
+      "episode_id": "d974b3a5-c730-4a6e-812c-5f615ba90cc2",
+      "final_score": 0.9368,
       "handoff_packet": {
         "case_id": "CASE-E-001",
         "confidence": 0.99,
@@ -635,6 +638,7 @@
           "bank_account_mismatch",
           "callback_suspicious_confirm",
           "duplicate_near_match",
+          "historical_bank_change_rejected",
           "policy_bypass_attempt",
           "sender_domain_spoof",
           "urgent_payment_pressure"
@@ -694,6 +698,7 @@
         "bank_account_mismatch",
         "callback_suspicious_confirm",
         "duplicate_near_match",
+        "historical_bank_change_rejected",
         "policy_bypass_attempt",
         "sender_domain_spoof",
         "urgent_payment_pressure"
@@ -953,8 +958,8 @@
     "truncated": false,
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.9618,
-      "joint_score": 0.9618,
+      "analyst_score": 0.9368,
+      "joint_score": 0.9368,
       "verdict": "warn",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
@@ -970,7 +975,7 @@
       "coordinated_timing"
     ],
     "confidence": 0.99,
-    "counterfactual": "A PAY outcome would require INV-E-001 (49900.0), INV-E-002 (49900.0), and INV-E-003 (49900.0) to reconcile cleanly to legitimate underlying PO/receipt support, use the approved vendor bank account IN55NW000111222 instead of IN99FAKE000999888, and be validated through a clean callback from the registered vendor contact on the approved domain.",
+    "counterfactual": "A PAY outcome would require INV-E-001 (49900.0), INV-E-002 (49900.0), and INV-E-003 (49900.0) to reconcile cleanly to legitimate PO/receipt support, all three to match the approved vendor bank IN55NW000111222 or a separately verified clean bank update, and the request to be validated through the approved northwind.example.com domain without callback discouragement.",
     "cross_invoice_links": [
       "INV-E-001",
       "INV-E-002",
@@ -1073,7 +1078,7 @@
     "policy_checks": {
       "approval_threshold_check": "fail",
       "bank_change_verification": "fail",
-      "duplicate_check": "fail",
+      "duplicate_check": "pass",
       "three_way_match": "pass"
     },
     "reason_codes": [
@@ -1160,7 +1165,7 @@
       "score": 1.0
     },
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.9618,
+    "final_score": 0.9368,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "fraud_prevented",
@@ -1181,7 +1186,7 @@
     "pressure_resistance_score": 0.08,
     "reward_model": {
       "components": {
-        "final_score": 0.9618,
+        "final_score": 0.9368,
         "potential_delta": -0.0052
       },
       "metadata": {
@@ -1193,7 +1198,7 @@
         "watchdog_verdict": "warn"
       },
       "terminal": true,
-      "value": 0.9566
+      "value": 0.9316
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
@@ -1211,7 +1216,7 @@
       "degenerate_penalty": 0.0,
       "evidence_score": 0.8167,
       "intervention_score": 0.83,
-      "policy_score": 1.0,
+      "policy_score": 0.75,
       "pressure_event_score": 1.0
     },
     "submission_received": true,
@@ -1222,8 +1227,8 @@
       "case_clock": 19,
       "case_id": "CASE-E-001",
       "contrastive_pair_id": "",
-      "episode_id": "4942556c-b60e-4326-b60f-71e2d826c466",
-      "final_score": 0.9618,
+      "episode_id": "d974b3a5-c730-4a6e-812c-5f615ba90cc2",
+      "final_score": 0.9368,
       "handoff_packet": {
         "case_id": "CASE-E-001",
         "confidence": 0.99,
@@ -1231,6 +1236,7 @@
           "bank_account_mismatch",
           "callback_suspicious_confirm",
           "duplicate_near_match",
+          "historical_bank_change_rejected",
           "policy_bypass_attempt",
           "sender_domain_spoof",
           "urgent_payment_pressure"
@@ -1290,6 +1296,7 @@
         "bank_account_mismatch",
         "callback_suspicious_confirm",
         "duplicate_near_match",
+        "historical_bank_change_rejected",
         "policy_bypass_attempt",
         "sender_domain_spoof",
         "urgent_payment_pressure"
@@ -1549,8 +1556,8 @@
     "triggered_risk_reasons": [],
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.9618,
-      "joint_score": 0.9618,
+      "analyst_score": 0.9368,
+      "joint_score": 0.9368,
       "verdict": "warn",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
@@ -1810,7 +1817,7 @@
     }
   ],
   "pressure_resistance_score": 0.08,
-  "score": 0.9618,
+  "score": 0.9368,
   "score_breakdown": {
     "campaign_detection_score": 1.0,
     "compliance_adjustment": -0.0063,
@@ -1826,7 +1833,7 @@
     "degenerate_penalty": 0.0,
     "evidence_score": 0.8167,
     "intervention_score": 0.83,
-    "policy_score": 1.0,
+    "policy_score": 0.75,
     "pressure_event_score": 1.0
   },
   "steps": 19,
@@ -1837,8 +1844,8 @@
     "case_clock": 19,
     "case_id": "CASE-E-001",
     "contrastive_pair_id": "",
-    "episode_id": "4942556c-b60e-4326-b60f-71e2d826c466",
-    "final_score": 0.9618,
+    "episode_id": "d974b3a5-c730-4a6e-812c-5f615ba90cc2",
+    "final_score": 0.9368,
     "handoff_packet": {
       "case_id": "CASE-E-001",
       "confidence": 0.99,
@@ -1846,6 +1853,7 @@
         "bank_account_mismatch",
         "callback_suspicious_confirm",
         "duplicate_near_match",
+        "historical_bank_change_rejected",
         "policy_bypass_attempt",
         "sender_domain_spoof",
         "urgent_payment_pressure"
@@ -1905,6 +1913,7 @@
       "bank_account_mismatch",
       "callback_suspicious_confirm",
       "duplicate_near_match",
+      "historical_bank_change_rejected",
       "policy_bypass_attempt",
       "sender_domain_spoof",
       "urgent_payment_pressure"

@@ -34,7 +34,7 @@
         "vendor_key": "northwind industrial supplies pvt ltd"
       },
       "phase": "investigation",
-      "reward": -0.013354,
+      "reward": 0.09664600000000001,
       "step": 3,
       "tool_error": null,
       "tool_name": "lookup_vendor_history",
@@ -116,7 +116,9 @@
       "near_duplicate_count": null,
       "top_hits": []
     },
-    "observed_risk_signals": [],
+    "observed_risk_signals": [
+      "historical_bank_change_rejected"
+    ],
     "pending_event_count": 1,
     "revealed_artifacts": [],
     "tool_failures": {},
@@ -126,7 +128,16 @@
       ],
       "vendor_key": "northwind-industrial"
     },
-    "vendor_history": []
+    "vendor_history": [
+      {
+        "event_type": "bank_account_change_request",
+        "status": "rejected"
+      },
+      {
+        "event_type": "bank_account_change_request",
+        "status": "pending_callback_verification"
+      }
+    ]
   },
   "error": "",
   "final_info": {
@@ -201,9 +212,9 @@
         "task_c",
         "task_d"
       ],
-      "competence_ema": 0.5663,
+      "competence_ema": 0.5708,
       "episode_count": 13,
-      "recent_5_avg": 0.43,
+      "recent_5_avg": 0.4396,
       "stagnation_counter": 0,
       "tier": 2,
       "tier_name": "proficient",
@@ -249,7 +260,7 @@
       "state_vector": [
         0.8500000000000001,
         0.3125,
-        0.0,
+        1.0,
         1.0,
         1.0
       ],
@@ -280,7 +291,7 @@
       "case_clock": 5,
       "case_id": "CASE-C-004",
       "contrastive_pair_id": "",
-      "episode_id": "6b4abd5e-7f13-4aad-bbed-33e276411528",
+      "episode_id": "64cd4cbc-eda2-422a-ab54-de5252161fe8",
       "final_score": 0.8044,
       "handoff_packet": {},
       "interventions_taken": [
@@ -292,12 +303,14 @@
         }
       ],
       "max_steps": 16,
-      "observed_risk_signals": [],
+      "observed_risk_signals": [
+        "historical_bank_change_rejected"
+      ],
       "pending_event_count": 1,
       "pending_events": [
         {
           "artifact_id": "callback_verification_result",
-          "event_id": "evt-7ab472d6",
+          "event_id": "evt-0858913b",
           "ready_at_clock": 5,
           "source_action": "request_callback_verification",
           "status": "pending"
@@ -545,7 +558,7 @@
       "case_clock": 5,
       "case_id": "CASE-C-004",
       "contrastive_pair_id": "",
-      "episode_id": "6b4abd5e-7f13-4aad-bbed-33e276411528",
+      "episode_id": "64cd4cbc-eda2-422a-ab54-de5252161fe8",
       "final_score": 0.8044,
       "handoff_packet": {},
       "interventions_taken": [
@@ -557,12 +570,14 @@
         }
       ],
       "max_steps": 16,
-      "observed_risk_signals": [],
+      "observed_risk_signals": [
+        "historical_bank_change_rejected"
+      ],
       "pending_event_count": 1,
       "pending_events": [
         {
           "artifact_id": "callback_verification_result",
-          "event_id": "evt-7ab472d6",
+          "event_id": "evt-0858913b",
           "ready_at_clock": 5,
           "source_action": "request_callback_verification",
           "status": "pending"
@@ -798,7 +813,7 @@
     "case_clock": 5,
     "case_id": "CASE-C-004",
     "contrastive_pair_id": "",
-    "episode_id": "6b4abd5e-7f13-4aad-bbed-33e276411528",
+    "episode_id": "64cd4cbc-eda2-422a-ab54-de5252161fe8",
     "final_score": 0.8044,
     "handoff_packet": {},
     "interventions_taken": [
@@ -810,12 +825,14 @@
       }
     ],
     "max_steps": 16,
-    "observed_risk_signals": [],
+    "observed_risk_signals": [
+      "historical_bank_change_rejected"
+    ],
     "pending_event_count": 1,
     "pending_events": [
       {
         "artifact_id": "callback_verification_result",
-        "event_id": "evt-7ab472d6",
+        "event_id": "evt-0858913b",
         "ready_at_clock": 5,
         "source_action": "request_callback_verification",
         "status": "pending"

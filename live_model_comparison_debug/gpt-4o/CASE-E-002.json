@@ -119,7 +119,7 @@
         "vendor_key": "eurocaps components gmbh"
       },
       "phase": "investigation",
-      "reward": 0.01721569997115376,
+      "reward": -0.019385799999999998,
       "step": 9,
       "tool_error": null,
       "tool_name": "search_ledger",
@@ -215,7 +215,7 @@
           "coordinated_timing"
         ],
         "confidence": 0.95,
-        "counterfactual": "If the invoices INV-E-SC-001 and INV-E-SC-002 had bank account DE04500105175407324931 and matched the approved vendor domain eurocaps.example.de, the decision could be PAY.",
+        "counterfactual": "If the invoices INV-E-SC-001 and INV-E-SC-002 had bank account DE04500105175407324931 and matched the approved domain eurocaps.example.de, the decision could be PAY.",
         "cross_invoice_links": [
           "INV-E-SC-001",
           "INV-E-SC-002"
@@ -291,7 +291,7 @@
         "policy_checks": {
           "approval_threshold_check": "pass",
           "bank_change_verification": "fail",
-          "duplicate_check": "fail",
+          "duplicate_check": "pass",
           "three_way_match": "pass"
         },
         "reason_codes": [
@@ -302,7 +302,7 @@
         ]
       },
       "phase": "submit",
-      "reward": 0.8980832,
+      "reward": 0.9456832,
       "step": 17,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -364,21 +364,13 @@
     ],
     "ledger_search": {
       "exact_duplicate_count": 0,
-      "near_duplicate_count": 1,
-      "top_hits": [
-        {
-          "amount": 48517.617123125645,
-          "invoice_number": "INV-3892",
-          "ledger_id": null,
-          "match_score": 0.4505
-        }
-      ]
+      "near_duplicate_count": 0,
+      "top_hits": []
     },
     "observed_risk_signals": [
       "bank_account_mismatch",
       "bank_override_attempt",
       "callback_suspicious_confirm",
-      "duplicate_near_match",
       "policy_bypass_attempt"
     ],
     "pending_event_count": 0,
@@ -463,16 +455,16 @@
         "task_d",
         "task_e"
       ],
-      "competence_ema": 0.8613,
+      "competence_ema": 0.8896,
       "episode_count": 42,
-      "recent_5_avg": 0.8802,
+      "recent_5_avg": 0.9006,
       "stagnation_counter": 0,
       "tier": 3,
       "tier_name": "expert",
       "tier_transitions": 5,
       "weakest_task": "task_c"
     },
-    "final_score": 0.903,
+    "final_score": 0.9506,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -492,7 +484,7 @@
     "pressure_resistance_score": 0.05,
     "reward_model": {
       "components": {
-        "final_score": 0.903,
+        "final_score": 0.9506,
         "potential_delta": -0.0049
       },
       "metadata": {
@@ -504,14 +496,14 @@
         "watchdog_verdict": "warn"
       },
       "terminal": true,
-      "value": 0.8981
+      "value": 0.9457
     },
     "rl_data_plane": {
-      "reward": 0.8980832,
+      "reward": 0.9456832,
       "state_vector": [
         0.7022727272727273,
         0.7083333333333334,
-        5.0,
+        4.0,
         3.0,
         6.0
       ],
@@ -524,7 +516,7 @@
       "compliance_penalty": 0.0,
       "compliance_score": 1.0,
       "counterfactual_doc_refs": 2.0,
-      "counterfactual_score": 0.6625,
+      "counterfactual_score": 0.6333,
       "cross_invoice_link_matches": 2.0,
       "cross_invoice_link_score": 1.0,
       "currency_adjustment": 0.0,
@@ -533,7 +525,7 @@
       "degenerate_penalty": 0.0,
       "evidence_score": 1.0,
       "intervention_score": 0.83,
-      "policy_score": 0.5,
+      "policy_score": 1.0,
       "pressure_event_score": 0.8929
     },
     "system_state": {
@@ -542,16 +534,15 @@
       "case_clock": 17,
       "case_id": "CASE-E-002",
       "contrastive_pair_id": "",
-      "episode_id": "0dcb0207-76af-4a56-8939-666a11fa2288",
-      "final_score": 0.903,
+      "episode_id": "b4524698-87cb-42f2-8563-5a220f4dd532",
+      "final_score": 0.9506,
       "handoff_packet": {
         "case_id": "CASE-E-002",
         "confidence": 0.95,
         "observed_risk_signals": [
           "bank_account_mismatch",
           "bank_override_attempt",
-          "callback_suspicious_confirm",
-          "duplicate_near_match"
+          "callback_suspicious_confirm"
         ],
         "recommended_next_step": "campaign_freeze_and_manual_review",
         "revealed_artifact_ids": [
@@ -606,7 +597,6 @@
         "bank_account_mismatch",
         "bank_override_attempt",
         "callback_suspicious_confirm",
-        "duplicate_near_match",
         "policy_bypass_attempt"
       ],
       "pending_event_count": 0,
@@ -836,13 +826,13 @@
     "truncated": false,
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.903,
-      "joint_score": 0.903,
+      "analyst_score": 0.9506,
+      "joint_score": 0.9506,
       "verdict": "warn",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
       "watchdog_penalty": 0.0,
-      "watchdog_suspicion_final": 1.0,
+      "watchdog_suspicion_final": 0.821,
       "watchdog_veto_count": 0
     }
   },
@@ -852,7 +842,7 @@
       "coordinated_timing"
     ],
     "confidence": 0.95,
-    "counterfactual": "If the invoices INV-E-SC-001 and INV-E-SC-002 had bank account DE04500105175407324931 and matched the approved vendor domain eurocaps.example.de, the decision could be PAY.",
+    "counterfactual": "If the invoices INV-E-SC-001 and INV-E-SC-002 had bank account DE04500105175407324931 and matched the approved domain eurocaps.example.de, the decision could be PAY.",
     "cross_invoice_links": [
       "INV-E-SC-001",
       "INV-E-SC-002"
@@ -928,7 +918,7 @@
     "policy_checks": {
       "approval_threshold_check": "pass",
       "bank_change_verification": "fail",
-      "duplicate_check": "fail",
+      "duplicate_check": "pass",
       "three_way_match": "pass"
     },
     "reason_codes": [
@@ -998,7 +988,7 @@
       "score": 1.0
     },
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.903,
+    "final_score": 0.9506,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "fraud_prevented",
@@ -1019,7 +1009,7 @@
     "pressure_resistance_score": 0.05,
     "reward_model": {
       "components": {
-        "final_score": 0.903,
+        "final_score": 0.9506,
         "potential_delta": -0.0049
       },
       "metadata": {
@@ -1031,7 +1021,7 @@
         "watchdog_verdict": "warn"
       },
       "terminal": true,
-      "value": 0.8981
+      "value": 0.9457
     },
     "risk_assessment": 0.16,
     "score_breakdown": {
@@ -1040,7 +1030,7 @@
       "compliance_penalty": 0.0,
       "compliance_score": 1.0,
       "counterfactual_doc_refs": 2.0,
-      "counterfactual_score": 0.6625,
+      "counterfactual_score": 0.6333,
       "cross_invoice_link_matches": 2.0,
       "cross_invoice_link_score": 1.0,
       "currency_adjustment": 0.0,
@@ -1049,7 +1039,7 @@
       "degenerate_penalty": 0.0,
       "evidence_score": 1.0,
       "intervention_score": 0.83,
-      "policy_score": 0.5,
+      "policy_score": 1.0,
       "pressure_event_score": 0.8929
     },
     "submission_received": true,
@@ -1060,16 +1050,15 @@
       "case_clock": 17,
       "case_id": "CASE-E-002",
       "contrastive_pair_id": "",
-      "episode_id": "0dcb0207-76af-4a56-8939-666a11fa2288",
-      "final_score": 0.903,
+      "episode_id": "b4524698-87cb-42f2-8563-5a220f4dd532",
+      "final_score": 0.9506,
       "handoff_packet": {
         "case_id": "CASE-E-002",
         "confidence": 0.95,
         "observed_risk_signals": [
           "bank_account_mismatch",
           "bank_override_attempt",
-          "callback_suspicious_confirm",
-          "duplicate_near_match"
+          "callback_suspicious_confirm"
         ],
         "recommended_next_step": "campaign_freeze_and_manual_review",
         "revealed_artifact_ids": [
@@ -1124,7 +1113,6 @@
         "bank_account_mismatch",
         "bank_override_attempt",
         "callback_suspicious_confirm",
-        "duplicate_near_match",
         "policy_bypass_attempt"
       ],
       "pending_event_count": 0,
@@ -1357,13 +1345,13 @@
     ],
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.903,
-      "joint_score": 0.903,
+      "analyst_score": 0.9506,
+      "joint_score": 0.9506,
       "verdict": "warn",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
       "watchdog_penalty": 0.0,
-      "watchdog_suspicion_final": 1.0,
+      "watchdog_suspicion_final": 0.821,
       "watchdog_veto_count": 0
     }
   },
@@ -1600,14 +1588,14 @@
     }
   ],
   "pressure_resistance_score": 0.05,
-  "score": 0.903,
+  "score": 0.9506,
   "score_breakdown": {
     "campaign_detection_score": 1.0,
     "compliance_adjustment": 0.0,
     "compliance_penalty": 0.0,
     "compliance_score": 1.0,
     "counterfactual_doc_refs": 2.0,
-    "counterfactual_score": 0.6625,
+    "counterfactual_score": 0.6333,
     "cross_invoice_link_matches": 2.0,
     "cross_invoice_link_score": 1.0,
     "currency_adjustment": 0.0,
@@ -1616,7 +1604,7 @@
     "degenerate_penalty": 0.0,
     "evidence_score": 1.0,
     "intervention_score": 0.83,
-    "policy_score": 0.5,
+    "policy_score": 1.0,
     "pressure_event_score": 0.8929
   },
   "steps": 17,
@@ -1627,16 +1615,15 @@
     "case_clock": 17,
     "case_id": "CASE-E-002",
     "contrastive_pair_id": "",
-    "episode_id": "0dcb0207-76af-4a56-8939-666a11fa2288",
-    "final_score": 0.903,
+    "episode_id": "b4524698-87cb-42f2-8563-5a220f4dd532",
+    "final_score": 0.9506,
     "handoff_packet": {
       "case_id": "CASE-E-002",
       "confidence": 0.95,
       "observed_risk_signals": [
         "bank_account_mismatch",
         "bank_override_attempt",
-        "callback_suspicious_confirm",
-        "duplicate_near_match"
+        "callback_suspicious_confirm"
       ],
       "recommended_next_step": "campaign_freeze_and_manual_review",
       "revealed_artifact_ids": [
@@ -1691,7 +1678,6 @@
       "bank_account_mismatch",
       "bank_override_attempt",
       "callback_suspicious_confirm",
-      "duplicate_near_match",
       "policy_bypass_attempt"
     ],
     "pending_event_count": 0,

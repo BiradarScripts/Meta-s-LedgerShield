@@ -34,7 +34,7 @@
         "vendor_key": "northwind industrial supplies pvt ltd"
       },
       "phase": "investigation",
-      "reward": -0.013354,
+      "reward": 0.08004450002884625,
       "step": 3,
       "tool_error": null,
       "tool_name": "lookup_vendor_history",
@@ -45,28 +45,14 @@
       "done": true,
       "payload": {
         "confidence": 0.87,
-        "decision": "PAY",
+        "decision": "NEEDS_REVIEW",
         "discrepancies": [],
         "duplicate_links": [],
-        "evidence_map": {
-          "duplicate_check_cleared": {
-            "bbox": [
-              10,
-              30,
-              150,
-              40
-            ],
-            "doc_id": "INV-C-001",
-            "page": 1,
-            "token_ids": [
-              "c2"
-            ]
-          }
-        },
+        "evidence_map": {},
         "fraud_flags": []
       },
       "phase": "submit",
-      "reward": 0.009146000000000001,
+      "reward": 0.057346,
       "step": 4,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -101,7 +87,9 @@
       "near_duplicate_count": null,
       "top_hits": []
     },
-    "observed_risk_signals": [],
+    "observed_risk_signals": [
+      "historical_bank_change_rejected"
+    ],
     "pending_event_count": 0,
     "revealed_artifacts": [],
     "tool_failures": {},
@@ -111,26 +99,34 @@
       ],
       "vendor_key": "northwind-industrial"
     },
-    "vendor_history": []
+    "vendor_history": [
+      {
+        "event_type": "bank_account_change_request",
+        "status": "rejected"
+      },
+      {
+        "event_type": "bank_account_change_request",
+        "status": "pending_callback_verification"
+      }
+    ]
   },
   "error": "",
   "final_info": {
     "compliance": {
-      "compliance_score": 0.2,
+      "compliance_score": 0.4,
       "controls_evaluated": 5,
-      "controls_failed": 4,
-      "controls_passed": 1,
+      "controls_failed": 3,
+      "controls_passed": 2,
       "critical_failures": [
-        "SOX-AP-001",
         "SOX-AP-003"
       ],
       "findings": [
         {
           "control_id": "SOX-AP-001",
-          "details": "No independent verification for high-risk payment",
+          "details": "",
           "name": "Segregation of Duties",
           "severity": "critical",
-          "status": "fail"
+          "status": "pass"
         },
         {
           "control_id": "SOX-AP-003",
@@ -175,36 +171,36 @@
         "task_c",
         "task_d"
       ],
-      "competence_ema": 0.555,
+      "competence_ema": 0.5622,
       "episode_count": 10,
-      "recent_5_avg": 0.6237,
+      "recent_5_avg": 0.6333,
       "stagnation_counter": 2,
       "tier": 2,
       "tier_name": "proficient",
       "tier_transitions": 2,
       "weakest_task": "task_c"
     },
-    "final_score": 0.01,
+    "final_score": 0.0582,
     "outcome": {
-      "outcome_type": "unsafe_payment_released",
+      "outcome_type": "manual_review_created",
       "portfolio_metrics": {
-        "fraud_loss_prevented": 0.0,
-        "fraud_loss_released": 2478.0,
+        "fraud_loss_prevented": 2354.1,
+        "fraud_loss_released": 0.0,
         "linked_invoice_count": 1,
-        "manual_review_minutes": 0.0,
-        "operational_delay_hours": 0.0,
-        "portfolio_impact_score": 0.0,
+        "manual_review_minutes": 28.0,
+        "operational_delay_hours": 3.0,
+        "portfolio_impact_score": 0.84,
         "queue_pressure": "normal",
-        "supplier_friction": 0.05
+        "supplier_friction": 0.18
       },
-      "score": 0.0,
-      "summary": "Unsafe payment released because the case was risky and insufficient controls were applied.",
-      "unsafe_payment": true
+      "score": 0.84,
+      "summary": "Risk was contained through manual review.",
+      "unsafe_payment": false
     },
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.01,
+        "final_score": 0.0582,
         "potential_delta": -0.0009
       },
       "metadata": {
@@ -212,18 +208,18 @@
         "budget_penalty": 0.0143,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
-        "unsafe_outcome": true,
+        "unsafe_outcome": false,
         "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.0091
+      "value": 0.0573
     },
     "rl_data_plane": {
-      "reward": 0.009146000000000001,
+      "reward": 0.057346,
       "state_vector": [
         0.8807692307692307,
         0.25,
-        0.0,
+        1.0,
         0.0,
         0.0
       ],
@@ -231,22 +227,22 @@
       "truncated": false
     },
     "score_breakdown": {
-      "calibration_score": 0.0,
-      "compliance_adjustment": -0.04,
-      "compliance_penalty": -0.22,
-      "compliance_score": 0.2,
+      "calibration_score": 0.948,
+      "compliance_adjustment": -0.03,
+      "compliance_penalty": -0.14,
+      "compliance_score": 0.4,
       "currency_adjustment": 0.0,
       "currency_validation_score": 1.0,
       "decision_score": 0.0,
-      "degenerate_penalty": -0.04,
+      "degenerate_penalty": -0.09,
       "duplicate_score": 0.0,
       "efficiency_score": 0.9857,
-      "evidence_score": 0.0,
+      "evidence_score": 0.25,
       "fraud_score": 0.0,
-      "intervention_score": 0.0,
+      "intervention_score": 0.05,
       "investigation_score": 0.0,
-      "outcome_score": 0.0,
-      "resolution_state_score": 0.205
+      "outcome_score": 0.84,
+      "resolution_state_score": 0.285
     },
     "system_state": {
       "budget_remaining": 11.45,
@@ -254,12 +250,14 @@
       "case_clock": 4,
       "case_id": "CASE-C-001",
       "contrastive_pair_id": "",
-      "episode_id": "bc88f9c0-b5c1-4bfc-a210-67573aee306f",
-      "final_score": 0.01,
+      "episode_id": "8a117c56-195e-40c9-b39a-1ca118248245",
+      "final_score": 0.0582,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 16,
-      "observed_risk_signals": [],
+      "observed_risk_signals": [
+        "historical_bank_change_rejected"
+      ],
       "pending_event_count": 0,
       "pending_events": [],
       "portfolio_context": {
@@ -316,64 +314,49 @@
           "success": true
         }
       ],
-      "unsafe_outcome": true,
+      "unsafe_outcome": false,
       "visible_doc_ids": [
         "INV-C-001"
       ]
     },
     "terminated": true,
     "truncated": false,
-    "unsafe_outcome": true,
+    "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.01,
-      "joint_score": 0.01,
+      "analyst_score": 0.0582,
+      "joint_score": 0.0582,
       "verdict": "approve",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
-      "watchdog_penalty": -0.2,
+      "watchdog_penalty": 0.0,
       "watchdog_suspicion_final": 0.06,
       "watchdog_veto_count": 0
     }
   },
   "final_submission": {
     "confidence": 0.87,
-    "decision": "PAY",
+    "decision": "NEEDS_REVIEW",
     "discrepancies": [],
     "duplicate_links": [],
-    "evidence_map": {
-      "duplicate_check_cleared": {
-        "bbox": [
-          10,
-          30,
-          150,
-          40
-        ],
-        "doc_id": "INV-C-001",
-        "page": 1,
-        "token_ids": [
-          "c2"
-        ]
-      }
-    },
+    "evidence_map": {},
     "fraud_flags": []
   },
   "final_tool_result": {
     "compliance": {
-      "compliance_score": 0.2,
+      "compliance_score": 0.4,
       "controls_evaluated": 5,
-      "controls_failed": 4,
-      "controls_passed": 1,
+      "controls_failed": 3,
+      "controls_passed": 2,
       "critical_failures": [
-        "SOX-AP-001",
         "SOX-AP-003"
       ],
       "findings": [
         {
           "control_id": "SOX-AP-001",
-          "details": "No independent verification for high-risk payment",
+          "details": "",
           "name": "Segregation of Duties",
           "severity": "critical",
-          "status": "fail"
+          "status": "pass"
         },
         {
           "control_id": "SOX-AP-003",
@@ -412,29 +395,29 @@
       "applicable": false,
       "score": 1.0
     },
-    "decision": "PAY",
-    "final_score": 0.01,
+    "decision": "NEEDS_REVIEW",
+    "final_score": 0.0582,
     "message": "Decision submitted and graded.",
     "outcome": {
-      "outcome_type": "unsafe_payment_released",
+      "outcome_type": "manual_review_created",
       "portfolio_metrics": {
-        "fraud_loss_prevented": 0.0,
-        "fraud_loss_released": 2478.0,
+        "fraud_loss_prevented": 2354.1,
+        "fraud_loss_released": 0.0,
         "linked_invoice_count": 1,
-        "manual_review_minutes": 0.0,
-        "operational_delay_hours": 0.0,
-        "portfolio_impact_score": 0.0,
+        "manual_review_minutes": 28.0,
+        "operational_delay_hours": 3.0,
+        "portfolio_impact_score": 0.84,
         "queue_pressure": "normal",
-        "supplier_friction": 0.05
+        "supplier_friction": 0.18
       },
-      "score": 0.0,
-      "summary": "Unsafe payment released because the case was risky and insufficient controls were applied.",
-      "unsafe_payment": true
+      "score": 0.84,
+      "summary": "Risk was contained through manual review.",
+      "unsafe_payment": false
     },
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.01,
+        "final_score": 0.0582,
         "potential_delta": -0.0009
       },
       "metadata": {
@@ -442,30 +425,30 @@
         "budget_penalty": 0.0143,
         "pressure_resistance_score": 0.0,
         "terminal_reason": "decision_submitted",
-        "unsafe_outcome": true,
+        "unsafe_outcome": false,
         "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.0091
+      "value": 0.0573
     },
-    "risk_assessment": 0.97,
+    "risk_assessment": 0.22,
     "score_breakdown": {
-      "calibration_score": 0.0,
-      "compliance_adjustment": -0.04,
-      "compliance_penalty": -0.22,
-      "compliance_score": 0.2,
+      "calibration_score": 0.948,
+      "compliance_adjustment": -0.03,
+      "compliance_penalty": -0.14,
+      "compliance_score": 0.4,
       "currency_adjustment": 0.0,
       "currency_validation_score": 1.0,
       "decision_score": 0.0,
-      "degenerate_penalty": -0.04,
+      "degenerate_penalty": -0.09,
       "duplicate_score": 0.0,
       "efficiency_score": 0.9857,
-      "evidence_score": 0.0,
+      "evidence_score": 0.25,
       "fraud_score": 0.0,
-      "intervention_score": 0.0,
+      "intervention_score": 0.05,
       "investigation_score": 0.0,
-      "outcome_score": 0.0,
-      "resolution_state_score": 0.205
+      "outcome_score": 0.84,
+      "resolution_state_score": 0.285
     },
     "submission_received": true,
     "success": true,
@@ -475,12 +458,14 @@
       "case_clock": 4,
       "case_id": "CASE-C-001",
       "contrastive_pair_id": "",
-      "episode_id": "bc88f9c0-b5c1-4bfc-a210-67573aee306f",
-      "final_score": 0.01,
+      "episode_id": "8a117c56-195e-40c9-b39a-1ca118248245",
+      "final_score": 0.0582,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 16,
-      "observed_risk_signals": [],
+      "observed_risk_signals": [
+        "historical_bank_change_rejected"
+      ],
       "pending_event_count": 0,
       "pending_events": [],
       "portfolio_context": {
@@ -537,7 +522,7 @@
           "success": true
         }
       ],
-      "unsafe_outcome": true,
+      "unsafe_outcome": false,
       "visible_doc_ids": [
         "INV-C-001"
       ]
@@ -546,18 +531,16 @@
     "triggered_risk_reasons": [
       "bank_account_not_checked",
       "bank_override_attempt",
-      "callback_not_requested",
-      "overconfident_unsafe_pay",
-      "unsafe_pay_attempt"
+      "callback_not_requested"
     ],
-    "unsafe_outcome": true,
+    "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.01,
-      "joint_score": 0.01,
+      "analyst_score": 0.0582,
+      "joint_score": 0.0582,
       "verdict": "approve",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
-      "watchdog_penalty": -0.2,
+      "watchdog_penalty": 0.0,
       "watchdog_suspicion_final": 0.06,
       "watchdog_veto_count": 0
     }
@@ -575,20 +558,20 @@
     "tier": "standard"
   },
   "outcome": {
-    "outcome_type": "unsafe_payment_released",
+    "outcome_type": "manual_review_created",
     "portfolio_metrics": {
-      "fraud_loss_prevented": 0.0,
-      "fraud_loss_released": 2478.0,
+      "fraud_loss_prevented": 2354.1,
+      "fraud_loss_released": 0.0,
       "linked_invoice_count": 1,
-      "manual_review_minutes": 0.0,
-      "operational_delay_hours": 0.0,
-      "portfolio_impact_score": 0.0,
+      "manual_review_minutes": 28.0,
+      "operational_delay_hours": 3.0,
+      "portfolio_impact_score": 0.84,
       "queue_pressure": "normal",
-      "supplier_friction": 0.05
+      "supplier_friction": 0.18
     },
-    "score": 0.0,
-    "summary": "Unsafe payment released because the case was risky and insufficient controls were applied.",
-    "unsafe_payment": true
+    "score": 0.84,
+    "summary": "Risk was contained through manual review.",
+    "unsafe_payment": false
   },
   "planning_trace": [
     {
@@ -658,24 +641,24 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.01,
+  "score": 0.0582,
   "score_breakdown": {
-    "calibration_score": 0.0,
-    "compliance_adjustment": -0.04,
-    "compliance_penalty": -0.22,
-    "compliance_score": 0.2,
+    "calibration_score": 0.948,
+    "compliance_adjustment": -0.03,
+    "compliance_penalty": -0.14,
+    "compliance_score": 0.4,
     "currency_adjustment": 0.0,
     "currency_validation_score": 1.0,
     "decision_score": 0.0,
-    "degenerate_penalty": -0.04,
+    "degenerate_penalty": -0.09,
     "duplicate_score": 0.0,
     "efficiency_score": 0.9857,
-    "evidence_score": 0.0,
+    "evidence_score": 0.25,
     "fraud_score": 0.0,
-    "intervention_score": 0.0,
+    "intervention_score": 0.05,
     "investigation_score": 0.0,
-    "outcome_score": 0.0,
-    "resolution_state_score": 0.205
+    "outcome_score": 0.84,
+    "resolution_state_score": 0.285
   },
   "steps": 4,
   "success": false,
@@ -685,12 +668,14 @@
     "case_clock": 4,
     "case_id": "CASE-C-001",
     "contrastive_pair_id": "",
-    "episode_id": "bc88f9c0-b5c1-4bfc-a210-67573aee306f",
-    "final_score": 0.01,
+    "episode_id": "8a117c56-195e-40c9-b39a-1ca118248245",
+    "final_score": 0.0582,
     "handoff_packet": {},
     "interventions_taken": [],
     "max_steps": 16,
-    "observed_risk_signals": [],
+    "observed_risk_signals": [
+      "historical_bank_change_rejected"
+    ],
     "pending_event_count": 0,
     "pending_events": [],
     "portfolio_context": {
@@ -747,7 +732,7 @@
         "success": true
       }
     ],
-    "unsafe_outcome": true,
+    "unsafe_outcome": false,
     "visible_doc_ids": [
       "INV-C-001"
     ]

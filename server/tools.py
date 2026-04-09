@@ -8,6 +8,55 @@ from typing import Any
 from .schema import bbox_iou, fuzzy_numeric_similarity, normalize_id, normalize_text, prefix_domain, safe_float
 
 
+_VENDOR_ALIAS_STOP_WORDS = {
+    "ag",
+    "co",
+    "company",
+    "components",
+    "corp",
+    "corporation",
+    "gmbh",
+    "group",
+    "holdings",
+    "industrial",
+    "inc",
+    "incorporated",
+    "limited",
+    "llc",
+    "llp",
+    "ltd",
+    "manufacturing",
+    "pvt",
+    "supplies",
+}
+
+
+def _vendor_identity_tokens(value: Any) -> set[str]:
+    return {
+        chunk
+        for chunk in re.split(r"[^a-z0-9]+", normalize_text(value))
+        if len(chunk) > 2 and chunk not in _VENDOR_ALIAS_STOP_WORDS
+    }
+
+
+def _vendor_alias_match(query_vendor: Any, row_vendor: Any, row_vendor_name: Any = "") -> bool:
+    query_norm = normalize_text(query_vendor)
+    row_norm = normalize_text(row_vendor)
+    if not query_norm or not row_norm:
+        return False
+    if query_norm == row_norm:
+        return True
+
+    query_tokens = _vendor_identity_tokens(query_vendor)
+    candidate_tokens = _vendor_identity_tokens(row_vendor) | _vendor_identity_tokens(row_vendor_name)
+    if not query_tokens or not candidate_tokens:
+        return False
+
+    common = query_tokens & candidate_tokens
+    required_overlap = min(2, len(query_tokens), len(candidate_tokens))
+    return len(common) >= required_overlap
+
+
 def _find_doc(case: dict[str, Any], doc_id: str) -> dict[str, Any] | None:
     for doc in case.get("documents", []):
         if doc.get("doc_id") == doc_id:
@@ -335,6 +384,7 @@ def lookup_vendor_history_tool(vendor_history: list[dict[str, Any]], payload: di
         deepcopy(row)
         for row in vendor_history
         if normalize_text(row.get("vendor_key")) == vendor_key
+        or _vendor_alias_match(vendor_key, row.get("vendor_key"), row.get("vendor_name"))
     ]
     risk_flags: list[str] = []
     for row in history:
@@ -404,6 +454,7 @@ def search_ledger_tool(case: dict[str, Any], ledger_index: list[dict[str, Any]],
 
     for row in ledger_index:
         row_vendor = normalize_text(row.get("vendor_key"))
+        row_vendor_name = normalize_text(row.get("vendor_name"))
         row_invoice = normalize_id(row.get("invoice_number"))
         row_amount = safe_float(row.get("amount"))
         score = 0.0
@@ -411,7 +462,7 @@ def search_ledger_tool(case: dict[str, Any], ledger_index: list[dict[str, Any]],
         amount_signal = 0.0
 
         if vendor_key:
-            if row_vendor == vendor_key:
+            if row_vendor == vendor_key or _vendor_alias_match(vendor_key, row_vendor, row_vendor_name):
                 score += 0.20
             else:
                 continue
@@ -442,11 +493,22 @@ def search_ledger_tool(case: dict[str, Any], ledger_index: list[dict[str, Any]],
             enriched["match_score"] = round(score, 4)
             hits.append(enriched)
             
-    # Phase 3.1 Deterministic Noise: add phantom near-miss results
+    # Challenge/holdout variants may inject a deterministic phantom near-miss
+    # to keep adversarial generated suites noisy without corrupting clean benchmark cases.
     seed = case.get("generator_metadata", {}).get("seed", 0)
     rng = random.Random(f"{seed}_{vendor_key}_{invoice_number}_{amount}")
-    
-    if rng.random() < 0.25 and vendor_key:
+
+    benchmark_split = normalize_text(case.get("benchmark_split", "benchmark"))
+    gold = case.get("gold", {}) or {}
+    allow_phantom_hit = (
+        benchmark_split in {"challenge", "holdout", "generated"}
+        and bool(gold.get("unsafe_if_pay"))
+        and vendor_key
+        and not hits
+        and (query_invoice_id or query_amount is not None)
+    )
+
+    if allow_phantom_hit and rng.random() < 0.25:
         phantom_hit = {
             "vendor_key": vendor_key,
             "invoice_number": f"INV-{rng.randint(1000, 9999)}",

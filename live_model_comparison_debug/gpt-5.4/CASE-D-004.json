@@ -72,7 +72,7 @@
         "vendor_key": "northwind industrial supplies pvt ltd"
       },
       "phase": "investigation",
-      "reward": -0.005631999999999975,
+      "reward": 0.014368000000000027,
       "step": 6,
       "tool_error": null,
       "tool_name": "lookup_vendor_history",
@@ -182,7 +182,7 @@
       "done": true,
       "payload": {
         "confidence": 0.99,
-        "counterfactual": "This could be PAY if the remittance account on INV-D-004 matched the approved vendor master account IN55NW000111222, the sender domain aligned with the approved domain northwind.example.com, the request did not instruct AP to bypass callback or standard workflow, and callback verification independently confirmed the change through the registered vendor contact without anomalies.",
+        "counterfactual": "This would be PAY if the remittance account on INV-D-004 matched the approved vendor master account IN55NW000111222, the sender domain aligned with the approved domain northwind.example.com, the request did not instruct AP to bypass callback or standard workflow, and callback verification independently confirmed the change through the registered contact without anomalies.",
         "decision": "ESCALATE_FRAUD",
         "evidence_map": {
           "bank_override_attempt": {
@@ -313,6 +313,7 @@
     "observed_risk_signals": [
       "bank_account_mismatch",
       "callback_suspicious_confirm",
+      "historical_bank_change_rejected",
       "policy_bypass_attempt",
       "sender_domain_spoof",
       "urgent_payment_pressure"
@@ -332,7 +333,16 @@
       ],
       "vendor_key": "northwind-industrial"
     },
-    "vendor_history": []
+    "vendor_history": [
+      {
+        "event_type": "bank_account_change_request",
+        "status": "rejected"
+      },
+      {
+        "event_type": "bank_account_change_request",
+        "status": "pending_callback_verification"
+      }
+    ]
   },
   "error": "",
   "final_info": {
@@ -408,10 +418,10 @@
         "task_d",
         "task_e"
       ],
-      "competence_ema": 0.9182,
+      "competence_ema": 0.9138,
       "episode_count": 59,
-      "recent_5_avg": 0.9104,
-      "stagnation_counter": 8,
+      "recent_5_avg": 0.9147,
+      "stagnation_counter": 1,
       "tier": 3,
       "tier_name": "expert",
       "tier_transitions": 5,
@@ -456,7 +466,7 @@
       "state_vector": [
         0.711764705882353,
         0.8333333333333334,
-        5.0,
+        6.0,
         2.0,
         5.0
       ],
@@ -490,7 +500,7 @@
       "case_clock": 15,
       "case_id": "CASE-D-004",
       "contrastive_pair_id": "",
-      "episode_id": "74de75f4-fe9c-4667-b225-11d2335dff67",
+      "episode_id": "934d780e-b42d-496a-b02a-75792a64308e",
       "final_score": 0.9188,
       "handoff_packet": {
         "case_id": "CASE-D-004",
@@ -498,6 +508,7 @@
         "observed_risk_signals": [
           "bank_account_mismatch",
           "callback_suspicious_confirm",
+          "historical_bank_change_rejected",
           "policy_bypass_attempt",
           "sender_domain_spoof",
           "urgent_payment_pressure"
@@ -548,6 +559,7 @@
       "observed_risk_signals": [
         "bank_account_mismatch",
         "callback_suspicious_confirm",
+        "historical_bank_change_rejected",
         "policy_bypass_attempt",
         "sender_domain_spoof",
         "urgent_payment_pressure"
@@ -762,7 +774,7 @@
   },
   "final_submission": {
     "confidence": 0.99,
-    "counterfactual": "This could be PAY if the remittance account on INV-D-004 matched the approved vendor master account IN55NW000111222, the sender domain aligned with the approved domain northwind.example.com, the request did not instruct AP to bypass callback or standard workflow, and callback verification independently confirmed the change through the registered vendor contact without anomalies.",
+    "counterfactual": "This would be PAY if the remittance account on INV-D-004 matched the approved vendor master account IN55NW000111222, the sender domain aligned with the approved domain northwind.example.com, the request did not instruct AP to bypass callback or standard workflow, and callback verification independently confirmed the change through the registered contact without anomalies.",
     "decision": "ESCALATE_FRAUD",
     "evidence_map": {
       "bank_override_attempt": {
@@ -963,7 +975,7 @@
       "case_clock": 15,
       "case_id": "CASE-D-004",
       "contrastive_pair_id": "",
-      "episode_id": "74de75f4-fe9c-4667-b225-11d2335dff67",
+      "episode_id": "934d780e-b42d-496a-b02a-75792a64308e",
       "final_score": 0.9188,
       "handoff_packet": {
         "case_id": "CASE-D-004",
@@ -971,6 +983,7 @@
         "observed_risk_signals": [
           "bank_account_mismatch",
           "callback_suspicious_confirm",
+          "historical_bank_change_rejected",
           "policy_bypass_attempt",
           "sender_domain_spoof",
           "urgent_payment_pressure"
@@ -1021,6 +1034,7 @@
       "observed_risk_signals": [
         "bank_account_mismatch",
         "callback_suspicious_confirm",
+        "historical_bank_change_rejected",
         "policy_bypass_attempt",
         "sender_domain_spoof",
         "urgent_payment_pressure"
@@ -1487,7 +1501,7 @@
     "case_clock": 15,
     "case_id": "CASE-D-004",
     "contrastive_pair_id": "",
-    "episode_id": "74de75f4-fe9c-4667-b225-11d2335dff67",
+    "episode_id": "934d780e-b42d-496a-b02a-75792a64308e",
     "final_score": 0.9188,
     "handoff_packet": {
       "case_id": "CASE-D-004",
@@ -1495,6 +1509,7 @@
       "observed_risk_signals": [
         "bank_account_mismatch",
         "callback_suspicious_confirm",
+        "historical_bank_change_rejected",
         "policy_bypass_attempt",
         "sender_domain_spoof",
         "urgent_payment_pressure"
@@ -1545,6 +1560,7 @@
     "observed_risk_signals": [
       "bank_account_mismatch",
       "callback_suspicious_confirm",
+      "historical_bank_change_rejected",
       "policy_bypass_attempt",
       "sender_domain_spoof",
       "urgent_payment_pressure"

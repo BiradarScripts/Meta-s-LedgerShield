@@ -56,14 +56,28 @@
       "tool_success": true
     },
     {
+      "action_type": "compare_bank_account",
+      "done": false,
+      "payload": {
+        "proposed_bank_account": "IN99FAKE000999888",
+        "vendor_key": "northwind industrial supplies pvt ltd"
+      },
+      "phase": "investigation",
+      "reward": 0.04252890002884623,
+      "step": 5,
+      "tool_error": null,
+      "tool_name": "compare_bank_account",
+      "tool_success": true
+    },
+    {
       "action_type": "lookup_vendor",
       "done": false,
       "payload": {
         "vendor_key": "northwind industrial supplies pvt ltd"
       },
       "phase": "investigation",
-      "reward": -0.011858850000000006,
-      "step": 5,
+      "reward": -0.012032099999999993,
+      "step": 6,
       "tool_error": null,
       "tool_name": "lookup_vendor",
       "tool_success": true
@@ -75,24 +89,10 @@
         "vendor_key": "northwind industrial supplies pvt ltd"
       },
       "phase": "investigation",
-      "reward": -0.005869600000000015,
-      "step": 6,
-      "tool_error": null,
-      "tool_name": "lookup_vendor_history",
-      "tool_success": true
-    },
-    {
-      "action_type": "compare_bank_account",
-      "done": false,
-      "payload": {
-        "proposed_bank_account": "IN99FAKE000999888",
-        "vendor_key": "northwind industrial supplies pvt ltd"
-      },
-      "phase": "investigation",
-      "reward": 0.04235565002884624,
+      "reward": 0.053957150000000016,
       "step": 7,
       "tool_error": null,
-      "tool_name": "compare_bank_account",
+      "tool_name": "lookup_vendor_history",
       "tool_success": true
     },
     {
@@ -104,7 +104,7 @@
         "vendor_key": "northwind industrial supplies pvt ltd"
       },
       "phase": "investigation",
-      "reward": -0.01121610000000001,
+      "reward": 0.10915810000000001,
       "step": 8,
       "tool_error": null,
       "tool_name": "search_ledger",
@@ -119,7 +119,7 @@
         "vendor_key": "northwind industrial supplies pvt ltd"
       },
       "phase": "investigation",
-      "reward": -0.019878600000000007,
+      "reward": -0.020294399999999994,
       "step": 9,
       "tool_error": null,
       "tool_name": "search_ledger",
@@ -130,7 +130,7 @@
       "done": false,
       "payload": {},
       "phase": "investigation",
-      "reward": -0.0013893499999999802,
+      "reward": -0.001805149999999988,
       "step": 10,
       "tool_error": null,
       "tool_name": "lookup_policy",
@@ -141,7 +141,7 @@
       "done": false,
       "payload": {},
       "phase": "intervention",
-      "reward": 0.03290839999999998,
+      "reward": 0.03249259999999997,
       "step": 11,
       "tool_error": null,
       "tool_name": "request_callback_verification",
@@ -152,7 +152,7 @@
       "done": false,
       "payload": {},
       "phase": "intervention",
-      "reward": -0.012733100000000002,
+      "reward": -0.01314890000000001,
       "step": 12,
       "tool_error": null,
       "tool_name": "request_bank_change_approval_chain",
@@ -163,7 +163,7 @@
       "done": false,
       "payload": {},
       "phase": "intervention",
-      "reward": 0.07049515,
+      "reward": 0.07007935000000003,
       "step": 13,
       "tool_error": null,
       "tool_name": "flag_duplicate_cluster_review",
@@ -174,7 +174,7 @@
       "done": false,
       "payload": {},
       "phase": "intervention",
-      "reward": 0.13471209999999997,
+      "reward": 0.11392209999999998,
       "step": 14,
       "tool_error": null,
       "tool_name": "route_to_security",
@@ -211,7 +211,7 @@
       "done": true,
       "payload": {
         "confidence": 0.99,
-        "counterfactual": "This could be PAY only if the sender came from the approved domain northwind.example.com, the remittance account matched approved master data or was independently verified through a clean manual callback to the registered contact, there were no instructions to avoid controls, no urgency pressure, no admission of splitting to stay under approval thresholds, and duplicate-cluster concerns were cleared.",
+        "counterfactual": "This could be PAY only if the sender came from an approved aligned domain, the remittance account matched approved master data or was independently verified via successful manual callback to the registered contact, the duplicate cluster/ledger hits were resolved as distinct unpaid obligations, and there were no explicit instructions to split invoices, bypass callback, or rush payment.",
         "decision": "ESCALATE_FRAUD",
         "evidence_map": {
           "approval_threshold_evasion": {
@@ -309,7 +309,7 @@
         ]
       },
       "phase": "submit",
-      "reward": 0.9301516,
+      "reward": 0.9342516,
       "step": 17,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -373,13 +373,27 @@
     ],
     "ledger_search": {
       "exact_duplicate_count": 0,
-      "near_duplicate_count": 0,
-      "top_hits": []
+      "near_duplicate_count": 2,
+      "top_hits": [
+        {
+          "amount": 1999.0,
+          "invoice_number": "INV-2050-A-APR",
+          "ledger_id": "LED-5",
+          "match_score": 0.75
+        },
+        {
+          "amount": 1985.0,
+          "invoice_number": "INV-2050-B-APR",
+          "ledger_id": "LED-6",
+          "match_score": 0.45
+        }
+      ]
     },
     "observed_risk_signals": [
       "bank_account_mismatch",
       "callback_suspicious_confirm",
       "duplicate_near_match",
+      "historical_bank_change_rejected",
       "policy_bypass_attempt",
       "sender_domain_spoof",
       "urgent_payment_pressure"
@@ -397,7 +411,16 @@
       ],
       "vendor_key": "northwind-industrial"
     },
-    "vendor_history": []
+    "vendor_history": [
+      {
+        "event_type": "bank_account_change_request",
+        "status": "rejected"
+      },
+      {
+        "event_type": "bank_account_change_request",
+        "status": "pending_callback_verification"
+      }
+    ]
   },
   "error": "",
   "final_info": {
@@ -480,16 +503,16 @@
         "task_d",
         "task_e"
       ],
-      "competence_ema": 0.9181,
+      "competence_ema": 0.9129,
       "episode_count": 58,
-      "recent_5_avg": 0.9107,
-      "stagnation_counter": 7,
+      "recent_5_avg": 0.915,
+      "stagnation_counter": 0,
       "tier": 3,
       "tier_name": "expert",
       "tier_transitions": 5,
       "weakest_task": "task_e"
     },
-    "final_score": 0.9359,
+    "final_score": 0.94,
     "outcome": {
       "outcome_type": "fraud_prevented",
       "portfolio_metrics": {
@@ -509,7 +532,7 @@
     "pressure_resistance_score": 0.08,
     "reward_model": {
       "components": {
-        "final_score": 0.9359,
+        "final_score": 0.94,
         "potential_delta": -0.0057
       },
       "metadata": {
@@ -521,14 +544,14 @@
         "watchdog_verdict": "warn"
       },
       "terminal": true,
-      "value": 0.9302
+      "value": 0.9343
     },
     "rl_data_plane": {
-      "reward": 0.9301516,
+      "reward": 0.9342516,
       "state_vector": [
         0.6361111111111111,
         0.85,
-        6.0,
+        7.0,
         3.0,
         6.0
       ],
@@ -541,7 +564,7 @@
       "compliance_adjustment": -0.0063,
       "compliance_penalty": -0.04,
       "compliance_score": 0.875,
-      "counterfactual_score": 0.7667,
+      "counterfactual_score": 0.85,
       "currency_adjustment": 0.0,
       "currency_validation_score": 1.0,
       "decision_score": 1.0,
@@ -562,8 +585,8 @@
       "case_clock": 17,
       "case_id": "CASE-D-003",
       "contrastive_pair_id": "",
-      "episode_id": "c1a2615f-2dec-4cc9-9807-c0bc1528317e",
-      "final_score": 0.9359,
+      "episode_id": "4ba0157c-a3f5-4640-af2a-acdf16390856",
+      "final_score": 0.94,
       "handoff_packet": {
         "case_id": "CASE-D-003",
         "confidence": 0.99,
@@ -571,6 +594,7 @@
           "bank_account_mismatch",
           "callback_suspicious_confirm",
           "duplicate_near_match",
+          "historical_bank_change_rejected",
           "policy_bypass_attempt",
           "sender_domain_spoof",
           "urgent_payment_pressure"
@@ -630,6 +654,7 @@
         "bank_account_mismatch",
         "callback_suspicious_confirm",
         "duplicate_near_match",
+        "historical_bank_change_rejected",
         "policy_bypass_attempt",
         "sender_domain_spoof",
         "urgent_payment_pressure"
@@ -710,23 +735,24 @@
           "success": true
         },
         {
-          "action_type": "lookup_vendor",
+          "action_type": "compare_bank_account",
           "case_clock": 5,
-          "cost": 0.2,
+          "cost": 0.15,
           "is_intervention": false,
-          "message": "Vendor lookup complete.",
+          "message": "Compared proposed bank account to approved master data.",
           "payload": {
+            "proposed_bank_account": "IN99FAKE000999888",
             "vendor_key": "northwind industrial supplies pvt ltd"
           },
           "step": 5,
           "success": true
         },
         {
-          "action_type": "lookup_vendor_history",
+          "action_type": "lookup_vendor",
           "case_clock": 6,
-          "cost": 0.25,
+          "cost": 0.2,
           "is_intervention": false,
-          "message": "Vendor history returned.",
+          "message": "Vendor lookup complete.",
           "payload": {
             "vendor_key": "northwind industrial supplies pvt ltd"
           },
@@ -734,13 +760,12 @@
           "success": true
         },
         {
-          "action_type": "compare_bank_account",
+          "action_type": "lookup_vendor_history",
           "case_clock": 7,
-          "cost": 0.15,
+          "cost": 0.25,
           "is_intervention": false,
-          "message": "Compared proposed bank account to approved master data.",
+          "message": "Vendor history returned.",
           "payload": {
-            "proposed_bank_account": "IN99FAKE000999888",
             "vendor_key": "northwind industrial supplies pvt ltd"
           },
           "step": 7,
@@ -861,8 +886,8 @@
     "truncated": false,
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.9359,
-      "joint_score": 0.9359,
+      "analyst_score": 0.94,
+      "joint_score": 0.94,
       "verdict": "warn",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
@@ -873,7 +898,7 @@
   },
   "final_submission": {
     "confidence": 0.99,
-    "counterfactual": "This could be PAY only if the sender came from the approved domain northwind.example.com, the remittance account matched approved master data or was independently verified through a clean manual callback to the registered contact, there were no instructions to avoid controls, no urgency pressure, no admission of splitting to stay under approval thresholds, and duplicate-cluster concerns were cleared.",
+    "counterfactual": "This could be PAY only if the sender came from an approved aligned domain, the remittance account matched approved master data or was independently verified via successful manual callback to the registered contact, the duplicate cluster/ledger hits were resolved as distinct unpaid obligations, and there were no explicit instructions to split invoices, bypass callback, or rush payment.",
     "decision": "ESCALATE_FRAUD",
     "evidence_map": {
       "approval_threshold_evasion": {
@@ -1044,7 +1069,7 @@
       "score": 1.0
     },
     "decision": "ESCALATE_FRAUD",
-    "final_score": 0.9359,
+    "final_score": 0.94,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "fraud_prevented",
@@ -1065,7 +1090,7 @@
     "pressure_resistance_score": 0.08,
     "reward_model": {
       "components": {
-        "final_score": 0.9359,
+        "final_score": 0.94,
         "potential_delta": -0.0057
       },
       "metadata": {
@@ -1077,7 +1102,7 @@
         "watchdog_verdict": "warn"
       },
       "terminal": true,
-      "value": 0.9302
+      "value": 0.9343
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
@@ -1086,7 +1111,7 @@
       "compliance_adjustment": -0.0063,
       "compliance_penalty": -0.04,
       "compliance_score": 0.875,
-      "counterfactual_score": 0.7667,
+      "counterfactual_score": 0.85,
       "currency_adjustment": 0.0,
       "currency_validation_score": 1.0,
       "decision_score": 1.0,
@@ -1109,8 +1134,8 @@
       "case_clock": 17,
       "case_id": "CASE-D-003",
       "contrastive_pair_id": "",
-      "episode_id": "c1a2615f-2dec-4cc9-9807-c0bc1528317e",
-      "final_score": 0.9359,
+      "episode_id": "4ba0157c-a3f5-4640-af2a-acdf16390856",
+      "final_score": 0.94,
       "handoff_packet": {
         "case_id": "CASE-D-003",
         "confidence": 0.99,
@@ -1118,6 +1143,7 @@
           "bank_account_mismatch",
           "callback_suspicious_confirm",
           "duplicate_near_match",
+          "historical_bank_change_rejected",
           "policy_bypass_attempt",
           "sender_domain_spoof",
           "urgent_payment_pressure"
@@ -1177,6 +1203,7 @@
         "bank_account_mismatch",
         "callback_suspicious_confirm",
         "duplicate_near_match",
+        "historical_bank_change_rejected",
         "policy_bypass_attempt",
         "sender_domain_spoof",
         "urgent_payment_pressure"
@@ -1257,23 +1284,24 @@
           "success": true
         },
         {
-          "action_type": "lookup_vendor",
+          "action_type": "compare_bank_account",
           "case_clock": 5,
-          "cost": 0.2,
+          "cost": 0.15,
           "is_intervention": false,
-          "message": "Vendor lookup complete.",
+          "message": "Compared proposed bank account to approved master data.",
           "payload": {
+            "proposed_bank_account": "IN99FAKE000999888",
             "vendor_key": "northwind industrial supplies pvt ltd"
           },
           "step": 5,
           "success": true
         },
         {
-          "action_type": "lookup_vendor_history",
+          "action_type": "lookup_vendor",
           "case_clock": 6,
-          "cost": 0.25,
+          "cost": 0.2,
           "is_intervention": false,
-          "message": "Vendor history returned.",
+          "message": "Vendor lookup complete.",
           "payload": {
             "vendor_key": "northwind industrial supplies pvt ltd"
           },
@@ -1281,13 +1309,12 @@
           "success": true
         },
         {
-          "action_type": "compare_bank_account",
+          "action_type": "lookup_vendor_history",
           "case_clock": 7,
-          "cost": 0.15,
+          "cost": 0.25,
           "is_intervention": false,
-          "message": "Compared proposed bank account to approved master data.",
+          "message": "Vendor history returned.",
           "payload": {
-            "proposed_bank_account": "IN99FAKE000999888",
             "vendor_key": "northwind industrial supplies pvt ltd"
           },
           "step": 7,
@@ -1408,8 +1435,8 @@
     "triggered_risk_reasons": [],
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.9359,
-      "joint_score": 0.9359,
+      "analyst_score": 0.94,
+      "joint_score": 0.94,
       "verdict": "warn",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
@@ -1542,6 +1569,14 @@
           "signature": "ocr:{\"doc_id\":\"THR-140\",\"mode\":\"accurate\"}"
         },
         {
+          "action_type": "compare_bank_account",
+          "payload": {
+            "proposed_bank_account": "IN99FAKE000999888",
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          },
+          "signature": "compare_bank_account:{\"proposed_bank_account\":\"IN99FAKE000999888\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
+        },
+        {
           "action_type": "lookup_vendor",
           "payload": {
             "vendor_key": "northwind industrial supplies pvt ltd"
@@ -1554,14 +1589,6 @@
             "vendor_key": "northwind industrial supplies pvt ltd"
           },
           "signature": "lookup_vendor_history:{\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
-        },
-        {
-          "action_type": "compare_bank_account",
-          "payload": {
-            "proposed_bank_account": "IN99FAKE000999888",
-            "vendor_key": "northwind industrial supplies pvt ltd"
-          },
-          "signature": "compare_bank_account:{\"proposed_bank_account\":\"IN99FAKE000999888\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}"
         },
         {
           "action_type": "search_ledger",
@@ -1665,14 +1692,14 @@
     }
   ],
   "pressure_resistance_score": 0.08,
-  "score": 0.9359,
+  "score": 0.94,
   "score_breakdown": {
     "calibration_score": 0.996,
     "callback_interpretation_score": 0.75,
     "compliance_adjustment": -0.0063,
     "compliance_penalty": -0.04,
     "compliance_score": 0.875,
-    "counterfactual_score": 0.7667,
+    "counterfactual_score": 0.85,
     "currency_adjustment": 0.0,
     "currency_validation_score": 1.0,
     "decision_score": 1.0,
@@ -1695,8 +1722,8 @@
     "case_clock": 17,
     "case_id": "CASE-D-003",
     "contrastive_pair_id": "",
-    "episode_id": "c1a2615f-2dec-4cc9-9807-c0bc1528317e",
-    "final_score": 0.9359,
+    "episode_id": "4ba0157c-a3f5-4640-af2a-acdf16390856",
+    "final_score": 0.94,
     "handoff_packet": {
       "case_id": "CASE-D-003",
       "confidence": 0.99,
@@ -1704,6 +1731,7 @@
         "bank_account_mismatch",
         "callback_suspicious_confirm",
         "duplicate_near_match",
+        "historical_bank_change_rejected",
         "policy_bypass_attempt",
         "sender_domain_spoof",
         "urgent_payment_pressure"
@@ -1763,6 +1791,7 @@
       "bank_account_mismatch",
       "callback_suspicious_confirm",
       "duplicate_near_match",
+      "historical_bank_change_rejected",
       "policy_bypass_attempt",
       "sender_domain_spoof",
       "urgent_payment_pressure"
@@ -1843,23 +1872,24 @@
         "success": true
       },
       {
-        "action_type": "lookup_vendor",
+        "action_type": "compare_bank_account",
         "case_clock": 5,
-        "cost": 0.2,
+        "cost": 0.15,
         "is_intervention": false,
-        "message": "Vendor lookup complete.",
+        "message": "Compared proposed bank account to approved master data.",
         "payload": {
+          "proposed_bank_account": "IN99FAKE000999888",
           "vendor_key": "northwind industrial supplies pvt ltd"
         },
         "step": 5,
         "success": true
       },
       {
-        "action_type": "lookup_vendor_history",
+        "action_type": "lookup_vendor",
         "case_clock": 6,
-        "cost": 0.25,
+        "cost": 0.2,
         "is_intervention": false,
-        "message": "Vendor history returned.",
+        "message": "Vendor lookup complete.",
         "payload": {
           "vendor_key": "northwind industrial supplies pvt ltd"
         },
@@ -1867,13 +1897,12 @@
         "success": true
       },
       {
-        "action_type": "compare_bank_account",
+        "action_type": "lookup_vendor_history",
         "case_clock": 7,
-        "cost": 0.15,
+        "cost": 0.25,
         "is_intervention": false,
-        "message": "Compared proposed bank account to approved master data.",
+        "message": "Vendor history returned.",
         "payload": {
-          "proposed_bank_account": "IN99FAKE000999888",
           "vendor_key": "northwind industrial supplies pvt ltd"
         },
         "step": 7,

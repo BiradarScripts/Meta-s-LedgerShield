@@ -277,7 +277,7 @@
       "case_clock": 6,
       "case_id": "CASE-B-004",
       "contrastive_pair_id": "",
-      "episode_id": "c7872c65-88b6-44e1-ba35-5a7b8edc6494",
+      "episode_id": "e95b9f6a-b87a-4bf2-97bb-f6619f72c0cd",
       "final_score": 0.8558,
       "handoff_packet": {},
       "interventions_taken": [
@@ -300,7 +300,7 @@
       "pending_events": [
         {
           "artifact_id": "receipt_reconciliation_report",
-          "event_id": "evt-051c516a",
+          "event_id": "evt-d2bd808e",
           "ready_at_clock": 6,
           "source_action": "request_additional_receipt_evidence",
           "status": "pending"
@@ -544,7 +544,7 @@
       "case_clock": 6,
       "case_id": "CASE-B-004",
       "contrastive_pair_id": "",
-      "episode_id": "c7872c65-88b6-44e1-ba35-5a7b8edc6494",
+      "episode_id": "e95b9f6a-b87a-4bf2-97bb-f6619f72c0cd",
       "final_score": 0.8558,
       "handoff_packet": {},
       "interventions_taken": [
@@ -567,7 +567,7 @@
       "pending_events": [
         {
           "artifact_id": "receipt_reconciliation_report",
-          "event_id": "evt-051c516a",
+          "event_id": "evt-d2bd808e",
           "ready_at_clock": 6,
           "source_action": "request_additional_receipt_evidence",
           "status": "pending"
@@ -796,7 +796,7 @@
     "case_clock": 6,
     "case_id": "CASE-B-004",
     "contrastive_pair_id": "",
-    "episode_id": "c7872c65-88b6-44e1-ba35-5a7b8edc6494",
+    "episode_id": "e95b9f6a-b87a-4bf2-97bb-f6619f72c0cd",
     "final_score": 0.8558,
     "handoff_packet": {},
     "interventions_taken": [
@@ -819,7 +819,7 @@
     "pending_events": [
       {
         "artifact_id": "receipt_reconciliation_report",
-        "event_id": "evt-051c516a",
+        "event_id": "evt-d2bd808e",
         "ready_at_clock": 6,
         "source_action": "request_additional_receipt_evidence",
         "status": "pending"

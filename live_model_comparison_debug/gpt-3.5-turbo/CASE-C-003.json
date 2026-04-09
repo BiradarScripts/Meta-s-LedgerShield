@@ -121,7 +121,12 @@
       ],
       "vendor_key": "bluepeak-logistics"
     },
-    "vendor_history": []
+    "vendor_history": [
+      {
+        "event_type": "tax_id_refresh",
+        "status": "approved"
+      }
+    ]
   },
   "error": "",
   "final_info": {
@@ -196,9 +201,9 @@
         "task_b",
         "task_c"
       ],
-      "competence_ema": 0.5243,
+      "competence_ema": 0.5295,
       "episode_count": 12,
-      "recent_5_avg": 0.4402,
+      "recent_5_avg": 0.4499,
       "stagnation_counter": 1,
       "tier": 1,
       "tier_name": "competent",
@@ -275,7 +280,7 @@
       "case_clock": 6,
       "case_id": "CASE-C-003",
       "contrastive_pair_id": "",
-      "episode_id": "4f14a0e3-618b-4fe6-ba70-6904933715c5",
+      "episode_id": "7f1a85b9-0697-4022-be64-a4cd4d216580",
       "final_score": 0.1357,
       "handoff_packet": {},
       "interventions_taken": [
@@ -298,7 +303,7 @@
       "pending_events": [
         {
           "artifact_id": "duplicate_cluster_report",
-          "event_id": "evt-37889383",
+          "event_id": "evt-7625eb37",
           "ready_at_clock": 6,
           "source_action": "flag_duplicate_cluster_review",
           "status": "pending"
@@ -541,7 +546,7 @@
       "case_clock": 6,
       "case_id": "CASE-C-003",
       "contrastive_pair_id": "",
-      "episode_id": "4f14a0e3-618b-4fe6-ba70-6904933715c5",
+      "episode_id": "7f1a85b9-0697-4022-be64-a4cd4d216580",
       "final_score": 0.1357,
       "handoff_packet": {},
       "interventions_taken": [
@@ -564,7 +569,7 @@
       "pending_events": [
         {
           "artifact_id": "duplicate_cluster_report",
-          "event_id": "evt-37889383",
+          "event_id": "evt-7625eb37",
           "ready_at_clock": 6,
           "source_action": "flag_duplicate_cluster_review",
           "status": "pending"
@@ -814,7 +819,7 @@
     "case_clock": 6,
     "case_id": "CASE-C-003",
     "contrastive_pair_id": "",
-    "episode_id": "4f14a0e3-618b-4fe6-ba70-6904933715c5",
+    "episode_id": "7f1a85b9-0697-4022-be64-a4cd4d216580",
     "final_score": 0.1357,
     "handoff_packet": {},
     "interventions_taken": [
@@ -837,7 +842,7 @@
     "pending_events": [
       {
         "artifact_id": "duplicate_cluster_report",
-        "event_id": "evt-37889383",
+        "event_id": "evt-7625eb37",
         "ready_at_clock": 6,
         "source_action": "flag_duplicate_cluster_review",
         "status": "pending"

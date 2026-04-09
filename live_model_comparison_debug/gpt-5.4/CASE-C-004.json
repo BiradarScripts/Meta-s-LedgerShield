@@ -45,7 +45,7 @@
         "vendor_key": "northwind industrial supplies pvt ltd"
       },
       "phase": "investigation",
-      "reward": -0.013354,
+      "reward": 0.09664600000000001,
       "step": 4,
       "tool_error": null,
       "tool_name": "lookup_vendor_history",
@@ -109,7 +109,7 @@
         "vendor_key": "northwind-industrial"
       },
       "phase": "wait",
-      "reward": 0.07150699999999999,
+      "reward": 0.02150699999999999,
       "step": 9,
       "tool_error": null,
       "tool_name": "lookup_vendor",
@@ -187,7 +187,8 @@
       "top_hits": []
     },
     "observed_risk_signals": [
-      "duplicate_near_match"
+      "duplicate_near_match",
+      "historical_bank_change_rejected"
     ],
     "pending_event_count": 0,
     "revealed_artifacts": [
@@ -201,7 +202,16 @@
       ],
       "vendor_key": "northwind-industrial"
     },
-    "vendor_history": []
+    "vendor_history": [
+      {
+        "event_type": "bank_account_change_request",
+        "status": "rejected"
+      },
+      {
+        "event_type": "bank_account_change_request",
+        "status": "pending_callback_verification"
+      }
+    ]
   },
   "error": "",
   "final_info": {
@@ -263,9 +273,9 @@
         "task_d",
         "task_e"
       ],
-      "competence_ema": 0.9227,
+      "competence_ema": 0.9103,
       "episode_count": 55,
-      "recent_5_avg": 0.9307,
+      "recent_5_avg": 0.9308,
       "stagnation_counter": 4,
       "tier": 3,
       "tier_name": "expert",
@@ -311,7 +321,7 @@
       "state_vector": [
         0.7653846153846153,
         0.625,
-        1.0,
+        2.0,
         2.0,
         2.0
       ],
@@ -342,7 +352,7 @@
       "case_clock": 10,
       "case_id": "CASE-C-004",
       "contrastive_pair_id": "",
-      "episode_id": "5d0544dd-ebdf-4fd4-80be-1f7a0c79f0e0",
+      "episode_id": "41eaa6d8-81ed-4135-83b1-b34ab0194df6",
       "final_score": 0.9046,
       "handoff_packet": {},
       "interventions_taken": [
@@ -361,7 +371,8 @@
       ],
       "max_steps": 16,
       "observed_risk_signals": [
-        "duplicate_near_match"
+        "duplicate_near_match",
+        "historical_bank_change_rejected"
       ],
       "pending_event_count": 0,
       "pending_events": [],
@@ -651,7 +662,7 @@
       "case_clock": 10,
       "case_id": "CASE-C-004",
       "contrastive_pair_id": "",
-      "episode_id": "5d0544dd-ebdf-4fd4-80be-1f7a0c79f0e0",
+      "episode_id": "41eaa6d8-81ed-4135-83b1-b34ab0194df6",
       "final_score": 0.9046,
       "handoff_packet": {},
       "interventions_taken": [
@@ -670,7 +681,8 @@
       ],
       "max_steps": 16,
       "observed_risk_signals": [
-        "duplicate_near_match"
+        "duplicate_near_match",
+        "historical_bank_change_rejected"
       ],
       "pending_event_count": 0,
       "pending_events": [],
@@ -991,7 +1003,7 @@
     "case_clock": 10,
     "case_id": "CASE-C-004",
     "contrastive_pair_id": "",
-    "episode_id": "5d0544dd-ebdf-4fd4-80be-1f7a0c79f0e0",
+    "episode_id": "41eaa6d8-81ed-4135-83b1-b34ab0194df6",
     "final_score": 0.9046,
     "handoff_packet": {},
     "interventions_taken": [
@@ -1010,7 +1022,8 @@
     ],
     "max_steps": 16,
     "observed_risk_signals": [
-      "duplicate_near_match"
+      "duplicate_near_match",
+      "historical_bank_change_rejected"
     ],
     "pending_event_count": 0,
     "pending_events": [],

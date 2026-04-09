@@ -34,7 +34,7 @@
         "vendor_key": "northwind industrial supplies pvt ltd"
       },
       "phase": "investigation",
-      "reward": -0.013354,
+      "reward": 0.08004450002884625,
       "step": 3,
       "tool_error": null,
       "tool_name": "lookup_vendor_history",
@@ -48,7 +48,7 @@
         "vendor_key": "northwind industrial supplies pvt ltd"
       },
       "phase": "investigation",
-      "reward": 0.10202300002884623,
+      "reward": 0.0686245,
       "step": 4,
       "tool_error": null,
       "tool_name": "compare_bank_account",
@@ -63,7 +63,7 @@
         "vendor_key": "northwind industrial supplies pvt ltd"
       },
       "phase": "investigation",
-      "reward": -0.0017220000000000048,
+      "reward": 0.1492135,
       "step": 5,
       "tool_error": null,
       "tool_name": "search_ledger",
@@ -77,7 +77,7 @@
         "invoice_number": "INV-2048-A"
       },
       "phase": "investigation",
-      "reward": 0.09188850000000001,
+      "reward": -0.0200865,
       "step": 6,
       "tool_error": null,
       "tool_name": "search_ledger",
@@ -219,13 +219,13 @@
           "amount": 2478.0,
           "invoice_number": "INV-2048-A",
           "ledger_id": "LED-131",
-          "match_score": 0.8
+          "match_score": 1.0
         },
         {
           "amount": 2478.0,
           "invoice_number": "INV-2048-A-RESEND",
           "ledger_id": "LED-3",
-          "match_score": 0.55
+          "match_score": 0.75
         }
       ]
     },
@@ -233,6 +233,7 @@
       "bank_account_mismatch",
       "callback_dispute_confirmed",
       "duplicate_near_match",
+      "historical_bank_change_rejected",
       "policy_bypass_attempt"
     ],
     "pending_event_count": 0,
@@ -248,7 +249,16 @@
       ],
       "vendor_key": "northwind-industrial"
     },
-    "vendor_history": []
+    "vendor_history": [
+      {
+        "event_type": "bank_account_change_request",
+        "status": "rejected"
+      },
+      {
+        "event_type": "bank_account_change_request",
+        "status": "pending_callback_verification"
+      }
+    ]
   },
   "error": "",
   "final_info": {
@@ -310,14 +320,14 @@
         "task_d",
         "task_e"
       ],
-      "competence_ema": 0.9286,
+      "competence_ema": 0.9083,
       "episode_count": 52,
-      "recent_5_avg": 0.9389,
+      "recent_5_avg": 0.8729,
       "stagnation_counter": 1,
       "tier": 3,
       "tier_name": "expert",
       "tier_transitions": 5,
-      "weakest_task": "task_c"
+      "weakest_task": "task_e"
     },
     "final_score": 0.9216,
     "outcome": {
@@ -358,7 +368,7 @@
       "state_vector": [
         0.7269230769230769,
         0.6875,
-        4.0,
+        5.0,
         3.0,
         4.0
       ],
@@ -389,7 +399,7 @@
       "case_clock": 11,
       "case_id": "CASE-C-001",
       "contrastive_pair_id": "",
-      "episode_id": "95d67a95-6d84-40de-8a90-07be815b0a0b",
+      "episode_id": "480161ab-abdd-4bb3-95b9-a260f9eba2ce",
       "final_score": 0.9216,
       "handoff_packet": {},
       "interventions_taken": [
@@ -423,6 +433,7 @@
         "bank_account_mismatch",
         "callback_dispute_confirmed",
         "duplicate_near_match",
+        "historical_bank_change_rejected",
         "policy_bypass_attempt"
       ],
       "pending_event_count": 0,
@@ -583,7 +594,7 @@
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
       "watchdog_penalty": 0.0,
-      "watchdog_suspicion_final": 0.422,
+      "watchdog_suspicion_final": 0.452,
       "watchdog_veto_count": 0
     }
   },
@@ -746,7 +757,7 @@
       "case_clock": 11,
       "case_id": "CASE-C-001",
       "contrastive_pair_id": "",
-      "episode_id": "95d67a95-6d84-40de-8a90-07be815b0a0b",
+      "episode_id": "480161ab-abdd-4bb3-95b9-a260f9eba2ce",
       "final_score": 0.9216,
       "handoff_packet": {},
       "interventions_taken": [
@@ -780,6 +791,7 @@
         "bank_account_mismatch",
         "callback_dispute_confirmed",
         "duplicate_near_match",
+        "historical_bank_change_rejected",
         "policy_bypass_attempt"
       ],
       "pending_event_count": 0,
@@ -940,7 +952,7 @@
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
       "watchdog_penalty": 0.0,
-      "watchdog_suspicion_final": 0.422,
+      "watchdog_suspicion_final": 0.452,
       "watchdog_veto_count": 0
     }
   },
@@ -1134,7 +1146,7 @@
     "case_clock": 11,
     "case_id": "CASE-C-001",
     "contrastive_pair_id": "",
-    "episode_id": "95d67a95-6d84-40de-8a90-07be815b0a0b",
+    "episode_id": "480161ab-abdd-4bb3-95b9-a260f9eba2ce",
     "final_score": 0.9216,
     "handoff_packet": {},
     "interventions_taken": [
@@ -1168,6 +1180,7 @@
       "bank_account_mismatch",
       "callback_dispute_confirmed",
       "duplicate_near_match",
+      "historical_bank_change_rejected",
       "policy_bypass_attempt"
     ],
     "pending_event_count": 0,

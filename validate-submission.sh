@@ -74,13 +74,15 @@ trap cleanup EXIT
 
 PING_URL="${1:-}"
 REPO_DIR="${2:-.}"
+SPACE_CHECK_ENABLED=true
+
+if [ -n "$PING_URL" ] && [[ "$PING_URL" != http://* && "$PING_URL" != https://* ]]; then
+  REPO_DIR="$PING_URL"
+  PING_URL=""
+fi
 
 if [ -z "$PING_URL" ]; then
-  printf "Usage: %s <space_url> [repo_dir]\n" "$0"
-  printf "\n"
-  printf "  space_url  Your Hugging Face Space URL (e.g. https://team-name.hf.space)\n"
-  printf "  repo_dir   Path to repo root (default: current directory)\n"
-  exit 1
+  SPACE_CHECK_ENABLED=false
 fi
 
 if ! REPO_DIR="$(cd "$REPO_DIR" 2>/dev/null && pwd)"; then
@@ -149,24 +151,28 @@ wait_for_http_200() {
 
 print_header
 
-log "${BOLD}Step 1/4: Checking deployed HF Space${NC}"
+if [ "$SPACE_CHECK_ENABLED" = true ]; then
+  log "${BOLD}Step 1/4: Checking deployed HF Space${NC}"
 
-SPACE_HEALTH_CODE="$(http_code GET "$PING_URL/health")"
-if [ "$SPACE_HEALTH_CODE" = "200" ]; then
-  pass "HF Space responds to /health"
-else
-  fail "HF Space /health returned HTTP $SPACE_HEALTH_CODE"
-  hint "Make sure the Space is running and exposes the FastAPI app."
-  stop_at "Step 1"
-fi
+  SPACE_HEALTH_CODE="$(http_code GET "$PING_URL/health")"
+  if [ "$SPACE_HEALTH_CODE" = "200" ]; then
+    pass "HF Space responds to /health"
+  else
+    fail "HF Space /health returned HTTP $SPACE_HEALTH_CODE"
+    hint "Make sure the Space is running and exposes the FastAPI app."
+    stop_at "Step 1"
+  fi
 
-SPACE_RESET_CODE="$(http_code POST "$PING_URL/reset" '{}')"
-if [ "$SPACE_RESET_CODE" = "200" ]; then
-  pass "HF Space responds to /reset"
+  SPACE_RESET_CODE="$(http_code POST "$PING_URL/reset" '{}')"
+  if [ "$SPACE_RESET_CODE" = "200" ]; then
+    pass "HF Space responds to /reset"
+  else
+    fail "HF Space /reset returned HTTP $SPACE_RESET_CODE"
+    hint "The validator expects POST /reset to succeed with an empty JSON body."
+    stop_at "Step 1"
+  fi
 else
-  fail "HF Space /reset returned HTTP $SPACE_RESET_CODE"
-  hint "The validator expects POST /reset to succeed with an empty JSON body."
-  stop_at "Step 1"
+  log "${BOLD}Step 1/4: Skipping deployed HF Space check (no Space URL provided)${NC}"
 fi
 
 log "${BOLD}Step 2/4: Building and running Docker image${NC}"

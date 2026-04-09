@@ -208,16 +208,16 @@ python sync_benchmark_metadata.py
 <!-- sync:index-live-comparison:start -->
 ## Live Comparison Snapshot
 
-Generated on **April 9, 2026 (IST)** from `live_model_comparison.json`.
+Generated on **April 10, 2026 (IST)** from `live_model_comparison.json`.
 
 | Model | Average Score | Success Rate | Failed Cases |
 |---|---:|---:|---:|
-| `gpt-3.5-turbo` | 0.7009 | 38.1% | 13 |
-| `gpt-4o` | 0.8663 | 81.0% | 4 |
-| `gpt-5.4` | 0.9305 | 100.0% | 0 |
+| `gpt-3.5-turbo` | 0.6965 | 38.1% | 13 |
+| `gpt-4o` | 0.8947 | 90.5% | 2 |
+| `gpt-5.4` | 0.9177 | 95.2% | 1 |
 
 - Capability ordering is monotonic across the compared models: `true`.
-- Current frontier gap (`gpt-5.4` vs `gpt-4o`): `+0.0642` average score and `+19.1%` success rate.
+- Current frontier gap (`gpt-5.4` vs `gpt-4o`): `+0.0229` average score and `+4.8%` success rate.
 - Refresh after rerunning the live comparison artifact:
 ```bash
 python compare_models_live.py \

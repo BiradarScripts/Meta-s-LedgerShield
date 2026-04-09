@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
+import benchmark_report
 import inference
 from server.data_loader import load_all
 
@@ -79,6 +80,13 @@ def _loader_counts() -> dict[str, int]:
 
 def _load_live_comparison() -> dict[str, Any]:
     return json.loads(_read(LIVE_COMPARISON_PATH))
+
+
+def _load_report() -> dict[str, Any] | None:
+    report_path = benchmark_report.DEFAULT_REPORT_PATH
+    if not report_path.exists():
+        return None
+    return json.loads(_read(report_path))
 
 
 def _generated_on_ist(payload: dict[str, Any]) -> str:
@@ -194,9 +202,51 @@ def _comparison_block(payload: dict[str, Any], *, include_capability: bool) -> s
     return "\n".join(lines)
 
 
+def _benchmark_summary_block(report: dict[str, Any]) -> str:
+    protocol = report.get("evaluation_protocol", {}) or {}
+    public = report.get("public_benchmark", {}) or {}
+    holdout = report.get("holdout_challenge", {}) or {}
+    lines = [
+        "| Agent | Public mean | Holdout mean | Holdout consistent pass rate |",
+        "|---|---:|---:|---:|",
+        (
+            "| "
+            f"{protocol.get('model_name', benchmark_report.DETERMINISTIC_BASELINE_MODEL)} "
+            f"({protocol.get('agent_type', 'deterministic-policy')}) | "
+            f"{float(public.get('average_score', 0.0)):.4f} | "
+            f"{float((holdout.get('score_stats', {}) or {}).get('mean', 0.0)):.4f} | "
+            f"{float(holdout.get('consistent_pass_rate', 0.0) or 0.0):.4f} |"
+        ),
+    ]
+    return "\n".join(lines)
+
+
+def _leaderboard_example_block(report: dict[str, Any]) -> str:
+    entry = benchmark_report.build_leaderboard_entry(
+        report,
+        model_name=str((report.get("evaluation_protocol", {}) or {}).get("model_name", benchmark_report.DETERMINISTIC_BASELINE_MODEL)),
+        agent_type=str((report.get("evaluation_protocol", {}) or {}).get("agent_type", "deterministic-policy")),
+    )
+    snippet = {
+        "benchmark": report.get("benchmark", "ledgershield-v3"),
+        "generated_at": report.get("generated_at"),
+        "entries": [
+            {
+                "model": entry["model"],
+                "type": entry["type"],
+                "public_mean": entry["public_mean"],
+                "holdout_mean": entry["holdout_mean"],
+                "holdout_pass_k_consistent": entry["holdout_pass_k_consistent"],
+            }
+        ],
+    }
+    return json.dumps(snippet, indent=2)
+
+
 def sync_readme() -> None:
     counts = _loader_counts()
     payload = _load_live_comparison()
+    report = _load_report()
     content = _read(README_PATH)
     content = _replace_once(
         content,
@@ -215,6 +265,13 @@ def sync_readme() -> None:
         "<!-- sync:readme-live-comparison:end -->",
         _comparison_block(payload, include_capability=True),
     )
+    if report is not None:
+        content = _replace_block(
+            content,
+            "<!-- sync:readme-benchmark-summary:start -->",
+            "<!-- sync:readme-benchmark-summary:end -->",
+            _benchmark_summary_block(report),
+        )
     _write(README_PATH, content)
 
 
@@ -260,17 +317,53 @@ def sync_api_doc() -> None:
         "<!-- sync:api-capability-table:end -->",
         _capability_table("Decision token budget"),
     )
+    report = _load_report()
+    if report is not None:
+        content = _replace_block(
+            content,
+            "<!-- sync:api-leaderboard-example:start -->",
+            "<!-- sync:api-leaderboard-example:end -->",
+            _leaderboard_example_block(report),
+        )
     _write(API_DOC_PATH, content)
 
 
 def sync_openenv() -> None:
     counts = _loader_counts()
+    report = _load_report()
     content = _read(OPENENV_PATH)
     content = _replace_once(
         content,
         r"^  challenge_variants_default: \d+$",
         f"  challenge_variants_default: {counts['challenge']}",
     )
+    if report is not None:
+        protocol = report.get("evaluation_protocol", {}) or {}
+        public = report.get("public_benchmark", {}) or {}
+        holdout = report.get("holdout_challenge", {}) or {}
+        task_breakdown = holdout.get("task_breakdown", {}) or {}
+        task_e_summary = task_breakdown.get("task_e", {}) or {}
+        task_e_mean = float((task_e_summary.get("score_stats", {}) or {}).get("mean", 0.0) or 0.0)
+        benchmark_results_block = "\n".join(
+            [
+                "  benchmark_results:",
+                "    deterministic_baseline:",
+                f"      model: {protocol.get('model_name', benchmark_report.DETERMINISTIC_BASELINE_MODEL)}",
+                f"      type: {protocol.get('agent_type', 'deterministic-policy')}",
+                f"      temperature: {float(protocol.get('temperature', 0.0) or 0.0):.1f}",
+                f"      pass_k: {int(protocol.get('pass_k', 1) or 1)}",
+                f"      public_mean: {float(public.get('average_score', 0.0) or 0.0):.4f}",
+                f"      holdout_mean: {float((holdout.get('score_stats', {}) or {}).get('mean', 0.0) or 0.0):.4f}",
+                f"      holdout_pass_k_consistent: {float(holdout.get('consistent_pass_rate', 0.0) or 0.0):.4f}",
+                f"      task_e_expert_mean: {task_e_mean:.4f}",
+                "      provenance: generated-from-benchmark-report",
+            ]
+        )
+        content = _replace_once(
+            content,
+            r"(?ms)^  benchmark_results:\n.*\Z",
+            benchmark_results_block,
+        )
     _write(OPENENV_PATH, content)
 
 

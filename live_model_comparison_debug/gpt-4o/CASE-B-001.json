@@ -99,7 +99,7 @@
       "action_type": "submit_decision",
       "done": true,
       "payload": {
-        "confidence": 0.9,
+        "confidence": 0.85,
         "decision": "HOLD",
         "discrepancies": [
           "price_mismatch",
@@ -141,7 +141,7 @@
         }
       },
       "phase": "submit",
-      "reward": 0.944607,
+      "reward": 0.943607,
       "step": 9,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -236,16 +236,16 @@
         "task_d",
         "task_e"
       ],
-      "competence_ema": 0.7969,
+      "competence_ema": 0.7928,
       "episode_count": 26,
-      "recent_5_avg": 0.9611,
+      "recent_5_avg": 0.9609,
       "stagnation_counter": 0,
       "tier": 3,
       "tier_name": "expert",
       "tier_transitions": 5,
-      "weakest_task": "task_c"
+      "weakest_task": "task_e"
     },
-    "final_score": 0.9488,
+    "final_score": 0.9478,
     "outcome": {
       "outcome_type": "manual_review_created",
       "portfolio_metrics": {
@@ -265,7 +265,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.9488,
+        "final_score": 0.9478,
         "potential_delta": -0.0042
       },
       "metadata": {
@@ -277,10 +277,10 @@
         "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.9446
+      "value": 0.9436
     },
     "rl_data_plane": {
-      "reward": 0.944607,
+      "reward": 0.943607,
       "state_vector": [
         0.7708333333333334,
         0.6428571428571429,
@@ -292,7 +292,7 @@
       "truncated": false
     },
     "score_breakdown": {
-      "calibration_score": 0.96,
+      "calibration_score": 0.94,
       "compliance_adjustment": 0.0,
       "compliance_penalty": 0.0,
       "compliance_score": 1.0,
@@ -314,8 +314,8 @@
       "case_clock": 9,
       "case_id": "CASE-B-001",
       "contrastive_pair_id": "",
-      "episode_id": "fcff3c1d-8c24-4ffc-9a25-598e27a1b599",
-      "final_score": 0.9488,
+      "episode_id": "6ffe973b-284f-4135-aea9-004f24ce70df",
+      "final_score": 0.9478,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -458,8 +458,8 @@
     "truncated": false,
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.9488,
-      "joint_score": 0.9488,
+      "analyst_score": 0.9478,
+      "joint_score": 0.9478,
       "verdict": "approve",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
@@ -469,7 +469,7 @@
     }
   },
   "final_submission": {
-    "confidence": 0.9,
+    "confidence": 0.85,
     "decision": "HOLD",
     "discrepancies": [
       "price_mismatch",
@@ -549,7 +549,7 @@
       "score": 1.0
     },
     "decision": "HOLD",
-    "final_score": 0.9488,
+    "final_score": 0.9478,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "manual_review_created",
@@ -570,7 +570,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.9488,
+        "final_score": 0.9478,
         "potential_delta": -0.0042
       },
       "metadata": {
@@ -582,11 +582,11 @@
         "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.9446
+      "value": 0.9436
     },
     "risk_assessment": 0.06,
     "score_breakdown": {
-      "calibration_score": 0.96,
+      "calibration_score": 0.94,
       "compliance_adjustment": 0.0,
       "compliance_penalty": 0.0,
       "compliance_score": 1.0,
@@ -610,8 +610,8 @@
       "case_clock": 9,
       "case_id": "CASE-B-001",
       "contrastive_pair_id": "",
-      "episode_id": "fcff3c1d-8c24-4ffc-9a25-598e27a1b599",
-      "final_score": 0.9488,
+      "episode_id": "6ffe973b-284f-4135-aea9-004f24ce70df",
+      "final_score": 0.9478,
       "handoff_packet": {},
       "interventions_taken": [
         {
@@ -756,8 +756,8 @@
     ],
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.9488,
-      "joint_score": 0.9488,
+      "analyst_score": 0.9478,
+      "joint_score": 0.9478,
       "verdict": "approve",
       "watchdog_bonus": 0.0,
       "watchdog_escalation_count": 0,
@@ -879,9 +879,9 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.9488,
+  "score": 0.9478,
   "score_breakdown": {
-    "calibration_score": 0.96,
+    "calibration_score": 0.94,
     "compliance_adjustment": 0.0,
     "compliance_penalty": 0.0,
     "compliance_score": 1.0,
@@ -905,8 +905,8 @@
     "case_clock": 9,
     "case_id": "CASE-B-001",
     "contrastive_pair_id": "",
-    "episode_id": "fcff3c1d-8c24-4ffc-9a25-598e27a1b599",
-    "final_score": 0.9488,
+    "episode_id": "6ffe973b-284f-4135-aea9-004f24ce70df",
+    "final_score": 0.9478,
     "handoff_packet": {},
     "interventions_taken": [
       {

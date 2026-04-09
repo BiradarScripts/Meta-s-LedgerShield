@@ -46,7 +46,7 @@
       "done": true,
       "payload": {
         "confidence": 1.0,
-        "counterfactual": "What conditions would make this PAY instead of ESCALATE? If there were indications of bank account changes, duplicate invoices, email-based fraud, approval threshold evasion, or suspicious vendor history.",
+        "counterfactual": "What conditions would make this PAY instead of ESCALATE? No fraud indicators present.",
         "decision": "PAY",
         "evidence_map": {
           "duplicate_check_cleared": {
@@ -85,7 +85,7 @@
         "reason_codes": []
       },
       "phase": "submit",
-      "reward": 0.77419,
+      "reward": 0.75869,
       "step": 4,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -200,16 +200,16 @@
         "task_c",
         "task_d"
       ],
-      "competence_ema": 0.6061,
+      "competence_ema": 0.5958,
       "episode_count": 15,
-      "recent_5_avg": 0.631,
+      "recent_5_avg": 0.6104,
       "stagnation_counter": 0,
       "tier": 2,
       "tier_name": "proficient",
       "tier_transitions": 4,
       "weakest_task": "task_c"
     },
-    "final_score": 0.7779,
+    "final_score": 0.7624,
     "outcome": {
       "outcome_type": "safe_payment_cleared",
       "portfolio_metrics": {
@@ -229,7 +229,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.7779,
+        "final_score": 0.7624,
         "potential_delta": -0.0037
       },
       "metadata": {
@@ -241,10 +241,10 @@
         "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.7742
+      "value": 0.7587
     },
     "rl_data_plane": {
-      "reward": 0.77419,
+      "reward": 0.75869,
       "state_vector": [
         0.85,
         0.2222222222222222,
@@ -261,7 +261,7 @@
       "compliance_adjustment": -0.01,
       "compliance_penalty": -0.02,
       "compliance_score": 0.8,
-      "counterfactual_score": 1.0,
+      "counterfactual_score": 0.69,
       "currency_adjustment": 0.0,
       "currency_validation_score": 1.0,
       "decision_score": 1.0,
@@ -282,8 +282,8 @@
       "case_clock": 4,
       "case_id": "CASE-D-002",
       "contrastive_pair_id": "",
-      "episode_id": "e7494912-c86f-4bbf-8abc-086ea2724bf5",
-      "final_score": 0.7779,
+      "episode_id": "434e79bc-00c0-42c9-a2e3-6571bbf40630",
+      "final_score": 0.7624,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 18,
@@ -355,8 +355,8 @@
     "truncated": false,
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.7779,
-      "joint_score": 0.8579,
+      "analyst_score": 0.7624,
+      "joint_score": 0.8424,
       "verdict": "approve",
       "watchdog_bonus": 0.08,
       "watchdog_escalation_count": 0,
@@ -367,7 +367,7 @@
   },
   "final_submission": {
     "confidence": 1.0,
-    "counterfactual": "What conditions would make this PAY instead of ESCALATE? If there were indications of bank account changes, duplicate invoices, email-based fraud, approval threshold evasion, or suspicious vendor history.",
+    "counterfactual": "What conditions would make this PAY instead of ESCALATE? No fraud indicators present.",
     "decision": "PAY",
     "evidence_map": {
       "duplicate_check_cleared": {
@@ -458,7 +458,7 @@
       "score": 1.0
     },
     "decision": "PAY",
-    "final_score": 0.7779,
+    "final_score": 0.7624,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "safe_payment_cleared",
@@ -479,7 +479,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.7779,
+        "final_score": 0.7624,
         "potential_delta": -0.0037
       },
       "metadata": {
@@ -491,7 +491,7 @@
         "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.7742
+      "value": 0.7587
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
@@ -500,7 +500,7 @@
       "compliance_adjustment": -0.01,
       "compliance_penalty": -0.02,
       "compliance_score": 0.8,
-      "counterfactual_score": 1.0,
+      "counterfactual_score": 0.69,
       "currency_adjustment": 0.0,
       "currency_validation_score": 1.0,
       "decision_score": 1.0,
@@ -523,8 +523,8 @@
       "case_clock": 4,
       "case_id": "CASE-D-002",
       "contrastive_pair_id": "",
-      "episode_id": "e7494912-c86f-4bbf-8abc-086ea2724bf5",
-      "final_score": 0.7779,
+      "episode_id": "434e79bc-00c0-42c9-a2e3-6571bbf40630",
+      "final_score": 0.7624,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 18,
@@ -596,8 +596,8 @@
     "triggered_risk_reasons": [],
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.7779,
-      "joint_score": 0.8579,
+      "analyst_score": 0.7624,
+      "joint_score": 0.8424,
       "verdict": "approve",
       "watchdog_bonus": 0.08,
       "watchdog_escalation_count": 0,
@@ -729,14 +729,14 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.7779,
+  "score": 0.7624,
   "score_breakdown": {
     "calibration_score": 1.0,
     "callback_interpretation_score": 0.5,
     "compliance_adjustment": -0.01,
     "compliance_penalty": -0.02,
     "compliance_score": 0.8,
-    "counterfactual_score": 1.0,
+    "counterfactual_score": 0.69,
     "currency_adjustment": 0.0,
     "currency_validation_score": 1.0,
     "decision_score": 1.0,
@@ -759,8 +759,8 @@
     "case_clock": 4,
     "case_id": "CASE-D-002",
     "contrastive_pair_id": "",
-    "episode_id": "e7494912-c86f-4bbf-8abc-086ea2724bf5",
-    "final_score": 0.7779,
+    "episode_id": "434e79bc-00c0-42c9-a2e3-6571bbf40630",
+    "final_score": 0.7624,
     "handoff_packet": {},
     "interventions_taken": [],
     "max_steps": 18,

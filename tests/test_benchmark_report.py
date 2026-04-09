@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 import sys
+from pathlib import Path
 
 import benchmark_report
 
@@ -59,3 +61,74 @@ def test_main_cli_smoke_runs_without_token(monkeypatch, capsys):
 
     assert "# LedgerShield Benchmark Report" in output
     assert "Agent type: deterministic-policy" in output
+
+
+def test_load_leaderboard_payload_filters_legacy_deterministic_alias(tmp_path: Path):
+    report = benchmark_report.build_report(
+        holdout_seeds=[101],
+        variants_per_case=1,
+    )
+    canonical = benchmark_report.build_leaderboard_entry(
+        report,
+        model_name=benchmark_report.DETERMINISTIC_BASELINE_MODEL,
+        agent_type="deterministic-policy",
+    )
+    legacy_alias = {
+        **canonical,
+        "model": "gpt-5.4",
+        "public_mean": round(canonical["public_mean"] - 0.02, 4),
+        "holdout_mean": round(canonical["holdout_mean"] + 0.03, 4),
+        "updated_at": "2026-04-01T00:00:00+00:00",
+    }
+    leaderboard_path = tmp_path / "leaderboard.json"
+    leaderboard_path.write_text(
+        json.dumps(
+            {
+                "benchmark": "ledgershield-v3",
+                "generated_at": report["generated_at"],
+                "entries": [legacy_alias, canonical],
+            }
+        ),
+        encoding="utf-8",
+    )
+    report_path = tmp_path / "benchmark_report_latest.json"
+    report_path.write_text(json.dumps(report), encoding="utf-8")
+
+    payload = benchmark_report.load_leaderboard_payload(
+        leaderboard_path=leaderboard_path,
+        report_path=report_path,
+    )
+
+    assert payload["entries"] == [canonical]
+
+
+def test_upsert_leaderboard_entry_prunes_legacy_alias(tmp_path: Path):
+    report = benchmark_report.build_report(
+        holdout_seeds=[101],
+        variants_per_case=1,
+    )
+    entry = benchmark_report.build_leaderboard_entry(
+        report,
+        model_name=benchmark_report.DETERMINISTIC_BASELINE_MODEL,
+        agent_type="deterministic-policy",
+    )
+    legacy_payload = {
+        "benchmark": "ledgershield-v3",
+        "generated_at": report["generated_at"],
+        "entries": [
+            {
+                **entry,
+                "model": "gpt-5.4",
+                "updated_at": "2026-04-01T00:00:00+00:00",
+            }
+        ],
+    }
+    leaderboard_path = tmp_path / "leaderboard.json"
+    leaderboard_path.write_text(json.dumps(legacy_payload), encoding="utf-8")
+
+    updated = benchmark_report.upsert_leaderboard_entry(
+        entry,
+        leaderboard_path=leaderboard_path,
+    )
+
+    assert updated["entries"] == [entry]

@@ -35,20 +35,12 @@ metadata:
     report_endpoint: /benchmark-report
   benchmark_results:
     deterministic_baseline:
-      model: openai/gpt-4.1-mini
+      model: ledgershield/deterministic-baseline
       type: deterministic-policy
       temperature: 0.0
       pass_k: 1
-      public_mean: 0.9674
-      holdout_mean: 0.6649
-      holdout_pass_k_consistent: 0.619
-      task_e_expert_mean: 0.9817
-    published_external_llm_agent:
-      model: openai/gpt-4.1-mini
-      type: llm-agent
-      temperature: 0.6
-      pass_k: 3
-      holdout_mean: 0.3847
-      holdout_pass_k_consistent: 0.2222
-      task_e_expert_mean: 0.2891
-      provenance: maintainer-published external run
+      public_mean: 0.9142
+      holdout_mean: 0.7245
+      holdout_pass_k_consistent: 0.2500
+      task_e_expert_mean: 0.8400
+      provenance: generated-from-benchmark-report

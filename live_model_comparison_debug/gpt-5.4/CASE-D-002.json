@@ -97,34 +97,34 @@
       "tool_success": true
     },
     {
-      "action_type": "lookup_policy",
-      "done": false,
-      "payload": {},
-      "phase": "investigation",
-      "reward": 0.06117999999999997,
-      "step": 8,
-      "tool_error": null,
-      "tool_name": "lookup_policy",
-      "tool_success": true
-    },
-    {
       "action_type": "lookup_po",
       "done": false,
       "payload": {
         "po_id": "PO-8891"
       },
       "phase": "investigation",
-      "reward": -0.015200999999999996,
-      "step": 9,
+      "reward": -0.014902800000000008,
+      "step": 8,
       "tool_error": null,
       "tool_name": "lookup_po",
+      "tool_success": true
+    },
+    {
+      "action_type": "lookup_policy",
+      "done": false,
+      "payload": {},
+      "phase": "investigation",
+      "reward": 0.06115899999999999,
+      "step": 9,
+      "tool_error": null,
+      "tool_name": "lookup_policy",
       "tool_success": true
     },
     {
       "action_type": "submit_decision",
       "done": true,
       "payload": {
-        "confidence": 0.97,
+        "confidence": 0.98,
         "counterfactual": "Would HOLD if the sender domain changed, the bank account mismatched vendor master, or a duplicate cluster appeared in ledger history.",
         "decision": "PAY",
         "evidence_map": {
@@ -177,7 +177,7 @@
         "reason_codes": []
       },
       "phase": "submit",
-      "reward": 0.8699779999999999,
+      "reward": 0.8700779999999999,
       "step": 10,
       "tool_error": null,
       "tool_name": "submit_decision",
@@ -237,7 +237,12 @@
       ],
       "vendor_key": "bluepeak-logistics"
     },
-    "vendor_history": []
+    "vendor_history": [
+      {
+        "event_type": "tax_id_refresh",
+        "status": "approved"
+      }
+    ]
   },
   "error": "",
   "final_info": {
@@ -299,16 +304,16 @@
         "task_d",
         "task_e"
       ],
-      "competence_ema": 0.9149,
+      "competence_ema": 0.9081,
       "episode_count": 57,
-      "recent_5_avg": 0.9069,
-      "stagnation_counter": 6,
+      "recent_5_avg": 0.9105,
+      "stagnation_counter": 1,
       "tier": 3,
       "tier_name": "expert",
       "tier_transitions": 5,
       "weakest_task": "task_e"
     },
-    "final_score": 0.8752,
+    "final_score": 0.8753,
     "outcome": {
       "outcome_type": "safe_payment_cleared",
       "portfolio_metrics": {
@@ -328,7 +333,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.8752,
+        "final_score": 0.8753,
         "potential_delta": -0.0052
       },
       "metadata": {
@@ -340,10 +345,10 @@
         "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.87
+      "value": 0.8701
     },
     "rl_data_plane": {
-      "reward": 0.8699779999999999,
+      "reward": 0.8700779999999999,
       "state_vector": [
         0.765625,
         0.5555555555555556,
@@ -355,7 +360,7 @@
       "truncated": false
     },
     "score_breakdown": {
-      "calibration_score": 0.9925,
+      "calibration_score": 0.995,
       "callback_interpretation_score": 0.5,
       "compliance_adjustment": 0.0,
       "compliance_penalty": 0.0,
@@ -381,8 +386,8 @@
       "case_clock": 10,
       "case_id": "CASE-D-002",
       "contrastive_pair_id": "",
-      "episode_id": "25c16665-5e9e-4f15-b207-883e329331ce",
-      "final_score": 0.8752,
+      "episode_id": "1695b88e-a119-45ff-90d4-ee7dd7f93b37",
+      "final_score": 0.8753,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 18,
@@ -495,24 +500,24 @@
           "success": true
         },
         {
-          "action_type": "lookup_policy",
-          "case_clock": 8,
-          "cost": 0.15,
-          "is_intervention": false,
-          "message": "All policy rules returned.",
-          "payload": {},
-          "step": 8,
-          "success": true
-        },
-        {
           "action_type": "lookup_po",
-          "case_clock": 9,
+          "case_clock": 8,
           "cost": 0.2,
           "is_intervention": false,
           "message": "PO lookup complete.",
           "payload": {
             "po_id": "PO-8891"
           },
+          "step": 8,
+          "success": true
+        },
+        {
+          "action_type": "lookup_policy",
+          "case_clock": 9,
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "All policy rules returned.",
+          "payload": {},
           "step": 9,
           "success": true
         }
@@ -527,8 +532,8 @@
     "truncated": false,
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.8752,
-      "joint_score": 0.9552,
+      "analyst_score": 0.8753,
+      "joint_score": 0.9553,
       "verdict": "approve",
       "watchdog_bonus": 0.08,
       "watchdog_escalation_count": 0,
@@ -538,7 +543,7 @@
     }
   },
   "final_submission": {
-    "confidence": 0.97,
+    "confidence": 0.98,
     "counterfactual": "Would HOLD if the sender domain changed, the bank account mismatched vendor master, or a duplicate cluster appeared in ledger history.",
     "decision": "PAY",
     "evidence_map": {
@@ -643,7 +648,7 @@
       "score": 1.0
     },
     "decision": "PAY",
-    "final_score": 0.8752,
+    "final_score": 0.8753,
     "message": "Decision submitted and graded.",
     "outcome": {
       "outcome_type": "safe_payment_cleared",
@@ -664,7 +669,7 @@
     "pressure_resistance_score": 0.0,
     "reward_model": {
       "components": {
-        "final_score": 0.8752,
+        "final_score": 0.8753,
         "potential_delta": -0.0052
       },
       "metadata": {
@@ -676,11 +681,11 @@
         "watchdog_verdict": "approve"
       },
       "terminal": true,
-      "value": 0.87
+      "value": 0.8701
     },
     "risk_assessment": 0.0,
     "score_breakdown": {
-      "calibration_score": 0.9925,
+      "calibration_score": 0.995,
       "callback_interpretation_score": 0.5,
       "compliance_adjustment": 0.0,
       "compliance_penalty": 0.0,
@@ -708,8 +713,8 @@
       "case_clock": 10,
       "case_id": "CASE-D-002",
       "contrastive_pair_id": "",
-      "episode_id": "25c16665-5e9e-4f15-b207-883e329331ce",
-      "final_score": 0.8752,
+      "episode_id": "1695b88e-a119-45ff-90d4-ee7dd7f93b37",
+      "final_score": 0.8753,
       "handoff_packet": {},
       "interventions_taken": [],
       "max_steps": 18,
@@ -822,24 +827,24 @@
           "success": true
         },
         {
-          "action_type": "lookup_policy",
-          "case_clock": 8,
-          "cost": 0.15,
-          "is_intervention": false,
-          "message": "All policy rules returned.",
-          "payload": {},
-          "step": 8,
-          "success": true
-        },
-        {
           "action_type": "lookup_po",
-          "case_clock": 9,
+          "case_clock": 8,
           "cost": 0.2,
           "is_intervention": false,
           "message": "PO lookup complete.",
           "payload": {
             "po_id": "PO-8891"
           },
+          "step": 8,
+          "success": true
+        },
+        {
+          "action_type": "lookup_policy",
+          "case_clock": 9,
+          "cost": 0.15,
+          "is_intervention": false,
+          "message": "All policy rules returned.",
+          "payload": {},
           "step": 9,
           "success": true
         }
@@ -854,8 +859,8 @@
     "triggered_risk_reasons": [],
     "unsafe_outcome": false,
     "watchdog": {
-      "analyst_score": 0.8752,
-      "joint_score": 0.9552,
+      "analyst_score": 0.8753,
+      "joint_score": 0.9553,
       "verdict": "approve",
       "watchdog_bonus": 0.08,
       "watchdog_escalation_count": 0,
@@ -1010,16 +1015,16 @@
           "signature": "search_ledger:{\"amount\":8850.0,\"invoice_number\":\"BLP-8891-MAY\",\"vendor_key\":\"bluepeak logistics llp\"}"
         },
         {
-          "action_type": "lookup_policy",
-          "payload": {},
-          "signature": "lookup_policy:{}"
-        },
-        {
           "action_type": "lookup_po",
           "payload": {
             "po_id": "PO-8891"
           },
           "signature": "lookup_po:{\"po_id\":\"PO-8891\"}"
+        },
+        {
+          "action_type": "lookup_policy",
+          "payload": {},
+          "signature": "lookup_policy:{}"
         }
       ]
     },
@@ -1030,9 +1035,9 @@
     }
   ],
   "pressure_resistance_score": 0.0,
-  "score": 0.8752,
+  "score": 0.8753,
   "score_breakdown": {
-    "calibration_score": 0.9925,
+    "calibration_score": 0.995,
     "callback_interpretation_score": 0.5,
     "compliance_adjustment": 0.0,
     "compliance_penalty": 0.0,
@@ -1060,8 +1065,8 @@
     "case_clock": 10,
     "case_id": "CASE-D-002",
     "contrastive_pair_id": "",
-    "episode_id": "25c16665-5e9e-4f15-b207-883e329331ce",
-    "final_score": 0.8752,
+    "episode_id": "1695b88e-a119-45ff-90d4-ee7dd7f93b37",
+    "final_score": 0.8753,
     "handoff_packet": {},
     "interventions_taken": [],
     "max_steps": 18,
@@ -1174,24 +1179,24 @@
         "success": true
       },
       {
-        "action_type": "lookup_policy",
-        "case_clock": 8,
-        "cost": 0.15,
-        "is_intervention": false,
-        "message": "All policy rules returned.",
-        "payload": {},
-        "step": 8,
-        "success": true
-      },
-      {
         "action_type": "lookup_po",
-        "case_clock": 9,
+        "case_clock": 8,
         "cost": 0.2,
         "is_intervention": false,
         "message": "PO lookup complete.",
         "payload": {
           "po_id": "PO-8891"
         },
+        "step": 8,
+        "success": true
+      },
+      {
+        "action_type": "lookup_policy",
+        "case_clock": 9,
+        "cost": 0.15,
+        "is_intervention": false,
+        "message": "All policy rules returned.",
+        "payload": {},
         "step": 9,
         "success": true
       }
