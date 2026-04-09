@@ -28,7 +28,7 @@ metadata:
   task_families: 5
   curated_benchmark_cases: 21
   attack_types: 16
-  challenge_variants_default: 14
+  challenge_variants_default: 24
   supports_holdout_generation: true
   benchmark_artifacts:
     leaderboard_endpoint: /leaderboard

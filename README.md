@@ -102,13 +102,15 @@ The submission is not just a label. Strong agents are expected to return structu
 
 The inference agent (`inference.py`) uses a `ModelCapabilityProfile` that adapts behavior to model strength:
 
+<!-- sync:readme-capability-table:start -->
 | Tier | Capability score | Plan mode | Repair level | Budget bonus |
 |---|---|---|---|---|
-| Elite | ≥ 5.0 | LLM-first | partial | +2 investigation, +2 intervention |
-| Strong | ≥ 4.5 | hybrid | partial | +1 investigation, +1 intervention |
-| Standard | < 4.5 | LLM-first | none | baseline |
+| Elite | >= 5.0 | `llm` | `partial` | +2 investigation, +2 intervention |
+| Strong | >= 4.5 | `hybrid` | `partial` | +1 investigation, +1 intervention |
+| Standard | < 4.5 | `llm` | `none` | baseline |
+<!-- sync:readme-capability-table:end -->
 
-The capability profile only adjusts planning depth and budget. It does not hard-snap stronger models onto a deterministic grounded policy.
+The capability profile only adjusts planning depth and budget. It does not hard-snap stronger models onto a deterministic grounded policy. In the code, `llm` is the internal label for the LLM-first planning path.
 
 ### Smart signal derivation
 
@@ -166,15 +168,8 @@ Then inspect:
 - `live_model_comparison.json` for summary metrics, per-case scores, model profiles, and ordering checks
 - `live_model_comparison_debug/<model>/` for per-case traces, submissions, and score breakdowns
 
-## 🚀 Models Evaluated
-
-- `gpt-3.5-turbo` (Standard Tier)
-- `gpt-4o` (Strong Tier)
-- `gpt-5.4` (Elite Tier)
-
----
-
-## 📈 Benchmark Results
+<!-- sync:readme-live-comparison:start -->
+## Live Comparison Snapshot
 
 Generated on **April 9, 2026 (IST)** from `live_model_comparison.json`.
 
@@ -184,66 +179,20 @@ Generated on **April 9, 2026 (IST)** from `live_model_comparison.json`.
 | `gpt-4o` | strong | 4.6 | 0.8663 | 81.0% | 0.43 | 0.99 | 65 |
 | `gpt-5.4` | elite | 5.4 | 0.9305 | 100.0% | 0.88 | 0.99 | 64 |
 
----
-
-## ❌ Failed Case Summary
-
-### `gpt-3.5-turbo` (13 failures)
-- CASE-B-005  
-- CASE-C-001 → CASE-C-004  
-- CASE-D-001 → CASE-D-006  
-- CASE-E-001, CASE-E-002  
-
-### `gpt-4o` (4 failures)
-- CASE-B-002  
-- CASE-B-004  
-- CASE-C-002  
-- CASE-E-001  
-
-### `gpt-5.4` (0 failures ✅)
-
----
-
-## 🔍 Key Insights
-
-- **Clear performance hierarchy:**  
-  `gpt-5.4` > `gpt-4o` > `gpt-3.5-turbo`
-
-- **Frontier performance gap:**
-  - `gpt-5.4` outperforms `gpt-4o` by:
-    - **+0.0642 average score**
-    - **+19.0% success rate**
-
-- **Reliability comparison:**
-  - `gpt-5.4`: 100% success (fully robust)
-  - `gpt-4o`: Strong but inconsistent on harder cases
-  - `gpt-3.5-turbo`: Struggles with complex workflows
-
-- **Score stability:**
-  - `gpt-5.4`: High minimum score (0.88)
-  - `gpt-4o`: Occasional dips (0.43)
-  - `gpt-3.5`: Near-zero failures
-
-- **Fair evaluation:**
-  - All models used ~64 API calls → no compute bias
-
----
-
-## 🧠 Conclusion
-
-- The benchmark is **well-calibrated** and clearly differentiates model capabilities.
-- `gpt-5.4` demonstrates **state-of-the-art performance**, achieving:
-  - Highest accuracy
-  - Perfect success rate
-  - Strong consistency across all tasks
-- `gpt-4o` is competitive but **not fully reliable at the frontier level**.
-- `gpt-3.5-turbo` is **not suitable for complex structured tasks**.
-
----
+- Capability ordering is monotonic across the compared models: `true`.
+- Current frontier gap (`gpt-5.4` vs `gpt-4o`): `+0.0642` average score and `+19.1%` success rate.
+- Refresh after rerunning the live comparison artifact:
+```bash
+python compare_models_live.py \
+  --models gpt-3.5-turbo,gpt-4o,gpt-5.4 \
+  --output live_model_comparison.json
+python sync_benchmark_metadata.py
+```
+<!-- sync:readme-live-comparison:end -->
 
 The repo keeps the generated artifact and full trace folder so readers can verify the claim instead of trusting a hand-written summary.
 
-Published benchmark metadata in [`openenv.yaml`](./openenv.yaml) records meaningful public-vs-holdout separation:
+Published benchmark metadata in [`openenv.yaml`](./openenv.yaml) records meaningful public-vs-holdout separation for the packaged baseline report. That report is distinct from `live_model_comparison.json`, which tracks external live-model runs:
 
 | Agent | Public mean | Holdout mean | Holdout consistent pass rate |
 |---|---:|---:|---:|
@@ -302,6 +251,8 @@ export ENV_URL="http://127.0.0.1:8000"
 python compare_models_live.py \
   --models gpt-3.5-turbo,gpt-4o,gpt-5.4 \
   --output live_model_comparison.json
+
+python sync_benchmark_metadata.py
 ```
 
 ### 6. Validate locally
@@ -343,7 +294,6 @@ Recommended reading paths:
 ```text
 Meta-s-LedgerShield/
 ├── README.md
-├── CHANGELOG.md
 ├── docs/
 ├── server/
 ├── tests/
@@ -354,6 +304,7 @@ Meta-s-LedgerShield/
 ├── task_d_guardrails.py
 ├── benchmark_report.py
 ├── compare_models_live.py
+├── sync_benchmark_metadata.py
 ├── compare_all_models.py
 ├── llm_utils.py
 ├── llm_judge_grader.py
@@ -385,6 +336,7 @@ Meta-s-LedgerShield/
 | `server/dual_agent_mode.py` | Dec-POMDP watchdog/auditor mode |
 | `benchmark_report.py` | public benchmark + holdout + contrastive reporting |
 | `compare_models_live.py` | live multi-model evaluation with capability profiles and debug artifacts |
+| `sync_benchmark_metadata.py` | refreshes README/docs/openenv metadata from the current artifacts and runtime defaults |
 | `inference.py` | submission-safe agent with ModelCapabilityProfile tiers and evidence-grounded output |
 | `inference_improved.py` | experimental improved agent entrypoint |
 | `inference_llm_powered.py` | richer LLM-powered agent used for debugging and comparisons |

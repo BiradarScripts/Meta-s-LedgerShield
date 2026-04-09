@@ -80,7 +80,6 @@ If you change APIs, packaging, or runtime behavior, assume CI should keep passin
 | Path | What it is for |
 |---|---|
 | [`../README.md`](../README.md) | top-level benchmark overview and quick start |
-| [`../CHANGELOG.md`](../CHANGELOG.md) | human-readable project changes |
 | [`../Dockerfile`](../Dockerfile) | container image definition for server deployment |
 | [`../pyproject.toml`](../pyproject.toml) | package metadata, dependencies, pytest config |
 | [`../requirements.txt`](../requirements.txt) | pinned runtime dependencies |
@@ -97,6 +96,7 @@ If you change APIs, packaging, or runtime behavior, assume CI should keep passin
 | [`../llm_utils.py`](../llm_utils.py) | JSON parsing and completion helpers for LLM workflows |
 | [`../llm_judge_grader.py`](../llm_judge_grader.py) | optional LLM-as-judge grading experiments |
 | [`../compare_models_live.py`](../compare_models_live.py) | live multi-model comparison with capability profiles and monotonic strength checks |
+| [`../sync_benchmark_metadata.py`](../sync_benchmark_metadata.py) | refreshes README/docs/openenv metadata from current artifacts and runtime defaults |
 | [`../compare_all_models.py`](../compare_all_models.py) | broader multi-model sweep helper with `--models`, `--output`, `--timeout`, and a `0.85`-aligned pass threshold |
 | [`../benchmark_report.py`](../benchmark_report.py) | public benchmark, holdout, and contrastive report generation |
 | [`../generate_branch_comparison_report.py`](../generate_branch_comparison_report.py) | legacy reporting helper for saved branch comparison JSONs |
@@ -249,4 +249,5 @@ Touch at least these files:
 
 - The repo uses a mix of benchmark runtime code and historical helper scripts. Prefer editing the core runtime paths first.
 - Some top-level report helpers are legacy utilities for saved JSON artifacts rather than part of the main runtime.
+- After rerunning `compare_models_live.py`, run `python sync_benchmark_metadata.py` so the published summaries stay aligned with the current artifact snapshot.
 - Keep docs and tests in sync with any public contract changes.

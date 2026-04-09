@@ -350,10 +350,12 @@ These are useful for local experiments and Gymnasium-style tooling, but they are
 
 The reference agent in `inference.py` uses a `ModelCapabilityProfile` to adapt behavior to model strength. This is part of the agent-side logic, not the server API, but it affects how different models interact with the environment:
 
+<!-- sync:api-capability-table:start -->
 | Tier | Capability score | Plan mode | Repair level | Decision token budget |
 |---|---|---|---|---|
-| Elite | ≥ 5.0 | coverage | grounded | ≥ 1536 |
-| Strong | ≥ 4.5 | hybrid | partial | ≥ 1280 |
-| Standard | < 4.5 | LLM-first | none | model default |
+| Elite | >= 5.0 | `llm` | `partial` | >= 1536 |
+| Strong | >= 4.5 | `hybrid` | `partial` | >= 1280 |
+| Standard | < 4.5 | `llm` | `none` | model default |
+<!-- sync:api-capability-table:end -->
 
-The tier determines investigation and intervention budget bonuses, whether repair attempts are made on malformed outputs, and how much planning context the agent maintains.
+The tier determines investigation and intervention budget bonuses, whether repair attempts are made on malformed outputs, and how much planning context the agent maintains. In the code, `llm` is the internal label for the LLM-first planning path.

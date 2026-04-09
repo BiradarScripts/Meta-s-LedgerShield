@@ -112,13 +112,15 @@ The benchmark expects structured outputs, not just decisions. Depending on the t
 
 The inference agent (`inference.py`) adapts its behavior based on a `ModelCapabilityProfile` derived from the model name:
 
+<!-- sync:index-capability-table:start -->
 | Tier | Capability score | Plan mode | Repair level | Budget bonus |
 |---|---|---|---|---|
-| Elite | ≥ 5.0 | coverage | grounded | +2 investigation, +2 intervention |
-| Strong | ≥ 4.5 | hybrid | partial | +1 investigation, +1 intervention |
-| Standard | < 4.5 | LLM-first | none | baseline |
+| Elite | >= 5.0 | `llm` | `partial` | +2 investigation, +2 intervention |
+| Strong | >= 4.5 | `hybrid` | `partial` | +1 investigation, +1 intervention |
+| Standard | < 4.5 | `llm` | `none` | baseline |
+<!-- sync:index-capability-table:end -->
 
-Weaker models receive stricter guardrail validation and more constrained evidence construction; stronger models get richer planning and per-case repair budgets.
+Weaker models receive stricter guardrail validation and more constrained evidence construction; stronger models get richer planning and per-case repair budgets. In the code, `llm` is the internal label for the LLM-first planning path.
 
 ### Composite signal derivation
 
@@ -199,37 +201,31 @@ python inference.py
 
 ```bash
 python benchmark_report.py --format markdown
-python compare_models_live.py --models gpt-4o,gpt-5.4
+python compare_models_live.py --models gpt-3.5-turbo,gpt-4o,gpt-5.4
+python sync_benchmark_metadata.py
 ```
 
-### Current local comparison snapshot
+<!-- sync:index-live-comparison:start -->
+## Live Comparison Snapshot
 
-The workspace also contains a fresh full-suite local comparison from **April 9, 2026 (IST)** in [`../live_model_comparison.json`](../live_model_comparison.json):
+Generated on **April 9, 2026 (IST)** from `live_model_comparison.json`.
 
 | Model | Average Score | Success Rate | Failed Cases |
-|---|---:|---:|---|
+|---|---:|---:|---:|
 | `gpt-3.5-turbo` | 0.7009 | 38.1% | 13 |
 | `gpt-4o` | 0.8663 | 81.0% | 4 |
 | `gpt-5.4` | 0.9305 | 100.0% | 0 |
 
-
-## 🔍 Key Takeaways
-
-- **Performance ranking:**  
-  `gpt-5.4` > `gpt-4o` > `gpt-3.5-turbo`
-
-- **Frontier gap (gpt-5.4 vs gpt-4o):**
-  - **+0.0642** average score  
-  - **+19.0%** success rate  
-
-- **Reliability:**
-  - `gpt-5.4`: Perfect (0 failures ✅)  
-  - `gpt-4o`: Strong but still misses edge cases  
-  - `gpt-3.5-turbo`: Struggles on complex tasks  
-
-- **Failure trend:**
-  - Failures concentrated in **B–E difficulty tiers**  
-  - Benchmark effectively separates model capability levels  
+- Capability ordering is monotonic across the compared models: `true`.
+- Current frontier gap (`gpt-5.4` vs `gpt-4o`): `+0.0642` average score and `+19.1%` success rate.
+- Refresh after rerunning the live comparison artifact:
+```bash
+python compare_models_live.py \
+  --models gpt-3.5-turbo,gpt-4o,gpt-5.4 \
+  --output live_model_comparison.json
+python sync_benchmark_metadata.py
+```
+<!-- sync:index-live-comparison:end -->
 
 
 ## What To Read Next
