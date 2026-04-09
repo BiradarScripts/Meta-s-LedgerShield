@@ -166,26 +166,80 @@ Then inspect:
 - `live_model_comparison.json` for summary metrics, per-case scores, model profiles, and ordering checks
 - `live_model_comparison_debug/<model>/` for per-case traces, submissions, and score breakdowns
 
-The current workspace artifact was generated on **April 9, 2026 (IST)** from [`live_model_comparison.json`](./live_model_comparison.json):
+## 🚀 Models Evaluated
+
+- `gpt-3.5-turbo` (Standard Tier)
+- `gpt-4o` (Strong Tier)
+- `gpt-5.4` (Elite Tier)
+
+---
+
+## 📈 Benchmark Results
+
+Generated on **April 9, 2026 (IST)** from `live_model_comparison.json`.
 
 | Model | Tier | Capability | Average Score | Success Rate | Min Score | Max Score | API Calls |
 |---|---|---:|---:|---:|---:|---:|---:|
-| `gpt-3.5-turbo` | standard | 3.2 | 0.6837 | 33.3% | 0.0225 | 0.9632 | 63 |
-| `gpt-4o` | strong | 4.6 | 0.8746 | 85.7% | 0.5417 | 0.9632 | 64 |
-| `gpt-5.4` | elite | 5.4 | 0.9108 | 95.2% | 0.8469 | 0.9695 | 64 |
+| `gpt-3.5-turbo` | standard | 3.2 | 0.7009 | 38.1% | 0.01 | 0.99 | 63 |
+| `gpt-4o` | strong | 4.6 | 0.8663 | 81.0% | 0.43 | 0.99 | 65 |
+| `gpt-5.4` | elite | 5.4 | 0.9305 | 100.0% | 0.88 | 0.99 | 64 |
 
-Failed-case summary from the same run:
+---
 
-- `gpt-3.5-turbo`: 14 fails across the harder Task B-E cases
-- `gpt-4o`: 3 fails: `CASE-B-002`, `CASE-B-004`, `CASE-B-005`
-- `gpt-5.4`: 1 fail: `CASE-B-005`
+## ❌ Failed Case Summary
 
-What this run shows:
+### `gpt-3.5-turbo` (13 failures)
+- CASE-B-005  
+- CASE-C-001 → CASE-C-004  
+- CASE-D-001 → CASE-D-006  
+- CASE-E-001, CASE-E-002  
 
-- The benchmark is no longer saturated. `gpt-4o` does **not** pass everything anymore, while `gpt-5.4` is clearly better on the same 21-case suite.
-- The frontier gap is meaningful: `gpt-5.4` is `+0.0362` average score and `+9.5` success-rate points ahead of `gpt-4o`.
-- The old "elite harness is shorter" concern is gone here because `gpt-4o` and `gpt-5.4` both used `64` API calls.
-- The only remaining `gpt-5.4` miss is `CASE-B-005`, and the debug traces show that case is currently a threshold-edge workflow/scoring issue rather than a broad capability collapse.
+### `gpt-4o` (4 failures)
+- CASE-B-002  
+- CASE-B-004  
+- CASE-C-002  
+- CASE-E-001  
+
+### `gpt-5.4` (0 failures ✅)
+
+---
+
+## 🔍 Key Insights
+
+- **Clear performance hierarchy:**  
+  `gpt-5.4` > `gpt-4o` > `gpt-3.5-turbo`
+
+- **Frontier performance gap:**
+  - `gpt-5.4` outperforms `gpt-4o` by:
+    - **+0.0642 average score**
+    - **+19.0% success rate**
+
+- **Reliability comparison:**
+  - `gpt-5.4`: 100% success (fully robust)
+  - `gpt-4o`: Strong but inconsistent on harder cases
+  - `gpt-3.5-turbo`: Struggles with complex workflows
+
+- **Score stability:**
+  - `gpt-5.4`: High minimum score (0.88)
+  - `gpt-4o`: Occasional dips (0.43)
+  - `gpt-3.5`: Near-zero failures
+
+- **Fair evaluation:**
+  - All models used ~64 API calls → no compute bias
+
+---
+
+## 🧠 Conclusion
+
+- The benchmark is **well-calibrated** and clearly differentiates model capabilities.
+- `gpt-5.4` demonstrates **state-of-the-art performance**, achieving:
+  - Highest accuracy
+  - Perfect success rate
+  - Strong consistency across all tasks
+- `gpt-4o` is competitive but **not fully reliable at the frontier level**.
+- `gpt-3.5-turbo` is **not suitable for complex structured tasks**.
+
+---
 
 The repo keeps the generated artifact and full trace folder so readers can verify the claim instead of trusting a hand-written summary.
 
