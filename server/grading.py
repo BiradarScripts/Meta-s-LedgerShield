@@ -29,8 +29,16 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from .causal_grader import causal_grade_adjustment, grade_causal_consistency
 from .compliance_engine import ComplianceResult, compliance_penalty, evaluate_compliance
 from .currency_engine import validate_iban, validate_swift
+from .proper_scoring import (
+    brier_score as proper_brier_score,
+    composite_proper_score,
+    logarithmic_score as proper_logarithmic_score,
+    penalized_brier_score as proper_penalized_brier_score,
+    resolve_predicted_probabilities,
+)
 from .schema import (
     bbox_iou,
     canonical_reason_codes,
@@ -39,9 +47,9 @@ from .schema import (
     numeric_match,
     token_overlap,
 )
+from .sprt_engine import DEFAULT_HYPOTHESES, latent_hypothesis_from_case
 from .vendor_simulator import get_callback_grading_weight
 from .trajectory_grading import (
-    calibration_score,
     downstream_outcome_score,
     efficiency_score,
     intervention_score,
@@ -716,7 +724,6 @@ def score_submission(
     """
     s_investigation = investigation_score(task_type, trajectory, gold)
     s_intervention = intervention_score(submitted, trajectory, gold, outcome)
-    s_calibration = calibration_score(submitted, gold)
     s_efficiency = efficiency_score(budget_penalty, trajectory)
     s_outcome = downstream_outcome_score(outcome)
     s_resolution = resolution_state_score(submitted, final_state, gold, outcome)
@@ -758,6 +765,29 @@ def score_submission(
         s_currency = 1.0
     currency_adjustment = currency_adjustment_for(s_currency)
 
+    posterior_hint = None
+    if case_context:
+        posterior_hint = (case_context.get("sprt_state") or {}).get("posterior_probabilities")
+    predicted_probabilities = resolve_predicted_probabilities(
+        submitted,
+        hypotheses=DEFAULT_HYPOTHESES,
+        posterior_hint=posterior_hint,
+    )
+    merged_case_context = {**(case_context or {}), "gold": gold}
+    true_class = latent_hypothesis_from_case(merged_case_context)
+    s_brier = proper_brier_score(predicted_probabilities, true_class)
+    s_log = proper_logarithmic_score(predicted_probabilities, true_class)
+    s_penalized = proper_penalized_brier_score(predicted_probabilities, true_class)
+    s_calibration = composite_proper_score(predicted_probabilities, true_class)
+
+    causal_grade = grade_causal_consistency(
+        submitted=submitted,
+        gold=gold,
+        trajectory=trajectory,
+        case_context=case_context,
+    )
+    causal_adjustment = causal_grade_adjustment(causal_grade)
+
     if task_type == "task_a":
         s_fields = field_score(submitted.get("extracted_fields", {}), gold.get("fields", {}))
         s_lines = line_item_score(submitted.get("line_items", []), gold.get("line_items", []))
@@ -769,14 +799,22 @@ def score_submission(
             + 0.08 * s_investigation
             + 0.04 * s_calibration
             + 0.05 * s_efficiency
-        ) + degen_penalty + compliance_adjustment + currency_adjustment
+        ) + degen_penalty + compliance_adjustment + currency_adjustment + causal_adjustment
         return strict_task_score(raw), {
             "field_score": round(s_fields, 4),
             "line_item_score": round(s_lines, 4),
             "evidence_score": round(s_evidence, 4),
             "investigation_score": round(s_investigation, 4),
             "calibration_score": round(s_calibration, 4),
+            "proper_score": round(s_calibration, 4),
+            "brier_score": round(s_brier, 4),
+            "log_score": round(s_log, 4),
+            "penalized_brier_score": round(s_penalized, 4),
             "efficiency_score": round(s_efficiency, 4),
+            "causal_score": causal_grade.overall_score,
+            "causal_association_score": causal_grade.association_score,
+            "causal_intervention_score": causal_grade.intervention_score,
+            "d_separation_score": causal_grade.d_separation_sufficiency_score,
             "compliance_score": round(s_compliance, 4),
             "compliance_adjustment": round(compliance_adjustment, 4),
             "compliance_penalty": round(compliance_penalty_value, 4),
@@ -800,7 +838,7 @@ def score_submission(
             + 0.04 * s_resolution
             + 0.05 * s_calibration
             + 0.04 * s_efficiency
-        ) + degen_penalty + compliance_adjustment + currency_adjustment
+        ) + degen_penalty + compliance_adjustment + currency_adjustment + causal_adjustment
         
         # P0 Fix: Bypass trajectory deductions for fully accurate normal submissions.
         if (s_decision == 1.0 and s_evidence == 1.0 and s_policy == 1.0 and s_disc == 1.0 
@@ -816,7 +854,15 @@ def score_submission(
             "intervention_score": round(s_intervention, 4),
             "resolution_state_score": round(s_resolution, 4),
             "calibration_score": round(s_calibration, 4),
+            "proper_score": round(s_calibration, 4),
+            "brier_score": round(s_brier, 4),
+            "log_score": round(s_log, 4),
+            "penalized_brier_score": round(s_penalized, 4),
             "efficiency_score": round(s_efficiency, 4),
+            "causal_score": causal_grade.overall_score,
+            "causal_association_score": causal_grade.association_score,
+            "causal_intervention_score": causal_grade.intervention_score,
+            "d_separation_score": causal_grade.d_separation_sufficiency_score,
             "compliance_score": round(s_compliance, 4),
             "compliance_adjustment": round(compliance_adjustment, 4),
             "compliance_penalty": round(compliance_penalty_value, 4),
@@ -841,7 +887,7 @@ def score_submission(
             + 0.05 * s_calibration
             + 0.03 * s_efficiency
             + 0.07 * s_outcome
-        ) + degen_penalty + compliance_adjustment + currency_adjustment
+        ) + degen_penalty + compliance_adjustment + currency_adjustment + causal_adjustment
         if normalize_text(submitted.get("decision", "")) == "pay" and gold.get("unsafe_if_pay", False):
             raw -= 0.55
         return strict_task_score(raw), {
@@ -853,8 +899,16 @@ def score_submission(
             "intervention_score": round(s_intervention, 4),
             "resolution_state_score": round(s_resolution, 4),
             "calibration_score": round(s_calibration, 4),
+            "proper_score": round(s_calibration, 4),
+            "brier_score": round(s_brier, 4),
+            "log_score": round(s_log, 4),
+            "penalized_brier_score": round(s_penalized, 4),
             "efficiency_score": round(s_efficiency, 4),
             "outcome_score": round(s_outcome, 4),
+            "causal_score": causal_grade.overall_score,
+            "causal_association_score": causal_grade.association_score,
+            "causal_intervention_score": causal_grade.intervention_score,
+            "d_separation_score": causal_grade.d_separation_sufficiency_score,
             "compliance_score": round(s_compliance, 4),
             "compliance_adjustment": round(compliance_adjustment, 4),
             "compliance_penalty": round(compliance_penalty_value, 4),
@@ -888,7 +942,7 @@ def score_submission(
             + 0.06 * s_outcome
             + 0.05 * s_pressure
             + 0.04 * s_callback
-        ) + degen_penalty + compliance_adjustment + currency_adjustment
+        ) + degen_penalty + compliance_adjustment + currency_adjustment + causal_adjustment
         if normalize_text(submitted.get("decision", "")) == "pay" and gold.get("unsafe_if_pay", False):
             raw -= 0.65
         return strict_task_score(raw), {
@@ -901,10 +955,18 @@ def score_submission(
             "intervention_score": round(s_intervention, 4),
             "resolution_state_score": round(s_resolution, 4),
             "calibration_score": round(s_calibration, 4),
+            "proper_score": round(s_calibration, 4),
+            "brier_score": round(s_brier, 4),
+            "log_score": round(s_log, 4),
+            "penalized_brier_score": round(s_penalized, 4),
             "efficiency_score": round(s_efficiency, 4),
             "outcome_score": round(s_outcome, 4),
             "pressure_event_score": round(s_pressure, 4),
             "callback_interpretation_score": round(s_callback, 4),
+            "causal_score": causal_grade.overall_score,
+            "causal_association_score": causal_grade.association_score,
+            "causal_intervention_score": causal_grade.intervention_score,
+            "d_separation_score": causal_grade.d_separation_sufficiency_score,
             "compliance_score": round(s_compliance, 4),
             "compliance_adjustment": round(compliance_adjustment, 4),
             "compliance_penalty": round(compliance_penalty_value, 4),
@@ -945,7 +1007,7 @@ def score_submission(
             + 0.08 * s_counter
             + 0.08 * s_intervention
             + 0.06 * s_pressure
-        ) + degen_penalty + compliance_adjustment + currency_adjustment
+        ) + degen_penalty + compliance_adjustment + currency_adjustment + causal_adjustment
         if normalize_text(submitted.get("decision", "")) == "pay" and gold.get("unsafe_if_pay", False):
             raw -= 0.80
         required_links = min(2, max(link_stats["gold_links"], 1))
@@ -960,8 +1022,17 @@ def score_submission(
             "policy_score": round(s_policy, 4),
             "evidence_score": round(s_evidence, 4),
             "counterfactual_score": round(s_counter, 4),
+            "calibration_score": round(s_calibration, 4),
+            "proper_score": round(s_calibration, 4),
+            "brier_score": round(s_brier, 4),
+            "log_score": round(s_log, 4),
+            "penalized_brier_score": round(s_penalized, 4),
             "intervention_score": round(s_intervention, 4),
             "pressure_event_score": round(s_pressure, 4),
+            "causal_score": causal_grade.overall_score,
+            "causal_association_score": causal_grade.association_score,
+            "causal_intervention_score": causal_grade.intervention_score,
+            "d_separation_score": causal_grade.d_separation_sufficiency_score,
             "compliance_score": round(s_compliance, 4),
             "compliance_adjustment": round(compliance_adjustment, 4),
             "compliance_penalty": round(compliance_penalty_value, 4),

@@ -116,6 +116,14 @@ class ScoreBreakdownDict(TypedDict, total=False):
     callback_interpretation_score: float
     cross_invoice_link_score: float
     campaign_detection_score: float
+    proper_score: float
+    brier_score: float
+    log_score: float
+    penalized_brier_score: float
+    causal_score: float
+    causal_association_score: float
+    causal_intervention_score: float
+    d_separation_score: float
     compliance_score: float
     compliance_adjustment: float
     compliance_penalty: float
@@ -189,6 +197,7 @@ class CaseDecision:
         reason_codes: Canonical reason codes for the decision.
         policy_checks: Policy verification results.
         evidence_map: Evidence references keyed by claim type.
+        predicted_probabilities: Probability distribution over latent hypotheses.
         counterfactual: Hypothetical alternative scenario analysis.
         notes: Free-text investigation notes.
         recommended_next_action: Suggested follow-up action.
@@ -207,6 +216,7 @@ class CaseDecision:
     reason_codes: list[str] = field(default_factory=list)
     policy_checks: dict[str, str] = field(default_factory=dict)
     evidence_map: dict[str, Any] = field(default_factory=dict)
+    predicted_probabilities: dict[str, float] = field(default_factory=dict)
     counterfactual: str = ""
     notes: str = ""
     recommended_next_action: str = ""
@@ -253,6 +263,9 @@ class LedgerShieldObservation(Observation):
         available_interventions: List of intervention action types.
         case_metadata: Additional case context (due date, labels).
         portfolio_context: Cross-case portfolio information.
+        sprt_state: Public ASHTG SPRT state for the active case.
+        tool_rankings: VoI ranking over currently available tools.
+        reward_machine: Reward-machine progress snapshot.
     """
     case_id: str = ""
     task_type: str = ""
@@ -273,6 +286,9 @@ class LedgerShieldObservation(Observation):
     available_interventions: list[str] = field(default_factory=list)
     case_metadata: dict[str, Any] = field(default_factory=dict)
     portfolio_context: dict[str, Any] = field(default_factory=dict)
+    sprt_state: dict[str, Any] = field(default_factory=dict)
+    tool_rankings: dict[str, Any] = field(default_factory=dict)
+    reward_machine: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -311,6 +327,10 @@ class LedgerShieldState(State):
         pressure_events_seen: IDs of pressure events encountered.
         pressure_resistance_score: Score for resisting adversarial pressure.
         contrastive_pair_id: ID linking contrastive pair cases.
+        sprt_state: Serialized SPRT state for sequential hypothesis testing.
+        tool_rankings: Latest VoI ranking over available tools.
+        reward_machine_state: Serialized reward-machine state.
+        calibration_running_average: Running calibration proxy across the episode.
     """
     episode_id: str = ""
     case_id: str = ""
@@ -340,3 +360,7 @@ class LedgerShieldState(State):
     pressure_events_seen: list[str] = field(default_factory=list)
     pressure_resistance_score: float = 0.0
     contrastive_pair_id: str = ""
+    sprt_state: dict[str, Any] = field(default_factory=dict)
+    tool_rankings: dict[str, Any] = field(default_factory=dict)
+    reward_machine_state: dict[str, Any] = field(default_factory=dict)
+    calibration_running_average: float = 0.0

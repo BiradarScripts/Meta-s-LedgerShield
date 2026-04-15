@@ -135,6 +135,16 @@ If you change APIs, packaging, or runtime behavior, assume CI should keep passin
 | [`../server/compliance_engine.py`](../server/compliance_engine.py) | SOX-style internal-control evaluation |
 | [`../server/curriculum.py`](../server/curriculum.py) | dynamic difficulty adaptation |
 | [`../server/dual_agent_mode.py`](../server/dual_agent_mode.py) | watchdog-mode dual-agent novelty module |
+| [`../server/sprt_engine.py`](../server/sprt_engine.py) | sequential hypothesis testing state, likelihood tables, stopping rules |
+| [`../server/voi_engine.py`](../server/voi_engine.py) | Value-of-Information ranking and action valuation |
+| [`../server/proper_scoring.py`](../server/proper_scoring.py) | strategy-proof probability scoring utilities |
+| [`../server/causal_model.py`](../server/causal_model.py) | SCM templates, d-separation oracle, counterfactual helpers |
+| [`../server/causal_grader.py`](../server/causal_grader.py) | causal sufficiency grading and adjustment |
+| [`../server/reward_machine.py`](../server/reward_machine.py) | task-family reward machine state |
+| [`../server/information_design.py`](../server/information_design.py) | Markov persuasion / information-design heuristics |
+| [`../server/adversarial_designer.py`](../server/adversarial_designer.py) | regret-driven adversarial case analysis |
+| [`../server/categorical_composition.py`](../server/categorical_composition.py) | compositional task-family semantics |
+| [`../server/rl_export.py`](../server/rl_export.py) | 37-dimensional RL / Decision Transformer export utilities |
 
 ### `server/fixtures/`
 

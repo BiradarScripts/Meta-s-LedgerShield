@@ -11,6 +11,9 @@ from .risk_rules import compute_due_date_potential, derive_case_risk_signals, ri
 from .schema import canonical_reason_codes, normalize_text
 from .vendor_simulator import build_vendor_simulator_state, simulate_callback
 from .evidence_graph import EvidenceGraph, generate_scenario_graph
+from .causal_model import build_causal_model_for_case
+from .information_design import MarkovPersuasionEnvironment
+from .sprt_engine import latent_hypothesis_from_case
 
 
 def _successful_actions(state: LedgerShieldState) -> set[str]:
@@ -212,8 +215,18 @@ def build_hidden_world(case: dict[str, Any]) -> dict[str, Any]:
     else:
         graph = generate_scenario_graph(scenario_type, case_seed)
 
+    latent_hypothesis = latent_hypothesis_from_case(case)
+    causal_model = build_causal_model_for_case(case)
+    signaling_policy = MarkovPersuasionEnvironment().optimal_signaling_policy(
+        case,
+        agent_capability_prior={"good_agent": 0.65, "weak_agent": 0.35},
+    )
+
     return {
         "latent_evidence_graph": graph.serialize(),
+        "latent_hypothesis": latent_hypothesis,
+        "causal_template_id": causal_model.template.scenario_id,
+        "signaling_policy": signaling_policy,
         "case_snapshot": {
             "case_id": case.get("case_id"),
             "task_type": case.get("task_type"),
@@ -498,6 +511,12 @@ def investigation_status(state: LedgerShieldState) -> dict[str, Any]:
 
 
 def decision_readiness(state: LedgerShieldState, hidden_world: dict[str, Any]) -> float:
+    sprt_state = state.sprt_state or {}
+    if sprt_state:
+        distances = list((sprt_state.get("distance_to_boundary") or {}).values())
+        if distances:
+            return max(0.0, min(1.0, 1.0 - min(distances)))
+
     hidden = {normalize_text(signal) for signal in hidden_world.get("hidden_risk_signals", [])}
     hidden.discard("unsafe_if_pay")
     observed = {normalize_text(signal) for signal in state.observed_risk_signals}
@@ -528,6 +547,10 @@ def decision_readiness(state: LedgerShieldState, hidden_world: dict[str, Any]) -
 
 
 def state_potential(state: LedgerShieldState, hidden_world: dict[str, Any]) -> float:
+    sprt_state = state.sprt_state or {}
+    if "potential" in sprt_state:
+        return max(0.0, min(1.0, float(sprt_state.get("potential", 0.0) or 0.0)))
+
     readiness = decision_readiness(state, hidden_world)
     campaign_context = hidden_world.get("campaign_context", {})
     linked_invoice_count = max(1, int(campaign_context.get("linked_invoice_count", 1) or 1))
@@ -565,6 +588,10 @@ def system_state_snapshot(
         "required_actions": required_actions,
         "required_artifacts": required_artifacts,
         "decision_readiness": round(decision_readiness(state, hidden_world), 4),
+        "sprt_state": deepcopy(state.sprt_state),
+        "tool_rankings": deepcopy(state.tool_rankings),
+        "reward_machine_state": deepcopy(state.reward_machine_state),
+        "latent_hypothesis": str(hidden_world.get("latent_hypothesis", "")),
         "handoff_packet": handoff_packet,
         "portfolio_context": deepcopy(hidden_world.get("campaign_context", {})),
         "observed_risk_signals": [normalize_text(value) for value in state.observed_risk_signals],
@@ -601,6 +628,9 @@ def public_state_snapshot(
         "pending_events": pending,
         "pending_event_count": len(pending),
         "portfolio_context": deepcopy(hidden_world.get("campaign_context", {})),
+        "sprt_state": deepcopy(state.sprt_state),
+        "tool_rankings": deepcopy(state.tool_rankings),
+        "reward_machine_state": deepcopy(state.reward_machine_state),
         "terminal_reason": state.terminal_reason,
         "pressure_events_seen": list(state.pressure_events_seen),
         "pressure_resistance_score": round(state.pressure_resistance_score, 4),

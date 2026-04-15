@@ -46,6 +46,13 @@ Every task ends with `submit_decision`. The payload varies by task, but the foll
 {
   "decision": "PAY | HOLD | NEEDS_REVIEW | ESCALATE_FRAUD",
   "confidence": 0.91,
+  "predicted_probabilities": {
+    "safe": 0.09,
+    "bank_fraud": 0.51,
+    "vendor_takeover": 0.24,
+    "duplicate_billing": 0.08,
+    "campaign_fraud": 0.08
+  },
   "reason_codes": ["sender_domain_spoof", "policy_bypass_attempt"],
   "policy_checks": {
     "three_way_match": "pass",
@@ -61,6 +68,8 @@ Every task ends with `submit_decision`. The payload varies by task, but the foll
   }
 }
 ```
+
+`predicted_probabilities` is optional for backward compatibility, but it is now the preferred way to report calibrated uncertainty. The grader uses a composite proper scoring rule over the latent hypothesis space when this field is present, and derives a default from `decision` + `confidence` when it is missing.
 
 Task-specific fields are described below.
 

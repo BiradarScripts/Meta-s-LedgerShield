@@ -8,6 +8,8 @@ This document explains how LedgerShield is put together: the server, hidden-stat
 flowchart LR
     Agent["Agent / Client"] --> API["FastAPI / OpenEnv API"]
     API --> Env["LedgerShieldEnvironment"]
+    Env --> SPRT["SPRT / VoI / Reward Machine"]
+    Env --> Causal["Causal Model / Proper Scoring"]
     Env --> Tools["Tools Layer"]
     Env --> World["World State"]
     Env --> Transition["Transition Engine"]
@@ -34,10 +36,17 @@ Responsibilities:
 
 - expose the HTTP endpoints
 - manage episode lifecycle with `reset()` and `step()`
-- apply tool costs and reward shaping
+- apply tool costs, VoI ranking, SPRT updates, and reward shaping
 - distinguish `terminated` from `truncated`
 - return observation envelopes compatible with OpenEnv-style clients
 - support text `render()` and formal action/observation space descriptions
+
+Recent ASHTG additions:
+
+- `server/sprt_engine.py` maintains the sequential log-likelihood ratios and stopping boundaries
+- `server/voi_engine.py` computes Value-of-Information rankings over available actions
+- `server/reward_machine.py` tracks task-family progress as a lightweight reward machine
+- `server/rl_export.py` exports a 37-dimensional RL/DT state vector
 
 ### 2. Hidden world and public state
 
@@ -154,10 +163,24 @@ The environment combines several reward mechanisms:
 | Component | Where it lives | Why it exists |
 |---|---|---|
 | PBRS shaping | `server/environment.py` | gives dense guidance toward useful investigation progress |
+| VoI reward | `server/voi_engine.py` + `server/environment.py` | values actions by expected decision improvement minus cost |
 | milestone rewards | `server/environment.py` | rewards first risk discovery, callback usage, artifact reveal, and required-action completion |
 | information-gain bonus | `server/environment.py` | rewards novel signal discovery using an entropy-like bonus |
 | cost penalties | `server/environment.py` | discourages wasteful tool use |
 | terminal score | `server/grading.py` | aligns the final reward with the rubric the benchmark cares about |
+
+## ASHTG Layer
+
+LedgerShield now exposes a public ASHTG observation layer:
+
+- `sprt_state`: log-likelihood ratios, posterior probabilities, distance-to-boundary, and stopping recommendation
+- `tool_rankings`: VoI/cost ranking over currently available actions
+- `reward_machine`: progress toward task-family completion
+
+The terminal grader also uses:
+
+- `server/proper_scoring.py` for Brier/log/penalized proper scoring over latent hypotheses
+- `server/causal_model.py` and `server/causal_grader.py` for intervention coverage and d-separation sufficiency
 
 Key constants visible in code:
 

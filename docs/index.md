@@ -2,6 +2,8 @@
 
 LedgerShield is a high-stakes enterprise payment-integrity benchmark for AI agents. It models how an AP analyst or AP control tower agent investigates invoices, email threads, vendor records, policy rules, and ledger history before deciding whether payment is safe, risky, or fraudulent.
 
+The benchmark now formalizes that loop as an **Adversarial Sequential Hypothesis Testing Game (ASHTG)**: the agent maintains a multi-hypothesis SPRT state, the environment ranks tools by Value of Information, the grader evaluates causal sufficiency and proper probability reports, and the watchdog commits to a Stackelberg-style audit strategy.
+
 ## Why LedgerShield Exists
 
 Most finance-adjacent benchmarks stop at extraction or classification. Real accounts-payable risk is harder:
@@ -136,13 +138,13 @@ Recent environment upgrades visible in the implementation:
 
 | Area | Current behavior |
 |---|---|
-| Reward shaping | PBRS with `SHAPING_SCALE = 0.35` and milestone rewards |
+| Reward shaping | PBRS with `SHAPING_SCALE = 0.35`, VoI-centered tool rewards, and reward-machine progress |
 | Exploration bonus | information-gain bonus with `INFO_GAIN_BONUS = 0.08` |
 | Episode semantics | Gymnasium-style distinction between `terminated` and `truncated` |
 | Introspection | text `render()` summary for episode inspection |
 | Formal contracts | `action_space()` and `observation_space()` class methods |
 | Difficulty adaptation | curriculum module for tiered case selection |
-| Novelty | Dec-POMDP watchdog mode for analyst/auditor separation |
+| Novelty | ASHTG hypothesis testing, proper scoring, causal sufficiency checks, and Dec-POMDP watchdog mode |
 
 ## Scoring Philosophy
 

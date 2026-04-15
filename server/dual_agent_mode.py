@@ -55,6 +55,103 @@ class WatchdogVerdict(str, Enum):
 
 
 @dataclass
+class StackelbergAuditStrategy:
+    """Watchdog commitment policy from an approximate Strong Stackelberg Equilibrium."""
+
+    audit_probabilities: dict[str, float]
+    signal_focus_weights: dict[str, float]
+    veto_threshold: float
+    expected_false_positive_rate: float
+    expected_detection_rate: float
+
+
+def _simplex_points(dimension: int, step: float) -> list[list[float]]:
+    if dimension == 1:
+        return [[1.0]]
+
+    points: list[list[float]] = []
+    buckets = int(round(1.0 / step))
+
+    def recurse(prefix: list[float], remaining_buckets: int, slots: int) -> None:
+        if slots == 1:
+            points.append(prefix + [remaining_buckets / buckets])
+            return
+        for value in range(remaining_buckets + 1):
+            recurse(prefix + [value / buckets], remaining_buckets - value, slots - 1)
+
+    recurse([], buckets, dimension)
+    return points
+
+
+def compute_stackelberg_equilibrium(
+    analyst_payoff_matrix: dict[str, dict[str, float]],
+    watchdog_payoff_matrix: dict[str, dict[str, float]],
+    *,
+    resolution: float = 0.1,
+) -> StackelbergAuditStrategy:
+    leader_actions = list(watchdog_payoff_matrix.keys())
+    follower_actions = sorted(
+        {
+            follower_action
+            for row in analyst_payoff_matrix.values()
+            for follower_action in row
+        }
+    )
+    if not leader_actions or not follower_actions:
+        return StackelbergAuditStrategy(
+            audit_probabilities={},
+            signal_focus_weights={},
+            veto_threshold=0.7,
+            expected_false_positive_rate=0.15,
+            expected_detection_rate=0.75,
+        )
+
+    best_mix = {leader_actions[0]: 1.0}
+    best_follower = follower_actions[0]
+    best_leader_value = float("-inf")
+
+    for point in _simplex_points(len(leader_actions), resolution):
+        mix = {leader_action: point[index] for index, leader_action in enumerate(leader_actions)}
+        follower_utilities: dict[str, float] = {}
+        leader_utilities: dict[str, float] = {}
+        for follower_action in follower_actions:
+            follower_utilities[follower_action] = sum(
+                mix[leader_action] * analyst_payoff_matrix.get(leader_action, {}).get(follower_action, 0.0)
+                for leader_action in leader_actions
+            )
+            leader_utilities[follower_action] = sum(
+                mix[leader_action] * watchdog_payoff_matrix.get(leader_action, {}).get(follower_action, 0.0)
+                for leader_action in leader_actions
+            )
+
+        follower_best = max(follower_utilities.values())
+        tie_candidates = [
+            follower_action
+            for follower_action, value in follower_utilities.items()
+            if abs(value - follower_best) <= 1e-9
+        ]
+        chosen_follower = max(tie_candidates, key=lambda follower_action: leader_utilities[follower_action])
+        chosen_leader_value = leader_utilities[chosen_follower]
+        if chosen_leader_value > best_leader_value:
+            best_leader_value = chosen_leader_value
+            best_mix = mix
+            best_follower = chosen_follower
+
+    safe_mass = best_mix.get("audit_payment", 0.0)
+    return StackelbergAuditStrategy(
+        audit_probabilities={action: round(probability, 4) for action, probability in best_mix.items()},
+        signal_focus_weights={
+            "bank_change": round(best_mix.get("audit_payment", 0.0) + 0.2, 4),
+            "identity": round(best_mix.get("audit_identity", 0.0) + 0.2, 4),
+            "duplicate": round(best_mix.get("audit_duplicate", 0.0) + 0.2, 4),
+        },
+        veto_threshold=round(0.55 + safe_mass * 0.25, 4),
+        expected_false_positive_rate=round(max(0.05, 0.25 - best_mix.get("audit_identity", 0.0) * 0.1), 4),
+        expected_detection_rate=round(min(0.99, 0.72 + best_mix.get("audit_payment", 0.0) * 0.18 + best_mix.get("audit_duplicate", 0.0) * 0.08), 4),
+    )
+
+
+@dataclass
 class WatchdogObservation:
     """Observation available to the watchdog agent.
 
@@ -105,6 +202,7 @@ class WatchdogState:
     suspicion_score: float = 0.0
     analyst_action_history: list[str] = field(default_factory=list)
     disagreement_log: list[int] = field(default_factory=list)
+    strategy: StackelbergAuditStrategy | None = None
 
 
 # --- Suspicion update rules ---
@@ -235,6 +333,14 @@ def update_watchdog_state(
         risk_signals=observation.risk_signals_visible,
         pending_events=observation.pending_event_count,
     )
+    if watchdog_state.strategy is not None:
+        strategy = watchdog_state.strategy
+        if action_norm == "compare_bank_account":
+            delta += 0.05 * strategy.signal_focus_weights.get("bank_change", 0.0)
+        if action_norm == "inspect_email_thread":
+            delta += 0.05 * strategy.signal_focus_weights.get("identity", 0.0)
+        if action_norm == "search_ledger":
+            delta += 0.05 * strategy.signal_focus_weights.get("duplicate", 0.0)
     watchdog_state.suspicion_score = max(
         0.0, min(1.0, watchdog_state.suspicion_score + delta)
     )
@@ -278,13 +384,15 @@ def watchdog_evaluate_decision(
         "policy_bypass_attempt",
     }
 
+    veto_threshold = watchdog_state.strategy.veto_threshold if watchdog_state.strategy is not None else 0.6
+
     # VETO: analyst wants to PAY despite high suspicion and unaddressed risk
     if decision_norm == "pay" and high_risk_signals:
         if not intervention_set & {"request_callback_verification", "freeze_vendor_profile", "route_to_security"}:
             watchdog_state.veto_count += 1
             return WatchdogVerdict.VETO
 
-    if decision_norm == "pay" and watchdog_state.suspicion_score > 0.6:
+    if decision_norm == "pay" and watchdog_state.suspicion_score > veto_threshold:
         watchdog_state.veto_count += 1
         return WatchdogVerdict.VETO
 

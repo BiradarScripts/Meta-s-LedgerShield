@@ -69,6 +69,7 @@ with warnings.catch_warnings():
 from openenv_compat import StepResult
 from llm_utils import create_json_chat_completion, parse_json_dict
 from server.environment import LedgerShieldEnvironment
+from server.proper_scoring import implied_probabilities_from_decision
 from server.schema import canonical_reason_codes
 from task_c_guardrails import (
     grounded_task_c_submission,
@@ -1404,6 +1405,17 @@ def sanitize_task_e_submission(candidate: dict[str, Any], collected: dict[str, A
     }
 
 
+def attach_predicted_probabilities(submission: dict[str, Any]) -> dict[str, Any]:
+    enriched = dict(submission)
+    if isinstance(enriched.get("predicted_probabilities"), dict) and enriched["predicted_probabilities"]:
+        return enriched
+    enriched["predicted_probabilities"] = implied_probabilities_from_decision(
+        str(enriched.get("decision", "")),
+        float(enriched.get("confidence", 0.5) or 0.5),
+    )
+    return enriched
+
+
 def policy_check_payload(three_way_match: str, bank_change_verification: str, duplicate_check: str) -> dict[str, str]:
     return _policy_check_payload(three_way_match, bank_change_verification, duplicate_check)
 
@@ -2564,7 +2576,7 @@ def run_episode_with_env(
             if zoom_result.done:
                 final_score = normalize_score(zoom_result.info.get("final_score", rewards[-1] if rewards else 0.0))
                 success = final_score >= SUCCESS_SCORE_THRESHOLD
-            submit_payload = build_final_submission(task_type, collected, {})
+            submit_payload = attach_predicted_probabilities(build_final_submission(task_type, collected, {}))
             final_result, step_no = perform_step(
                 env,
                 step_no,
@@ -2731,7 +2743,9 @@ def run_episode_with_env(
                 "rl_trace": collected.get("rl_trace", []),
             }
 
-        submit_payload = repair_submission(task_type, build_final_submission(task_type, collected, {}), collected)
+        submit_payload = attach_predicted_probabilities(
+            repair_submission(task_type, build_final_submission(task_type, collected, {}), collected)
+        )
 
         remaining_action_slots = max(0, step_limit - step_no + 1)
         intervention_budget = {
@@ -2779,7 +2793,9 @@ def run_episode_with_env(
                 "rl_trace": collected.get("rl_trace", []),
             }
 
-        submit_payload = repair_submission(task_type, build_final_submission(task_type, collected, {}), collected)
+        submit_payload = attach_predicted_probabilities(
+            repair_submission(task_type, build_final_submission(task_type, collected, {}), collected)
+        )
         if step_no <= step_limit:
             final_result, step_no = perform_step(
                 env,

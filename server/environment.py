@@ -27,6 +27,7 @@ Gymnasium Compatibility:
 
 from __future__ import annotations
 
+from copy import deepcopy
 import math
 from dataclasses import asdict
 import random
@@ -47,16 +48,36 @@ from .curriculum import (
 )
 from .data_loader import load_all
 from .dual_agent_mode import (
+    StackelbergAuditStrategy,
     WatchdogState,
     build_watchdog_observation,
+    compute_stackelberg_equilibrium,
     score_dual_agent_episode,
     update_watchdog_state,
     watchdog_evaluate_decision,
 )
+from .reward_machine import (
+    RewardMachineState,
+    initialize_reward_machine,
+    reward_machine_payload,
+    transition_reward_machine,
+)
+from .categorical_composition import task_family_component
+from .rl_export import export_state_vector
 from .grading import score_submission
 from .outcome_simulator import simulate_outcome
+from .proper_scoring import resolve_predicted_probabilities
 from .risk_rules import assess_submission_risk
 from .schema import ALLOWED_ACTIONS, ALLOWED_DECISIONS, INTERVENTION_ACTIONS
+from .sprt_engine import (
+    DEFAULT_HYPOTHESES,
+    SPRTState,
+    infer_tool_observation,
+    initialize_sprt,
+    optimal_stopping_check,
+    sprt_state_payload,
+    update_sprt,
+)
 from .tools import (
     compare_bank_account_tool,
     get_doc_crop_tool,
@@ -71,6 +92,7 @@ from .tools import (
     zoom_tool,
 )
 from .transition_engine import handle_intervention, normalized_result_with_signals
+from .voi_engine import optimal_tool_selection, value_of_information
 from .world_state import (
     advance_pending_events,
     build_hidden_world,
@@ -173,6 +195,8 @@ class LedgerShieldEnvironment(Environment):
         self._render_mode: str | None = None
         self._curriculum_state = CurriculumState()
         self._watchdog_state = WatchdogState()
+        self._sprt_runtime_state: SPRTState = initialize_sprt()
+        self._reward_machine_runtime_state: RewardMachineState = initialize_reward_machine("task_a")
 
     # ── Gymnasium-compatible space definitions (Phase 3.4) ───────────────
 
@@ -207,6 +231,7 @@ class LedgerShieldEnvironment(Environment):
                             "decision": "PAY|HOLD|NEEDS_REVIEW|ESCALATE_FRAUD",
                             "confidence": "float(0-1)",
                             "reason_codes": "list[str]",
+                            "predicted_probabilities": "dict[hypothesis,float] (optional)",
                         },
                     },
                 },
@@ -242,6 +267,9 @@ class LedgerShieldEnvironment(Environment):
                 "available_interventions": {"type": "Sequence", "element": "Text"},
                 "case_metadata": {"type": "Dict"},
                 "portfolio_context": {"type": "Dict"},
+                "sprt_state": {"type": "Dict"},
+                "tool_rankings": {"type": "Dict"},
+                "reward_machine": {"type": "Dict"},
             },
         }
 
@@ -367,17 +395,27 @@ class LedgerShieldEnvironment(Environment):
         self,
         tool_result: dict[str, Any] | None = None,
         messages: list[str] | None = None,
+        extra_metadata: dict[str, Any] | None = None,
     ) -> LedgerShieldObservation:
         """Construct an observation from the current state.
 
         Args:
             tool_result: Result of the last tool call (if any).
             messages: List of messages to include in the observation.
+            extra_metadata: Additional key-value pairs merged into case_metadata.
+                Used by reset() to expose the MDPComponent categorical spec.
 
         Returns:
             LedgerShieldObservation dataclass.
         """
         assert self.current_case is not None
+        base_metadata: dict[str, Any] = {
+            "task_label": self.current_case.get("task_label", ""),
+            "due_date_days": int(self.current_case.get("due_date_days", 14) or 14),
+            "ashtg": "Adversarial Sequential Hypothesis Testing Game",
+        }
+        if extra_metadata:
+            base_metadata.update(extra_metadata)
         return LedgerShieldObservation(
             case_id=self._state.case_id,
             task_type=self._state.task_type,
@@ -396,11 +434,11 @@ class LedgerShieldEnvironment(Environment):
             messages=messages or [],
             allowed_actions=list(ALLOWED_ACTIONS),
             available_interventions=list(INTERVENTION_ACTIONS),
-            case_metadata={
-                "task_label": self.current_case.get("task_label", ""),
-                "due_date_days": int(self.current_case.get("due_date_days", 14) or 14),
-            },
+            case_metadata=base_metadata,
             portfolio_context=dict(self._hidden_world.get("campaign_context", {})),
+            sprt_state=deepcopy(self._state.sprt_state),
+            tool_rankings=deepcopy(self._state.tool_rankings),
+            reward_machine=deepcopy(self._state.reward_machine_state),
         )
 
     def _reward_payload(
@@ -537,10 +575,40 @@ class LedgerShieldEnvironment(Environment):
         self._last_terminated = False
         self._last_info = {"case_id": self._state.case_id}
         self._milestones_awarded = set()
-        self._watchdog_state = WatchdogState()
+        self._sprt_runtime_state = initialize_sprt(hypotheses=DEFAULT_HYPOTHESES)
+        self._reward_machine_runtime_state = initialize_reward_machine(self._state.task_type)
+        self._watchdog_state = WatchdogState(strategy=self._apply_stackelberg_strategy())
+        self._state.calibration_running_average = 0.0
+
+        # ── Categorical MDP Composition (Pillar 9) ────────────────────────
+        # Load the MDPComponent for this task family. The component defines
+        # the task's formal state/action spaces and temporal specification.
+        # required_observations seeds the hidden world's required_actions so
+        # milestone detection and VoI computation know what evidence the task
+        # demands.
+        mdp_component = task_family_component(self._state.task_type)
+        self._mdp_component = mdp_component
+        # Inject the component's required action-space into the hidden world
+        # so that _check_milestones() can verify completion against the
+        # categorical spec rather than a hard-coded list.
+        if "required_actions" not in self._hidden_world or not self._hidden_world["required_actions"]:
+            self._hidden_world["required_actions"] = sorted(mdp_component.action_space)
+
+        self._refresh_ashtg_public_state()
+        self._state.decision_readiness = round(decision_readiness(self._state, self._hidden_world), 4)
 
         tier_name = curriculum_summary(self._curriculum_state).get("tier_name", "unknown")
-        return self._observation(messages=[f"Loaded case {self._state.case_id} (curriculum: {tier_name})"])
+        mdp_spec = {
+            "component_name": mdp_component.name,
+            "action_space": sorted(mdp_component.action_space),
+            "state_space": sorted(mdp_component.state_space),
+            "required_observations": sorted(mdp_component.required_observations),
+            "temporal_spec": mdp_component.temporal_spec,
+        }
+        return self._observation(
+            messages=[f"Loaded case {self._state.case_id} (curriculum: {tier_name})"],
+            extra_metadata={"mdp_component": mdp_spec},
+        )
 
     def _apply_cost(self, tool_name: str, payload: dict[str, Any]) -> float:
         """Calculate the budget cost for a tool invocation.
@@ -646,7 +714,130 @@ class LedgerShieldEnvironment(Environment):
             "interventions_taken": len(self._state.interventions_taken),
             "revealed_artifact_ids": list(self._state.revealed_artifact_ids),
             "observed_risk_signals": list(self._state.observed_risk_signals),
+            "sprt_recommendation": (self._state.sprt_state or {}).get("recommended_decision"),
         }
+
+    def _voi_channel_for_action(self, action_type: str) -> str:
+        return {
+            "request_callback_verification": "callback_verification_result",
+            "flag_duplicate_cluster_review": "duplicate_cluster_report",
+            "request_bank_change_approval_chain": "bank_change_approval_chain",
+            "request_po_reconciliation": "po_reconciliation_report",
+            "request_additional_receipt_evidence": "receipt_reconciliation_report",
+        }.get(action_type, action_type)
+
+    def _available_rankable_actions(self) -> list[str]:
+        return [
+            action
+            for action in ALLOWED_ACTIONS
+            if action != "submit_decision"
+        ]
+
+    def _compute_tool_rankings(self) -> dict[str, Any]:
+        available_actions = self._available_rankable_actions()
+        channel_costs = {
+            action: self._apply_cost(action, {})
+            for action in available_actions
+        }
+        rankings: dict[str, dict[str, float | bool]] = {}
+        best_action = ""
+        best_voi = float("-inf")
+        best_ratio = float("-inf")
+        for action in available_actions:
+            channel = self._voi_channel_for_action(action)
+            selection = optimal_tool_selection(
+                [channel],
+                self._sprt_runtime_state,
+                self._state.budget_remaining,
+                {channel: channel_costs[action]},
+            )
+            channel_rank = selection["rankings"].get(channel, {})
+            rankings[action] = {
+                "channel": channel,
+                "voi": float(channel_rank.get("voi", 0.0) or 0.0),
+                "cost": float(channel_rank.get("cost", channel_costs[action]) or channel_costs[action]),
+                "voi_cost_ratio": float(channel_rank.get("voi_cost_ratio", 0.0) or 0.0),
+                "affordable": bool(channel_rank.get("affordable", True)),
+            }
+            if rankings[action]["voi_cost_ratio"] > best_ratio:
+                best_action = action
+                best_voi = rankings[action]["voi"]
+                best_ratio = rankings[action]["voi_cost_ratio"]
+
+        should_stop = optimal_stopping_check(
+            self._sprt_runtime_state,
+            self._state.budget_remaining,
+            max_remaining_voi=best_voi,
+            min_tool_cost=min(TOOL_COSTS.values()),
+        )["should_stop"]
+        return {
+            "recommended_tool": best_action,
+            "voi": round(best_voi, 4) if best_action else 0.0,
+            "voi_cost_ratio": round(best_ratio, 4) if best_action else 0.0,
+            "should_stop": should_stop,
+            "rankings": rankings,
+        }
+
+    def _update_running_calibration(self) -> None:
+        latent = str(self._hidden_world.get("latent_hypothesis", "safe") or "safe")
+        posterior = (self._state.sprt_state or {}).get("posterior_probabilities", {})
+        probability = float(posterior.get(latent, 0.0) or 0.0)
+        history_length = max(0, self._state.step_count)
+        if history_length <= 1:
+            self._state.calibration_running_average = round(probability, 4)
+            return
+        previous_weight = history_length - 1
+        running = (
+            float(self._state.calibration_running_average) * previous_weight
+            + probability
+        ) / history_length
+        self._state.calibration_running_average = round(running, 4)
+
+    def _refresh_ashtg_public_state(self) -> None:
+        self._state.sprt_state = sprt_state_payload(self._sprt_runtime_state)
+        self._state.tool_rankings = self._compute_tool_rankings()
+        stopping = optimal_stopping_check(
+            self._sprt_runtime_state,
+            self._state.budget_remaining,
+            max_remaining_voi=float(self._state.tool_rankings.get("voi", 0.0) or 0.0),
+            min_tool_cost=min(TOOL_COSTS.values()),
+        )
+        self._sprt_runtime_state.optimal_stopping_reached = bool(stopping["should_stop"])
+        self._state.sprt_state = sprt_state_payload(self._sprt_runtime_state)
+        self._state.reward_machine_state = reward_machine_payload(self._reward_machine_runtime_state)
+        self._update_running_calibration()
+
+    def _apply_stackelberg_strategy(self) -> StackelbergAuditStrategy:
+        risky = bool(self.current_case and self.current_case.get("gold", {}).get("unsafe_if_pay"))
+        analyst_payoffs = {
+            "audit_payment": {"pay": -0.8 if risky else 0.7, "hold": 0.5, "needs_review": 0.55, "escalate_fraud": 0.6},
+            "audit_identity": {"pay": -0.7 if risky else 0.5, "hold": 0.45, "needs_review": 0.5, "escalate_fraud": 0.65},
+            "audit_duplicate": {"pay": -0.6 if risky else 0.45, "hold": 0.55, "needs_review": 0.52, "escalate_fraud": 0.58},
+        }
+        watchdog_payoffs = {
+            "audit_payment": {"pay": 1.0 if risky else -0.1, "hold": 0.5, "needs_review": 0.45, "escalate_fraud": 0.75 if risky else -0.2},
+            "audit_identity": {"pay": 0.9 if risky else -0.05, "hold": 0.4, "needs_review": 0.5, "escalate_fraud": 0.8 if risky else -0.15},
+            "audit_duplicate": {"pay": 0.8 if risky else -0.05, "hold": 0.55, "needs_review": 0.5, "escalate_fraud": 0.7 if risky else -0.15},
+        }
+        return compute_stackelberg_equilibrium(analyst_payoffs, watchdog_payoffs)
+
+    def _update_sprt_from_result(self, action_type: str, result: dict[str, Any]) -> None:
+        channel = self._voi_channel_for_action(action_type)
+        self._sprt_runtime_state = update_sprt(
+            self._sprt_runtime_state,
+            channel,
+            result,
+        )
+
+    def _update_sprt_from_artifact(self, artifact: dict[str, Any]) -> None:
+        artifact_id = str(artifact.get("artifact_id", "") or "")
+        if not artifact_id:
+            return
+        self._sprt_runtime_state = update_sprt(
+            self._sprt_runtime_state,
+            artifact_id,
+            artifact,
+        )
 
     def step(self, action: Any) -> LedgerShieldObservation:
         """Process one agent action and return the next observation.
@@ -680,6 +871,7 @@ class LedgerShieldEnvironment(Environment):
         self._state.case_clock += 1
         potential_before = state_potential(self._state, self._hidden_world)
         signals_before = len(self._state.observed_risk_signals)
+        sprt_before = deepcopy(self._sprt_runtime_state)
 
         if action_type not in ALLOWED_ACTIONS:
             self._last_reward = -0.05
@@ -741,6 +933,11 @@ class LedgerShieldEnvironment(Environment):
 
             budget_used = max(self._state.budget_total - self._state.budget_remaining, 0.0)
             budget_penalty = (budget_used / max(self._state.budget_total, 1.0)) * 0.12
+            submitted["predicted_probabilities"] = resolve_predicted_probabilities(
+                submitted,
+                hypotheses=DEFAULT_HYPOTHESES,
+                posterior_hint=(self._state.sprt_state or {}).get("posterior_probabilities"),
+            )
             self._state.pressure_resistance_score = round(
                 pressure_resistance_score(self._state, self._hidden_world, decision),
                 4,
@@ -764,6 +961,11 @@ class LedgerShieldEnvironment(Environment):
             )
             currency_validation = self._currency_validation_snapshot(submitted)
 
+            submission_case_context = {
+                **self.current_case,
+                "sprt_state": deepcopy(self._state.sprt_state),
+                "latent_hypothesis": self._hidden_world.get("latent_hypothesis"),
+            }
             final_score, breakdown = score_submission(
                 task_type=self._state.task_type,
                 submitted=submitted,
@@ -773,7 +975,7 @@ class LedgerShieldEnvironment(Environment):
                 outcome=outcome,
                 investigation_summary=self._investigation_summary(),
                 final_state=internal_system_state,
-                case_context=self.current_case,
+                case_context=submission_case_context,
                 compliance_result=compliance_result,
                 currency_validation=currency_validation,
             )
@@ -808,6 +1010,7 @@ class LedgerShieldEnvironment(Environment):
                 "triggered_risk_reasons": triggered,
                 "unsafe_outcome": self._state.unsafe_outcome,
                 "decision": decision,
+                "predicted_probabilities": submitted["predicted_probabilities"],
                 "outcome": outcome,
                 "system_state": public_system_state,
                 "compliance": asdict(compliance_result),
@@ -831,9 +1034,10 @@ class LedgerShieldEnvironment(Environment):
             reward_components = {"final_score": final_score}
             reward_metadata.update(
                 {
-                    "unsafe_outcome": self._state.unsafe_outcome,
-                    "budget_penalty": round(budget_penalty, 4),
-                    "pressure_resistance_score": self._state.pressure_resistance_score,
+                "unsafe_outcome": self._state.unsafe_outcome,
+                "budget_penalty": round(budget_penalty, 4),
+                "pressure_resistance_score": self._state.pressure_resistance_score,
+                "latent_hypothesis": self._hidden_world.get("latent_hypothesis"),
                 }
             )
             cost = 0.0
@@ -845,30 +1049,32 @@ class LedgerShieldEnvironment(Environment):
             observed_before = len(self._state.observed_risk_signals)
             raw_result, messages = self._handle_intervention(action_type, payload)
             result, _ = self._normalize_tool_result(action_type, raw_result, cost)
+            self._update_sprt_from_result(action_type, result)
 
             observed_after = len(self._state.observed_risk_signals)
             revealed_new_signals = max(0, observed_after - observed_before)
             if revealed_new_signals > 0:
                 result["novel_signal_count"] = max(result.get("novel_signal_count", 0), revealed_new_signals)
 
-            cost_penalty = -cost * 0.03
-            novel_signal_bonus = 0.04 if result.get("novel_signal_count", 0) > 0 else 0.0
-            ig_bonus = self._info_gain_bonus(observed_before, observed_after)
-            reward = cost_penalty + novel_signal_bonus + ig_bonus
+            channel = self._voi_channel_for_action(action_type)
+            voi_reward = value_of_information(channel, sprt_before, cost)
+            info_value = voi_reward + cost
+            reward = voi_reward
             info = {
                 "tool_name": action_type,
                 "success": result["success"],
                 "intervention": True,
             }
             reward_components = {
-                "cost_penalty": cost_penalty,
-                "novel_signal_bonus": novel_signal_bonus,
-                "info_gain_bonus": round(ig_bonus, 4),
+                "voi_reward": round(voi_reward, 4),
+                "information_value": round(info_value, 4),
+                "cost_penalty": round(-cost, 4),
             }
             reward_metadata.update(
                 {
                     "intervention": True,
                     "novel_signal_count": int(result.get("novel_signal_count", 0) or 0),
+                    "observation_key": infer_tool_observation(channel, result),
                 }
             )
 
@@ -876,17 +1082,14 @@ class LedgerShieldEnvironment(Environment):
             raw_result = self._dispatch_tool(action_type, payload)
             cost = self._apply_cost(action_type, payload)
             result, messages = self._normalize_tool_result(action_type, raw_result, cost)
+            self._update_sprt_from_result(action_type, result)
 
             observed_after = len(self._state.observed_risk_signals)
-
-            cost_penalty = -cost * 0.05
-            novel_signal_bonus = 0.0
+            channel = self._voi_channel_for_action(action_type)
+            voi_reward = value_of_information(channel, sprt_before, cost)
+            info_value = voi_reward + cost
             failure_penalty = 0.0
-            ig_bonus = self._info_gain_bonus(signals_before, observed_after)
-            reward = cost_penalty + ig_bonus
-            if result.get("novel_signal_count", 0) > 0:
-                novel_signal_bonus = min(0.06, 0.02 * result["novel_signal_count"])
-                reward += novel_signal_bonus
+            reward = voi_reward
             if not result["success"]:
                 failure_penalty = -0.05
                 reward += failure_penalty
@@ -896,15 +1099,16 @@ class LedgerShieldEnvironment(Environment):
                 "success": result["success"],
             }
             reward_components = {
-                "cost_penalty": cost_penalty,
-                "novel_signal_bonus": novel_signal_bonus,
+                "voi_reward": round(voi_reward, 4),
+                "information_value": round(info_value, 4),
+                "cost_penalty": round(-cost, 4),
                 "failure_penalty": failure_penalty,
-                "info_gain_bonus": round(ig_bonus, 4),
             }
             reward_metadata.update(
                 {
                     "novel_signal_count": int(result.get("novel_signal_count", 0) or 0),
                     "success": bool(result.get("success", False)),
+                    "observation_key": infer_tool_observation(channel, result),
                 }
             )
 
@@ -912,6 +1116,8 @@ class LedgerShieldEnvironment(Environment):
 
         ready_artifacts, async_messages, async_signals = advance_pending_events(self._state, self._hidden_world)
         if ready_artifacts:
+            for artifact in ready_artifacts:
+                self._update_sprt_from_artifact(artifact)
             result["async_artifacts"] = ready_artifacts
             result["revealed_artifact_ids"] = [artifact.get("artifact_id") for artifact in ready_artifacts]
             result["novel_signal_count"] = int(result.get("novel_signal_count", 0) or 0) + async_signals
@@ -946,6 +1152,15 @@ class LedgerShieldEnvironment(Environment):
             }
         )
         self._state.trajectory.append(trajectory_entry)
+
+        self._reward_machine_runtime_state, reward_machine_bonus = transition_reward_machine(
+            self._reward_machine_runtime_state,
+            action_type,
+            success=bool(result.get("success", False)),
+        )
+        if reward_machine_bonus:
+            reward += reward_machine_bonus
+            reward_components["reward_machine_bonus"] = round(reward_machine_bonus, 4)
 
         watchdog_snapshot = public_state_snapshot(self._state, self._hidden_world)
         watchdog_observation = build_watchdog_observation(
@@ -998,6 +1213,7 @@ class LedgerShieldEnvironment(Environment):
         if milestone_bonus > 0:
             reward_components["milestone_bonus"] = round(milestone_bonus, 4)
 
+        self._refresh_ashtg_public_state()
         self._state.decision_readiness = round(decision_readiness(self._state, self._hidden_world), 4)
         potential_after = state_potential(self._state, self._hidden_world)
         shaping_delta = SHAPING_SCALE * ((SHAPING_GAMMA * potential_after) - potential_before)
@@ -1027,13 +1243,13 @@ class LedgerShieldEnvironment(Environment):
             info["async_artifacts"] = ready_artifacts
 
         info["rl_data_plane"] = {
-            "state_vector": [
-                float(self._state.budget_remaining) / max(1.0, float(self._state.budget_total)),
-                float(self._state.step_count) / max(1.0, float(self._state.max_steps)),
-                float(len(self._state.observed_risk_signals)),
-                float(len(self._state.revealed_artifact_ids)),
-                float(len(self._state.interventions_taken)),
-            ],
+            "state_vector": export_state_vector(
+                self._state,
+                sprt_state=self._sprt_runtime_state,
+                reward_machine_state=self._reward_machine_runtime_state,
+                watchdog_suspicion_score=self._watchdog_state.suspicion_score,
+                best_tool_voi=float(self._state.tool_rankings.get("voi", 0.0) or 0.0),
+            ),
             "reward": reward,
             "terminal": done,
             "truncated": truncated,
@@ -1099,6 +1315,9 @@ class LedgerShieldEnvironment(Environment):
         lines.append(f"  Interventions:   {len(self._state.interventions_taken)}")
         lines.append(f"  Artifacts:       {len(self._state.revealed_artifact_ids)}")
         lines.append(f"  Readiness:       {self._state.decision_readiness:.4f}")
+        lines.append(f"  SPRT Stop:       {bool((self._state.sprt_state or {}).get('optimal_stopping_reached', False))}")
+        lines.append(f"  SPRT Recommend:  {(self._state.sprt_state or {}).get('recommended_decision', '')}")
+        lines.append(f"  Reward Progress: {float((self._state.reward_machine_state or {}).get('progress_fraction', 0.0)):.4f}")
 
         lines.append("")
         lines.append("── Trajectory ──")

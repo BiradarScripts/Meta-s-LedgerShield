@@ -6,6 +6,7 @@ app: server.app:app
 port: 8000
 metadata:
   formal_model: pomdp
+  extended_formalism: ASHTG
   horizon: finite
   observation: partial
   domain: enterprise-payment-integrity
@@ -25,6 +26,40 @@ metadata:
     - multi-currency-iban-swift-validation
     - sox-compliance-controls
     - semantic-counterfactual-scoring
+    - ashtg-adversarial-sequential-hypothesis-testing-game
+    - wald-sprt-optimal-stopping-investigation
+    - value-of-information-action-ranking
+    - strictly-proper-scoring-rule-grading
+    - stackelberg-security-game-watchdog-sse
+    - pearl-structural-causal-model-dseparation-grading
+    - ltlf-reward-machine-temporal-progress
+    - paired-regret-guided-adversarial-pcg
+    - categorical-mdp-pushout-composition
+    - decision-transformer-rl-state-vector-export
+  ashtg_formalism:
+    description: >
+      LedgerShield formalizes fraud investigation as an Adversarial Sequential
+      Hypothesis Testing Game (ASHTG): a four-player extensive-form game unifying
+      Wald (1945) SPRT optimal stopping, Pearl (2009) structural causal models,
+      Kamenica-Gentzkow (2011) Bayesian persuasion, Tambe (2011) Stackelberg
+      security games (SSE), and Gneiting-Raftery (2007) strictly proper scoring rules.
+      This produces the first benchmarking environment where the investigation IS a
+      sequential hypothesis test, rewards ARE derived from Value of Information, and
+      grading IS provably strategy-proof.
+    citations: 30
+    theory_reference: docs/ashtg-theory.md
+    components:
+      sprt_engine: server/sprt_engine.py
+      voi_engine: server/voi_engine.py
+      proper_scoring: server/proper_scoring.py
+      causal_model: server/causal_model.py
+      causal_grader: server/causal_grader.py
+      reward_machine: server/reward_machine.py
+      information_design: server/information_design.py
+      adversarial_designer: server/adversarial_designer.py
+      categorical_composition: server/categorical_composition.py
+      rl_export: server/rl_export.py
+      stackelberg_watchdog: server/dual_agent_mode.py
   task_families: 5
   curated_benchmark_cases: 21
   attack_types: 16

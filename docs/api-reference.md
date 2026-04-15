@@ -116,9 +116,31 @@ Example response:
     "available_interventions": ["request_callback_verification", "route_to_security"],
     "case_metadata": {
       "task_label": "AP inbox incident triage",
-      "due_date_days": 30
+      "due_date_days": 30,
+      "ashtg": "Adversarial Sequential Hypothesis Testing Game"
     },
-    "portfolio_context": {}
+    "portfolio_context": {},
+    "sprt_state": {
+      "recommended_decision": "NEEDS_REVIEW",
+      "decision_ready": false,
+      "optimal_stopping_reached": false,
+      "posterior_probabilities": {
+        "safe": 0.0833,
+        "bank_fraud": 0.0833
+      }
+    },
+    "tool_rankings": {
+      "recommended_tool": "compare_bank_account",
+      "voi": 0.17,
+      "voi_cost_ratio": 1.13,
+      "should_stop": false
+    },
+    "reward_machine": {
+      "state_id": 0,
+      "progress_fraction": 0.0,
+      "accepting": false,
+      "rejecting": false
+    }
   },
   "reward": 0.0,
   "done": false,
@@ -146,6 +168,8 @@ Request body:
 }
 ```
 
+`submit_decision` payloads may also include `predicted_probabilities`, a probability distribution over latent hypotheses. This field is optional for backward compatibility.
+
 Example response:
 
 ```json
@@ -163,12 +187,13 @@ Example response:
       "text_preview": "Invoice ...",
       "cost": 1.1,
       "reward_model": {
-        "value": -0.055,
+        "value": -1.0,
         "terminal": false,
         "components": {
-          "cost_penalty": -0.055,
-          "info_gain_bonus": 0.0,
-          "potential_delta": 0.0
+          "voi_reward": -1.1,
+          "information_value": 0.0,
+          "cost_penalty": -1.1,
+          "potential_delta": 0.1
         },
         "metadata": {
           "action_type": "ocr",
@@ -177,7 +202,7 @@ Example response:
       }
     }
   },
-  "reward": -0.055,
+  "reward": -1.0,
   "done": false,
   "truncated": false,
   "terminated": false,
@@ -208,6 +233,9 @@ Key fields:
 | `trajectory` | public action history |
 | `interventions_taken` | public intervention log |
 | `observed_risk_signals` | only signals the agent has revealed |
+| `sprt_state` | public sequential hypothesis-testing state |
+| `tool_rankings` | VoI ranking over next actions |
+| `reward_machine_state` | task-progress automaton snapshot |
 | `pending_events` | delayed artifacts waiting to resolve |
 | `pressure_events_seen` | injected pressure events already observed |
 | `terminal_reason` | why the episode ended if it ended |

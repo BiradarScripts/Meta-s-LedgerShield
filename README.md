@@ -24,6 +24,8 @@ tags:
 
 LedgerShield is a stateful, adversarial benchmark for AI agents operating inside enterprise accounts-payable workflows. Instead of asking a model to classify one document, LedgerShield asks it to investigate, unlock hidden evidence, choose controls, withstand pressure, and submit a proof-carrying decision under budget and step limits.
 
+LedgerShield now formalizes that loop as an **Adversarial Sequential Hypothesis Testing Game (ASHTG)**. The benchmark exposes a sequential hypothesis-testing layer, Value-of-Information tool ranking, proper probability scoring, causal sufficiency grading, and a Stackelberg-style watchdog audit policy on top of the existing AP workflow simulation.
+
 > **📖 Documentation hub:** See [`docs/README.md`](./docs/README.md) for a guided tour of all documentation, reading paths by role, and a map of what lives where.
 
 ## Why This Matters
@@ -42,10 +44,10 @@ LedgerShield is built to score well on real-world utility, environment design, t
 | Dimension | What is implemented |
 |---|---|
 | Real-world utility | Multi-currency invoices, IBAN/SWIFT validation, SOX control modeling, AP inbox triage, campaign fraud, aging-report support |
-| Environment design | Stronger PBRS reward shaping, milestone rewards, information-gain bonus, `terminated` vs `truncated`, text `render()`, formal `action_space()` and `observation_space()` |
-| Task and grader quality | 21 curated benchmark cases, semantic counterfactual scoring, stricter degenerate-submission penalties, generated holdout suites, contrastive benign twins |
+| Environment design | ASHTG sequential hypothesis testing, Value-of-Information tool ranking, reward-machine progress, `terminated` vs `truncated`, text `render()`, formal `action_space()` and `observation_space()` |
+| Task and grader quality | 21 curated benchmark cases, causal sufficiency grading, proper scoring over latent hypotheses, semantic counterfactual scoring, stricter degenerate-submission penalties, generated holdout suites, contrastive benign twins |
 | Code quality | Comprehensive docstrings, shared pytest fixtures, dedicated tests for grading/currency/compliance/curriculum, GitHub Actions CI, narrower exception handling, typed internal return contracts |
-| Creativity and novelty | Dec-POMDP watchdog mode, dynamic curriculum adaptation, campaign-level fraud reasoning, 16 attack types across identity/document/process/APT categories |
+| Creativity and novelty | ASHTG formalism, Stackelberg watchdog mode, dynamic curriculum adaptation, campaign-level fraud reasoning, 16 attack types across identity/document/process/APT categories |
 
 ## Benchmark At A Glance
 
@@ -56,7 +58,7 @@ LedgerShield is built to score well on real-world utility, environment design, t
 | Attack types | 16 |
 | Default loader behavior | 21 benchmark cases + 24 generated challenge variants = 45 loaded cases |
 | Optional generated suites | challenge variants, holdout variants, contrastive benign twins |
-| Formal model | finite-horizon POMDP |
+| Formal model | ASHTG with SPRT belief state and VoI action ranking |
 | Server runtime | FastAPI / OpenEnv-compatible |
 
 ### Task coverage
@@ -98,6 +100,8 @@ Final action:
 
 The submission is not just a label. Strong agents are expected to return structured decisions with grounded `reason_codes`, `policy_checks`, `evidence_map`, and task-specific fields like duplicates, campaign signals, discrepancies, or extracted invoice fields.
 
+The final payload can also include `predicted_probabilities`, a calibrated probability distribution over latent hypotheses such as `safe`, `bank_fraud`, `duplicate_billing`, or `campaign_fraud`. If this field is omitted, LedgerShield derives a backward-compatible default from `decision`, `confidence`, and the current SPRT posterior.
+
 ### Agent capability tiers
 
 The inference agent (`inference.py`) uses a `ModelCapabilityProfile` that adapts behavior to model strength:
@@ -131,6 +135,68 @@ The benchmark upgrade work is reflected in the codebase across five phases:
 | Phase 3: Environment design | `SHAPING_SCALE=0.35`, `INFO_GAIN_BONUS=0.08`, milestone rewards, Gymnasium-style truncation semantics, text rendering, formal spaces |
 | Phase 4: Code quality | docstrings across core modules, `tests/conftest.py`, CI workflow, `TypedDict` internal returns |
 | Phase 5: Creativity and novelty | Dec-POMDP watchdog mode, curriculum adaptation, 16-attack library, exploration bonus integrated into `step()` |
+| Phase 6: ASHTG | `server/sprt_engine.py`, `server/voi_engine.py`, `server/proper_scoring.py`, `server/causal_model.py`, `server/causal_grader.py`, `server/reward_machine.py`, `server/rl_export.py` |
+
+## ASHTG Mathematical Framework
+
+LedgerShield formalizes fraud investigation as an **Adversarial Sequential Hypothesis Testing Game (ASHTG)** — a theoretically grounded framework that unifies five distinct mathematical traditions never previously combined in a single evaluation environment.
+
+> **📖 Full theoretical treatment with 30 citations**: [`docs/ashtg-theory.md`](./docs/ashtg-theory.md)
+
+### The Five Mathematical Pillars
+
+| Pillar | Theory | Source File | Key Property |
+|---|---|---|---|
+| Sequential Investigation | **Wald's SPRT** (1945) — optimal stopping | `server/sprt_engine.py` | Terminates at provably minimum number of steps |
+| Causal Grading | **Pearl's SCM** (2009) — 3-level causality | `server/causal_model.py` + `causal_grader.py` | Grades do-calculus interventions and counterfactuals |
+| Value of Information Rewards | **Howard's VoI** (1966) + **Lindley** (1956) | `server/voi_engine.py` | Rewards derived from information economics, not hand-tuned |
+| Strategy-proof Grading | **Gneiting-Raftery Proper Scoring** (2007) | `server/proper_scoring.py` | Mathematically proven: misreporting belief cannot improve score |
+| Watchdog Audit Policy | **Tambe Stackelberg SSE** (2011) | `server/dual_agent_mode.py` | Watchdog commits to optimal mixed audit strategy |
+
+And five additional innovations:
+
+| Innovation | Theory | Source File |
+|---|---|---|
+| Bayesian Information Design | **Kamenica-Gentzkow** (2011) | `server/information_design.py` |
+| Adversarial PCG | **PAIRED / Regret-based UED** (2021) | `server/adversarial_designer.py` |
+| Temporal Progress Tracking | **LTLf Reward Machines** (2018) | `server/reward_machine.py` |
+| Algebraic Task Composition | **Categorical MDP Pushouts** (2022) | `server/categorical_composition.py` |
+| RL Training Export | **Decision Transformer** (2021) | `server/rl_export.py` |
+
+### Why This Is Novel
+
+Every other benchmarking environment uses **hand-tuned rewards**. LedgerShield computes rewards from the **Value of Information**:
+
+```
+VoI(tool) = E[max_a U(a, θ) | posterior after tool] - max_a E[U(a, θ)] - cost(tool)
+```
+
+Every other environment lets agents game it by expressing false confidence. LedgerShield uses **strictly proper scoring rules** — provably strategy-proof functions where the agent's dominant strategy is always to report their true beliefs.
+
+Every other environment uses heuristic investigation metrics. LedgerShield formalizes the investigation as a **Sequential Probability Ratio Test** with Wald's optimal stopping boundaries:
+
+```
+Upper boundary A = log((1-β)/α) ≈ 2.89    [Type I error ≤ α = 5%]
+Lower boundary B = log(β/(1-α)) ≈ -2.25   [Type II error ≤ β = 10%]
+```
+
+The agent receives `sprt_state` at every step with live `posterior_probabilities`, `belief_entropy`, `distance_to_boundary`, and an `optimal_stopping_reached` flag — giving agents the signal to investigate exactly as long as they need to, and no longer.
+
+### Categorical MDP Composition
+
+Task families are formally defined via **categorical pushouts**. Task E = Task D ⊔ CampaignDetection — the colimit of two MDPComponents. This gives a rigorous algebraic foundation for why Task E is strictly harder, and exposes the `mdp_component` field in every `reset()` observation:
+
+```json
+"mdp_component": {
+  "component_name": "BaseInvestigation+DocumentExtraction+ThreeWayMatch+DuplicateDetection+IdentityVerification+CampaignDetection",
+  "action_space": ["compare_bank_account", "inspect_email_thread", "route_to_security", ...],
+  "temporal_spec": "(F submit_decision) and (F ocr) and ... and (F route_to_security)"
+}
+```
+
+### RL Export — 37-Dimensional State Vector
+
+At every `step()`, `info["rl_data_plane"]["state_vector"]` contains a 37-dimensional float vector encoding SPRT belief state, VoI frontier, reward machine progress, watchdog suspicion, and calibration history — enabling offline RL training from episode traces.
 
 ### Recent patch-level changes
 
@@ -280,6 +346,7 @@ openenv validate
 | [`docs/architecture.md`](./docs/architecture.md) | system design, hidden state, reward flow, grading, and evaluation pipeline |
 | [`docs/development.md`](./docs/development.md) | setup, tests, CI, and detailed repo/file map |
 | [`docs/deployment.md`](./docs/deployment.md) | local, Docker, HF Space, and environment configuration guidance |
+| [`docs/ashtg-theory.md`](./docs/ashtg-theory.md) | **30-citation ASHTG theoretical framework** — SPRT, VoI, Proper Scoring, SCM, Stackelberg, Reward Machines, Categorical MDP |
 
 Recommended reading paths:
 
@@ -334,7 +401,17 @@ Meta-s-LedgerShield/
 | `server/currency_engine.py` | FX conversion, IBAN/SWIFT checks, currency mismatch detection, aging reports |
 | `server/compliance_engine.py` | SOX-style AP control evaluation |
 | `server/curriculum.py` | dynamic difficulty adaptation |
-| `server/dual_agent_mode.py` | Dec-POMDP watchdog/auditor mode |
+| `server/dual_agent_mode.py` | Dec-POMDP watchdog/auditor mode with Stackelberg SSE |
+| `server/sprt_engine.py` | **Pillar 1** — Wald SPRT optimal stopping, 12 hypotheses, 9 likelihood tables |
+| `server/causal_model.py` | **Pillar 2** — Pearl SCM with 17 scenario templates, d-separation, counterfactuals |
+| `server/causal_grader.py` | **Pillar 2** — 3-level causal grading (association, intervention, counterfactual) |
+| `server/voi_engine.py` | **Pillar 3** — Value of Information action ranking, myopic and non-myopic planning |
+| `server/proper_scoring.py` | **Pillar 4** — Brier, log, penalized, calibration ECE, composite proper scoring |
+| `server/reward_machine.py` | **Pillar 5** — LTLf reward machines for all 5 task families |
+| `server/information_design.py` | **Pillar 7** — Kamenica-Gentzkow Bayesian persuasion environment |
+| `server/adversarial_designer.py` | **Pillar 8** — PAIRED regret-guided adversarial PCG |
+| `server/categorical_composition.py` | **Pillar 9** — Categorical MDP pushout composition, wired into reset() |
+| `server/rl_export.py` | **Pillar 10** — 37-dimensional RL state vector export |
 | `benchmark_report.py` | public benchmark + holdout + contrastive reporting |
 | `compare_models_live.py` | live multi-model evaluation with capability profiles and debug artifacts |
 | `sync_benchmark_metadata.py` | refreshes README/docs/openenv metadata from the current artifacts and runtime defaults |
