@@ -30,6 +30,7 @@ from __future__ import annotations
 from copy import deepcopy
 import math
 from dataclasses import asdict
+import os
 import random
 import uuid
 from typing import Any
@@ -65,6 +66,14 @@ from .reward_machine import (
 from .categorical_composition import task_family_component
 from .rl_export import export_state_vector
 from .grading import score_submission
+from .decision_certificate import build_decision_certificate, verify_decision_certificate
+from .institutional_game import (
+    InstitutionalMemory,
+    attach_institutional_context,
+    institutional_context_for_case,
+    public_institutional_memory,
+    record_institutional_outcome,
+)
 from .outcome_simulator import simulate_outcome
 from .proper_scoring import resolve_predicted_probabilities
 from .risk_rules import assess_submission_risk
@@ -197,6 +206,8 @@ class LedgerShieldEnvironment(Environment):
         self._watchdog_state = WatchdogState()
         self._sprt_runtime_state: SPRTState = initialize_sprt()
         self._reward_machine_runtime_state: RewardMachineState = initialize_reward_machine("task_a")
+        self._institutional_memory = InstitutionalMemory.from_cases(self.db.get("cases", []))
+        self._track_mode = os.getenv("LEDGERSHIELD_TRACK_MODE", "instrumented").strip().lower() or "instrumented"
 
     # ── Gymnasium-compatible space definitions (Phase 3.4) ───────────────
 
@@ -232,6 +243,7 @@ class LedgerShieldEnvironment(Environment):
                             "confidence": "float(0-1)",
                             "reason_codes": "list[str]",
                             "predicted_probabilities": "dict[hypothesis,float] (optional)",
+                            "decision_certificate": "Decision Certificate Graph (optional)",
                         },
                     },
                 },
@@ -270,6 +282,7 @@ class LedgerShieldEnvironment(Environment):
                 "sprt_state": {"type": "Dict"},
                 "tool_rankings": {"type": "Dict"},
                 "reward_machine": {"type": "Dict"},
+                "institutional_memory": {"type": "Dict"},
             },
         }
 
@@ -282,7 +295,18 @@ class LedgerShieldEnvironment(Environment):
 
     def public_state(self) -> dict[str, Any]:
         """Return the public (non-hidden) state snapshot."""
-        return public_state_snapshot(self._state, self._hidden_world)
+        state = public_state_snapshot(self._state, self._hidden_world)
+        state["institutional_memory"] = public_institutional_memory(self._institutional_memory)
+        return state
+
+    def institutional_memory(self) -> dict[str, Any]:
+        """Return the persistent institutional memory/loss ledger."""
+        return public_institutional_memory(self._institutional_memory)
+
+    def reset_institutional_memory(self) -> dict[str, Any]:
+        """Reset persistent portfolio memory without changing fixture data."""
+        self._institutional_memory = InstitutionalMemory.from_cases(self.db.get("cases", []))
+        return self.institutional_memory()
 
     # ── Internal helpers ─────────────────────────────────────────────────
 
@@ -416,6 +440,8 @@ class LedgerShieldEnvironment(Environment):
         }
         if extra_metadata:
             base_metadata.update(extra_metadata)
+        base_metadata["track_mode"] = self._track_mode
+        instrumented = self._track_mode != "blind"
         return LedgerShieldObservation(
             case_id=self._state.case_id,
             task_type=self._state.task_type,
@@ -436,9 +462,10 @@ class LedgerShieldEnvironment(Environment):
             available_interventions=list(INTERVENTION_ACTIONS),
             case_metadata=base_metadata,
             portfolio_context=dict(self._hidden_world.get("campaign_context", {})),
-            sprt_state=deepcopy(self._state.sprt_state),
-            tool_rankings=deepcopy(self._state.tool_rankings),
-            reward_machine=deepcopy(self._state.reward_machine_state),
+            sprt_state=deepcopy(self._state.sprt_state) if instrumented else {},
+            tool_rankings=deepcopy(self._state.tool_rankings) if instrumented else {},
+            reward_machine=deepcopy(self._state.reward_machine_state) if instrumented else {},
+            institutional_memory=public_institutional_memory(self._institutional_memory),
         )
 
     def _reward_payload(
@@ -554,6 +581,12 @@ class LedgerShieldEnvironment(Environment):
         """
         self.current_case = self._select_case(seed=seed, case_id=case_id)
         self._hidden_world = build_hidden_world(self.current_case)
+        institutional_context = institutional_context_for_case(
+            self.current_case,
+            self.db.get("cases", []),
+            self._institutional_memory,
+        )
+        attach_institutional_context(self._hidden_world, institutional_context)
 
         self._state = LedgerShieldState(
             episode_id=str(uuid.uuid4()),
@@ -942,15 +975,24 @@ class LedgerShieldEnvironment(Environment):
                 pressure_resistance_score(self._state, self._hidden_world, decision),
                 4,
             )
+            internal_system_state = system_state_snapshot(self._state, self._hidden_world)
+            if not isinstance(submitted.get("decision_certificate"), dict):
+                submitted["decision_certificate"] = build_decision_certificate(
+                    submitted,
+                    trajectory=self._state.trajectory,
+                    final_state=internal_system_state,
+                    case_context=self.current_case,
+                    auto_generated=True,
+                )
+                submitted["_auto_decision_certificate"] = True
 
             outcome = simulate_outcome(
                 submitted=submitted,
                 trajectory=self._state.trajectory,
                 hidden_world=self._hidden_world,
-                final_state=system_state_snapshot(self._state, self._hidden_world),
+                final_state=internal_system_state,
             )
 
-            internal_system_state = system_state_snapshot(self._state, self._hidden_world)
             compliance_result = evaluate_compliance(
                 task_type=self._state.task_type,
                 trajectory=self._state.trajectory,
@@ -960,6 +1002,29 @@ class LedgerShieldEnvironment(Environment):
                 case_context=self.current_case,
             )
             currency_validation = self._currency_validation_snapshot(submitted)
+            institutional_update = record_institutional_outcome(
+                self._institutional_memory,
+                case=self.current_case,
+                submitted=submitted,
+                outcome=outcome,
+                trajectory=self._state.trajectory,
+                compliance=asdict(compliance_result),
+            )
+            institutional_memory_snapshot = institutional_update["institutional_memory"]
+            institutional_loss_ledger = dict(institutional_memory_snapshot.get("loss_ledger", {}))
+            outcome["institutional_metrics"] = institutional_loss_ledger
+            outcome["institutional_update"] = institutional_update["case_update"]
+            internal_system_state["institutional_memory"] = institutional_memory_snapshot
+            internal_system_state["institutional_context"] = deepcopy(self._hidden_world.get("institutional_context", {}))
+            certificate_report = verify_decision_certificate(
+                submitted.get("decision_certificate"),
+                submitted=submitted,
+                gold=self.current_case["gold"],
+                final_state=internal_system_state,
+                case_context=self.current_case,
+                trajectory=self._state.trajectory,
+                synthesize_if_missing=True,
+            ).to_dict()
 
             submission_case_context = {
                 **self.current_case,
@@ -993,8 +1058,11 @@ class LedgerShieldEnvironment(Environment):
             self._state.unsafe_outcome = bool(outcome.get("unsafe_payment"))
             self._state.terminal_reason = "decision_submitted"
             self._state.portfolio_metrics = dict(outcome.get("portfolio_metrics", {}))
+            self._state.institutional_metrics = institutional_loss_ledger
+            self._state.decision_certificate_report = certificate_report
 
             public_system_state = public_state_snapshot(self._state, self._hidden_world)
+            public_system_state["institutional_memory"] = institutional_memory_snapshot
 
             done = True
             terminated = True  # Phase 3.2: decision submission is a true termination
@@ -1015,6 +1083,9 @@ class LedgerShieldEnvironment(Environment):
                 "system_state": public_system_state,
                 "compliance": asdict(compliance_result),
                 "currency_validation": currency_validation,
+                "decision_certificate_report": certificate_report,
+                "institutional_metrics": institutional_loss_ledger,
+                "institutional_memory": institutional_memory_snapshot,
                 "pressure_resistance_score": self._state.pressure_resistance_score,
                 "message": "Decision submitted and graded.",
                 "cost": 0.0,
@@ -1028,6 +1099,9 @@ class LedgerShieldEnvironment(Environment):
                 "system_state": public_system_state,
                 "compliance": asdict(compliance_result),
                 "currency_validation": currency_validation,
+                "decision_certificate_report": certificate_report,
+                "institutional_metrics": institutional_loss_ledger,
+                "institutional_memory": institutional_memory_snapshot,
                 "pressure_resistance_score": self._state.pressure_resistance_score,
                 "curriculum": curriculum_summary(self._curriculum_state),
             }

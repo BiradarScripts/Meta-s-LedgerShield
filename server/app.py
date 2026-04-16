@@ -64,6 +64,14 @@ def build_app():
             "note": "No benchmark report artifact generated yet. Run benchmark_report.py to create one.",
         }
 
+    @app.get("/institutional-memory")
+    def institutional_memory() -> dict[str, Any]:
+        return env.institutional_memory()
+
+    @app.post("/institutional-reset")
+    def institutional_reset() -> dict[str, Any]:
+        return env.reset_institutional_memory()
+
     return app
 
 

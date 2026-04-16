@@ -59,6 +59,10 @@ class ModelStats:
     api_calls: int
     debug_artifact_dir: str = ""
     model_profile: dict[str, Any] = field(default_factory=dict)
+    average_certificate_score: float = 0.0
+    average_institutional_loss_score: float = 0.0
+    case_certificate_scores: dict[str, float] = field(default_factory=dict)
+    case_institutional_loss_scores: dict[str, float] = field(default_factory=dict)
 
 
 def _model_dirname(model: str) -> str:
@@ -171,6 +175,41 @@ def _load_model_profile_from_debug_artifacts(debug_artifact_dir: Path | None) ->
     return {}
 
 
+def _load_audit_scores_from_debug_artifacts(debug_artifact_dir: Path | None) -> tuple[dict[str, float], dict[str, float]]:
+    certificate_scores: dict[str, float] = {}
+    institutional_scores: dict[str, float] = {}
+    if debug_artifact_dir is None or not debug_artifact_dir.exists():
+        return certificate_scores, institutional_scores
+    for artifact_path in sorted(debug_artifact_dir.glob("*.json")):
+        try:
+            payload = json.loads(artifact_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        case_id = str(payload.get("case_id") or artifact_path.stem)
+        score_breakdown = payload.get("score_breakdown", {}) if isinstance(payload.get("score_breakdown"), dict) else {}
+        certificate_report = payload.get("decision_certificate_report", {})
+        institutional_metrics = payload.get("institutional_metrics", {})
+        cert_score = (
+            score_breakdown.get("certificate_score")
+            if score_breakdown
+            else (certificate_report or {}).get("overall_score")
+        )
+        inst_score = (
+            score_breakdown.get("institutional_loss_score")
+            if score_breakdown
+            else (institutional_metrics or {}).get("institutional_loss_score")
+        )
+        try:
+            certificate_scores[case_id] = float(cert_score)
+        except (TypeError, ValueError):
+            pass
+        try:
+            institutional_scores[case_id] = float(inst_score)
+        except (TypeError, ValueError):
+            pass
+    return certificate_scores, institutional_scores
+
+
 def _display_path(path: Path | None) -> str:
     if path is None:
         return ""
@@ -246,9 +285,13 @@ def build_output_payload(
                 "min_score": round(r.min_score, 4),
                 "max_score": round(r.max_score, 4),
                 "api_calls": r.api_calls,
+                "average_certificate_score": round(r.average_certificate_score, 4),
+                "average_institutional_loss_score": round(r.average_institutional_loss_score, 4),
                 "debug_artifact_dir": r.debug_artifact_dir,
                 "failed_cases": r.failed_cases,
                 "case_scores": {k: round(v, 4) for k, v in r.case_scores.items()},
+                "case_certificate_scores": {k: round(v, 4) for k, v in r.case_certificate_scores.items()},
+                "case_institutional_loss_scores": {k: round(v, 4) for k, v in r.case_institutional_loss_scores.items()},
             }
             for r in results
         ],
@@ -319,6 +362,9 @@ def run_one_model(
     failed = [case for case, score in case_scores.items() if score < pass_threshold]
     success_rate = (len(scores) - len(failed)) / len(scores)
     model_profile = _load_model_profile_from_debug_artifacts(debug_artifact_dir) or _model_profile_for(model)
+    certificate_scores, institutional_scores = _load_audit_scores_from_debug_artifacts(debug_artifact_dir)
+    avg_certificate = sum(certificate_scores.values()) / len(certificate_scores) if certificate_scores else 0.0
+    avg_institutional = sum(institutional_scores.values()) / len(institutional_scores) if institutional_scores else 0.0
 
     return ModelStats(
         model=model,
@@ -331,6 +377,10 @@ def run_one_model(
         api_calls=api_calls,
         debug_artifact_dir=_display_path(debug_artifact_dir),
         model_profile=model_profile,
+        average_certificate_score=avg_certificate,
+        average_institutional_loss_score=avg_institutional,
+        case_certificate_scores=certificate_scores,
+        case_institutional_loss_scores=institutional_scores,
     )
 
 
@@ -360,6 +410,8 @@ def print_table(results: list[ModelStats]) -> None:
     print(row("Success Rate", [f"{item.success_rate * 100:.1f}%" for item in results]))
     print(row("Min Score", [f"{item.min_score:.2f}" for item in results]))
     print(row("Max Score", [f"{item.max_score:.2f}" for item in results]))
+    print(row("Certificate", [f"{item.average_certificate_score:.2f}" for item in results]))
+    print(row("Inst. Loss", [f"{item.average_institutional_loss_score:.2f}" for item in results]))
     print(row("API Calls", [str(item.api_calls) for item in results]))
     print(row("Failed Cases", [_fmt_failed(item.failed_cases) for item in results]))
     print("=" * (metric_width + col_width * len(results)) + "\n")

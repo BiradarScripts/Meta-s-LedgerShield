@@ -24,7 +24,7 @@ tags:
 
 LedgerShield is a stateful, adversarial benchmark for AI agents operating inside enterprise accounts-payable workflows. Instead of asking a model to classify one document, LedgerShield asks it to investigate, unlock hidden evidence, choose controls, withstand pressure, and submit a proof-carrying decision under budget and step limits.
 
-LedgerShield now formalizes that loop as an **Adversarial Sequential Hypothesis Testing Game (ASHTG)**. The benchmark exposes a sequential hypothesis-testing layer, Value-of-Information tool ranking, proper probability scoring, causal sufficiency grading, and a Stackelberg-style watchdog audit policy on top of the existing AP workflow simulation.
+LedgerShield now formalizes that loop as an **Adversarial Sequential Hypothesis Testing Game (ASHTG)** and extends it into an institutional-intelligence benchmark. The benchmark exposes a sequential hypothesis-testing layer, Value-of-Information tool ranking, proper probability scoring, causal sufficiency grading, a Stackelberg-style watchdog audit policy, persistent AP-week memory, institutional loss accounting, and machine-verifiable decision certificates on top of the existing AP workflow simulation.
 
 > **📖 Documentation hub:** See [`docs/README.md`](./docs/README.md) for a guided tour of all documentation, reading paths by role, and a map of what lives where.
 
@@ -46,8 +46,8 @@ LedgerShield is built to score well on real-world utility, environment design, t
 | Real-world utility | Multi-currency invoices, IBAN/SWIFT validation, SOX control modeling, AP inbox triage, campaign fraud, aging-report support |
 | Environment design | ASHTG sequential hypothesis testing, Value-of-Information tool ranking, reward-machine progress, `terminated` vs `truncated`, text `render()`, formal `action_space()` and `observation_space()` |
 | Task and grader quality | 21 curated benchmark cases, causal sufficiency grading, proper scoring over latent hypotheses, semantic counterfactual scoring, stricter degenerate-submission penalties, generated holdout suites, contrastive benign twins |
-| Code quality | Comprehensive docstrings, shared pytest fixtures, dedicated tests for grading/currency/compliance/curriculum, GitHub Actions CI, narrower exception handling, typed internal return contracts |
-| Creativity and novelty | ASHTG formalism, Stackelberg watchdog mode, dynamic curriculum adaptation, campaign-level fraud reasoning, 16 attack types across identity/document/process/APT categories |
+| Code quality | Comprehensive docstrings, shared pytest fixtures, dedicated tests for grading/currency/compliance/curriculum/certificates/institutional memory, GitHub Actions CI, narrower exception handling, typed internal return contracts |
+| Creativity and novelty | ASHTG formalism, Stackelberg watchdog mode, dynamic curriculum adaptation, campaign-level fraud reasoning, persistent institutional memory, executable decision certificates, 16 attack types across identity/document/process/APT categories |
 
 ## Benchmark At A Glance
 
@@ -59,6 +59,8 @@ LedgerShield is built to score well on real-world utility, environment design, t
 | Default loader behavior | 21 benchmark cases + 24 generated challenge variants = 45 loaded cases |
 | Optional generated suites | challenge variants, holdout variants, contrastive benign twins |
 | Formal model | ASHTG with SPRT belief state and VoI action ranking |
+| Institutional track | persistent AP-week memory, capacity, attacker belief, and loss ledger |
+| Certificate track | Decision Certificate Graph verifier for proof-carrying payment decisions |
 | Server runtime | FastAPI / OpenEnv-compatible |
 
 ### Task coverage
@@ -98,9 +100,11 @@ Final action:
 
 - `submit_decision`
 
-The submission is not just a label. Strong agents are expected to return structured decisions with grounded `reason_codes`, `policy_checks`, `evidence_map`, and task-specific fields like duplicates, campaign signals, discrepancies, or extracted invoice fields.
+The submission is not just a label. Strong agents are expected to return structured decisions with grounded `reason_codes`, `policy_checks`, `evidence_map`, `decision_certificate`, and task-specific fields like duplicates, campaign signals, discrepancies, or extracted invoice fields.
 
 The final payload can also include `predicted_probabilities`, a calibrated probability distribution over latent hypotheses such as `safe`, `bank_fraud`, `duplicate_billing`, or `campaign_fraud`. If this field is omitted, LedgerShield derives a backward-compatible default from `decision`, `confidence`, and the current SPRT posterior.
+
+The final payload can also include a `decision_certificate`: a typed Decision Certificate Graph with artifact, observation, hypothesis, policy, intervention, decision, and counterfactual nodes. The verifier checks support paths, reference grounding, contradiction handling, stability, and minimality. Legacy submissions get a synthesized diagnostic certificate; agent-authored certificates can receive a small auditability adjustment.
 
 ### Agent capability tiers
 
@@ -136,6 +140,7 @@ The benchmark upgrade work is reflected in the codebase across five phases:
 | Phase 4: Code quality | docstrings across core modules, `tests/conftest.py`, CI workflow, `TypedDict` internal returns |
 | Phase 5: Creativity and novelty | Dec-POMDP watchdog mode, curriculum adaptation, 16-attack library, exploration bonus integrated into `step()` |
 | Phase 6: ASHTG | `server/sprt_engine.py`, `server/voi_engine.py`, `server/proper_scoring.py`, `server/causal_model.py`, `server/causal_grader.py`, `server/reward_machine.py`, `server/rl_export.py` |
+| Phase 7: Institutional intelligence | `server/institutional_game.py`, `server/decision_certificate.py`, blind/instrumented tracks, `/institutional-memory`, `/institutional-reset`, certificate and institutional metrics in live comparisons |
 
 ## ASHTG Mathematical Framework
 
@@ -245,6 +250,8 @@ Generated on **April 10, 2026 (IST)** from `live_model_comparison.json`.
 | `gpt-4o` | strong | 4.6 | 0.8947 | 90.5% | 0.56 | 0.99 | 64 |
 | `gpt-5.4` | elite | 5.4 | 0.9177 | 95.2% | 0.58 | 0.99 | 64 |
 
+- Audit metrics are not present in this historical artifact. Rerun `compare_models_live.py` with the current code to populate certificate and institutional-loss columns.
+
 - Capability ordering is monotonic across the compared models: `true`.
 - Current frontier gap (`gpt-5.4` vs `gpt-4o`): `+0.0229` average score and `+4.8%` success rate.
 - Refresh after rerunning the live comparison artifact:
@@ -263,7 +270,7 @@ Published benchmark metadata in [`openenv.yaml`](./openenv.yaml) records meaning
 <!-- sync:readme-benchmark-summary:start -->
 | Agent | Public mean | Holdout mean | Holdout consistent pass rate |
 |---|---:|---:|---:|
-| ledgershield/deterministic-baseline (deterministic-policy) | 0.9142 | 0.7245 | 0.2500 |
+| ledgershield/deterministic-baseline (deterministic-policy) | 0.9018 | 0.7124 | 0.2222 |
 <!-- sync:readme-benchmark-summary:end -->
 
 That gap is deliberate: the benchmark looks easy on clean public cases and much harder on generated holdouts, adversarial variants, and expert Task E scenarios.

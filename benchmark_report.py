@@ -90,9 +90,13 @@ def _group_by_task(results: list[dict[str, Any]], pass_threshold: float) -> dict
         trial_pass_rates = [float(row.get("trial_pass_rate", 0.0) or 0.0) for row in rows]
         consistent = [bool(row.get("pass_k_consistent", False)) for row in rows]
         any_pass = [bool(row.get("pass_k_any", False)) for row in rows]
+        certificate_scores = [float(row.get("certificate_score", 0.0) or 0.0) for row in rows]
+        institutional_scores = [float(row.get("institutional_loss_score", 0.0) or 0.0) for row in rows]
         summary[task_type] = {
             "count": len(rows),
             "score_stats": _stats(scores),
+            "certificate_score_stats": _stats(certificate_scores),
+            "institutional_loss_score_stats": _stats(institutional_scores),
             "pass_rate": round(sum(score >= pass_threshold for score in scores) / max(len(scores), 1), 4),
             "trial_pass_rate": round(sum(trial_pass_rates) / max(len(trial_pass_rates), 1), 4),
             "consistent_pass_rate": round(sum(consistent) / max(len(consistent), 1), 4),
@@ -208,10 +212,14 @@ def _evaluate_contrastive_pairs(
 def _section_summary(section: dict[str, Any], *, pass_threshold: float) -> dict[str, Any]:
     results = list(section.get("results", []))
     scores = [float(row.get("score", 0.0) or 0.0) for row in results]
+    certificate_scores = [float(row.get("certificate_score", 0.0) or 0.0) for row in results]
+    institutional_scores = [float(row.get("institutional_loss_score", 0.0) or 0.0) for row in results]
     return {
         "case_count": len(results),
         "average_score": round(float(section.get("average_score", 0.0) or 0.0), 4),
         "score_stats": _stats(scores),
+        "certificate_score_stats": _stats(certificate_scores),
+        "institutional_loss_score_stats": _stats(institutional_scores),
         "pass_rate": round(sum(score >= pass_threshold for score in scores) / max(len(scores), 1), 4),
         "trial_pass_rate": round(float(section.get("trial_pass_rate", 0.0) or 0.0), 4),
         "consistent_pass_rate": round(float(section.get("consistent_pass_rate", 0.0) or 0.0), 4),

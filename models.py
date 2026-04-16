@@ -131,6 +131,14 @@ class ScoreBreakdownDict(TypedDict, total=False):
     currency_adjustment: float
     cross_invoice_link_matches: float
     counterfactual_doc_refs: float
+    certificate_score: float
+    certificate_validity_score: float
+    certificate_support_score: float
+    certificate_stability_score: float
+    certificate_minimality_score: float
+    certificate_unsupported_claim_rate: float
+    certificate_adjustment: float
+    institutional_loss_score: float
     degenerate_penalty: float
     error: float
 
@@ -199,6 +207,9 @@ class CaseDecision:
         evidence_map: Evidence references keyed by claim type.
         predicted_probabilities: Probability distribution over latent hypotheses.
         counterfactual: Hypothetical alternative scenario analysis.
+        decision_certificate: Machine-checkable proof graph tying evidence,
+            policies, hypotheses, interventions, and counterfactuals to the
+            payment decision.
         notes: Free-text investigation notes.
         recommended_next_action: Suggested follow-up action.
         handoff_packet: Structured data for human handoff.
@@ -218,6 +229,7 @@ class CaseDecision:
     evidence_map: dict[str, Any] = field(default_factory=dict)
     predicted_probabilities: dict[str, float] = field(default_factory=dict)
     counterfactual: str = ""
+    decision_certificate: dict[str, Any] = field(default_factory=dict)
     notes: str = ""
     recommended_next_action: str = ""
     handoff_packet: dict[str, Any] = field(default_factory=dict)
@@ -266,6 +278,7 @@ class LedgerShieldObservation(Observation):
         sprt_state: Public ASHTG SPRT state for the active case.
         tool_rankings: VoI ranking over currently available tools.
         reward_machine: Reward-machine progress snapshot.
+        institutional_memory: Public persistent portfolio memory and loss state.
     """
     case_id: str = ""
     task_type: str = ""
@@ -289,6 +302,7 @@ class LedgerShieldObservation(Observation):
     sprt_state: dict[str, Any] = field(default_factory=dict)
     tool_rankings: dict[str, Any] = field(default_factory=dict)
     reward_machine: dict[str, Any] = field(default_factory=dict)
+    institutional_memory: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -331,6 +345,9 @@ class LedgerShieldState(State):
         tool_rankings: Latest VoI ranking over available tools.
         reward_machine_state: Serialized reward-machine state.
         calibration_running_average: Running calibration proxy across the episode.
+        institutional_metrics: Persistent portfolio metrics after this episode.
+        decision_certificate_report: Verifier report for the submitted decision
+            certificate.
     """
     episode_id: str = ""
     case_id: str = ""
@@ -364,3 +381,5 @@ class LedgerShieldState(State):
     tool_rankings: dict[str, Any] = field(default_factory=dict)
     reward_machine_state: dict[str, Any] = field(default_factory=dict)
     calibration_running_average: float = 0.0
+    institutional_metrics: dict[str, Any] = field(default_factory=dict)
+    decision_certificate_report: dict[str, Any] = field(default_factory=dict)

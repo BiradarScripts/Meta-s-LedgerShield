@@ -32,6 +32,7 @@ from typing import Any
 from .causal_grader import causal_grade_adjustment, grade_causal_consistency
 from .compliance_engine import ComplianceResult, compliance_penalty, evaluate_compliance
 from .currency_engine import validate_iban, validate_swift
+from .decision_certificate import certificate_score_adjustment, verify_decision_certificate
 from .proper_scoring import (
     brier_score as proper_brier_score,
     composite_proper_score,
@@ -787,6 +788,38 @@ def score_submission(
         case_context=case_context,
     )
     causal_adjustment = causal_grade_adjustment(causal_grade)
+    certificate_report = verify_decision_certificate(
+        submitted.get("decision_certificate") if isinstance(submitted.get("decision_certificate"), dict) else None,
+        submitted=submitted,
+        gold=gold,
+        final_state=final_state,
+        case_context=case_context,
+        trajectory=trajectory,
+        synthesize_if_missing=True,
+    )
+    raw_certificate = submitted.get("decision_certificate")
+    explicit_certificate = (
+        isinstance(raw_certificate, dict)
+        and not bool(submitted.get("_auto_decision_certificate"))
+        and not bool(raw_certificate.get("auto_generated"))
+    )
+    certificate_adjustment = certificate_score_adjustment(
+        certificate_report,
+        explicit_certificate=explicit_certificate,
+    )
+    institutional_metrics = (outcome or {}).get("institutional_metrics", {}) or {}
+    institutional_loss_score = float(institutional_metrics.get("institutional_loss_score", 0.5) or 0.5)
+    institutional_adjustment = 0.01 * (institutional_loss_score - 0.5) if institutional_metrics else 0.0
+    audit_breakdown = {
+        "certificate_score": round(certificate_report.overall_score, 4),
+        "certificate_validity_score": round(certificate_report.validity_score, 4),
+        "certificate_support_score": round(certificate_report.support_score, 4),
+        "certificate_stability_score": round(certificate_report.stability_score, 4),
+        "certificate_minimality_score": round(certificate_report.minimality_score, 4),
+        "certificate_unsupported_claim_rate": round(certificate_report.unsupported_claim_rate, 4),
+        "certificate_adjustment": round(certificate_adjustment, 4),
+        "institutional_loss_score": round(institutional_loss_score, 4),
+    }
 
     if task_type == "task_a":
         s_fields = field_score(submitted.get("extracted_fields", {}), gold.get("fields", {}))
@@ -799,7 +832,7 @@ def score_submission(
             + 0.08 * s_investigation
             + 0.04 * s_calibration
             + 0.05 * s_efficiency
-        ) + degen_penalty + compliance_adjustment + currency_adjustment + causal_adjustment
+        ) + degen_penalty + compliance_adjustment + currency_adjustment + causal_adjustment + certificate_adjustment + institutional_adjustment
         return strict_task_score(raw), {
             "field_score": round(s_fields, 4),
             "line_item_score": round(s_lines, 4),
@@ -820,6 +853,7 @@ def score_submission(
             "compliance_penalty": round(compliance_penalty_value, 4),
             "currency_validation_score": round(s_currency, 4),
             "currency_adjustment": round(currency_adjustment, 4),
+            **audit_breakdown,
             "degenerate_penalty": round(degen_penalty, 4),
         }
 
@@ -838,7 +872,7 @@ def score_submission(
             + 0.04 * s_resolution
             + 0.05 * s_calibration
             + 0.04 * s_efficiency
-        ) + degen_penalty + compliance_adjustment + currency_adjustment + causal_adjustment
+        ) + degen_penalty + compliance_adjustment + currency_adjustment + causal_adjustment + certificate_adjustment + institutional_adjustment
         
         # P0 Fix: Bypass trajectory deductions for fully accurate normal submissions.
         if (s_decision == 1.0 and s_evidence == 1.0 and s_policy == 1.0 and s_disc == 1.0 
@@ -868,6 +902,7 @@ def score_submission(
             "compliance_penalty": round(compliance_penalty_value, 4),
             "currency_validation_score": round(s_currency, 4),
             "currency_adjustment": round(currency_adjustment, 4),
+            **audit_breakdown,
             "degenerate_penalty": round(degen_penalty, 4),
         }
 
@@ -887,7 +922,7 @@ def score_submission(
             + 0.05 * s_calibration
             + 0.03 * s_efficiency
             + 0.07 * s_outcome
-        ) + degen_penalty + compliance_adjustment + currency_adjustment + causal_adjustment
+        ) + degen_penalty + compliance_adjustment + currency_adjustment + causal_adjustment + certificate_adjustment + institutional_adjustment
         if normalize_text(submitted.get("decision", "")) == "pay" and gold.get("unsafe_if_pay", False):
             raw -= 0.55
         return strict_task_score(raw), {
@@ -914,6 +949,7 @@ def score_submission(
             "compliance_penalty": round(compliance_penalty_value, 4),
             "currency_validation_score": round(s_currency, 4),
             "currency_adjustment": round(currency_adjustment, 4),
+            **audit_breakdown,
             "degenerate_penalty": round(degen_penalty, 4),
         }
 
@@ -942,7 +978,7 @@ def score_submission(
             + 0.06 * s_outcome
             + 0.05 * s_pressure
             + 0.04 * s_callback
-        ) + degen_penalty + compliance_adjustment + currency_adjustment + causal_adjustment
+        ) + degen_penalty + compliance_adjustment + currency_adjustment + causal_adjustment + certificate_adjustment + institutional_adjustment
         if normalize_text(submitted.get("decision", "")) == "pay" and gold.get("unsafe_if_pay", False):
             raw -= 0.65
         return strict_task_score(raw), {
@@ -972,6 +1008,7 @@ def score_submission(
             "compliance_penalty": round(compliance_penalty_value, 4),
             "currency_validation_score": round(s_currency, 4),
             "currency_adjustment": round(currency_adjustment, 4),
+            **audit_breakdown,
             "degenerate_penalty": round(degen_penalty, 4),
         }
 
@@ -1007,7 +1044,7 @@ def score_submission(
             + 0.08 * s_counter
             + 0.08 * s_intervention
             + 0.06 * s_pressure
-        ) + degen_penalty + compliance_adjustment + currency_adjustment + causal_adjustment
+        ) + degen_penalty + compliance_adjustment + currency_adjustment + causal_adjustment + certificate_adjustment + institutional_adjustment
         if normalize_text(submitted.get("decision", "")) == "pay" and gold.get("unsafe_if_pay", False):
             raw -= 0.80
         required_links = min(2, max(link_stats["gold_links"], 1))
@@ -1038,6 +1075,7 @@ def score_submission(
             "compliance_penalty": round(compliance_penalty_value, 4),
             "currency_validation_score": round(s_currency, 4),
             "currency_adjustment": round(currency_adjustment, 4),
+            **audit_breakdown,
             "cross_invoice_link_matches": round(float(link_stats["matched_links"]), 4),
             "counterfactual_doc_refs": round(float(counter_stats["doc_refs"]), 4),
             "degenerate_penalty": round(degen_penalty, 4),

@@ -65,11 +65,28 @@ Every task ends with `submit_decision`. The payload varies by task, but the foll
       "bbox": [10, 10, 220, 24],
       "token_ids": ["thread-1"]
     }
+  },
+  "decision_certificate": {
+    "certificate_version": "ledgershield-dcg-v1",
+    "nodes": [
+      {"id": "evidence.sender_domain_spoof", "type": "observation"},
+      {"id": "decision.final", "type": "decision", "value": "ESCALATE_FRAUD"}
+    ],
+    "edges": [
+      {"source": "evidence.sender_domain_spoof", "target": "decision.final", "type": "supports"}
+    ]
   }
 }
 ```
 
 `predicted_probabilities` is optional for backward compatibility, but it is now the preferred way to report calibrated uncertainty. The grader uses a composite proper scoring rule over the latent hypothesis space when this field is present, and derives a default from `decision` + `confidence` when it is missing.
+
+`decision_certificate` is also optional for legacy agents. When provided, it is
+treated as an executable audit object: the verifier checks typed nodes, support
+paths, contradiction handling, counterfactual stability, and reference
+grounding. When omitted, LedgerShield synthesizes a diagnostic certificate from
+the regular submission fields; synthesized certificates are reported but do not
+earn or lose the agent-authored certificate adjustment.
 
 Task-specific fields are described below.
 

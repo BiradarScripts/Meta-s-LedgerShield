@@ -78,6 +78,20 @@ def test_leaderboard_endpoint():
     assert "entries" in payload
 
 
+def test_institutional_memory_endpoints():
+    response = client.get("/institutional-memory")
+    assert response.status_code == 200
+    payload = response.json()
+    assert "loss_ledger" in payload
+    assert "attacker_belief" in payload
+
+    reset_response = client.post("/institutional-reset")
+    assert reset_response.status_code == 200
+    reset_payload = reset_response.json()
+    assert reset_payload["case_counter"] == 0
+    assert reset_payload["loss_ledger"]["unsafe_release_count"] == 0
+
+
 def test_leaderboard_endpoint_degrades_gracefully_without_benchmark_report(monkeypatch):
     monkeypatch.setattr(app_module, "_load_benchmark_report_module", lambda: None)
     fallback_client = TestClient(app_module.build_app())

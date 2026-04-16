@@ -95,7 +95,7 @@ If you change APIs, packaging, or runtime behavior, assume CI should keep passin
 | [`../inference_llm_powered.py`](../inference_llm_powered.py) | richer LLM-powered agent used for debugging and comparisons |
 | [`../llm_utils.py`](../llm_utils.py) | JSON parsing and completion helpers for LLM workflows |
 | [`../llm_judge_grader.py`](../llm_judge_grader.py) | optional LLM-as-judge grading experiments |
-| [`../compare_models_live.py`](../compare_models_live.py) | live multi-model comparison with capability profiles and monotonic strength checks |
+| [`../compare_models_live.py`](../compare_models_live.py) | live multi-model comparison with capability profiles, monotonic strength checks, certificate metrics, and institutional-loss metrics |
 | [`../sync_benchmark_metadata.py`](../sync_benchmark_metadata.py) | refreshes README/docs/openenv metadata from current artifacts and runtime defaults |
 | [`../compare_all_models.py`](../compare_all_models.py) | broader multi-model sweep helper with `--models`, `--output`, `--timeout`, and a `0.85`-aligned pass threshold |
 | [`../benchmark_report.py`](../benchmark_report.py) | public benchmark, holdout, and contrastive report generation |
@@ -122,6 +122,8 @@ If you change APIs, packaging, or runtime behavior, assume CI should keep passin
 | [`../server/tools.py`](../server/tools.py) | investigation tool implementations, email-thread payload construction, domain alignment inference |
 | [`../server/transition_engine.py`](../server/transition_engine.py) | intervention handling and signal extraction |
 | [`../server/grading.py`](../server/grading.py) | task-specific grading rubrics |
+| [`../server/decision_certificate.py`](../server/decision_certificate.py) | Decision Certificate Graph builder/verifier |
+| [`../server/institutional_game.py`](../server/institutional_game.py) | persistent AP-week memory and loss ledger |
 | [`../server/trajectory_grading.py`](../server/trajectory_grading.py) | trajectory-aware scoring components |
 | [`../server/outcome_simulator.py`](../server/outcome_simulator.py) | downstream operational/fraud outcome simulation |
 | [`../server/risk_rules.py`](../server/risk_rules.py) | risk bucket logic and heuristic submission-risk assessment |
@@ -171,10 +173,12 @@ If you change APIs, packaging, or runtime behavior, assume CI should keep passin
 | [`../tests/test_compliance_engine.py`](../tests/test_compliance_engine.py) | SOX compliance evaluation |
 | [`../tests/test_currency_engine.py`](../tests/test_currency_engine.py) | FX/IBAN/SWIFT/aging-report utilities |
 | [`../tests/test_curriculum.py`](../tests/test_curriculum.py) | curriculum tiering and case selection |
+| [`../tests/test_decision_certificate.py`](../tests/test_decision_certificate.py) | certificate graph verification |
 | [`../tests/test_grading.py`](../tests/test_grading.py) | degenerate evidence cap and grading edge cases |
 | [`../tests/test_inference_contract.py`](../tests/test_inference_contract.py) | required stdout contract for `inference.py` |
 | [`../tests/test_inference_llm_powered.py`](../tests/test_inference_llm_powered.py) | derived thread reasoning in LLM-powered inference |
 | [`../tests/test_inference_runtime.py`](../tests/test_inference_runtime.py) | model capability profiles and runtime heuristics |
+| [`../tests/test_institutional_game.py`](../tests/test_institutional_game.py) | persistent AP-week memory and loss updates |
 | [`../tests/test_ledgershield_env.py`](../tests/test_ledgershield_env.py) | environment transitions, scoring, and holdout generation |
 | [`../tests/test_schema_reason_codes.py`](../tests/test_schema_reason_codes.py) | reason-code normalization and aliasing |
 | [`../tests/test_task_c_guardrails.py`](../tests/test_task_c_guardrails.py) | Task C submission guardrails and PAY evidence |

@@ -250,14 +250,14 @@ Typical response shape:
 <!-- sync:api-leaderboard-example:start -->
 {
   "benchmark": "ledgershield-v3",
-  "generated_at": "2026-04-09T22:31:03.657660+00:00",
+  "generated_at": "2026-04-16T09:58:59.221224+00:00",
   "entries": [
     {
       "model": "ledgershield/deterministic-baseline",
       "type": "deterministic-policy",
-      "public_mean": 0.9142,
-      "holdout_mean": 0.7245,
-      "holdout_pass_k_consistent": 0.25
+      "public_mean": 0.9018,
+      "holdout_mean": 0.7124,
+      "holdout_pass_k_consistent": 0.2222
     }
   ]
 }
@@ -267,6 +267,17 @@ Typical response shape:
 ### `GET /benchmark-report`
 
 Returns the latest benchmark report artifact if present. If none exists yet, the endpoint returns a placeholder note telling you to run `benchmark_report.py`.
+
+### `GET /institutional-memory`
+
+Returns the persistent AP-week memory for the current environment instance:
+queue depth, remaining manual-review and callback capacity, vendor trust,
+attacker-belief weights, cumulative loss ledger, and amendment count.
+
+### `POST /institutional-reset`
+
+Resets the persistent institutional memory and loss ledger without changing the
+fixture database. This is useful before a fresh model-comparison run.
 
 ## Observation Shape
 
@@ -293,6 +304,10 @@ The observation returned by `/reset` and `/step` includes:
 | `available_interventions` | list[string] | intervention subset |
 | `case_metadata` | object | task label and due-date info |
 | `portfolio_context` | object | cross-invoice/campaign context when relevant |
+| `institutional_memory` | object | public AP-week memory and cumulative loss state |
+| `sprt_state` | object | present in instrumented mode, hidden in blind mode |
+| `tool_rankings` | object | present in instrumented mode, hidden in blind mode |
+| `reward_machine` | object | present in instrumented mode, hidden in blind mode |
 
 ## Action Taxonomy
 
@@ -342,10 +357,23 @@ Minimal example:
     "policy_checks": {
       "bank_change_verification": "fail"
     },
-    "evidence_map": {}
+    "evidence_map": {},
+    "decision_certificate": {
+      "certificate_version": "ledgershield-dcg-v1",
+      "nodes": [
+        {"id": "decision.final", "type": "decision", "value": "ESCALATE_FRAUD"}
+      ],
+      "edges": []
+    }
   }
 }
 ```
+
+`decision_certificate` is optional for backward compatibility. If absent, the
+server synthesizes a compatibility certificate from the existing evidence,
+policy, reason-code, intervention, and counterfactual fields for diagnostics.
+Agent-authored certificates are verified and can receive a small auditability
+bonus or malformed-certificate penalty.
 
 ## Reward Model
 

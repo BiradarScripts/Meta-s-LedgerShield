@@ -90,6 +90,7 @@ These are read by [`../server/data_loader.py`](../server/data_loader.py).
 | `LEDGERSHIELD_HOLDOUT_VARIANTS` | `1` | holdout variants per hard case |
 | `LEDGERSHIELD_HOLDOUT_SEED` | `31415` | RNG seed for holdout generation |
 | `LEDGERSHIELD_INCLUDE_TWINS` | `false` | include benign contrastive twins in the loaded case pool |
+| `LEDGERSHIELD_TRACK_MODE` | `instrumented` | use `blind` to hide SPRT, VoI tool rankings, and reward-machine progress from observations |
 
 ### Agent-side variables
 
@@ -104,6 +105,7 @@ Common variables used by `inference.py` and related scripts:
 | `ENV_URL` | environment server base URL |
 | `LOCAL_IMAGE_NAME` | optional Docker image name for local environment use |
 | `LEDGERSHIELD_DEBUG` | set to `1` to enable stderr output from the inference agent (default: stderr suppressed) |
+| `LEDGERSHIELD_DEBUG_ARTIFACT_DIR` | directory for per-case live-comparison traces, including certificate and institutional metrics |
 
 ## Operational Checks
 
@@ -160,6 +162,14 @@ python -m server.app
 
 ```bash
 LEDGERSHIELD_INCLUDE_TWINS=1 python -m server.app
+```
+
+### Blind-track evaluation server
+
+Hide benchmark-side decision scaffolding while preserving hidden grader state:
+
+```bash
+LEDGERSHIELD_TRACK_MODE=blind python -m server.app
 ```
 
 ## Production Notes

@@ -131,6 +131,11 @@ def _capability_table(budget_column_name: str) -> str:
 
 def _comparison_block(payload: dict[str, Any], *, include_capability: bool) -> str:
     generated_on = _generated_on_ist(payload)
+    rows = _comparison_rows(payload)
+    has_audit_metrics = any(
+        "average_certificate_score" in row or "average_institutional_loss_score" in row
+        for row in rows
+    )
     lines = [
         "## Live Comparison Snapshot",
         "",
@@ -138,40 +143,78 @@ def _comparison_block(payload: dict[str, Any], *, include_capability: bool) -> s
         "",
     ]
     if include_capability:
-        lines.extend(
-            [
-                "| Model | Tier | Capability | Average Score | Success Rate | Min Score | Max Score | API Calls |",
-                "|---|---|---:|---:|---:|---:|---:|---:|",
-            ]
-        )
-        for row in _comparison_rows(payload):
+        if has_audit_metrics:
+            lines.extend(
+                [
+                    "| Model | Tier | Capability | Average Score | Success Rate | Certificate | Inst. Loss | Min Score | Max Score | API Calls |",
+                    "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|",
+                ]
+            )
+        else:
+            lines.extend(
+                [
+                    "| Model | Tier | Capability | Average Score | Success Rate | Min Score | Max Score | API Calls |",
+                    "|---|---|---:|---:|---:|---:|---:|---:|",
+                ]
+            )
+        for row in rows:
             profile = row.get("model_profile", {}) or {}
-            lines.append(
+            line = (
                 "| "
                 f"`{row.get('model', '')}` | "
                 f"{profile.get('tier', '')} | "
                 f"{float(profile.get('capability_score', 0.0)):.1f} | "
                 f"{float(row.get('average_score', 0.0)):.4f} | "
                 f"{100.0 * float(row.get('success_rate', 0.0)):.1f}% | "
+            )
+            if has_audit_metrics:
+                line += (
+                    f"{float(row.get('average_certificate_score', 0.0)):.4f} | "
+                    f"{float(row.get('average_institutional_loss_score', 0.0)):.4f} | "
+                )
+            line += (
                 f"{float(row.get('min_score', 0.0)):.2f} | "
                 f"{float(row.get('max_score', 0.0)):.2f} | "
                 f"{int(row.get('api_calls', 0) or 0)} |"
             )
+            lines.append(line)
     else:
-        lines.extend(
-            [
-                "| Model | Average Score | Success Rate | Failed Cases |",
-                "|---|---:|---:|---:|",
-            ]
-        )
-        for row in _comparison_rows(payload):
-            lines.append(
+        if has_audit_metrics:
+            lines.extend(
+                [
+                    "| Model | Average Score | Success Rate | Certificate | Inst. Loss | Failed Cases |",
+                    "|---|---:|---:|---:|---:|---:|",
+                ]
+            )
+        else:
+            lines.extend(
+                [
+                    "| Model | Average Score | Success Rate | Failed Cases |",
+                    "|---|---:|---:|---:|",
+                ]
+            )
+        for row in rows:
+            line = (
                 "| "
                 f"`{row.get('model', '')}` | "
                 f"{float(row.get('average_score', 0.0)):.4f} | "
                 f"{100.0 * float(row.get('success_rate', 0.0)):.1f}% | "
-                f"{len(row.get('failed_cases', []) or [])} |"
             )
+            if has_audit_metrics:
+                line += (
+                    f"{float(row.get('average_certificate_score', 0.0)):.4f} | "
+                    f"{float(row.get('average_institutional_loss_score', 0.0)):.4f} | "
+                )
+            line += f"{len(row.get('failed_cases', []) or [])} |"
+            lines.append(line)
+
+    if not has_audit_metrics:
+        lines.extend(
+            [
+                "",
+                "- Audit metrics are not present in this historical artifact. Rerun `compare_models_live.py` with the current code to populate certificate and institutional-loss columns.",
+            ]
+        )
 
     capability_order = payload.get("capability_order", {}) or {}
     pairwise = capability_order.get("pairwise", []) or []

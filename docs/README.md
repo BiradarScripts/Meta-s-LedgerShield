@@ -47,7 +47,7 @@ This folder contains the long-form documentation for LedgerShield. The root [`RE
 |---|---|---|
 | [`index.md`](./index.md) | first-time readers | motivation, benchmark scope, core concepts, quick start, and evaluation framing |
 | [`tasks.md`](./tasks.md) | agent builders and benchmark users | task families A–E, case catalog, output contracts by task, scoring weights, and penalties |
-| [`api-reference.md`](./api-reference.md) | integrators and agent builders | REST endpoints (`/reset`, `/step`, `/state`, `/leaderboard`, `/benchmark-report`), request/response envelopes, action taxonomy, reward model |
+| [`api-reference.md`](./api-reference.md) | integrators and agent builders | REST endpoints (`/reset`, `/step`, `/state`, `/leaderboard`, `/benchmark-report`, `/institutional-memory`, `/institutional-reset`), request/response envelopes, action taxonomy, reward model |
 | [`architecture.md`](./architecture.md) | researchers and maintainers | system layers, hidden-state mechanics, reward design, grading pipeline, case generation, realism modules |
 | [`development.md`](./development.md) | contributors | local setup, test suite, CI expectations, detailed repo/file map, extension guidance |
 | [`deployment.md`](./deployment.md) | operators | local/Docker/HF deployment, environment variables, deployment profiles, troubleshooting |
@@ -59,10 +59,10 @@ This folder contains the long-form documentation for LedgerShield. The root [`RE
 | Doc section | Primary code files it documents |
 |---|---|
 | **Investigation tools** (`index.md`, `api-reference.md`) | `server/tools.py` — tool implementations, email thread parsing, domain alignment |
-| **Grading and penalties** (`tasks.md`, `architecture.md`) | `server/grading.py`, `server/trajectory_grading.py`, `server/risk_rules.py`, `server/outcome_simulator.py` |
+| **Grading and penalties** (`tasks.md`, `architecture.md`) | `server/grading.py`, `server/trajectory_grading.py`, `server/risk_rules.py`, `server/outcome_simulator.py`, `server/decision_certificate.py`, `server/institutional_game.py` |
 | **Agent behavior and tiering** (`README.md`, `development.md`) | `inference.py` — `ModelCapabilityProfile`, evidence grounding, guardrail pipelines |
 | **Guardrail sanitization** (`development.md`, `tasks.md`) | `task_c_guardrails.py`, `task_d_guardrails.py` — composite signals, PAY evidence, sanitize logic |
-| **Environment loop** (`architecture.md`) | `server/environment.py` — reward shaping, PBRS, truncation, rendering |
+| **Environment loop** (`architecture.md`) | `server/environment.py` — reward shaping, PBRS, truncation, rendering, institutional memory updates, certificate verification |
 | **State and pressure** (`architecture.md`) | `server/world_state.py`, `server/pressure_events.py` |
 | **Case generation** (`architecture.md`) | `server/case_factory.py`, `server/attack_library.py`, `server/data_loader.py` |
 | **Benchmark evaluation** (`README.md`) | `benchmark_report.py`, `compare_models_live.py` — live comparison with capability profiles |
@@ -76,6 +76,8 @@ This folder contains the long-form documentation for LedgerShield. The root [`RE
 | [`../server/environment.py`](../server/environment.py) | reward shaping, truncation semantics, rendering, tool dispatch |
 | [`../server/world_state.py`](../server/world_state.py) | hidden/public state, artifacts, pressure events, decision readiness |
 | [`../server/grading.py`](../server/grading.py) | task rubrics, degenerate evidence cap, semantic counterfactual scoring |
+| [`../server/decision_certificate.py`](../server/decision_certificate.py) | Decision Certificate Graph construction and verification |
+| [`../server/institutional_game.py`](../server/institutional_game.py) | persistent AP-week memory and institutional loss accounting |
 | [`../server/trajectory_grading.py`](../server/trajectory_grading.py) | trajectory-aware scoring and efficiency logic |
 | [`../server/tools.py`](../server/tools.py) | investigation tools, email-thread payload construction, domain alignment |
 | [`../server/case_factory.py`](../server/case_factory.py) | generated challenge/holdout/twin cases |
@@ -88,7 +90,7 @@ This folder contains the long-form documentation for LedgerShield. The root [`RE
 | [`../task_c_guardrails.py`](../task_c_guardrails.py) | Task C composite signal detection and PAY evidence |
 | [`../task_d_guardrails.py`](../task_d_guardrails.py) | Task D composite signal detection and PAY evidence |
 | [`../benchmark_report.py`](../benchmark_report.py) | benchmark report and leaderboard generation |
-| [`../compare_models_live.py`](../compare_models_live.py) | live multi-model comparison with capability profiles |
+| [`../compare_models_live.py`](../compare_models_live.py) | live multi-model comparison with capability profiles, certificate metrics, and institutional-loss metrics |
 
 ---
 

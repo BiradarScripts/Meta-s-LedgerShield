@@ -15,6 +15,8 @@ flowchart LR
     Env --> Transition["Transition Engine"]
     Env --> Grader["Task + Trajectory Grading"]
     Env --> Outcome["Outcome Simulator"]
+    Env --> Memory["Institutional Memory / Loss Ledger"]
+    Grader --> Cert["Decision Certificate Verifier"]
     World --> Pressure["Pressure Events"]
     World --> Vendor["Vendor Callback Simulator"]
     World --> Cases["Fixture Cases + Generated Variants"]
@@ -47,6 +49,10 @@ Recent ASHTG additions:
 - `server/voi_engine.py` computes Value-of-Information rankings over available actions
 - `server/reward_machine.py` tracks task-family progress as a lightweight reward machine
 - `server/rl_export.py` exports a 37-dimensional RL/DT state vector
+- `server/institutional_game.py` persists AP-week memory, review capacity,
+  callback capacity, vendor trust, attacker belief, and institutional loss
+- `server/decision_certificate.py` verifies typed proof graphs for final
+  decisions
 
 ### 2. Hidden world and public state
 
@@ -59,6 +65,7 @@ Responsibilities:
 - derive hidden risk signals from case gold data
 - compute required actions and required artifacts
 - create campaign context and portfolio context
+- attach persistent institutional context from the AP-week memory
 - schedule delayed artifact events
 - expose public state snapshots without leaking hidden state
 - score pressure-event resistance and decision readiness
@@ -110,6 +117,9 @@ Responsibilities:
 - penalize degenerate submissions
 - simulate enterprise outcomes such as unsafe release, fraud prevented, or false-positive delay
 - compute heuristic risk diagnostics over the final submission
+- verify decision-certificate graphs for support, stability, minimality, and
+  unsupported claims
+- expose institutional-loss metrics alongside per-case outcome metrics
 
 Notable grading behaviors:
 
@@ -129,7 +139,8 @@ When a case is loaded:
 1. the environment picks a benchmark or generated case
 2. `build_hidden_world()` derives hidden signals, campaign context, required actions, artifacts, and pressure events
 3. the public state is initialized with visible documents, budget, max steps, and metadata
-4. the agent receives an observation containing only public information
+4. persistent institutional context is merged into the case's campaign context
+5. the agent receives an observation containing only public information
 
 ### Step phase
 
@@ -143,6 +154,53 @@ Every action goes through the same broad pipeline:
 6. update trajectory and budget
 7. compute reward components
 8. return the next observation plus reward envelope
+
+On terminal submission, the environment also:
+
+1. verifies or synthesizes a decision-certificate graph
+2. simulates the downstream payment outcome
+3. updates the persistent institutional memory/loss ledger
+4. adds certificate and institutional-loss metrics to the score breakdown
+
+## Institutional Memory Layer
+
+LedgerShield now keeps an AP-week memory in each `LedgerShieldEnvironment`
+instance. A normal `/reset` loads a fresh case, but does not erase this memory.
+The public snapshot tracks:
+
+- `queue_depth`
+- manual-review and callback capacity remaining
+- per-vendor trust and prior outcomes
+- attacker belief over callback gaps, queue pressure, duplicate-control gaps,
+  and payment-release weakness
+- fraud loss prevented/released
+- operational delay hours
+- manual-review minutes
+- supplier friction
+- unsafe releases, false positives, and safe releases
+
+The endpoint `/institutional-reset` clears this layer when a run needs a clean
+AP week. The default observation track is `instrumented`; setting
+`LEDGERSHIELD_TRACK_MODE=blind` hides SPRT, VoI ranking, and reward-machine
+diagnostics from observations while preserving the same hidden grader state.
+
+## Decision Certificates
+
+Final submissions may include a `decision_certificate` graph. The verifier
+checks:
+
+- node and edge schema validity
+- support paths from observations/artifacts/interventions to claims and the
+  final decision
+- contradiction and policy handling
+- counterfactual presence for risky cases
+- reference grounding against revealed documents/artifacts
+- compactness, so bloated graphs do not get free credit
+
+If a legacy submission omits the graph, the server creates a diagnostic graph
+from `evidence_map`, `policy_checks`, `reason_codes`, `fraud_flags`,
+`campaign_signals`, interventions, and `counterfactual`. Only agent-authored
+graphs can affect the score through the small certificate adjustment.
 
 ### End conditions
 

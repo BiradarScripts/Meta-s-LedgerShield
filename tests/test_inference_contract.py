@@ -392,3 +392,35 @@ def test_sanitize_task_e_submission_recovers_grounded_refs_and_policy():
 
     assert sanitized["policy_checks"] == grounded["policy_checks"]
     assert sanitized["evidence_map"] == grounded["evidence_map"]
+
+
+def test_prepare_submission_attaches_generated_decision_certificate():
+    submission = {
+        "decision": "HOLD",
+        "confidence": 0.74,
+        "reason_codes": ["bank_override_attempt"],
+        "policy_checks": {"bank_change_verification": "fail"},
+        "evidence_map": {
+            "bank_override_attempt": {
+                "doc_id": "THR-X",
+                "page": 1,
+                "bbox": [1, 2, 3, 4],
+                "token_ids": ["tok1"],
+            }
+        },
+    }
+    collected = {
+        "case_id": "CASE-X-001",
+        "task_type": "task_d",
+        "portfolio_context": {"linked_cases": ["CASE-X-002"]},
+        "institutional_memory": {"week_id": "ap-week-2026-04"},
+        "action_trace": [{"action": "compare_bank_account"}],
+    }
+
+    prepared = inference.prepare_submission(submission, collected)
+
+    certificate = prepared["decision_certificate"]
+    assert certificate["auto_generated"] is True
+    assert certificate["metadata"]["case_id"] == "CASE-X-001"
+    assert certificate["metadata"]["institutional_memory"]["week_id"] == "ap-week-2026-04"
+    assert "predicted_probabilities" in prepared

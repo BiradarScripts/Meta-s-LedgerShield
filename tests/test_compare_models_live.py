@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import json
 from contextlib import redirect_stdout
 
 import compare_models_live
@@ -110,6 +111,10 @@ def test_build_output_payload_includes_cases_and_model_profiles():
             api_calls=32,
             debug_artifact_dir="live_model_comparison_debug/gpt-5.4",
             model_profile={"tier": "elite", "capability_score": 5.4},
+            average_certificate_score=0.91,
+            average_institutional_loss_score=0.73,
+            case_certificate_scores={"CASE-D-005": 0.91},
+            case_institutional_loss_scores={"CASE-D-005": 0.73},
         )
     ]
 
@@ -125,3 +130,31 @@ def test_build_output_payload_includes_cases_and_model_profiles():
     assert payload["case_count"] == 2
     assert payload["capability_order"]["ordered_models"] == ["gpt-5.4"]
     assert payload["results"][0]["model_profile"]["tier"] == "elite"
+    assert payload["results"][0]["average_certificate_score"] == 0.91
+    assert payload["results"][0]["average_institutional_loss_score"] == 0.73
+    assert payload["results"][0]["case_certificate_scores"] == {"CASE-D-005": 0.91}
+    assert payload["results"][0]["case_institutional_loss_scores"] == {"CASE-D-005": 0.73}
+
+
+def test_load_audit_scores_from_debug_artifacts(tmp_path):
+    artifact_dir = tmp_path / "debug"
+    artifact_dir.mkdir()
+    (artifact_dir / "CASE-D-001.json").write_text(
+        json.dumps(
+            {
+                "case_id": "CASE-D-001",
+                "score_breakdown": {
+                    "certificate_score": 0.82,
+                    "institutional_loss_score": 0.69,
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    certificate_scores, institutional_scores = compare_models_live._load_audit_scores_from_debug_artifacts(
+        artifact_dir
+    )
+
+    assert certificate_scores == {"CASE-D-001": 0.82}
+    assert institutional_scores == {"CASE-D-001": 0.69}

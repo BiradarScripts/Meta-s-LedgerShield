@@ -72,6 +72,8 @@ Agents do not see the whole case upfront. The environment tracks:
 - latent outcomes
 - pressure-event injection
 - campaign context and portfolio-level risk
+- persistent institutional memory and loss ledger
+- executable decision-certificate diagnostics
 
 ### Investigation tools
 
@@ -109,6 +111,24 @@ The benchmark expects structured outputs, not just decisions. Depending on the t
 - `campaign_signals`
 - `counterfactual`
 - `evidence_map` with document/page/bbox/token grounding
+- `decision_certificate`, a typed graph whose artifact, observation, hypothesis,
+  policy, intervention, decision, and counterfactual nodes can be verified by
+  the server.
+
+### Institutional intelligence layer
+
+LedgerShield now keeps a persistent institutional memory inside each environment
+instance. Resets still load individual cases, but the environment also tracks
+the surrounding AP week: queue depth, manual-review capacity, callback capacity,
+vendor trust, attacker belief over weak controls, cumulative fraud loss,
+released loss, delay hours, manual-review minutes, supplier friction, false
+positives, and unsafe releases.
+
+The default track is `instrumented`, where ASHTG diagnostics such as SPRT state,
+VoI tool rankings, and reward-machine progress remain visible. Set
+`LEDGERSHIELD_TRACK_MODE=blind` to hide those scaffolding signals from the
+observation while preserving the same hidden grader state. This creates a clean
+separation between research/debug runs and leakage-resistant benchmark runs.
 
 ### Agent capability tiers
 
@@ -144,7 +164,9 @@ Recent environment upgrades visible in the implementation:
 | Introspection | text `render()` summary for episode inspection |
 | Formal contracts | `action_space()` and `observation_space()` class methods |
 | Difficulty adaptation | curriculum module for tiered case selection |
-| Novelty | ASHTG hypothesis testing, proper scoring, causal sufficiency checks, and Dec-POMDP watchdog mode |
+| Institutional memory | persistent AP-week state, vendor trust, capacity, attacker belief, and loss ledger |
+| Decision certificates | typed proof graph verification with support, grounding, stability, and minimality checks |
+| Novelty | ASHTG hypothesis testing, proper scoring, causal sufficiency checks, Dec-POMDP watchdog mode, and proof-carrying institutional decisions |
 
 ## Scoring Philosophy
 
@@ -217,6 +239,8 @@ Generated on **April 10, 2026 (IST)** from `live_model_comparison.json`.
 | `gpt-3.5-turbo` | 0.6965 | 38.1% | 13 |
 | `gpt-4o` | 0.8947 | 90.5% | 2 |
 | `gpt-5.4` | 0.9177 | 95.2% | 1 |
+
+- Audit metrics are not present in this historical artifact. Rerun `compare_models_live.py` with the current code to populate certificate and institutional-loss columns.
 
 - Capability ordering is monotonic across the compared models: `true`.
 - Current frontier gap (`gpt-5.4` vs `gpt-4o`): `+0.0229` average score and `+4.8%` success rate.

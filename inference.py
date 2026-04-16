@@ -69,6 +69,7 @@ with warnings.catch_warnings():
 from openenv_compat import StepResult
 from llm_utils import create_json_chat_completion, parse_json_dict
 from server.environment import LedgerShieldEnvironment
+from server.decision_certificate import build_decision_certificate
 from server.proper_scoring import implied_probabilities_from_decision
 from server.schema import canonical_reason_codes
 from task_c_guardrails import (
@@ -743,8 +744,12 @@ def update_collected_from_observation(collected: dict[str, Any], observation: An
     pending_events = list(getattr(observation, "pending_events", []) or [])
     case_metadata = getattr(observation, "case_metadata", {}) or {}
     risk_snapshot = getattr(observation, "risk_snapshot", {}) or {}
+    institutional_memory = getattr(observation, "institutional_memory", {}) or {}
+    portfolio_context = getattr(observation, "portfolio_context", {}) or {}
 
     collected["case_metadata"] = dict(case_metadata)
+    collected["portfolio_context"] = dict(portfolio_context)
+    collected["institutional_memory"] = dict(institutional_memory)
     collected["pending_events"] = pending_events
     collected["observed_risk_signals"] = list(risk_snapshot.get("observed_signals", []) or [])
 
@@ -1414,6 +1419,39 @@ def attach_predicted_probabilities(submission: dict[str, Any]) -> dict[str, Any]
         float(enriched.get("confidence", 0.5) or 0.5),
     )
     return enriched
+
+
+def attach_decision_certificate(submission: dict[str, Any], collected: dict[str, Any] | None = None) -> dict[str, Any]:
+    enriched = dict(submission)
+    if isinstance(enriched.get("decision_certificate"), dict) and enriched["decision_certificate"]:
+        return enriched
+    collected = collected or {}
+    final_state = {
+        "revealed_artifacts": list((collected.get("revealed_artifacts") or {}).values()),
+        "revealed_artifact_ids": list((collected.get("revealed_artifacts") or {}).keys()),
+        "portfolio_context": dict(collected.get("portfolio_context", {}) or {}),
+        "institutional_memory": dict(collected.get("institutional_memory", {}) or {}),
+    }
+    case_context = {
+        "case_id": collected.get("case_id"),
+        "task_type": collected.get("task_type"),
+        "case_snapshot": {
+            "case_id": collected.get("case_id"),
+            "task_type": collected.get("task_type"),
+        },
+    }
+    enriched["decision_certificate"] = build_decision_certificate(
+        enriched,
+        trajectory=list(collected.get("action_trace", []) or []),
+        final_state=final_state,
+        case_context=case_context,
+        auto_generated=True,
+    )
+    return enriched
+
+
+def prepare_submission(submission: dict[str, Any], collected: dict[str, Any] | None = None) -> dict[str, Any]:
+    return attach_decision_certificate(attach_predicted_probabilities(submission), collected)
 
 
 def policy_check_payload(three_way_match: str, bank_change_verification: str, duplicate_check: str) -> dict[str, str]:
@@ -2266,6 +2304,8 @@ def summarize_case_trials(
     task_type = next((str(trial.get("task_type", "unknown")) for trial in trials if trial.get("task_type")), "unknown")
     errors = [str(trial.get("error", "")).strip() for trial in trials if str(trial.get("error", "")).strip()]
     pressure_scores = [float(trial.get("pressure_resistance_score", 0.0) or 0.0) for trial in trials]
+    certificate_scores = [float(trial.get("certificate_score", 0.0) or 0.0) for trial in trials]
+    institutional_loss_scores = [float(trial.get("institutional_loss_score", 0.0) or 0.0) for trial in trials]
     score_breakdowns = [trial.get("score_breakdown", {}) or {} for trial in trials]
 
     return {
@@ -2285,6 +2325,10 @@ def summarize_case_trials(
         "final_decision": dominant_value(decisions),
         "trial_decisions": decisions,
         "pressure_resistance_score": round(sum(pressure_scores) / max(len(pressure_scores), 1), 4),
+        "certificate_score": round(sum(certificate_scores) / max(len(certificate_scores), 1), 4),
+        "institutional_loss_score": round(sum(institutional_loss_scores) / max(len(institutional_loss_scores), 1), 4),
+        "decision_certificate_report": dict((trials[-1].get("decision_certificate_report", {}) if trials else {}) or {}),
+        "institutional_metrics": dict((trials[-1].get("institutional_metrics", {}) if trials else {}) or {}),
         "score_breakdown": score_breakdowns[-1] if score_breakdowns else {},
         "errors": errors,
     }
@@ -2363,6 +2407,25 @@ def perform_step(
 
     # Phase 4.4: Zero-Shot PPO Hooks
     if collected is not None and hasattr(result, "info"):
+        tool_result = getattr(result.observation, "last_tool_result", {}) or {}
+        collected.setdefault("action_trace", []).append(
+            {
+                "step": step_no,
+                "action_type": action.action_type,
+                "payload": dict(action.payload),
+                "success": bool(tool_result.get("success", False)) if tool_result else bool(result.done),
+                "cost": float(tool_result.get("cost", 0.0) or 0.0) if tool_result else 0.0,
+                "is_intervention": str(action.action_type).startswith("request_")
+                or action.action_type
+                in {
+                    "freeze_vendor_profile",
+                    "route_to_procurement",
+                    "route_to_security",
+                    "flag_duplicate_cluster_review",
+                    "create_human_handoff",
+                },
+            }
+        )
         rl_data = result.info.get("rl_data_plane")
         if rl_data:
             collected.setdefault("rl_trace", []).append({
@@ -2494,6 +2557,8 @@ def run_episode_with_env(
 
         step_limit = min(int(getattr(observation, "max_steps", MAX_STEPS) or MAX_STEPS), MAX_STEPS)
         collected: dict[str, Any] = {
+            "case_id": case_id,
+            "task_type": task_type,
             "invoice_doc_id": "",
             "invoice_tokens": [],
             "invoice_fields": {},
@@ -2525,6 +2590,9 @@ def run_episode_with_env(
             "tool_failures": {},
             "case_instruction": str(getattr(observation, "instruction", "") or ""),
             "case_metadata": dict(getattr(observation, "case_metadata", {}) or {}),
+            "portfolio_context": dict(getattr(observation, "portfolio_context", {}) or {}),
+            "institutional_memory": dict(getattr(observation, "institutional_memory", {}) or {}),
+            "action_trace": [],
             "_client": client,
         }
         update_collected_from_observation(collected, observation)
@@ -2576,7 +2644,7 @@ def run_episode_with_env(
             if zoom_result.done:
                 final_score = normalize_score(zoom_result.info.get("final_score", rewards[-1] if rewards else 0.0))
                 success = final_score >= SUCCESS_SCORE_THRESHOLD
-            submit_payload = attach_predicted_probabilities(build_final_submission(task_type, collected, {}))
+            submit_payload = prepare_submission(build_final_submission(task_type, collected, {}), collected)
             final_result, step_no = perform_step(
                 env,
                 step_no,
@@ -2597,6 +2665,10 @@ def run_episode_with_env(
                 "steps": steps_taken,
                 "final_decision": final_decision,
                 "score_breakdown": score_breakdown,
+                "decision_certificate_report": dict(final_result.info.get("decision_certificate_report", {}) or {}),
+                "institutional_metrics": dict(final_result.info.get("institutional_metrics", {}) or {}),
+                "certificate_score": float(score_breakdown.get("certificate_score", 0.0) or 0.0),
+                "institutional_loss_score": float(score_breakdown.get("institutional_loss_score", 0.0) or 0.0),
                 "pressure_resistance_score": pressure_resistance,
             }
 
@@ -2743,8 +2815,9 @@ def run_episode_with_env(
                 "rl_trace": collected.get("rl_trace", []),
             }
 
-        submit_payload = attach_predicted_probabilities(
-            repair_submission(task_type, build_final_submission(task_type, collected, {}), collected)
+        submit_payload = prepare_submission(
+            repair_submission(task_type, build_final_submission(task_type, collected, {}), collected),
+            collected,
         )
 
         remaining_action_slots = max(0, step_limit - step_no + 1)
@@ -2793,8 +2866,9 @@ def run_episode_with_env(
                 "rl_trace": collected.get("rl_trace", []),
             }
 
-        submit_payload = attach_predicted_probabilities(
-            repair_submission(task_type, build_final_submission(task_type, collected, {}), collected)
+        submit_payload = prepare_submission(
+            repair_submission(task_type, build_final_submission(task_type, collected, {}), collected),
+            collected,
         )
         if step_no <= step_limit:
             final_result, step_no = perform_step(
@@ -2822,6 +2896,10 @@ def run_episode_with_env(
             "steps": steps_taken,
             "final_decision": final_decision,
             "score_breakdown": score_breakdown,
+            "decision_certificate_report": dict(final_result.info.get("decision_certificate_report", {}) or {}),
+            "institutional_metrics": dict(final_result.info.get("institutional_metrics", {}) or {}),
+            "certificate_score": float(score_breakdown.get("certificate_score", 0.0) or 0.0),
+            "institutional_loss_score": float(score_breakdown.get("institutional_loss_score", 0.0) or 0.0),
             "pressure_resistance_score": pressure_resistance,
             "rl_trace": collected.get("rl_trace", []),
         }

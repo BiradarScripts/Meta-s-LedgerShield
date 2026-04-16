@@ -8,7 +8,7 @@ Current working-tree note: `docs/project-deep-dive.md` is tracked in git but del
 
 ## 1. Project Identity
 
-LedgerShield is a stateful adversarial benchmark for AI agents working inside enterprise accounts-payable payment-integrity workflows. The project is not a static invoice classifier. It is an OpenEnv-compatible/FastAPI environment where an agent must investigate a partially observable case, use tools and interventions, unlock hidden evidence, resist adversarial pressure, and submit a structured proof-carrying payment decision.
+LedgerShield is a stateful adversarial benchmark for AI agents working inside enterprise accounts-payable payment-integrity workflows. The project is not a static invoice classifier. It is an OpenEnv-compatible/FastAPI environment where an agent must investigate a partially observable case, use tools and interventions, unlock hidden evidence, resist adversarial pressure, and submit a structured proof-carrying payment decision. The current version also adds institutional-intelligence mechanics: persistent AP-week memory, review/callback capacity, attacker-belief updates, institutional loss accounting, and executable Decision Certificate Graph verification.
 
 The benchmark is positioned around real AP and business email compromise risk. The README and OpenEnv metadata cite the FBI IC3 2023 report, where business email compromise produced 21,489 complaints and more than USD 2.9B in reported losses. The benchmark turns that risk surface into an evaluation of payment-control discipline, evidence quality, calibrated beliefs, and safe final decisions.
 
@@ -25,6 +25,8 @@ Core identity:
 | Main local command | `python -m server.app` |
 | Docker command | `uvicorn server.app:app --host 0.0.0.0 --port 8000` |
 | Formal model | POMDP plus ASHTG |
+| Institutional layer | persistent AP-week memory and loss ledger |
+| Certificate layer | executable Decision Certificate Graph verifier |
 | Main environment class | `server.environment.LedgerShieldEnvironment` |
 | Main submission agent | `inference.py` |
 | Public curated cases | 21 |
@@ -67,6 +69,9 @@ The final answer is not just a label. It can include:
 - `recommended_next_action`;
 - `handoff_packet`;
 - `intervention_log`.
+- `decision_certificate`, a typed graph linking observations, artifacts,
+  hypotheses, policy checks, interventions, counterfactuals, and the final
+  decision.
 
 ## 3. Task Families And Curated Cases
 
@@ -122,10 +127,10 @@ The runtime has eight major layers:
 
 1. Data fixtures: JSON files in `server/fixtures/`.
 2. Data loading: `server/data_loader.py` indexes fixtures and generates optional cases.
-3. Hidden world: `server/world_state.py` derives latent risk, required actions, required artifacts, pressure events, campaign context, callback simulation, causal model metadata, evidence graph metadata, and information-design policy.
-4. Environment loop: `server/environment.py` implements reset, step, tool dispatch, intervention handling, budget accounting, reward shaping, ASHTG public state, watchdog updates, grading, outcome simulation, and truncation/termination.
+3. Hidden world: `server/world_state.py` derives latent risk, required actions, required artifacts, pressure events, campaign context, institutional context, callback simulation, causal model metadata, evidence graph metadata, and information-design policy.
+4. Environment loop: `server/environment.py` implements reset, step, tool dispatch, intervention handling, budget accounting, reward shaping, ASHTG public state, watchdog updates, institutional memory updates, certificate verification, grading, outcome simulation, and truncation/termination.
 5. Tools and transitions: `server/tools.py` executes investigation actions, while `server/transition_engine.py` derives risk signals and handles interventions.
-6. Grading: `server/grading.py`, `server/trajectory_grading.py`, `server/compliance_engine.py`, `server/currency_engine.py`, `server/risk_rules.py`, and `server/outcome_simulator.py` combine final-answer, process, compliance, currency, calibration, and outcome scoring.
+6. Grading: `server/grading.py`, `server/trajectory_grading.py`, `server/compliance_engine.py`, `server/currency_engine.py`, `server/risk_rules.py`, `server/decision_certificate.py`, `server/institutional_game.py`, and `server/outcome_simulator.py` combine final-answer, process, compliance, currency, calibration, certificate, institutional-loss, and outcome scoring.
 7. Agent runners: `inference.py`, `inference_llm_powered.py`, `inference_improved.py`, `task_c_guardrails.py`, `task_d_guardrails.py`, and `llm_utils.py` implement local and LLM-powered baselines.
 8. Evaluation/reporting: `benchmark_report.py`, `compare_models_live.py`, `compare_all_models.py`, artifact JSON files, and sync/report helper scripts publish benchmark results.
 
@@ -471,6 +476,8 @@ Environment variables that control generated cases:
 | `LEDGERSHIELD_HOLDOUT_VARIANTS` | 1 | holdout variants per hard case |
 | `LEDGERSHIELD_HOLDOUT_SEED` | 31415 | holdout RNG seed |
 | `LEDGERSHIELD_INCLUDE_TWINS` | false | include benign contrastive twins |
+| `LEDGERSHIELD_TRACK_MODE` | instrumented | use `blind` to hide SPRT, VoI, and reward-machine scaffolding |
+| `LEDGERSHIELD_DEBUG_ARTIFACT_DIR` | empty | optional live-comparison trace directory with certificate and institutional metrics |
 
 Default expansion logic:
 
@@ -885,7 +892,51 @@ Vector layout from code:
 - watchdog suspicion score;
 - calibration running average.
 
-## 19. Reward Shaping
+## 19. Institutional Intelligence Layer
+
+`server/institutional_game.py` turns the environment from purely case-local
+evaluation into a persistent AP-week simulation. Each
+`LedgerShieldEnvironment` instance owns an `InstitutionalMemory` object that is
+not cleared by ordinary case resets. The public memory tracks week id, case
+sequence index, queue depth, review/callback capacity, vendor trust, attacker
+belief over weak controls, fraud loss prevented/released, delay hours,
+manual-review minutes, supplier friction, compliance breaches, unsafe releases,
+false positives, safe releases, and audit-amendment count.
+
+At reset, `institutional_context_for_case()` computes a case-specific context
+from the persistent memory and loaded case pool. `attach_institutional_context()`
+then merges queue, capacity, vendor-trust, and shared-bank information into the
+hidden world's campaign context. At terminal submission,
+`record_institutional_outcome()` updates the AP-week ledger from the simulated
+outcome, trajectory, compliance result, and submitted decision.
+
+The API exposes this layer through `GET /institutional-memory` and
+`POST /institutional-reset`. The observation includes `institutional_memory`.
+Set `LEDGERSHIELD_TRACK_MODE=blind` to hide SPRT, VoI, and reward-machine
+diagnostic scaffolding from observations while preserving hidden grader state.
+
+## 20. Decision Certificate Graphs
+
+`server/decision_certificate.py` adds executable proof-carrying decisions.
+Submissions may include `decision_certificate`, a graph with typed nodes:
+`artifact`, `observation`, `hypothesis`, `policy`, `intervention`, `decision`,
+and `counterfactual`. Supported edge types are `supports`, `contradicts`,
+`requires`, `violates`, and `would_flip`.
+
+The verifier checks graph shape, node/edge schema validity, decision alignment,
+support paths from evidence/interventions to claims and final decision,
+reference grounding, counterfactual/policy/intervention stability, unsupported
+claim rate, contradiction count, and graph minimality. Legacy submissions that
+omit a graph receive an auto-generated diagnostic graph from `evidence_map`,
+`policy_checks`, `reason_codes`, `fraud_flags`, `campaign_signals`,
+interventions, revealed artifacts, and `counterfactual`.
+
+Only agent-authored certificates can affect scoring. A valid, well-supported
+certificate can earn a small auditability bonus; malformed or unsupported
+agent-authored certificates receive a penalty. Synthesized compatibility
+certificates are reported for analysis but do not change legacy-agent scores.
+
+## 21. Reward Shaping
 
 Reward constants in `server/environment.py`:
 
@@ -916,7 +967,7 @@ Step reward combines:
 
 Rewards are clamped to [-1.0, 1.0] per step.
 
-## 20. Grading Rubric
+## 22. Grading Rubric
 
 `server/grading.py` returns a final score clamped to `[0.01, 0.99]`.
 
@@ -929,6 +980,22 @@ Global grading constants:
 - `COMPLIANCE_ADJUSTMENT_WEIGHT = 0.05`;
 - `CURRENCY_ADJUSTMENT_WEIGHT = 0.03`;
 - `TASK_E_LINK_GATE_THRESHOLD = 0.85`.
+
+Additional auditability metrics now appear in every score breakdown:
+
+- `certificate_score`;
+- `certificate_validity_score`;
+- `certificate_support_score`;
+- `certificate_stability_score`;
+- `certificate_minimality_score`;
+- `certificate_unsupported_claim_rate`;
+- `certificate_adjustment`;
+- `institutional_loss_score`.
+
+Agent-authored certificates can receive a small +0.01 auditability bonus or a
+-0.03 malformed/unsupported certificate penalty. Auto-generated compatibility
+certificates are diagnostic only. Institutional loss contributes a small
+run-level adjustment when the outcome includes persistent AP-week metrics.
 
 Task weights:
 
@@ -958,7 +1025,7 @@ Task E gating:
 - A score above 0.85 is blocked unless enough cross-invoice links match.
 - A score above 0.85 is also blocked unless the counterfactual cites enough required document references.
 
-## 21. Trajectory Grading
+## 23. Trajectory Grading
 
 `server/trajectory_grading.py` scores the process.
 
@@ -990,7 +1057,7 @@ Resolution state:
 
 - combines required-action coverage, artifact coverage, readiness, handoff quality, risk-appropriate final decision, pending-event penalties, and outcome bonuses.
 
-## 22. Compliance And Currency
+## 24. Compliance And Currency
 
 `server/compliance_engine.py` models SOX-style AP controls:
 
@@ -1018,7 +1085,7 @@ Compliance scoring checks applicable controls based on task, gold signals, polic
 
 FX table includes USD, EUR, GBP, JPY, CHF, CAD, AUD, INR, CNY, SGD, HKD, KRW, MXN, BRL, ZAR, AED, SAR, THB, SEK, NOK, DKK, NZD, TRY, PLN, and CZK.
 
-## 23. Case Generation And Attack Library
+## 25. Case Generation And Attack Library
 
 `server/attack_library.py` defines 16 attack types.
 
@@ -1066,7 +1133,7 @@ Generated variants randomize bank reference, vendor name, date, invoice number, 
 
 Benign twins clean risky Task D/E cases by clearing vendor history and ledger overrides, cleaning email docs, replacing bank tokens with approved accounts, and setting gold decision to PAY.
 
-## 24. Evidence Graphs
+## 26. Evidence Graphs
 
 `server/evidence_graph.py` defines:
 
@@ -1090,7 +1157,7 @@ Generated scenario types:
 
 The grading layer can use graph state to add evidence-grounding bonus for cited revealed critical nodes.
 
-## 25. Agent Runner: `inference.py`
+## 27. Agent Runner: `inference.py`
 
 `inference.py` is the submission-safe main baseline agent. It also preserves the benchmark stdout contract:
 
@@ -1158,7 +1225,7 @@ Before final submit:
 
 `LocalLedgerShieldEnv` wraps the in-process environment for report generation and tests.
 
-## 26. Task Guardrails
+## 28. Task Guardrails
 
 `task_c_guardrails.py` grounds duplicate/fraud triage:
 
@@ -1190,7 +1257,7 @@ Task C decisions:
 
 Task D suspicious submissions return `ESCALATE_FRAUD`, confidence 0.99, grounded reason codes, policy checks, evidence, and counterfactual. Clean submissions return `PAY`, confidence 0.88, empty reason codes, passing policy checks, constructive evidence, and a counterfactual describing conditions that would have caused HOLD.
 
-## 27. LLM Helpers And Judge
+## 29. LLM Helpers And Judge
 
 `llm_utils.py` provides:
 
@@ -1199,7 +1266,7 @@ Task D suspicious submissions return `ESCALATE_FRAUD`, confidence 0.99, grounded
 
 `llm_judge_grader.py` is an optional LLM-as-judge experiment. It can grade reasoning dimensions and compare agent strengths, using OpenAI-compatible credentials from `API_BASE_URL`, `MODEL_NAME`, `HF_TOKEN`, `OPENAI_API_KEY`, or `API_KEY`.
 
-## 28. Alternate Inference Files
+## 30. Alternate Inference Files
 
 `inference_llm_powered.py` is a richer LLM-first runner used by live comparison. It overlaps heavily with `inference.py` but has:
 
@@ -1213,7 +1280,7 @@ Task D suspicious submissions return `ESCALATE_FRAUD`, confidence 0.99, grounded
 
 `inference_improved.py` is an experimental improved entry point with higher token budget and similar runtime defaults.
 
-## 29. Benchmark Reports And Artifacts
+## 31. Benchmark Reports And Artifacts
 
 `benchmark_report.py` evaluates:
 
@@ -1234,23 +1301,23 @@ Defaults:
 Current `artifacts/benchmark_report_latest.json` summary:
 
 - benchmark: `ledgershield-v3`;
-- generated at: `2026-04-13T07:21:00.275967+00:00`;
-- public mean: 0.9142;
-- holdout mean: 0.7245;
+- generated at: `2026-04-16T09:58:59.221224+00:00`;
+- public mean: 0.9018;
+- holdout mean: 0.7124;
 - contrastive pair count: 4.
 
 Current `artifacts/leaderboard.json` entry:
 
 - model: `ledgershield/deterministic-baseline`;
 - type: `deterministic-policy`;
-- public mean: 0.9142;
+- public mean: 0.9018;
 - public pass-k consistent: 0.8571;
-- holdout mean: 0.7245;
-- holdout pass-k consistent: 0.25;
-- contrastive joint mean: 0.6074;
+- holdout mean: 0.7124;
+- holdout pass-k consistent: 0.2222;
+- contrastive joint mean: 0.61;
 - Task E expert mean: 0.84.
 
-`compare_models_live.py` runs live model comparisons by launching `inference_llm_powered.py` as a subprocess for each model. It parses `[START]`, `[END]`, and API-call lines; writes `live_model_comparison.json`; and stores per-case debug traces under `live_model_comparison_debug/<model>/`.
+`compare_models_live.py` runs live model comparisons by launching `inference_llm_powered.py` as a subprocess for each model. It parses `[START]`, `[END]`, and API-call lines; reads certificate and institutional-loss metrics from per-case debug artifacts; writes `live_model_comparison.json`; and stores traces under `live_model_comparison_debug/<model>/`.
 
 Current `live_model_comparison.json` summary:
 
@@ -1261,12 +1328,16 @@ Current `live_model_comparison.json` summary:
 | `gpt-5.4` | elite | 5.4 | 0.9177 | 0.9524 | 0.5790 | 0.99 | 64 | `CASE-B-002` |
 
 The capability ordering check is monotonic in the saved artifact.
+The saved `live_model_comparison.json` is a historical GPT comparison from
+April 10, 2026 (IST). It predates the certificate and institutional-loss columns;
+rerunning `compare_models_live.py` with the current code will populate those
+audit metrics without changing the comparison workflow.
 
 `compare_all_models.py` is a broader comparison utility over model tiers from GPT-3.5 through GPT-5.4 variants. It requires `OPENAI_API_KEY`, launches `inference_llm_powered.py`, parses final scores/API calls/tokens, estimates cost, prints a ranked table, and writes JSON.
 
 `sync_benchmark_metadata.py` updates synced blocks in README/docs/OpenEnv metadata from current artifacts and runtime defaults.
 
-## 30. Deployment, Packaging, And CI
+## 32. Deployment, Packaging, And CI
 
 `pyproject.toml`:
 
@@ -1320,11 +1391,11 @@ The capability ordering check is monotonic in the saved artifact.
 - extended formalism `ASHTG`;
 - partial observation;
 - finite horizon;
-- novelty list including ASHTG, SPRT, VoI, proper scoring, Stackelberg watchdog, Pearl SCM, reward machines, PAIRED-style PCG, categorical MDP composition, and RL state-vector export;
-- benchmark artifact endpoints `/leaderboard` and `/benchmark-report`;
+- novelty list including ASHTG, SPRT, VoI, proper scoring, Stackelberg watchdog, Pearl SCM, reward machines, PAIRED-style PCG, categorical MDP composition, RL state-vector export, persistent institutional memory, executable decision certificates, and blind/instrumented tracks;
+- benchmark artifact endpoints `/leaderboard`, `/benchmark-report`, `/institutional-memory`, and `/institutional-reset`;
 - deterministic baseline benchmark results.
 
-## 31. Tests
+## 33. Tests
 
 The test suite is broad and currently covers environment behavior, ASHTG modules, grading, guardrails, reporting, inference contracts, and API smoke behavior.
 
@@ -1344,10 +1415,12 @@ Test files:
 | `tests/test_compliance_engine.py` | SOX controls and compliance scoring |
 | `tests/test_currency_engine.py` | FX, IBAN, SWIFT, aging report |
 | `tests/test_curriculum.py` | tier progression, selection, adjustment, summary |
+| `tests/test_decision_certificate.py` | Decision Certificate Graph construction and verifier failures |
 | `tests/test_grading.py` | evidence cap, Task E link gating, currency penalty, graph context |
 | `tests/test_inference_contract.py` | stdout format, case coverage, repair behavior, Task E sanitization |
 | `tests/test_inference_llm_powered.py` | email OCR derivation, heuristics, candidates, planning, profiles |
 | `tests/test_inference_runtime.py` | runtime helper regressions and capability profiles |
+| `tests/test_institutional_game.py` | persistent AP-week memory, loss ledger, attacker belief updates |
 | `tests/test_information_design.py` | discriminative tool prioritization |
 | `tests/test_ledgershield_env.py` | reset/step, hidden state protection, tools, artifacts, pressure, scoring, truncation |
 | `tests/test_proper_scoring.py` | normalization, Brier/log/penalized scoring, truthfulness, implied probabilities |
@@ -1369,7 +1442,7 @@ Root-level helper tests/scripts:
 - `validate_agent_grading.py`: validates score separation;
 - `validate-submission.sh`: end-to-end submission validator.
 
-## 32. File-By-File Inventory
+## 34. File-By-File Inventory
 
 ### Root project files
 
@@ -1428,11 +1501,13 @@ Root-level helper tests/scripts:
 | `server/currency_engine.py` | FX, IBAN, SWIFT, mismatch, aging report |
 | `server/curriculum.py` | adaptive difficulty tiers and case selection |
 | `server/data_loader.py` | fixture loading, indexing, generated suite injection |
+| `server/decision_certificate.py` | Decision Certificate Graph builder/verifier |
 | `server/dual_agent_mode.py` | Stackelberg watchdog and dual-agent scoring |
 | `server/environment.py` | main environment reset/step/reward/grading loop |
 | `server/evidence_graph.py` | latent evidence graph and scenario generation |
 | `server/grading.py` | task rubrics and final score calculation |
 | `server/information_design.py` | Markov persuasion/signaling policy |
+| `server/institutional_game.py` | persistent AP-week memory and institutional loss ledger |
 | `server/outcome_simulator.py` | downstream payment outcome simulation |
 | `server/pressure_events.py` | mid-episode pressure events |
 | `server/proper_scoring.py` | proper probability scoring |
@@ -1472,7 +1547,7 @@ Root-level helper tests/scripts:
 | `live_model_comparison_debug/<model>/CASE-*.json` | per-case traces for model sweeps |
 | `live_model_comparison_debug/single_case_check*/CASE-B-005.json` | focused single-case debug traces |
 
-## 33. Current Folder Structure
+## 35. Current Folder Structure
 
 The structure below reflects the current working tree, excluding `.git` internals and Python/cache internals from expansion. `docs/project-deep-dive.md` is tracked but deleted, so it is called out above rather than shown as an existing file here.
 
@@ -1613,6 +1688,7 @@ Meta-s-LedgerShield/
 │   ├── currency_engine.py
 │   ├── curriculum.py
 │   ├── data_loader.py
+│   ├── decision_certificate.py
 │   ├── dual_agent_mode.py
 │   ├── environment.py
 │   ├── evidence_graph.py
@@ -1627,6 +1703,7 @@ Meta-s-LedgerShield/
 │   │   └── vendors.json
 │   ├── grading.py
 │   ├── information_design.py
+│   ├── institutional_game.py
 │   ├── outcome_simulator.py
 │   ├── pressure_events.py
 │   ├── proper_scoring.py
@@ -1661,10 +1738,12 @@ Meta-s-LedgerShield/
 │   ├── test_compliance_engine.py
 │   ├── test_currency_engine.py
 │   ├── test_curriculum.py
+│   ├── test_decision_certificate.py
 │   ├── test_grading.py
 │   ├── test_inference_contract.py
 │   ├── test_inference_llm_powered.py
 │   ├── test_inference_runtime.py
+│   ├── test_institutional_game.py
 │   ├── test_information_design.py
 │   ├── test_ledgershield_env.py
 │   ├── test_proper_scoring.py

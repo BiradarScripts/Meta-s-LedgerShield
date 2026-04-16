@@ -33,6 +33,7 @@ from ledgershield_env import LedgerShieldAction, LedgerShieldEnv
 
 from inference import build_task_e_submission as grounded_task_e_submission
 from llm_utils import create_json_chat_completion, parse_json_dict
+from server.decision_certificate import build_decision_certificate
 from server.proper_scoring import implied_probabilities_from_decision
 from server.schema import canonical_reason_codes
 from task_c_guardrails import grounded_task_c_submission, sanitize_task_c_submission, validate_task_c_submission
@@ -584,8 +585,12 @@ def update_collected_from_observation(collected: dict[str, Any], observation: An
     pending_events = list(getattr(observation, "pending_events", []) or [])
     case_metadata = getattr(observation, "case_metadata", {}) or {}
     risk_snapshot = getattr(observation, "risk_snapshot", {}) or {}
+    institutional_memory = getattr(observation, "institutional_memory", {}) or {}
+    portfolio_context = getattr(observation, "portfolio_context", {}) or {}
 
     collected["case_metadata"] = dict(case_metadata)
+    collected["portfolio_context"] = dict(portfolio_context)
+    collected["institutional_memory"] = dict(institutional_memory)
     collected["pending_events"] = pending_events
     collected["observed_risk_signals"] = list(risk_snapshot.get("observed_signals", []) or [])
 
@@ -1353,6 +1358,39 @@ def attach_predicted_probabilities(submission: dict[str, Any]) -> dict[str, Any]
         float(enriched.get("confidence", 0.5) or 0.5),
     )
     return enriched
+
+
+def attach_decision_certificate(submission: dict[str, Any], collected: dict[str, Any] | None = None) -> dict[str, Any]:
+    enriched = dict(submission)
+    if isinstance(enriched.get("decision_certificate"), dict) and enriched["decision_certificate"]:
+        return enriched
+    collected = collected or {}
+    final_state = {
+        "revealed_artifacts": list((collected.get("revealed_artifacts") or {}).values()),
+        "revealed_artifact_ids": list((collected.get("revealed_artifacts") or {}).keys()),
+        "portfolio_context": dict(collected.get("portfolio_context", {}) or {}),
+        "institutional_memory": dict(collected.get("institutional_memory", {}) or {}),
+    }
+    case_context = {
+        "case_id": collected.get("case_id"),
+        "task_type": collected.get("task_type"),
+        "case_snapshot": {
+            "case_id": collected.get("case_id"),
+            "task_type": collected.get("task_type"),
+        },
+    }
+    enriched["decision_certificate"] = build_decision_certificate(
+        enriched,
+        trajectory=list(collected.get("action_trace", []) or []),
+        final_state=final_state,
+        case_context=case_context,
+        auto_generated=True,
+    )
+    return enriched
+
+
+def prepare_submission(submission: dict[str, Any], collected: dict[str, Any] | None = None) -> dict[str, Any]:
+    return attach_decision_certificate(attach_predicted_probabilities(submission), collected)
 
 
 def update_collected_from_tool_result(
@@ -2123,6 +2161,8 @@ def run_episode(env_url: str, case_id: str, client: Optional[OpenAI]) -> dict[st
         step_no = 1
 
         collected: dict[str, Any] = {
+            "case_id": case_id,
+            "task_type": task_type,
             "invoice_doc_id": "", "invoice_tokens": [], "invoice_fields": {},
             "invoice_evidence": {}, "invoice_line_items": [], "invoice_line_tokens": [],
             "invoice_records": [], "email_doc_id": "", "email_tokens": [],
@@ -2136,6 +2176,9 @@ def run_episode(env_url: str, case_id: str, client: Optional[OpenAI]) -> dict[st
             "tool_failures": {},
             "case_instruction": str(getattr(observation, "instruction", "") or ""),
             "case_metadata": dict(getattr(observation, "case_metadata", {}) or {}),
+            "portfolio_context": dict(getattr(observation, "portfolio_context", {}) or {}),
+            "institutional_memory": dict(getattr(observation, "institutional_memory", {}) or {}),
+            "action_trace": action_trace,
         }
         update_collected_from_observation(collected, observation)
         executed_signatures: set[str] = set()
@@ -2215,7 +2258,7 @@ def run_episode(env_url: str, case_id: str, client: Optional[OpenAI]) -> dict[st
             if zoom_result.done:
                 final_score = float(zoom_result.info.get("final_score", rewards[-1] if rewards else 0.0))
                 success = final_score >= SUCCESS_SCORE_THRESHOLD
-            submit_payload = attach_predicted_probabilities(build_final_submission(task_type, collected, client))
+            submit_payload = prepare_submission(build_final_submission(task_type, collected, client), collected)
             final_submission = dict(submit_payload)
             final_result, step_no = perform_step(
                 env, step_no, rewards,
@@ -2365,8 +2408,9 @@ def run_episode(env_url: str, case_id: str, client: Optional[OpenAI]) -> dict[st
         if execute_action_batch(planned_investigation):
             return {"case_id": case_id, "task_type": task_type, "score": final_score, "steps": steps_taken}
 
-        submit_payload = attach_predicted_probabilities(
-            repair_submission(task_type, build_final_submission(task_type, collected, client), collected)
+        submit_payload = prepare_submission(
+            repair_submission(task_type, build_final_submission(task_type, collected, client), collected),
+            collected,
         )
         final_submission = dict(submit_payload)
 
@@ -2399,8 +2443,9 @@ def run_episode(env_url: str, case_id: str, client: Optional[OpenAI]) -> dict[st
         if drain_pending_artifacts():
             return {"case_id": case_id, "task_type": task_type, "score": final_score, "steps": steps_taken}
 
-        submit_payload = attach_predicted_probabilities(
-            repair_submission(task_type, build_final_submission(task_type, collected, client), collected)
+        submit_payload = prepare_submission(
+            repair_submission(task_type, build_final_submission(task_type, collected, client), collected),
+            collected,
         )
         final_submission = dict(submit_payload)
 
@@ -2441,6 +2486,9 @@ def run_episode(env_url: str, case_id: str, client: Optional[OpenAI]) -> dict[st
                 "final_tool_result": final_tool_result,
                 "final_info": final_info,
                 "score_breakdown": dict(final_info.get("score_breakdown", {}) or {}),
+                "decision_certificate_report": dict(final_info.get("decision_certificate_report", {}) or {}),
+                "institutional_metrics": dict(final_info.get("institutional_metrics", {}) or {}),
+                "institutional_memory": dict(final_info.get("institutional_memory", {}) or {}),
                 "outcome": dict(final_info.get("outcome", {}) or {}),
                 "system_state": dict(final_info.get("system_state", {}) or {}),
                 "pressure_resistance_score": float(final_info.get("pressure_resistance_score", 0.0) or 0.0),

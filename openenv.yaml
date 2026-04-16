@@ -36,6 +36,9 @@ metadata:
     - paired-regret-guided-adversarial-pcg
     - categorical-mdp-pushout-composition
     - decision-transformer-rl-state-vector-export
+    - persistent-institutional-memory-and-loss-ledger
+    - executable-decision-certificate-graphs
+    - blind-vs-instrumented-evaluation-tracks
   ashtg_formalism:
     description: >
       LedgerShield formalizes fraud investigation as an Adversarial Sequential
@@ -60,6 +63,8 @@ metadata:
       categorical_composition: server/categorical_composition.py
       rl_export: server/rl_export.py
       stackelberg_watchdog: server/dual_agent_mode.py
+      institutional_memory: server/institutional_game.py
+      decision_certificate_verifier: server/decision_certificate.py
   task_families: 5
   curated_benchmark_cases: 21
   attack_types: 16
@@ -68,14 +73,16 @@ metadata:
   benchmark_artifacts:
     leaderboard_endpoint: /leaderboard
     report_endpoint: /benchmark-report
+    institutional_memory_endpoint: /institutional-memory
+    institutional_reset_endpoint: /institutional-reset
   benchmark_results:
     deterministic_baseline:
       model: ledgershield/deterministic-baseline
       type: deterministic-policy
       temperature: 0.0
       pass_k: 1
-      public_mean: 0.9142
-      holdout_mean: 0.7245
-      holdout_pass_k_consistent: 0.2500
+      public_mean: 0.9018
+      holdout_mean: 0.7124
+      holdout_pass_k_consistent: 0.2222
       task_e_expert_mean: 0.8400
       provenance: generated-from-benchmark-report
