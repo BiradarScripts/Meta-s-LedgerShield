@@ -12,7 +12,7 @@ Unlike traditional fraud detection benchmarks that focus on classification accur
 
 ## Alignment with Round 2 Theme
 
-LedgerShield v2 directly addresses the **"AI Safety Benchmarks"** theme by shifting the focus from narrow signal classification to robust operational safety. The benchmark embodies safety through transparency: agents work in blind mode by default (preventing overfitting to evaluator internals), results are broken down into explicit safety classes (valid success, policy incomplete, unsafe release), and headline metrics prioritize institutional utility and unsafe release rates alongside accuracy.
+LedgerShield v2 directly addresses the **"World Modeling — Professional Tasks"** theme (with Long-Horizon Planning & Instruction Following as secondary theme) by shifting the focus from narrow signal classification to robust operational safety. The benchmark embodies safety through transparency: agents work in blind mode by default (preventing overfitting to evaluator internals), results are broken down into explicit safety classes (valid success, policy incomplete, unsafe release), and headline metrics prioritize institutional utility and unsafe release rates alongside accuracy.
 
 ## Why the Environment is Hard
 

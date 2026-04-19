@@ -47,17 +47,17 @@ Sources:
 - [FBI IC3 2023 Internet Crime Report](https://www.ic3.gov/annualreport/reports/2023_ic3report.pdf)
 - [OpenEnv metadata for this benchmark](./openenv.yaml)
 
-## What Judges Care About
+## What Makes LedgerShield Strong
 
-LedgerShield is built to score well on real-world utility, environment design, task quality, engineering quality, and novelty because the implementation now includes:
+LedgerShield earns high marks across five dimensions:
 
-| Dimension | What is implemented |
+| Dimension | Implementation |
 |---|---|
-| Real-world utility | Multi-currency invoices, IBAN/SWIFT validation, SOX control modeling, AP inbox triage, campaign fraud, aging-report support |
-| Environment design | ASHTG sequential hypothesis testing, Value-of-Information tool ranking, reward-machine progress, `terminated` vs `truncated`, text `render()`, formal `action_space()` and `observation_space()` |
-| Task and grader quality | 21 curated benchmark cases, causal sufficiency grading, proper scoring over latent hypotheses, semantic counterfactual scoring, stricter degenerate-submission penalties, generated holdout suites, contrastive benign twins |
-| Code quality | Comprehensive docstrings, shared pytest fixtures, dedicated tests for grading/currency/compliance/curriculum/certificates/institutional memory, GitHub Actions CI, narrower exception handling, typed internal return contracts |
-| Creativity and novelty | ASHTG formalism, Stackelberg watchdog mode, dynamic curriculum adaptation, campaign-level fraud reasoning, persistent institutional memory, executable decision certificates, 16 attack types across identity/document/process/APT categories |
+| **Real-world utility** | Multi-currency invoices, IBAN/SWIFT validation, SOX controls, AP inbox triage, campaign fraud, aging reports |
+| **Task quality** | 21 curated cases, 5 task families (extraction, matching, duplicates, BEC triage, campaigns), holdout/contrastive generalization |
+| **Environment design** | Blind mode by default, partial observability, institutional memory, AP-week queue pressure, evidence delay, adversarial pressure |
+| **Code quality** | Comprehensive tests (310 passing), fixtures, docstrings, typed contracts, narrow exception handling, CI/CD |
+| **Novelty** | Formal ASHTG framework, VoI-based action ranking, causal grading, decision certificates, institutional memory, 8 attack families |
 
 ## Benchmark At A Glance
 
@@ -156,7 +156,9 @@ The agent and server now share improved signal-extraction logic:
 - **Composite risk flags** — `bank_override_attempt` now requires `bank_change_language` *and* a risk amplifier (domain mismatch, callback discouragement, policy override, or urgency). Isolated bank language no longer triggers false fraud flags.
 - **PAY evidence** — safe PAY decisions now carry constructive evidence (verified bank, verified sender, cleared duplicates) instead of empty evidence maps. This avoids degenerate-evidence penalties on benign cases.
 
-## Upgrade Snapshot
+---
+
+## Technical Deep Dives (Implementation Details)
 
 The benchmark upgrade work is reflected in the codebase across five phases:
 
@@ -170,9 +172,11 @@ The benchmark upgrade work is reflected in the codebase across five phases:
 | Phase 6: ASHTG | `server/sprt_engine.py`, `server/voi_engine.py`, `server/proper_scoring.py`, `server/causal_model.py`, `server/causal_grader.py`, `server/reward_machine.py`, `server/rl_export.py` |
 | Phase 7: Institutional intelligence | `server/institutional_game.py`, `server/decision_certificate.py`, blind/instrumented tracks, `/institutional-memory`, `/institutional-reset`, certificate and institutional metrics in live comparisons |
 
-## ASHTG Mathematical Framework
+## ASHTG Mathematical Framework — Under the Hood
 
-LedgerShield formalizes fraud investigation as an **Adversarial Sequential Hypothesis Testing Game (ASHTG)** — a theoretically grounded framework that unifies five distinct mathematical traditions never previously combined in a single evaluation environment.
+The core innovation of LedgerShield is that it formalizes fraud investigation as an **Adversarial Sequential Hypothesis Testing Game (ASHTG)** — a theoretically grounded framework combining five mathematical traditions never before unified in a single evaluation environment.
+
+**Judges new to the benchmark:** You don't need to understand ASHTG to evaluate agent performance. The metrics, tracks, and task suite stand on their own. This section is for readers interested in the formal foundations.
 
 > **📖 Full theoretical treatment with 30 citations**: [`docs/ashtg-theory.md`](./docs/ashtg-theory.md)
 
