@@ -1,8 +1,8 @@
 # PLAN A: Final Deliverables Checklist
 
-**Plan A Status:** 9/10 complete (A0–A7 ✅ | A8 ⏳ pending manual HF publish | A9 ✅ verified)  
+**Plan A Status:** 9/10 complete (A0–A7 ✅ | A8 ⏳ pending manual HF publish | A9 ✅ verified) — **10/10 when A8 complete after HF URL insertion**  
 **Date:** April 20, 2026  
-**Last Updated:** Closure pass complete (verification evidence recorded)
+**Last Updated:** Closure pass complete (verification evidence recorded) — awaiting HF URL
 
 ---
 
@@ -258,12 +258,10 @@ Plan A is the pre-onsite implementation plan to make LedgerShield v2 fully submi
    - Tag: benchmarking, ai-safety, fraud-detection, agents, enterprise-ai
    - After publishing, update this document with final public link
 
-2. **Final commit** after A8 is published:
-   ```bash
-   git add docs/PLAN_A_FINAL_DELIVERABLES.md
-   git commit -m "Finalize Plan A: benchmark artifacts, docs, demo assets, and submission handoff"
-   git push origin main
-   ```
+2. **Final commit** after A8 publication (to be done after you provide the HF URL):
+   - Update this document with final HF blog URL
+   - Mark A8 complete
+   - Push final commit to main
 
 3. **Prepare for onsite training** (Plan B—post-Round 2 submission):
    - Onsite training notebook (compute-intensive, ~8 hours)

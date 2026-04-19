@@ -7,7 +7,7 @@
 
 ## Executive Summary
 
-The repository passes fresh-machine reproducibility testing via Docker. The server starts successfully, all 5 API endpoints respond correctly, and the Docker build completes cleanly. Local venv installation encountered a hatchling build-system issue (non-blocking, known limitation of the build tooling). Docker-based testing is the appropriate path for production validation.
+The repository passes fresh-machine reproducibility testing via Docker. The server starts successfully, 9 API endpoints respond correctly (including OpenEnv standard endpoints), and the Docker build completes cleanly. Local venv installation encountered a hatchling build-system issue (non-blocking, known limitation of the build tooling). Docker-based testing is the appropriate path for production validation.
 
 ---
 
