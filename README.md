@@ -467,10 +467,15 @@ For the full file-by-file map, see [`docs/development.md`](./docs/development.md
 - Patch-level fixes applied: correct `DEGENERATE_EVIDENCE_CAP` in grading, composite bank-override signal, domain-alignment token overlap, constructive PAY evidence in guardrails.
 - The agent (`inference.py`) now uses `ModelCapabilityProfile` tiers (elite/strong/standard) that adapt planning mode, repair level, and budget bonuses.
 - `compare_models_live.py` records per-model capability profiles and includes monotonic strength ordering checks.
-- The repo includes 21 curated benchmark cases and generated challenge/holdout tooling.
-- CI is present via GitHub Actions with pytest config now in `pyproject.toml`.
+- The repo includes 21 curated benchmark cases (now with audited track assignment and latent mechanism metadata) and generated challenge/holdout tooling.
+- CI is present via GitHub Actions with pytest config now in `pyproject.toml` (310 tests passing).
 - The test suite includes API smoke, grading, environment, inference, inference-runtime, compliance, currency, curriculum, and guardrail coverage.
 - The environment remains submission-compatible through `inference.py`.
+- **Round 2 Finalization (Latest):**
+  - All 8 frozen artifacts regenerated with expanded portfolio (5 sequences, up from 2)
+  - All 21 cases audited and enhanced with `primary_track`, `official_tracks`, and `latent_mechanism` fields
+  - Server endpoints validated: `/health`, `/leaderboard`, `/benchmark-report` return correct JSON
+  - TRL SFT training notebook created (`training/LedgerShield_v2_TRL_SFT_Training.ipynb`) with full Colab compatibility
 
 ## Safety Note
 

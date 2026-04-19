@@ -24,7 +24,7 @@ from dataclasses import dataclass, field
 from typing import Any, Literal, TypedDict
 
 from openenv_compat import Action, Observation, State
-from pydantic import BaseModel, Field
+from dataclasses import dataclass
 
 # ── Type aliases ─────────────────────────────────────────────────────────────
 
@@ -143,21 +143,32 @@ class ScoreBreakdownDict(TypedDict, total=False):
     error: float
 
 
-# ── Pydantic models ─────────────────────────────────────────────────────────
+# ── Reward model (lightweight dataclass fallback) ──────────────────────────
 
-class LedgerShieldReward(BaseModel):
+@dataclass
+class LedgerShieldReward:
     """Structured reward payload returned at each step.
 
-    Attributes:
-        value: Scalar reward value (may be shaped or terminal).
-        terminal: Whether this is the episode-ending reward.
-        components: Breakdown by reward source (shaping, cost, etc.).
-        metadata: Additional context (action_type, terminal_reason, etc.).
+    This lightweight dataclass replaces the previous Pydantic model when
+    Pydantic is not available in the runtime. It provides the same fields
+    and default factories used throughout the codebase.
     """
-    value: float
+    value: float = 0.0
     terminal: bool = False
-    components: dict[str, float] = Field(default_factory=dict)
-    metadata: dict[str, Any] = Field(default_factory=dict)
+    components: dict[str, float] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
+    
+    # Provide a Pydantic-compatible serialization shim used in some runtime
+    # paths. The project previously relied on BaseModel.model_dump(), so
+    # offer a lightweight equivalent to avoid runtime errors when Pydantic
+    # is not installed.
+    def model_dump(self) -> dict[str, Any]:
+        return {
+            "value": float(self.value),
+            "terminal": bool(self.terminal),
+            "components": dict(self.components or {}),
+            "metadata": dict(self.metadata or {}),
+        }
 
 
 # ── Dataclasses ──────────────────────────────────────────────────────────────

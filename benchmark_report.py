@@ -210,6 +210,9 @@ def _evaluate_portfolio_sequences(
     portfolio_sequences = [
         ["CASE-D-002", "CASE-C-001", "CASE-D-001", "CASE-E-001"],
         ["CASE-B-003", "CASE-D-006", "CASE-D-003", "CASE-E-002"],
+        ["CASE-A-001", "CASE-B-001", "CASE-C-001", "CASE-D-001"],  # Baseline: first cases from each family
+        ["CASE-A-004", "CASE-B-005", "CASE-C-004", "CASE-D-006"],  # High difficulty: challenging cases
+        ["CASE-D-004", "CASE-D-005", "CASE-E-001", "CASE-E-002"],  # Portfolio pressure focus
     ]
     available = {str(case.get("case_id")): case for case in base_db.get("cases", []) if case.get("case_id")}
     sequence_reports: list[dict[str, Any]] = []

@@ -84,6 +84,10 @@ metadata:
     report_endpoint: /benchmark-report
     institutional_memory_endpoint: /institutional-memory
     institutional_reset_endpoint: /institutional-reset
+    artifacts_dir: ./artifacts/
+    portfolio_sequences: 5
+    artifact_count: 8
+    test_coverage: 310
   headline_metrics:
     - control_satisfied_resolution
     - institutional_utility

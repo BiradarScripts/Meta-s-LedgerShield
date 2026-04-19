@@ -63,7 +63,11 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", DeprecationWarning)
-    from openai import OpenAI
+    # Defer importing the OpenAI runtime until a client is actually needed.
+    # Some runtime images (demo machines) intentionally do not install the
+    # `openai` package; importing it at module load prevents running the
+    # deterministic baseline or artifact generator. Import the compatibility
+    # environment shim (ledgershield_env) unconditionally.
     from ledgershield_env import LedgerShieldAction, LedgerShieldEnv
 
 from openenv_compat import StepResult
@@ -2976,13 +2980,36 @@ def run_episode(
     )
 
 
-def build_openai_client() -> Optional[OpenAI]:
+def build_openai_client() -> Optional[Any]:
+    """Create and return an OpenAI client if available and configured.
+
+    This function defers importing the `openai` package until runtime so the
+    rest of the codebase (artifact generation, deterministic baseline) can run
+    in environments where the package is not installed. If HF_TOKEN is not set
+    or the import fails, return None to signal a heuristic-only baseline.
+    """
     if not HF_TOKEN:
         trace("[DEBUG] HF_TOKEN not set; running heuristic-only baseline.")
         return None
 
     try:
-        return OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
+        # Import lazily so environments without the package don't fail at module import
+        import openai as _openai  # type: ignore
+
+        # Newer OpenAI client exposes an OpenAI class; older wrappers may expose
+        # different factories. Try common entrypoints, but it's non-fatal if we
+        # cannot instantiate — fall back to None.
+        ClientCls = getattr(_openai, "OpenAI", None) or getattr(_openai, "Client", None)
+        if ClientCls is None:
+            # Some environments use a module-level convenience client; try to
+            # construct a simple adapter if possible.
+            try:
+                return _openai.OpenAI(api_key=HF_TOKEN)  # type: ignore
+            except Exception:
+                trace("[DEBUG] openai module present but no compatible client class found.")
+                return None
+
+        return ClientCls(base_url=API_BASE_URL, api_key=HF_TOKEN)
     except Exception as exc:  # noqa: BLE001
         trace(f"[DEBUG] failed to initialize OpenAI client: {exc}")
         return None

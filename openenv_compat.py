@@ -7,9 +7,10 @@ try:  # pragma: no cover - used when openenv-core is installed
     from openenv.core import EnvClient, StepResult
     from openenv.core.env_server import Action, Environment, Observation, State, create_fastapi_app
 except (ImportError, ModuleNotFoundError):  # pragma: no cover - local fallback
-    import httpx
-    from fastapi import Body, FastAPI
-    from pydantic import BaseModel
+    # Defer importing optional runtime dependencies (httpx, fastapi, pydantic)
+    # until they are actually needed. This makes it possible to run offline
+    # artifact generation and tests in minimal environments without installing
+    # the full web stack.
 
     @dataclass
     class Action:
@@ -51,7 +52,12 @@ except (ImportError, ModuleNotFoundError):  # pragma: no cover - local fallback
             self.base_url = base_url.rstrip("/")
             self._client: Optional[httpx.Client] = None
 
-        def _ensure_client(self) -> httpx.Client:
+        def _ensure_client(self) -> "httpx.Client":
+            # Import httpx lazily to avoid hard dependency at module import time.
+            try:
+                import httpx
+            except Exception as exc:  # pragma: no cover - defensive
+                raise RuntimeError("httpx is required for EnvClient network operations") from exc
             if self._client is None:
                 self._client = httpx.Client(base_url=self.base_url, timeout=30.0)
             return self._client
@@ -109,18 +115,18 @@ except (ImportError, ModuleNotFoundError):  # pragma: no cover - local fallback
         def _parse_state(self, payload: dict[str, Any]) -> StateT:
             raise NotImplementedError
 
-    class _ResetRequest(BaseModel):
-        seed: int | None = None
-        case_id: str | None = None
-        track: str | None = None
-
     def _serialize(value: Any) -> Any:
         if is_dataclass(value):
             return asdict(value)
         return value
 
-    def create_fastapi_app(env: Any, action_cls: Any, observation_cls: Any) -> FastAPI:
-        del observation_cls
+    def create_fastapi_app(env: Any, action_cls: Any, observation_cls: Any) -> "FastAPI":
+        # Import FastAPI and Pydantic lazily so the module can be imported in
+        # lightweight environments where the web stack isn't installed.
+        try:
+            from fastapi import FastAPI
+        except Exception as exc:  # pragma: no cover - defensive
+            raise RuntimeError("fastapi and pydantic are required to create the server app") from exc
 
         app = FastAPI(title="LedgerShield OpenEnv", version="0.3.0")
 
@@ -136,10 +142,10 @@ except (ImportError, ModuleNotFoundError):  # pragma: no cover - local fallback
             return {"status": "ok"}
 
         @app.post("/reset")
-        def reset(request: _ResetRequest | None = Body(default=None)) -> dict[str, Any]:
-            seed = request.seed if request is not None else None
-            case_id = request.case_id if request is not None else None
-            track = request.track if request is not None else None
+        def reset(request: dict[str, Any]) -> dict[str, Any]:
+            seed = request.get("seed") if request else None
+            case_id = request.get("case_id") if request else None
+            track = request.get("track") if request else None
             obs = env.reset(seed=seed, case_id=case_id, track=track)
 
             if hasattr(env, "result_payload"):
