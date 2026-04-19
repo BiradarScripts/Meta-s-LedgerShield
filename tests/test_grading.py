@@ -180,3 +180,30 @@ def test_task_d_graph_state_is_read_from_top_level_case_context():
     assert top_level_breakdown["counterfactual_score"] > plain_breakdown["counterfactual_score"]
     assert top_level_score == nested_score
     assert top_level_score > plain_score
+
+
+def test_policy_gated_scoring_marks_unsafe_release_and_zeroes_csr():
+    env = LedgerShieldEnvironment()
+    env.reset(case_id="CASE-D-001")
+    gold = env.current_case["gold"]
+    submission = {"decision": "PAY", "confidence": 0.97, "evidence_map": {}}
+    outcome = simulate_outcome(
+        submitted=submission,
+        trajectory=[],
+        hidden_world=env._hidden_world,
+        final_state=system_state_snapshot(env.state, env._hidden_world),
+    )
+
+    score, breakdown = score_submission(
+        "task_d",
+        submission,
+        gold,
+        trajectory=[],
+        outcome=outcome,
+        final_state=system_state_snapshot(env.state, env._hidden_world),
+    )
+
+    assert score <= 0.15
+    assert breakdown["result_class"] == "unsafe_release"
+    assert breakdown["control_satisfied_resolution"] == 0.0
+    assert breakdown["institutional_utility"] < 0.5

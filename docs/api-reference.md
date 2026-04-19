@@ -302,7 +302,7 @@ The observation returned by `/reset` and `/step` includes:
 | `messages` | list[string] | user-facing environment messages |
 | `allowed_actions` | list[string] | investigation + intervention + final action names |
 | `available_interventions` | list[string] | intervention subset |
-| `case_metadata` | object | task label and due-date info |
+| `case_metadata` | object | task label, due-date info, benchmark track, and track mode |
 | `portfolio_context` | object | cross-invoice/campaign context when relevant |
 | `institutional_memory` | object | public AP-week memory and cumulative loss state |
 | `sprt_state` | object | present in instrumented mode, hidden in blind mode |

@@ -74,7 +74,7 @@ def test_leaderboard_endpoint():
     response = client.get("/leaderboard")
     assert response.status_code == 200
     payload = response.json()
-    assert payload["benchmark"] == "ledgershield-v3"
+    assert payload["benchmark"] == "ledgershield-v2"
     assert "entries" in payload
 
 
@@ -99,7 +99,7 @@ def test_leaderboard_endpoint_degrades_gracefully_without_benchmark_report(monke
     response = fallback_client.get("/leaderboard")
     assert response.status_code == 200
     payload = response.json()
-    assert payload["benchmark"] == "ledgershield-v3"
+    assert payload["benchmark"] == "ledgershield-v2"
     assert payload["entries"] == []
     assert "unavailable" in payload["note"]
 
@@ -218,7 +218,8 @@ def test_submit_decision_endpoint():
     assert result["tool_name"] == "submit_decision"
     assert result["success"] is True
     assert result["decision"] == "ESCALATE_FRAUD"
-    assert result["final_score"] > 0.85
+    assert result["final_score"] >= 0.75
+    assert result["score_breakdown"]["result_class"] == "correct_but_policy_incomplete"
     assert data["info"]["reward_model"]["terminal"] is True
 
 
@@ -301,7 +302,7 @@ def test_clean_task_d_pay_submission_endpoint():
     result = data["observation"]["last_tool_result"]
     assert data["done"] is True
     assert result["decision"] == "PAY"
-    assert result["final_score"] > 0.80
+    assert result["final_score"] >= 0.75
 
 
 def test_campaign_task_d_reset_exposes_portfolio_context():

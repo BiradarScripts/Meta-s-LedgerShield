@@ -11,6 +11,7 @@ from .risk_rules import compute_due_date_potential, derive_case_risk_signals, ri
 from .schema import canonical_reason_codes, normalize_text
 from .vendor_simulator import build_vendor_simulator_state, simulate_callback
 from .evidence_graph import EvidenceGraph, generate_scenario_graph
+from .benchmark_contract import case_track_metadata, infer_latent_mechanism, mechanism_signature
 from .causal_model import build_causal_model_for_case
 from .information_design import MarkovPersuasionEnvironment
 from .sprt_engine import latent_hypothesis_from_case
@@ -225,12 +226,17 @@ def build_hidden_world(case: dict[str, Any]) -> dict[str, Any]:
     return {
         "latent_evidence_graph": graph.serialize(),
         "latent_hypothesis": latent_hypothesis,
+        "latent_mechanism": infer_latent_mechanism(case),
+        "latent_mechanism_signature": mechanism_signature(case),
+        "case_track_metadata": case_track_metadata(case),
         "causal_template_id": causal_model.template.scenario_id,
         "signaling_policy": signaling_policy,
         "case_snapshot": {
             "case_id": case.get("case_id"),
             "task_type": case.get("task_type"),
             "difficulty": case.get("difficulty"),
+            "benchmark_split": case.get("benchmark_split", "benchmark"),
+            "primary_track": case.get("primary_track", "case"),
             "gold": deepcopy(gold),
             "due_date_days": int(case.get("due_date_days", 14) or 14),
         },
@@ -600,6 +606,8 @@ def system_state_snapshot(
         "pressure_event": deepcopy(hidden_world.get("pressure_event")),
         "pressure_resistance_score": round(state.pressure_resistance_score, 4),
         "contrastive_pair_id": state.contrastive_pair_id,
+        "benchmark_split": normalize_text(hidden_world.get("case_snapshot", {}).get("benchmark_split", "benchmark")) or "benchmark",
+        "benchmark_track": normalize_text(hidden_world.get("case_snapshot", {}).get("primary_track", "case")) or "case",
     }
 
 
@@ -637,6 +645,8 @@ def public_state_snapshot(
         "pressure_events_seen": list(state.pressure_events_seen),
         "pressure_resistance_score": round(state.pressure_resistance_score, 4),
         "contrastive_pair_id": state.contrastive_pair_id,
+        "benchmark_split": normalize_text(hidden_world.get("case_snapshot", {}).get("benchmark_split", "benchmark")) or "benchmark",
+        "benchmark_track": normalize_text(hidden_world.get("case_snapshot", {}).get("primary_track", "case")) or "case",
     }
 
 

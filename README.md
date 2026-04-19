@@ -22,11 +22,21 @@ tags:
 [![CI](https://img.shields.io/badge/ci-github_actions-success.svg)](./.github/workflows/ci.yml)
 [![OpenEnv](https://img.shields.io/badge/OpenEnv-compatible-green.svg)](./openenv.yaml)
 
-LedgerShield is a stateful, adversarial benchmark for AI agents operating inside enterprise accounts-payable workflows. Instead of asking a model to classify one document, LedgerShield asks it to investigate, unlock hidden evidence, choose controls, withstand pressure, and submit a proof-carrying decision under budget and step limits.
+LedgerShield v2 is a verified benchmark for **institutional control intelligence** in enterprise accounts-payable workflows. It is designed for the Round 2 framing of **World Modeling / Professional Tasks**, with **Long-Horizon Planning & Instruction Following** as the secondary theme.
 
-LedgerShield now formalizes that loop as an **Adversarial Sequential Hypothesis Testing Game (ASHTG)** and extends it into an institutional-intelligence benchmark. The benchmark exposes a sequential hypothesis-testing layer, Value-of-Information tool ranking, proper probability scoring, causal sufficiency grading, a Stackelberg-style watchdog audit policy, persistent AP-week memory, institutional loss accounting, and machine-verifiable decision certificates on top of the existing AP workflow simulation.
+Instead of asking an agent to classify one invoice, LedgerShield asks it to operate a defensible enterprise control regime: investigate, apply controls, absorb delayed evidence, manage AP-week capacity, withstand adversarial pressure, and submit an auditable decision that can be checked against hidden backend state.
+
+The environment keeps the existing AP/BEC domain, proof-carrying decision certificates, institutional memory, and OpenEnv-compatible FastAPI loop, but the public benchmark contract is now sharper:
+
+- `blind` is the default observation mode for benchmark runs
+- official tracks are `Case`, `Portfolio`, and `Adversarial Data`
+- headline metrics now include `control_satisfied_resolution`, `institutional_utility`, and `unsafe_release_rate`
+- holdout and contrastive reporting is mechanism-aware rather than surface-only
+- certificates remain an audit layer, not a shortcut around bad control behavior
 
 > **📖 Documentation hub:** See [`docs/README.md`](./docs/README.md) for a guided tour of all documentation, reading paths by role, and a map of what lives where.
+>
+> **Round 2 assets:** [`docs/benchmark-card.md`](./docs/benchmark-card.md), [`docs/demo-script.md`](./docs/demo-script.md), [`docs/mini-blog.md`](./docs/mini-blog.md)
 
 ## Why This Matters
 
@@ -53,15 +63,33 @@ LedgerShield is built to score well on real-world utility, environment design, t
 
 | Item | Value |
 |---|---:|
+| Benchmark identity | verified institutional control intelligence |
+| Public observation mode | blind by default |
+| Official tracks | 3 (`case`, `portfolio`, `adversarial`) |
 | Public benchmark cases | 21 curated base cases |
-| Task families | 5 (`task_a` through `task_e`) |
-| Attack types | 16 |
-| Default loader behavior | 21 benchmark cases + 24 generated challenge variants = 45 loaded cases |
-| Optional generated suites | challenge variants, holdout variants, contrastive benign twins |
+| Holdout / contrastive support | latent-mechanism holdouts + benign twins |
+| Headline metrics | control-satisfied resolution, institutional utility, unsafe release rate |
 | Formal model | ASHTG with SPRT belief state and VoI action ranking |
-| Institutional track | persistent AP-week memory, capacity, attacker belief, and loss ledger |
-| Certificate track | Decision Certificate Graph verifier for proof-carrying payment decisions |
+| Institutional layer | persistent AP-week memory, capacity, attacker belief, and loss ledger |
+| Audit layer | Decision Certificate Graph verifier for proof-carrying payment decisions |
 | Server runtime | FastAPI / OpenEnv-compatible |
+
+## Official Tracks
+
+| Track | What it tests |
+|---|---|
+| Case Track | single-case control performance, evidence quality, intervention use, and safe resolution |
+| Portfolio Track | AP-week utility under queue pressure, finite callback/review capacity, and attacker adaptation |
+| Adversarial Data Track | robustness to deceptive content in email threads, documents, and tool outputs |
+
+## Headline Metrics
+
+| Metric | Meaning |
+|---|---|
+| `control_satisfied_resolution` | the case was correct, policy-complete, grounded, certificate-supported, and free of catastrophic unsafe shortcuts |
+| `institutional_utility` | institution-level value after fraud loss, unsafe release cost, review burn, supplier friction, and auditability |
+| `unsafe_release_rate` | fraction of cases where the agent released money unsafely |
+| `result_class` | visible evaluator status such as `valid_success`, `correct_but_policy_incomplete`, or `unsafe_release` |
 
 ### Task coverage
 

@@ -124,11 +124,12 @@ vendor trust, attacker belief over weak controls, cumulative fraud loss,
 released loss, delay hours, manual-review minutes, supplier friction, false
 positives, and unsafe releases.
 
-The default track is `instrumented`, where ASHTG diagnostics such as SPRT state,
-VoI tool rankings, and reward-machine progress remain visible. Set
-`LEDGERSHIELD_TRACK_MODE=blind` to hide those scaffolding signals from the
-observation while preserving the same hidden grader state. This creates a clean
-separation between research/debug runs and leakage-resistant benchmark runs.
+The default public track mode is `blind`, where ASHTG diagnostics such as SPRT
+state, VoI tool rankings, and reward-machine progress are hidden from the
+observation. Set `LEDGERSHIELD_TRACK_MODE=instrumented` when you want the
+diagnostics view for debugging, evaluator inspection, or research iteration.
+This keeps the benchmark-facing contract leakage-resistant while preserving a
+richer diagnostics path for development.
 
 ### Agent capability tiers
 

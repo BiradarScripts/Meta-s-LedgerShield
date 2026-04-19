@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 from typing import Any
 
+from .benchmark_contract import ensure_case_contract_fields
 from .case_factory import generate_benign_twin, generate_case_batch, generate_holdout_suite
 from .schema import normalize_id, normalize_text
 
@@ -55,11 +56,10 @@ def _case_index(cases: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
 
 
 def _case_defaults(case: dict[str, Any]) -> dict[str, Any]:
-    cloned = dict(case)
+    cloned = ensure_case_contract_fields(case)
     cloned.setdefault("budget_total", 15.0)
     cloned.setdefault("max_steps", 20)
     cloned.setdefault("difficulty", "medium")
-    cloned.setdefault("benchmark_split", "benchmark")
     difficulty = normalize_text(cloned.get("difficulty"))
     if "due_date_days" not in cloned:
         if difficulty == "easy":

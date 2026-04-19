@@ -297,6 +297,20 @@ def apply_attack_to_case(
         metadata["applied_attacks"], [attack_name])
     metadata["attack_severity"] = spec.get("severity", "medium")
     metadata["attack_category"] = spec.get("category", "other")
+    metadata.setdefault("mechanism_hints", {})
+    metadata["mechanism_hints"].update(
+        {
+            "attack_family": normalize_text(spec.get("category", "other")) or "other",
+            "pressure_profile": "urgent_override" if "urgent" in attack_name or "ceo" in attack_name else "elevated",
+            "control_weakness": (
+                "callback_gap"
+                if "bank" in attack_name or "vendor_takeover" in attack_name
+                else "duplicate_control_gap"
+                if "duplicate" in attack_name or "split_payment" in attack_name
+                else "workflow_override_gap"
+            ),
+        }
+    )
 
     subtle_suffixes = [
         spec.get("instruction_suffix", ""),

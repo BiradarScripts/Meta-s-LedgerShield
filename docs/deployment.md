@@ -90,7 +90,7 @@ These are read by [`../server/data_loader.py`](../server/data_loader.py).
 | `LEDGERSHIELD_HOLDOUT_VARIANTS` | `1` | holdout variants per hard case |
 | `LEDGERSHIELD_HOLDOUT_SEED` | `31415` | RNG seed for holdout generation |
 | `LEDGERSHIELD_INCLUDE_TWINS` | `false` | include benign contrastive twins in the loaded case pool |
-| `LEDGERSHIELD_TRACK_MODE` | `instrumented` | use `blind` to hide SPRT, VoI tool rankings, and reward-machine progress from observations |
+| `LEDGERSHIELD_TRACK_MODE` | `blind` | use `instrumented` to expose SPRT, VoI tool rankings, and reward-machine progress for diagnostics |
 
 ### Agent-side variables
 

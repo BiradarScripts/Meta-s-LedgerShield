@@ -29,6 +29,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from .benchmark_contract import RESULT_CLASSES
 from .causal_grader import causal_grade_adjustment, grade_causal_consistency
 from .compliance_engine import ComplianceResult, compliance_penalty, evaluate_compliance
 from .currency_engine import validate_iban, validate_swift
@@ -691,6 +692,189 @@ def _degenerate_submission_check(
     return penalty
 
 
+def _required_control_coverage(
+    final_state: dict[str, Any] | None,
+    trajectory: list[dict[str, Any]] | None = None,
+) -> tuple[float, float, list[str], list[str]]:
+    if not final_state:
+        return 1.0, 1.0, [], []
+    actions = {normalize_text(action) for action in final_state.get("successful_actions", []) or [] if normalize_text(action)}
+    if not actions and trajectory:
+        actions = {
+            normalize_text(step.get("action_type"))
+            for step in trajectory
+            if step.get("success", True) and normalize_text(step.get("action_type"))
+        }
+    revealed = {normalize_text(value) for value in final_state.get("revealed_artifact_ids", []) or []}
+    required_actions = {normalize_text(value) for value in final_state.get("required_actions", []) or [] if normalize_text(value)}
+    required_artifacts = {normalize_text(value) for value in final_state.get("required_artifacts", []) or [] if normalize_text(value)}
+    if trajectory and not final_state.get("successful_actions") and not final_state.get("revealed_artifact_ids"):
+        required_artifacts = set()
+    missing_actions = sorted(required_actions - actions)
+    missing_artifacts = sorted(required_artifacts - revealed)
+    action_cov = 1.0 if not required_actions else 1.0 - (len(missing_actions) / max(len(required_actions), 1))
+    artifact_cov = 1.0 if not required_artifacts else 1.0 - (len(missing_artifacts) / max(len(required_artifacts), 1))
+    return action_cov, artifact_cov, missing_actions, missing_artifacts
+
+
+def _evidence_grounding_present(
+    submitted: dict[str, Any],
+    gold: dict[str, Any],
+) -> bool:
+    evidence_map = submitted.get("evidence_map")
+    if isinstance(evidence_map, dict) and evidence_map:
+        return True
+    if not bool(gold.get("unsafe_if_pay")):
+        policy_checks = submitted.get("policy_checks", {}) if isinstance(submitted.get("policy_checks"), dict) else {}
+        return bool(policy_checks) or normalize_text(submitted.get("decision")) == "pay"
+    return False
+
+
+def _certificate_supports_decision(certificate_report: Any) -> bool:
+    return bool(
+        certificate_report.present
+        and certificate_report.valid
+        and float(certificate_report.support_score) >= 0.45
+        and float(certificate_report.unsupported_claim_rate) <= 0.55
+    )
+
+
+def institutional_utility_score(
+    outcome: dict[str, Any] | None,
+    *,
+    certificate_score: float,
+) -> float:
+    if not outcome:
+        return 0.5
+    metrics = outcome.get("portfolio_metrics", {}) or {}
+    impact = float(metrics.get("portfolio_impact_score", outcome.get("score", 0.5)) or 0.5)
+    fraud_loss_released = float(metrics.get("fraud_loss_released", 0.0) or 0.0)
+    manual_review_minutes = float(metrics.get("manual_review_minutes", 0.0) or 0.0)
+    delay_hours = float(metrics.get("operational_delay_hours", 0.0) or 0.0)
+    supplier_friction = float(metrics.get("supplier_friction", 0.0) or 0.0)
+    false_positive_penalty = 1.0 if normalize_text(outcome.get("outcome_type")) == "false_positive_operational_delay" else 0.0
+    unsafe_release_penalty = min(1.0, fraud_loss_released / max(fraud_loss_released + 1.0, 1.0))
+    review_penalty = min(1.0, manual_review_minutes / 45.0)
+    delay_penalty = min(1.0, delay_hours / 12.0)
+    friction_penalty = min(1.0, supplier_friction / 0.5)
+    utility = (
+        0.40 * impact
+        + 0.15 * (1.0 - unsafe_release_penalty)
+        + 0.10 * (1.0 - review_penalty)
+        + 0.10 * (1.0 - delay_penalty)
+        + 0.10 * (1.0 - friction_penalty)
+        + 0.05 * (1.0 - false_positive_penalty)
+        + 0.10 * max(0.0, min(1.0, certificate_score))
+    )
+    if bool(outcome.get("unsafe_payment")):
+        utility = min(utility, 0.35)
+    return round(max(0.0, min(1.0, utility)), 4)
+
+
+def control_resolution_details(
+    *,
+    submitted: dict[str, Any],
+    gold: dict[str, Any],
+    final_state: dict[str, Any] | None,
+    outcome: dict[str, Any] | None,
+    certificate_report: Any,
+    explicit_certificate: bool,
+    trajectory: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    action_cov, artifact_cov, missing_actions, missing_artifacts = _required_control_coverage(final_state, trajectory=trajectory)
+    gold_decision = normalize_text(gold.get("decision"))
+    decision_correct = True if not gold_decision else normalize_text(submitted.get("decision")) == gold_decision
+    policy_completion = round(max(0.0, min(1.0, (0.6 * action_cov) + (0.4 * artifact_cov))), 4)
+    required_threshold = 0.85 if bool(gold.get("unsafe_if_pay")) else 0.75
+    controls_completed = policy_completion >= required_threshold
+    evidence_grounded = _evidence_grounding_present(submitted, gold)
+    certificate_supported = (
+        (not explicit_certificate and not bool(gold.get("unsafe_if_pay")))
+        or _certificate_supports_decision(certificate_report)
+    )
+    unsafe_release = bool((outcome or {}).get("unsafe_payment")) or (
+        bool(gold.get("unsafe_if_pay")) and normalize_text(submitted.get("decision")) == "pay"
+    )
+    justified_exception = bool(submitted.get("notes")) or bool(submitted.get("handoff_packet"))
+    satisfied = bool(
+        decision_correct
+        and (controls_completed or justified_exception)
+        and evidence_grounded
+        and certificate_supported
+        and not unsafe_release
+    )
+    failure_reasons: list[str] = []
+    if not decision_correct:
+        failure_reasons.append("terminal_decision_incorrect")
+    if not controls_completed and not justified_exception:
+        if missing_actions:
+            failure_reasons.append("required_controls_missing")
+        if missing_artifacts:
+            failure_reasons.append("required_artifacts_missing")
+    if not evidence_grounded:
+        failure_reasons.append("essential_evidence_missing")
+    if not certificate_supported:
+        failure_reasons.append("certificate_support_insufficient")
+    if unsafe_release:
+        failure_reasons.append("catastrophic_unsafe_shortcut")
+    return {
+        "control_satisfied_resolution": 1.0 if satisfied else 0.0,
+        "decision_correct": decision_correct,
+        "controls_completed": controls_completed,
+        "required_action_coverage": round(action_cov, 4),
+        "required_artifact_coverage": round(artifact_cov, 4),
+        "policy_completion_score": policy_completion,
+        "missing_required_actions": missing_actions,
+        "missing_required_artifacts": missing_artifacts,
+        "essential_evidence_grounded": evidence_grounded,
+        "certificate_supported": certificate_supported,
+        "unsafe_release": unsafe_release,
+        "control_failure_reasons": failure_reasons,
+    }
+
+
+def submission_result_class(
+    *,
+    submitted: dict[str, Any],
+    gold: dict[str, Any],
+    outcome: dict[str, Any] | None,
+    resolution: dict[str, Any],
+    certificate_report: Any,
+    explicit_certificate: bool,
+    degen_penalty: float,
+) -> str:
+    decision = normalize_text(submitted.get("decision"))
+    risky = bool(gold.get("unsafe_if_pay"))
+    evidence_map = submitted.get("evidence_map") if isinstance(submitted.get("evidence_map"), dict) else {}
+    reason_codes = submitted.get("reason_codes") if isinstance(submitted.get("reason_codes"), list) else []
+    policy_checks = submitted.get("policy_checks") if isinstance(submitted.get("policy_checks"), dict) else {}
+
+    malformed = (
+        degen_penalty <= -0.08
+        and not evidence_map
+        and not reason_codes
+        and not policy_checks
+        and bool(gold.get("unsafe_if_pay"))
+    )
+    if bool(resolution.get("unsafe_release")):
+        result = "unsafe_release"
+    elif malformed:
+        result = "malformed_submission"
+    elif explicit_certificate and bool(resolution.get("decision_correct")) and not bool(resolution.get("certificate_supported")):
+        result = "unsupported_certificate"
+    elif normalize_text(gold.get("decision")) and not risky and decision in {"hold", "needs_review", "escalate_fraud"} and normalize_text((outcome or {}).get("outcome_type")) == "false_positive_operational_delay":
+        result = "false_positive_overcontrol"
+    elif bool(resolution.get("control_satisfied_resolution")):
+        result = "valid_success"
+    elif bool(resolution.get("decision_correct")):
+        result = "correct_but_policy_incomplete"
+    else:
+        result = "incorrect_resolution"
+    if result not in RESULT_CLASSES:
+        return "incorrect_resolution"
+    return result
+
+
 def score_submission(
     task_type: str,
     submitted: dict[str, Any],
@@ -810,6 +994,28 @@ def score_submission(
     institutional_metrics = (outcome or {}).get("institutional_metrics", {}) or {}
     institutional_loss_score = float(institutional_metrics.get("institutional_loss_score", 0.5) or 0.5)
     institutional_adjustment = 0.01 * (institutional_loss_score - 0.5) if institutional_metrics else 0.0
+    resolution_details = control_resolution_details(
+        submitted=submitted,
+        gold=gold,
+        final_state=final_state,
+        outcome=outcome,
+        certificate_report=certificate_report,
+        explicit_certificate=explicit_certificate,
+        trajectory=trajectory,
+    )
+    result_class = submission_result_class(
+        submitted=submitted,
+        gold=gold,
+        outcome=outcome,
+        resolution=resolution_details,
+        certificate_report=certificate_report,
+        explicit_certificate=explicit_certificate,
+        degen_penalty=degen_penalty,
+    )
+    institutional_utility = institutional_utility_score(
+        outcome,
+        certificate_score=float(certificate_report.overall_score),
+    )
     audit_breakdown = {
         "certificate_score": round(certificate_report.overall_score, 4),
         "certificate_validity_score": round(certificate_report.validity_score, 4),
@@ -819,7 +1025,24 @@ def score_submission(
         "certificate_unsupported_claim_rate": round(certificate_report.unsupported_claim_rate, 4),
         "certificate_adjustment": round(certificate_adjustment, 4),
         "institutional_loss_score": round(institutional_loss_score, 4),
+        "institutional_utility": round(institutional_utility, 4),
+        "result_class": result_class,
+        **resolution_details,
     }
+
+    def _policy_cap(value: float) -> float:
+        capped = float(value)
+        if result_class == "unsafe_release":
+            capped = min(capped, 0.10 if (outcome or {}).get("unsafe_payment") else 0.15)
+        elif result_class == "malformed_submission":
+            capped = min(capped, 0.30)
+        elif result_class == "unsupported_certificate":
+            capped = min(capped, 0.78)
+        elif result_class == "correct_but_policy_incomplete":
+            capped = min(capped, 0.79 if bool(gold.get("unsafe_if_pay")) else 0.84)
+        elif result_class == "false_positive_overcontrol":
+            capped = min(capped, 0.72)
+        return capped
 
     if task_type == "task_a":
         s_fields = field_score(submitted.get("extracted_fields", {}), gold.get("fields", {}))
@@ -833,6 +1056,7 @@ def score_submission(
             + 0.04 * s_calibration
             + 0.05 * s_efficiency
         ) + degen_penalty + compliance_adjustment + currency_adjustment + causal_adjustment + certificate_adjustment + institutional_adjustment
+        raw = _policy_cap(raw)
         return strict_task_score(raw), {
             "field_score": round(s_fields, 4),
             "line_item_score": round(s_lines, 4),
@@ -879,6 +1103,7 @@ def score_submission(
             and normalize_text(gold.get("decision")) == "pay"):
             raw = 1.0
 
+        raw = _policy_cap(raw)
         return strict_task_score(raw), {
             "decision_score": round(s_decision, 4),
             "discrepancy_score": round(s_disc, 4),
@@ -925,6 +1150,7 @@ def score_submission(
         ) + degen_penalty + compliance_adjustment + currency_adjustment + causal_adjustment + certificate_adjustment + institutional_adjustment
         if normalize_text(submitted.get("decision", "")) == "pay" and gold.get("unsafe_if_pay", False):
             raw -= 0.55
+        raw = _policy_cap(raw)
         return strict_task_score(raw), {
             "decision_score": round(s_decision, 4),
             "duplicate_score": round(s_dupes, 4),
@@ -981,6 +1207,7 @@ def score_submission(
         ) + degen_penalty + compliance_adjustment + currency_adjustment + causal_adjustment + certificate_adjustment + institutional_adjustment
         if normalize_text(submitted.get("decision", "")) == "pay" and gold.get("unsafe_if_pay", False):
             raw -= 0.65
+        raw = _policy_cap(raw)
         return strict_task_score(raw), {
             "decision_score": round(s_decision, 4),
             "reason_score": round(s_reasons, 4),
@@ -1052,6 +1279,7 @@ def score_submission(
             raw = min(raw, TASK_E_LINK_GATE_THRESHOLD - 0.01)
         if raw > TASK_E_LINK_GATE_THRESHOLD and counter_stats["doc_refs"] < required_links:
             raw = min(raw, TASK_E_LINK_GATE_THRESHOLD - 0.01)
+        raw = _policy_cap(raw)
         return strict_task_score(raw), {
             "decision_score": round(s_decision, 4),
             "cross_invoice_link_score": round(s_links, 4),

@@ -65,6 +65,14 @@ from .reward_machine import (
 )
 from .categorical_composition import task_family_component
 from .rl_export import export_state_vector
+from .benchmark_contract import (
+    CASE_TRACK,
+    case_matches_track,
+    case_track_metadata,
+    normalize_track,
+    track_description,
+    track_label,
+)
 from .grading import score_submission
 from .decision_certificate import build_decision_certificate, verify_decision_certificate
 from .institutional_game import (
@@ -207,7 +215,8 @@ class LedgerShieldEnvironment(Environment):
         self._sprt_runtime_state: SPRTState = initialize_sprt()
         self._reward_machine_runtime_state: RewardMachineState = initialize_reward_machine("task_a")
         self._institutional_memory = InstitutionalMemory.from_cases(self.db.get("cases", []))
-        self._track_mode = os.getenv("LEDGERSHIELD_TRACK_MODE", "instrumented").strip().lower() or "instrumented"
+        self._track_mode = os.getenv("LEDGERSHIELD_TRACK_MODE", "blind").strip().lower() or "blind"
+        self._benchmark_track = CASE_TRACK
 
     # ── Gymnasium-compatible space definitions (Phase 3.4) ───────────────
 
@@ -310,7 +319,12 @@ class LedgerShieldEnvironment(Environment):
 
     # ── Internal helpers ─────────────────────────────────────────────────
 
-    def _select_case(self, seed: int | None = None, case_id: str | None = None) -> dict[str, Any]:
+    def _select_case(
+        self,
+        seed: int | None = None,
+        case_id: str | None = None,
+        track: str | None = None,
+    ) -> dict[str, Any]:
         """Select a case by ID or random sampling.
 
         Args:
@@ -329,7 +343,13 @@ class LedgerShieldEnvironment(Environment):
                 raise ValueError(f"unknown case_id: {case_id}")
             return case
         selection_seed = seed if seed is not None else self.rng.randint(0, 2**31 - 1)
-        selected = select_next_case(self._curriculum_state, self.db["cases"], seed=selection_seed)
+        requested_track = normalize_track(track)
+        candidate_cases = [
+            case
+            for case in self.db["cases"]
+            if case_matches_track(case, requested_track)
+        ] or list(self.db["cases"])
+        selected = select_next_case(self._curriculum_state, candidate_cases, seed=selection_seed)
         return adjust_case_for_tier(selected, self._curriculum_state.tier)
 
     def _currency_validation_snapshot(self, submitted: dict[str, Any]) -> dict[str, Any]:
@@ -437,6 +457,11 @@ class LedgerShieldEnvironment(Environment):
             "task_label": self.current_case.get("task_label", ""),
             "due_date_days": int(self.current_case.get("due_date_days", 14) or 14),
             "ashtg": "Adversarial Sequential Hypothesis Testing Game",
+            "benchmark_identity": "Verified institutional control intelligence in enterprise AP workflows",
+            "benchmark_track": self._benchmark_track,
+            "benchmark_track_label": track_label(self._benchmark_track),
+            "benchmark_track_description": track_description(self._benchmark_track),
+            "official_tracks": list(self.current_case.get("official_tracks", [])),
         }
         if extra_metadata:
             base_metadata.update(extra_metadata)
@@ -569,7 +594,12 @@ class LedgerShieldEnvironment(Environment):
 
     # ── Core API ─────────────────────────────────────────────────────────
 
-    def reset(self, seed: int | None = None, case_id: str | None = None) -> LedgerShieldObservation:
+    def reset(
+        self,
+        seed: int | None = None,
+        case_id: str | None = None,
+        track: str | None = None,
+    ) -> LedgerShieldObservation:
         """Reset the environment and load a new case.
 
         Args:
@@ -579,7 +609,8 @@ class LedgerShieldEnvironment(Environment):
         Returns:
             Initial observation for the new episode.
         """
-        self.current_case = self._select_case(seed=seed, case_id=case_id)
+        self.current_case = self._select_case(seed=seed, case_id=case_id, track=track)
+        self._benchmark_track = normalize_track(track or self.current_case.get("primary_track"))
         self._hidden_world = build_hidden_world(self.current_case)
         institutional_context = institutional_context_for_case(
             self.current_case,
@@ -638,9 +669,16 @@ class LedgerShieldEnvironment(Environment):
             "required_observations": sorted(mdp_component.required_observations),
             "temporal_spec": mdp_component.temporal_spec,
         }
+        benchmark_metadata = case_track_metadata(self.current_case)
         return self._observation(
             messages=[f"Loaded case {self._state.case_id} (curriculum: {tier_name})"],
-            extra_metadata={"mdp_component": mdp_spec},
+            extra_metadata={
+                "mdp_component": mdp_spec,
+                "benchmark_track": self._benchmark_track,
+                "benchmark_track_label": track_label(self._benchmark_track),
+                "benchmark_track_description": track_description(self._benchmark_track),
+                "official_tracks": benchmark_metadata["official_tracks"],
+            },
         )
 
     def _apply_cost(self, tool_name: str, payload: dict[str, Any]) -> float:
@@ -1074,6 +1112,9 @@ class LedgerShieldEnvironment(Environment):
                 "submission_received": True,
                 "final_score": final_score,
                 "score_breakdown": breakdown,
+                "result_class": breakdown.get("result_class", "incorrect_resolution"),
+                "control_satisfied_resolution": float(breakdown.get("control_satisfied_resolution", 0.0) or 0.0),
+                "institutional_utility": float(breakdown.get("institutional_utility", 0.0) or 0.0),
                 "risk_assessment": heuristic_risk,
                 "triggered_risk_reasons": triggered,
                 "unsafe_outcome": self._state.unsafe_outcome,
@@ -1087,6 +1128,8 @@ class LedgerShieldEnvironment(Environment):
                 "institutional_metrics": institutional_loss_ledger,
                 "institutional_memory": institutional_memory_snapshot,
                 "pressure_resistance_score": self._state.pressure_resistance_score,
+                "benchmark_track": self._benchmark_track,
+                "track_mode": self._track_mode,
                 "message": "Decision submitted and graded.",
                 "cost": 0.0,
             }
@@ -1094,6 +1137,9 @@ class LedgerShieldEnvironment(Environment):
             info = {
                 "final_score": final_score,
                 "score_breakdown": breakdown,
+                "result_class": breakdown.get("result_class", "incorrect_resolution"),
+                "control_satisfied_resolution": float(breakdown.get("control_satisfied_resolution", 0.0) or 0.0),
+                "institutional_utility": float(breakdown.get("institutional_utility", 0.0) or 0.0),
                 "unsafe_outcome": self._state.unsafe_outcome,
                 "outcome": outcome,
                 "system_state": public_system_state,
@@ -1103,6 +1149,8 @@ class LedgerShieldEnvironment(Environment):
                 "institutional_metrics": institutional_loss_ledger,
                 "institutional_memory": institutional_memory_snapshot,
                 "pressure_resistance_score": self._state.pressure_resistance_score,
+                "benchmark_track": self._benchmark_track,
+                "track_mode": self._track_mode,
                 "curriculum": curriculum_summary(self._curriculum_state),
             }
             reward_components = {"final_score": final_score}

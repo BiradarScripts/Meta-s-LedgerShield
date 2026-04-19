@@ -5,6 +5,15 @@ runtime: fastapi
 app: server.app:app
 port: 8000
 metadata:
+  benchmark_version: ledgershield-v2
+  benchmark_identity: verified-institutional-control-intelligence
+  primary_theme: world-modeling-professional-tasks
+  secondary_theme: long-horizon-planning-and-instruction-following
+  default_track_mode: blind
+  official_tracks:
+    - case
+    - portfolio
+    - adversarial
   formal_model: pomdp
   extended_formalism: ASHTG
   horizon: finite
@@ -75,6 +84,11 @@ metadata:
     report_endpoint: /benchmark-report
     institutional_memory_endpoint: /institutional-memory
     institutional_reset_endpoint: /institutional-reset
+  headline_metrics:
+    - control_satisfied_resolution
+    - institutional_utility
+    - unsafe_release_rate
+    - certificate_validity_rate
   benchmark_results:
     deterministic_baseline:
       model: ledgershield/deterministic-baseline

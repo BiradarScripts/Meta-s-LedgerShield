@@ -72,9 +72,9 @@ except (ImportError, ModuleNotFoundError):  # pragma: no cover - local fallback
         def sync(self):
             return self
 
-        def reset(self, seed: int | None = None, case_id: str | None = None):
+        def reset(self, seed: int | None = None, case_id: str | None = None, track: str | None = None):
             client = self._ensure_client()
-            payload = {"seed": seed, "case_id": case_id}
+            payload = {"seed": seed, "case_id": case_id, "track": track}
             response = client.post("/reset", json=payload)
             response.raise_for_status()
             return self._parse_result(response.json())
@@ -112,6 +112,7 @@ except (ImportError, ModuleNotFoundError):  # pragma: no cover - local fallback
     class _ResetRequest(BaseModel):
         seed: int | None = None
         case_id: str | None = None
+        track: str | None = None
 
     def _serialize(value: Any) -> Any:
         if is_dataclass(value):
@@ -138,7 +139,8 @@ except (ImportError, ModuleNotFoundError):  # pragma: no cover - local fallback
         def reset(request: _ResetRequest | None = Body(default=None)) -> dict[str, Any]:
             seed = request.seed if request is not None else None
             case_id = request.case_id if request is not None else None
-            obs = env.reset(seed=seed, case_id=case_id)
+            track = request.track if request is not None else None
+            obs = env.reset(seed=seed, case_id=case_id, track=track)
 
             if hasattr(env, "result_payload"):
                 return env.result_payload(obs)

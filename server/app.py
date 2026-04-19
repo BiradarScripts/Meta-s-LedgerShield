@@ -39,7 +39,7 @@ def build_app():
         benchmark_report = _load_benchmark_report_module()
         if benchmark_report is None:
             return {
-                "benchmark": "ledgershield-v3",
+                "benchmark": "ledgershield-v2",
                 "generated_at": None,
                 "note": "benchmark_report.py is unavailable in this runtime image.",
                 "entries": [],
@@ -51,7 +51,7 @@ def build_app():
         benchmark_report = _load_benchmark_report_module()
         if benchmark_report is None:
             return {
-                "benchmark": "ledgershield-v3",
+                "benchmark": "ledgershield-v2",
                 "generated_at": None,
                 "note": "benchmark_report.py is unavailable in this runtime image.",
             }
@@ -59,7 +59,7 @@ def build_app():
         if report_path.exists():
             return json.loads(report_path.read_text(encoding="utf-8"))
         return {
-            "benchmark": "ledgershield-v3",
+            "benchmark": "ledgershield-v2",
             "generated_at": None,
             "note": "No benchmark report artifact generated yet. Run benchmark_report.py to create one.",
         }

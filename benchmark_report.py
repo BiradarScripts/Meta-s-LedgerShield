@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import json
 import math
 import statistics
@@ -10,6 +11,16 @@ from pathlib import Path
 from typing import Any
 
 import inference
+from server.benchmark_contract import (
+    ADVERSARIAL_DATA_TRACK,
+    CASE_TRACK,
+    PORTFOLIO_TRACK,
+    case_matches_track,
+    case_track_metadata,
+    mechanism_family,
+    mechanism_signature,
+    track_label,
+)
 from server.case_factory import generate_benign_twin, generate_holdout_suite
 from server.data_loader import load_all
 from server.grading import evaluate_contrastive_pair
@@ -79,30 +90,185 @@ def _db_with_cases(base_db: dict[str, Any], cases: list[dict[str, Any]]) -> dict
     return cloned
 
 
-def _group_by_task(results: list[dict[str, Any]], pass_threshold: float) -> dict[str, Any]:
+def _case_lookup(cases: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    return {str(case.get("case_id")): case for case in cases if case.get("case_id")}
+
+
+def _annotate_result(row: dict[str, Any], case: dict[str, Any] | None) -> dict[str, Any]:
+    annotated = dict(row)
+    if not case:
+        return annotated
+    track_metadata = case_track_metadata(case)
+    annotated.setdefault("benchmark_track", track_metadata["track"])
+    annotated.setdefault("benchmark_track_label", track_metadata["track_label"])
+    annotated.setdefault("benchmark_split", normalize_text(case.get("benchmark_split", "benchmark")) or "benchmark")
+    annotated.setdefault("official_tracks", track_metadata["official_tracks"])
+    annotated.setdefault("mechanism_family", mechanism_family(case))
+    annotated.setdefault("latent_mechanism_signature", mechanism_signature(case))
+    annotated.setdefault("control_type", str((case.get("latent_mechanism", {}) or {}).get("control_weakness", "")))
+    annotated.setdefault("unsafe_if_pay", bool((case.get("gold", {}) or {}).get("unsafe_if_pay")))
+    annotated.setdefault("latent_mechanism", deepcopy(case.get("latent_mechanism", {}) or {}))
+    return annotated
+
+
+def _annotate_results(results: list[dict[str, Any]], cases: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    lookup = _case_lookup(cases)
+    return [_annotate_result(row, lookup.get(str(row.get("case_id")))) for row in results]
+
+
+def _result_class_counts(results: list[dict[str, Any]]) -> dict[str, int]:
+    counts = Counter(str(result.get("result_class", "unknown")) or "unknown" for result in results)
+    return {key: int(counts[key]) for key in sorted(counts)}
+
+
+def _aggregate_result_metrics(results: list[dict[str, Any]], pass_threshold: float) -> dict[str, Any]:
+    scores = [float(row.get("score", 0.0) or 0.0) for row in results]
+    trial_pass_rates = [float(row.get("trial_pass_rate", 0.0) or 0.0) for row in results]
+    consistent = [bool(row.get("pass_k_consistent", False)) for row in results]
+    any_pass = [bool(row.get("pass_k_any", False)) for row in results]
+    certificate_scores = [float(row.get("certificate_score", 0.0) or 0.0) for row in results]
+    certificate_validity_scores = [float(row.get("certificate_validity_score", 0.0) or 0.0) for row in results]
+    institutional_scores = [float(row.get("institutional_loss_score", 0.0) or 0.0) for row in results]
+    institutional_utilities = [float(row.get("institutional_utility", 0.0) or 0.0) for row in results]
+    csr_scores = [float(row.get("control_satisfied_resolution", 0.0) or 0.0) for row in results]
+    unsafe_flags = [str(row.get("result_class", "")) == "unsafe_release" or bool(row.get("score_breakdown", {}).get("unsafe_release")) for row in results]
+    certificate_valid_rate = sum(score >= 0.7 for score in certificate_validity_scores) / max(len(certificate_validity_scores), 1)
+    return {
+        "count": len(results),
+        "score_stats": _stats(scores),
+        "certificate_score_stats": _stats(certificate_scores),
+        "certificate_validity_stats": _stats(certificate_validity_scores),
+        "institutional_loss_score_stats": _stats(institutional_scores),
+        "institutional_utility_stats": _stats(institutional_utilities),
+        "control_satisfied_resolution_rate": round(sum(csr_scores) / max(len(csr_scores), 1), 4),
+        "unsafe_release_rate": round(sum(unsafe_flags) / max(len(unsafe_flags), 1), 4),
+        "certificate_validity_rate": round(certificate_valid_rate, 4),
+        "pass_rate": round(sum(score >= pass_threshold for score in scores) / max(len(scores), 1), 4),
+        "trial_pass_rate": round(sum(trial_pass_rates) / max(len(trial_pass_rates), 1), 4),
+        "consistent_pass_rate": round(sum(consistent) / max(len(consistent), 1), 4),
+        "any_pass_rate": round(sum(any_pass) / max(len(any_pass), 1), 4),
+        "result_class_counts": _result_class_counts(results),
+    }
+
+
+def _group_by_key(
+    results: list[dict[str, Any]],
+    pass_threshold: float,
+    *,
+    key_name: str,
+    value_fn,
+) -> dict[str, Any]:
     grouped: dict[str, list[dict[str, Any]]] = {}
     for result in results:
-        grouped.setdefault(str(result.get("task_type", "unknown")), []).append(result)
+        raw_value = value_fn(result)
+        value = str(raw_value if raw_value not in {None, ""} else "unknown")
+        grouped.setdefault(value, []).append(result)
+    return {
+        key: _aggregate_result_metrics(rows, pass_threshold)
+        for key, rows in sorted(grouped.items())
+    }
 
-    summary: dict[str, Any] = {}
-    for task_type, rows in sorted(grouped.items()):
-        scores = [float(row.get("score", 0.0) or 0.0) for row in rows]
-        trial_pass_rates = [float(row.get("trial_pass_rate", 0.0) or 0.0) for row in rows]
-        consistent = [bool(row.get("pass_k_consistent", False)) for row in rows]
-        any_pass = [bool(row.get("pass_k_any", False)) for row in rows]
-        certificate_scores = [float(row.get("certificate_score", 0.0) or 0.0) for row in rows]
-        institutional_scores = [float(row.get("institutional_loss_score", 0.0) or 0.0) for row in rows]
-        summary[task_type] = {
-            "count": len(rows),
-            "score_stats": _stats(scores),
-            "certificate_score_stats": _stats(certificate_scores),
-            "institutional_loss_score_stats": _stats(institutional_scores),
-            "pass_rate": round(sum(score >= pass_threshold for score in scores) / max(len(scores), 1), 4),
-            "trial_pass_rate": round(sum(trial_pass_rates) / max(len(trial_pass_rates), 1), 4),
-            "consistent_pass_rate": round(sum(consistent) / max(len(consistent), 1), 4),
-            "any_pass_rate": round(sum(any_pass) / max(len(any_pass), 1), 4),
-        }
-    return summary
+
+def _group_by_task(results: list[dict[str, Any]], pass_threshold: float) -> dict[str, Any]:
+    return _group_by_key(
+        results,
+        pass_threshold,
+        key_name="task_type",
+        value_fn=lambda row: row.get("task_type", "unknown"),
+    )
+
+
+def _memory_delta(before: dict[str, Any], after: dict[str, Any]) -> dict[str, Any]:
+    before_ledger = before.get("loss_ledger", {}) or {}
+    after_ledger = after.get("loss_ledger", {}) or {}
+    numeric_keys = {
+        "fraud_loss_prevented",
+        "fraud_loss_released",
+        "operational_delay_hours",
+        "manual_review_minutes",
+        "supplier_friction",
+        "unsafe_release_count",
+        "false_positive_count",
+        "safe_release_count",
+    }
+    delta = {}
+    for key in numeric_keys:
+        delta[key] = round(float(after_ledger.get(key, 0.0) or 0.0) - float(before_ledger.get(key, 0.0) or 0.0), 4)
+    delta["queue_depth"] = int(after.get("queue_depth", 0) or 0) - int(before.get("queue_depth", 0) or 0)
+    delta["manual_review_capacity_remaining"] = int(after.get("manual_review_capacity_remaining", 0) or 0) - int(before.get("manual_review_capacity_remaining", 0) or 0)
+    delta["callback_capacity_remaining"] = int(after.get("callback_capacity_remaining", 0) or 0) - int(before.get("callback_capacity_remaining", 0) or 0)
+    delta["institutional_loss_score"] = round(float(after_ledger.get("institutional_loss_score", 0.0) or 0.0) - float(before_ledger.get("institutional_loss_score", 0.0) or 0.0), 4)
+    return delta
+
+
+def _evaluate_portfolio_sequences(
+    *,
+    base_db: dict[str, Any],
+    client: Any = None,
+    temperature: float = DEFAULT_TEMPERATURE,
+) -> dict[str, Any]:
+    portfolio_sequences = [
+        ["CASE-D-002", "CASE-C-001", "CASE-D-001", "CASE-E-001"],
+        ["CASE-B-003", "CASE-D-006", "CASE-D-003", "CASE-E-002"],
+    ]
+    available = {str(case.get("case_id")): case for case in base_db.get("cases", []) if case.get("case_id")}
+    sequence_reports: list[dict[str, Any]] = []
+    sequence_utilities: list[float] = []
+    sequence_csrs: list[float] = []
+    sequence_unsafe_rates: list[float] = []
+
+    for index, sequence in enumerate(portfolio_sequences, start=1):
+        cases = [available[case_id] for case_id in sequence if case_id in available]
+        if not cases:
+            continue
+        env = inference.LocalLedgerShieldEnv(db=base_db)
+        before_memory = deepcopy(env.institutional_memory())
+        env.reset_institutional_memory()
+        before_memory = deepcopy(env.institutional_memory())
+        case_results: list[dict[str, Any]] = []
+        for case in cases:
+            result = inference.run_episode_with_env(
+                env=env,
+                case_id=str(case["case_id"]),
+                client=client,
+                temperature=temperature,
+                emit_logs=False,
+            )
+            case_results.append(_annotate_result(result, case))
+        after_memory = deepcopy(env.institutional_memory())
+        env.close()
+        avg_utility = round(sum(float(row.get("institutional_utility", 0.0) or 0.0) for row in case_results) / max(len(case_results), 1), 4)
+        avg_csr = round(sum(float(row.get("control_satisfied_resolution", 0.0) or 0.0) for row in case_results) / max(len(case_results), 1), 4)
+        unsafe_rate = round(sum(str(row.get("result_class")) == "unsafe_release" for row in case_results) / max(len(case_results), 1), 4)
+        sequence_utilities.append(avg_utility)
+        sequence_csrs.append(avg_csr)
+        sequence_unsafe_rates.append(unsafe_rate)
+        sequence_reports.append(
+            {
+                "sequence_id": f"portfolio-seq-{index}",
+                "track": PORTFOLIO_TRACK,
+                "track_label": track_label(PORTFOLIO_TRACK),
+                "case_ids": [str(case["case_id"]) for case in cases],
+                "case_results": case_results,
+                "sequence_score_stats": _stats([float(row.get("score", 0.0) or 0.0) for row in case_results]),
+                "control_satisfied_resolution_rate": avg_csr,
+                "institutional_utility": avg_utility,
+                "unsafe_release_rate": unsafe_rate,
+                "ap_week_state_delta": _memory_delta(before_memory, after_memory),
+                "institutional_memory_before": before_memory,
+                "institutional_memory_after": after_memory,
+            }
+        )
+
+    return {
+        "track": PORTFOLIO_TRACK,
+        "track_label": track_label(PORTFOLIO_TRACK),
+        "sequence_count": len(sequence_reports),
+        "sequence_reports": sequence_reports,
+        "institutional_utility_stats": _stats(sequence_utilities),
+        "control_satisfied_resolution_stats": _stats(sequence_csrs),
+        "unsafe_release_rate_stats": _stats(sequence_unsafe_rates),
+    }
 
 
 def _task_score_mean(section: dict[str, Any], task_type: str) -> float | None:
@@ -126,7 +292,7 @@ def _evaluate_cases(
 ) -> dict[str, Any]:
     db = _db_with_cases(base_db, cases)
     case_ids = [str(case["case_id"]) for case in cases if case.get("case_id")]
-    return inference.run_local_baseline(
+    evaluation = inference.run_local_baseline(
         case_ids,
         db=db,
         client=client,
@@ -135,6 +301,8 @@ def _evaluate_cases(
         pass_k=pass_k,
         pass_threshold=pass_threshold,
     )
+    evaluation["results"] = _annotate_results(list(evaluation.get("results", [])), cases)
+    return evaluation
 
 
 def _approved_bank_account(case: dict[str, Any], vendors_by_key: dict[str, dict[str, Any]]) -> str | None:
@@ -211,20 +379,17 @@ def _evaluate_contrastive_pairs(
 
 def _section_summary(section: dict[str, Any], *, pass_threshold: float) -> dict[str, Any]:
     results = list(section.get("results", []))
-    scores = [float(row.get("score", 0.0) or 0.0) for row in results]
-    certificate_scores = [float(row.get("certificate_score", 0.0) or 0.0) for row in results]
-    institutional_scores = [float(row.get("institutional_loss_score", 0.0) or 0.0) for row in results]
+    metrics = _aggregate_result_metrics(results, pass_threshold)
     return {
         "case_count": len(results),
         "average_score": round(float(section.get("average_score", 0.0) or 0.0), 4),
-        "score_stats": _stats(scores),
-        "certificate_score_stats": _stats(certificate_scores),
-        "institutional_loss_score_stats": _stats(institutional_scores),
-        "pass_rate": round(sum(score >= pass_threshold for score in scores) / max(len(scores), 1), 4),
-        "trial_pass_rate": round(float(section.get("trial_pass_rate", 0.0) or 0.0), 4),
-        "consistent_pass_rate": round(float(section.get("consistent_pass_rate", 0.0) or 0.0), 4),
-        "any_pass_rate": round(float(section.get("any_pass_rate", 0.0) or 0.0), 4),
+        **metrics,
         "task_breakdown": _group_by_task(results, pass_threshold),
+        "track_breakdown": _group_by_key(results, pass_threshold, key_name="benchmark_track", value_fn=lambda row: row.get("benchmark_track", "unknown")),
+        "mechanism_breakdown": _group_by_key(results, pass_threshold, key_name="mechanism_family", value_fn=lambda row: row.get("mechanism_family", "unknown")),
+        "risk_breakdown": _group_by_key(results, pass_threshold, key_name="unsafe_if_pay", value_fn=lambda row: "risky" if row.get("unsafe_if_pay") else "clean"),
+        "control_type_breakdown": _group_by_key(results, pass_threshold, key_name="control_type", value_fn=lambda row: row.get("control_type", "unknown")),
+        "split_breakdown": _group_by_key(results, pass_threshold, key_name="benchmark_split", value_fn=lambda row: row.get("benchmark_split", "benchmark")),
         "results": results,
     }
 
@@ -303,26 +468,68 @@ def build_report(
         pass_k=pass_k,
         pass_threshold=pass_threshold,
     )
+    case_track_cases = [deepcopy(case) for case in public_cases if case_matches_track(case, CASE_TRACK)]
+    adversarial_track_cases = [deepcopy(case) for case in public_cases if case_matches_track(case, ADVERSARIAL_DATA_TRACK)]
+    official_tracks = {
+        "case_track": {
+            "track": CASE_TRACK,
+            "track_label": track_label(CASE_TRACK),
+            **_section_summary(
+                _evaluate_cases(
+                    case_track_cases,
+                    base_db=base_db,
+                    client=client,
+                    temperature=temperature,
+                    pass_k=pass_k,
+                    pass_threshold=pass_threshold,
+                ),
+                pass_threshold=pass_threshold,
+            ),
+        },
+        "adversarial_data_track": {
+            "track": ADVERSARIAL_DATA_TRACK,
+            "track_label": track_label(ADVERSARIAL_DATA_TRACK),
+            **_section_summary(
+                _evaluate_cases(
+                    adversarial_track_cases,
+                    base_db=base_db,
+                    client=client,
+                    temperature=temperature,
+                    pass_k=pass_k,
+                    pass_threshold=pass_threshold,
+                ),
+                pass_threshold=pass_threshold,
+            ),
+        },
+        "portfolio_track": _evaluate_portfolio_sequences(
+            base_db=base_db,
+            client=client,
+            temperature=temperature,
+        ),
+    }
 
     generated_at = datetime.now(timezone.utc).isoformat()
     return {
-        "benchmark": "ledgershield-v3",
+        "benchmark": "ledgershield-v2",
+        "benchmark_identity": "Verified institutional control intelligence in enterprise AP workflows",
+        "primary_theme": "World Modeling — Professional Tasks",
+        "secondary_theme": "Long-Horizon Planning & Instruction Following",
         "generated_at": generated_at,
         "public_benchmark": _section_summary(public_eval, pass_threshold=pass_threshold),
         "holdout_challenge": {
             "seed_count": len(seed_reports),
             "variants_per_case": variants_per_case,
             "total_case_count": len(all_holdout_results),
-            "score_stats": _stats(holdout_scores),
-            "pass_rate": round(sum(score >= pass_threshold for score in holdout_scores) / max(len(holdout_scores), 1), 4),
-            "trial_pass_rate": round(sum(holdout_trial_pass_rates) / max(len(holdout_trial_pass_rates), 1), 4),
-            "consistent_pass_rate": round(sum(holdout_consistent) / max(len(holdout_consistent), 1), 4),
-            "any_pass_rate": round(sum(holdout_any) / max(len(holdout_any), 1), 4),
+            **_aggregate_result_metrics(all_holdout_results, pass_threshold),
             "suite_average_stats": _stats(holdout_seed_averages),
             "task_breakdown": _group_by_task(all_holdout_results, pass_threshold),
+            "track_breakdown": _group_by_key(all_holdout_results, pass_threshold, key_name="benchmark_track", value_fn=lambda row: row.get("benchmark_track", "unknown")),
+            "mechanism_breakdown": _group_by_key(all_holdout_results, pass_threshold, key_name="mechanism_family", value_fn=lambda row: row.get("mechanism_family", "unknown")),
+            "split_breakdown": _group_by_key(all_holdout_results, pass_threshold, key_name="benchmark_split", value_fn=lambda row: row.get("benchmark_split", "holdout")),
             "seed_reports": seed_reports,
         },
         "contrastive_pairs": contrastive,
+        "official_tracks": official_tracks,
         "evaluation_protocol": {
             "pass_threshold": round(float(pass_threshold), 4),
             "pass_k": int(pass_k),
@@ -330,6 +537,7 @@ def build_report(
             "holdout_seeds": seeds,
             "model_name": resolved_model_name,
             "agent_type": agent_type,
+            "track_mode": "blind",
             "pass_k_definition": (
                 "A case is counted as pass^k-consistent only if all k repeated trials "
                 "score at or above the pass threshold."
@@ -358,9 +566,15 @@ def build_leaderboard_entry(
         "pass_k": protocol["pass_k"],
         "pass_threshold": protocol["pass_threshold"],
         "public_mean": public["average_score"],
+        "public_control_satisfied_resolution": public["control_satisfied_resolution_rate"],
+        "public_institutional_utility": public["institutional_utility_stats"]["mean"],
+        "public_unsafe_release_rate": public["unsafe_release_rate"],
         "public_trial_pass_rate": public["trial_pass_rate"],
         "public_pass_k_consistent": public["consistent_pass_rate"],
         "holdout_mean": holdout["score_stats"]["mean"],
+        "holdout_control_satisfied_resolution": holdout["control_satisfied_resolution_rate"],
+        "holdout_institutional_utility": holdout["institutional_utility_stats"]["mean"],
+        "holdout_unsafe_release_rate": holdout["unsafe_release_rate"],
         "holdout_trial_pass_rate": holdout["trial_pass_rate"],
         "holdout_pass_k_consistent": holdout["consistent_pass_rate"],
         "contrastive_joint_mean": contrastive["joint_score_stats"]["mean"],
@@ -482,18 +696,18 @@ def load_leaderboard_payload(
     if report is not None:
         entry = build_leaderboard_entry(
             report,
-            model_name=report.get("evaluation_protocol", {}).get("model_name", "ledgershield-baseline-v3"),
+            model_name=report.get("evaluation_protocol", {}).get("model_name", "ledgershield-baseline-v2"),
             agent_type=report.get("evaluation_protocol", {}).get("agent_type", "deterministic-policy"),
         )
         return {
-            "benchmark": report.get("benchmark", "ledgershield-v3"),
+            "benchmark": report.get("benchmark", "ledgershield-v2"),
             "generated_at": report.get("generated_at"),
             "entries": [entry],
             "note": "Leaderboard artifact not found; derived from latest benchmark report artifact.",
         }
 
     return {
-        "benchmark": "ledgershield-v3",
+        "benchmark": "ledgershield-v2",
         "generated_at": None,
         "entries": [],
         "note": "No leaderboard artifact generated yet. Run benchmark_report.py to create one.",
@@ -525,7 +739,7 @@ def upsert_leaderboard_entry(
     retained.append(entry)
     retained = _dedupe_leaderboard_entries(retained, canonical=entry)
     updated = {
-        "benchmark": "ledgershield-v3",
+        "benchmark": "ledgershield-v2",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "entries": retained,
         "note": (
@@ -542,15 +756,21 @@ def _format_markdown(report: dict[str, Any]) -> str:
     public = report["public_benchmark"]
     holdout = report["holdout_challenge"]
     contrastive = report["contrastive_pairs"]
+    official_tracks = report.get("official_tracks", {}) or {}
     protocol = report["evaluation_protocol"]
     public_task_e_mean = _task_score_mean(public, "task_e")
     holdout_task_e_mean = _task_score_mean(holdout, "task_e")
     public_lines = [
         "# LedgerShield Benchmark Report",
         "",
+        f"Benchmark identity: {report.get('benchmark_identity', '')}",
+        f"Primary theme: {report.get('primary_theme', '')}",
+        f"Secondary theme: {report.get('secondary_theme', '')}",
+        "",
         "## Evaluation Protocol",
         f"- Model: {protocol['model_name']}",
         f"- Agent type: {protocol['agent_type']}",
+        f"- Observation mode: {protocol.get('track_mode', 'blind')}",
         f"- Temperature: {protocol['temperature']:.2f}",
         f"- pass^k trials: {protocol['pass_k']}",
         f"- Pass threshold: {protocol['pass_threshold']:.2f}",
@@ -558,6 +778,9 @@ def _format_markdown(report: dict[str, Any]) -> str:
         "## Public Benchmark",
         f"- Cases: {public['case_count']}",
         f"- Average score: {public['average_score']:.4f}",
+        f"- Control-Satisfied Resolution: {public['control_satisfied_resolution_rate']:.4f}",
+        f"- Institutional Utility: {public['institutional_utility_stats']['mean']:.4f}",
+        f"- Unsafe release rate: {public['unsafe_release_rate']:.4f}",
         f"- Pass rate @ {protocol['pass_threshold']:.2f}: {public['pass_rate']:.4f}",
         f"- Trial pass rate: {public['trial_pass_rate']:.4f}",
         f"- pass^{protocol['pass_k']} consistent rate: {public['consistent_pass_rate']:.4f}",
@@ -573,6 +796,9 @@ def _format_markdown(report: dict[str, Any]) -> str:
         f"- Variants per hard case: {holdout['variants_per_case']}",
         f"- Total holdout cases: {holdout['total_case_count']}",
         f"- Mean score: {holdout['score_stats']['mean']:.4f}",
+        f"- Control-Satisfied Resolution: {holdout['control_satisfied_resolution_rate']:.4f}",
+        f"- Institutional Utility: {holdout['institutional_utility_stats']['mean']:.4f}",
+        f"- Unsafe release rate: {holdout['unsafe_release_rate']:.4f}",
         f"- Pass rate @ {protocol['pass_threshold']:.2f}: {holdout['pass_rate']:.4f}",
         f"- Trial pass rate: {holdout['trial_pass_rate']:.4f}",
         f"- pass^{protocol['pass_k']} consistent rate: {holdout['consistent_pass_rate']:.4f}",
@@ -589,6 +815,16 @@ def _format_markdown(report: dict[str, Any]) -> str:
         f"- Joint score mean: {contrastive['joint_score_stats']['mean']:.4f}",
         f"- Joint score stddev: {contrastive['joint_score_stats']['stdev']:.4f}",
     ]
+    if official_tracks:
+        lines.extend(
+            [
+                "",
+                "## Official Tracks",
+                f"- Case Track CSR: {official_tracks.get('case_track', {}).get('control_satisfied_resolution_rate', 0.0):.4f}",
+                f"- Adversarial Data Track unsafe release rate: {official_tracks.get('adversarial_data_track', {}).get('unsafe_release_rate', 0.0):.4f}",
+                f"- Portfolio Track institutional utility: {official_tracks.get('portfolio_track', {}).get('institutional_utility_stats', {}).get('mean', 0.0):.4f}",
+            ]
+        )
     return "\n".join(lines)
 
 

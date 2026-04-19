@@ -2305,7 +2305,13 @@ def summarize_case_trials(
     errors = [str(trial.get("error", "")).strip() for trial in trials if str(trial.get("error", "")).strip()]
     pressure_scores = [float(trial.get("pressure_resistance_score", 0.0) or 0.0) for trial in trials]
     certificate_scores = [float(trial.get("certificate_score", 0.0) or 0.0) for trial in trials]
+    certificate_validity_scores = [float(trial.get("certificate_validity_score", 0.0) or 0.0) for trial in trials]
     institutional_loss_scores = [float(trial.get("institutional_loss_score", 0.0) or 0.0) for trial in trials]
+    institutional_utilities = [float(trial.get("institutional_utility", 0.0) or 0.0) for trial in trials]
+    control_resolution_scores = [float(trial.get("control_satisfied_resolution", 0.0) or 0.0) for trial in trials]
+    result_classes = [str(trial.get("result_class", "") or "") for trial in trials if str(trial.get("result_class", "") or "").strip()]
+    benchmark_tracks = [str(trial.get("benchmark_track", "") or "") for trial in trials if str(trial.get("benchmark_track", "") or "").strip()]
+    track_modes = [str(trial.get("track_mode", "") or "") for trial in trials if str(trial.get("track_mode", "") or "").strip()]
     score_breakdowns = [trial.get("score_breakdown", {}) or {} for trial in trials]
 
     return {
@@ -2326,7 +2332,13 @@ def summarize_case_trials(
         "trial_decisions": decisions,
         "pressure_resistance_score": round(sum(pressure_scores) / max(len(pressure_scores), 1), 4),
         "certificate_score": round(sum(certificate_scores) / max(len(certificate_scores), 1), 4),
+        "certificate_validity_score": round(sum(certificate_validity_scores) / max(len(certificate_validity_scores), 1), 4),
         "institutional_loss_score": round(sum(institutional_loss_scores) / max(len(institutional_loss_scores), 1), 4),
+        "institutional_utility": round(sum(institutional_utilities) / max(len(institutional_utilities), 1), 4),
+        "control_satisfied_resolution": round(sum(control_resolution_scores) / max(len(control_resolution_scores), 1), 4),
+        "result_class": dominant_value(result_classes),
+        "benchmark_track": dominant_value(benchmark_tracks),
+        "track_mode": dominant_value(track_modes),
         "decision_certificate_report": dict((trials[-1].get("decision_certificate_report", {}) if trials else {}) or {}),
         "institutional_metrics": dict((trials[-1].get("institutional_metrics", {}) if trials else {}) or {}),
         "score_breakdown": score_breakdowns[-1] if score_breakdowns else {},
@@ -2370,8 +2382,8 @@ class LocalLedgerShieldEnv:
     def __init__(self, db: dict[str, Any] | None = None) -> None:
         self._env = LedgerShieldEnvironment(db=db)
 
-    def reset(self, seed: int | None = None, case_id: str | None = None) -> StepResult[Any]:
-        observation = self._env.reset(seed=seed, case_id=case_id)
+    def reset(self, seed: int | None = None, case_id: str | None = None, track: str | None = None) -> StepResult[Any]:
+        observation = self._env.reset(seed=seed, case_id=case_id, track=track)
         return StepResult(
             observation=observation,
             reward=float(self._env._last_reward),
@@ -2390,6 +2402,12 @@ class LocalLedgerShieldEnv:
 
     def close(self) -> None:
         return None
+
+    def reset_institutional_memory(self) -> dict[str, Any]:
+        return self._env.reset_institutional_memory()
+
+    def institutional_memory(self) -> dict[str, Any]:
+        return self._env.institutional_memory()
 
 
 def perform_step(
@@ -2668,7 +2686,13 @@ def run_episode_with_env(
                 "decision_certificate_report": dict(final_result.info.get("decision_certificate_report", {}) or {}),
                 "institutional_metrics": dict(final_result.info.get("institutional_metrics", {}) or {}),
                 "certificate_score": float(score_breakdown.get("certificate_score", 0.0) or 0.0),
+                "certificate_validity_score": float(score_breakdown.get("certificate_validity_score", 0.0) or 0.0),
                 "institutional_loss_score": float(score_breakdown.get("institutional_loss_score", 0.0) or 0.0),
+                "institutional_utility": float(score_breakdown.get("institutional_utility", 0.0) or 0.0),
+                "control_satisfied_resolution": float(score_breakdown.get("control_satisfied_resolution", 0.0) or 0.0),
+                "result_class": str(score_breakdown.get("result_class", "") or ""),
+                "benchmark_track": str(final_result.info.get("benchmark_track", "") or getattr(observation, "case_metadata", {}).get("benchmark_track", "")),
+                "track_mode": str(final_result.info.get("track_mode", "") or getattr(observation, "case_metadata", {}).get("track_mode", "")),
                 "pressure_resistance_score": pressure_resistance,
             }
 
@@ -2899,7 +2923,13 @@ def run_episode_with_env(
             "decision_certificate_report": dict(final_result.info.get("decision_certificate_report", {}) or {}),
             "institutional_metrics": dict(final_result.info.get("institutional_metrics", {}) or {}),
             "certificate_score": float(score_breakdown.get("certificate_score", 0.0) or 0.0),
+            "certificate_validity_score": float(score_breakdown.get("certificate_validity_score", 0.0) or 0.0),
             "institutional_loss_score": float(score_breakdown.get("institutional_loss_score", 0.0) or 0.0),
+            "institutional_utility": float(score_breakdown.get("institutional_utility", 0.0) or 0.0),
+            "control_satisfied_resolution": float(score_breakdown.get("control_satisfied_resolution", 0.0) or 0.0),
+            "result_class": str(score_breakdown.get("result_class", "") or ""),
+            "benchmark_track": str(final_result.info.get("benchmark_track", "") or getattr(observation, "case_metadata", {}).get("benchmark_track", "")),
+            "track_mode": str(final_result.info.get("track_mode", "") or getattr(observation, "case_metadata", {}).get("track_mode", "")),
             "pressure_resistance_score": pressure_resistance,
             "rl_trace": collected.get("rl_trace", []),
         }
@@ -2914,6 +2944,8 @@ def run_episode_with_env(
             "final_decision": "",
             "score_breakdown": {},
             "pressure_resistance_score": 0.0,
+            "benchmark_track": "",
+            "track_mode": "",
             "error": str(exc),
             "rl_trace": [],
         }

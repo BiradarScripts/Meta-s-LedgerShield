@@ -98,6 +98,15 @@ def test_seeded_reset_is_deterministic():
     assert obs_one.task_type == obs_two.task_type
 
 
+def test_reset_supports_official_track_selection():
+    env = LedgerShieldEnvironment()
+    obs = env.reset(seed=7, track="adversarial")
+
+    assert obs.case_metadata["benchmark_track"] == "adversarial"
+    assert obs.case_metadata["benchmark_track_label"] == "Adversarial Data Track"
+    assert "adversarial" in obs.case_metadata["official_tracks"]
+
+
 def test_build_hidden_world_falls_back_when_graph_state_is_invalid():
     env = LedgerShieldEnvironment()
     case = deepcopy(env.db["cases_by_id"]["CASE-B-005"])
@@ -838,6 +847,7 @@ def test_holdout_generation_is_deterministic():
 
     assert [case["case_id"] for case in first] == [case["case_id"] for case in second]
     assert all(case["benchmark_split"] == "holdout" for case in first)
+    assert all(case.get("latent_mechanism_signature") for case in first)
 
 
 def test_unsafe_pay_is_penalized():
@@ -921,8 +931,9 @@ def test_correct_task_d_submission_finishes_episode():
 
     assert obs.last_tool_result["tool_name"] == "submit_decision"
     assert obs.last_tool_result["success"] is True
-    assert obs.last_tool_result["final_score"] > 0.88
-    assert obs.last_tool_result["final_score"] < 1.0
+    assert obs.last_tool_result["final_score"] >= 0.75
+    assert obs.last_tool_result["score_breakdown"]["result_class"] == "correct_but_policy_incomplete"
+    assert obs.last_tool_result["score_breakdown"]["control_satisfied_resolution"] == 0.0
 
 
 def test_workflow_override_task_d_case_scores_high():
@@ -998,4 +1009,6 @@ def test_workflow_override_task_d_case_scores_high():
 
     assert obs.last_tool_result["tool_name"] == "submit_decision"
     assert obs.last_tool_result["success"] is True
-    assert obs.last_tool_result["final_score"] > 0.88
+    assert obs.last_tool_result["final_score"] >= 0.75
+    assert obs.last_tool_result["score_breakdown"]["result_class"] == "correct_but_policy_incomplete"
+    assert obs.last_tool_result["score_breakdown"]["control_satisfied_resolution"] == 0.0

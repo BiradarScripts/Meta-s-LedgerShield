@@ -180,9 +180,10 @@ The public snapshot tracks:
 - unsafe releases, false positives, and safe releases
 
 The endpoint `/institutional-reset` clears this layer when a run needs a clean
-AP week. The default observation track is `instrumented`; setting
-`LEDGERSHIELD_TRACK_MODE=blind` hides SPRT, VoI ranking, and reward-machine
-diagnostics from observations while preserving the same hidden grader state.
+AP week. The default observation track is `blind`; setting
+`LEDGERSHIELD_TRACK_MODE=instrumented` exposes SPRT, VoI ranking, and
+reward-machine diagnostics for debugging while preserving the same hidden
+grader state.
 
 ## Decision Certificates
 

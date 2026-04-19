@@ -22,6 +22,11 @@ def test_build_report_returns_public_and_holdout_sections():
     assert report["evaluation_protocol"]["pass_k"] == 2
     assert "consistent_pass_rate" in report["holdout_challenge"]
     assert "contrastive_pairs" in report
+    assert "control_satisfied_resolution_rate" in report["public_benchmark"]
+    assert "institutional_utility_stats" in report["public_benchmark"]
+    assert "unsafe_release_rate" in report["public_benchmark"]
+    assert "official_tracks" in report
+    assert report["official_tracks"]["portfolio_track"]["sequence_count"] >= 1
 
 
 def test_build_leaderboard_entry_includes_task_e_metrics():
@@ -84,7 +89,7 @@ def test_load_leaderboard_payload_filters_legacy_deterministic_alias(tmp_path: P
     leaderboard_path.write_text(
         json.dumps(
             {
-                "benchmark": "ledgershield-v3",
+                "benchmark": "ledgershield-v2",
                 "generated_at": report["generated_at"],
                 "entries": [legacy_alias, canonical],
             }
@@ -113,7 +118,7 @@ def test_upsert_leaderboard_entry_prunes_legacy_alias(tmp_path: Path):
         agent_type="deterministic-policy",
     )
     legacy_payload = {
-        "benchmark": "ledgershield-v3",
+        "benchmark": "ledgershield-v2",
         "generated_at": report["generated_at"],
         "entries": [
             {

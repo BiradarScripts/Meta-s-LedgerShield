@@ -16,10 +16,25 @@ from models import LedgerShieldAction
 from server.environment import LedgerShieldEnvironment
 
 
+def _diagnostics_env() -> LedgerShieldEnvironment:
+    env = LedgerShieldEnvironment()
+    env._track_mode = "instrumented"
+    return env
+
+
 # ── Reset exposes ASHTG state ─────────────────────────────────────────────────
 
-def test_reset_exposes_ashtg_state():
+def test_reset_hides_ashtg_state_in_blind_mode_by_default():
     env = LedgerShieldEnvironment()
+    obs = env.reset(case_id="CASE-D-001")
+    assert obs.case_metadata["track_mode"] == "blind"
+    assert obs.sprt_state == {}
+    assert obs.tool_rankings == {}
+    assert obs.reward_machine == {}
+
+
+def test_reset_exposes_ashtg_state():
+    env = _diagnostics_env()
     obs = env.reset(case_id="CASE-D-001")
     assert "posterior_probabilities" in obs.sprt_state
     assert "recommended_tool" in obs.tool_rankings
@@ -49,7 +64,7 @@ def test_reset_categorical_component_name_matches_task():
 
 
 def test_sprt_state_has_all_required_fields():
-    env = LedgerShieldEnvironment()
+    env = _diagnostics_env()
     obs = env.reset(case_id="CASE-D-001")
     required = {
         "hypotheses", "log_likelihood_ratios", "posterior_probabilities",
@@ -60,7 +75,7 @@ def test_sprt_state_has_all_required_fields():
 
 
 def test_tool_rankings_contain_voi_scores():
-    env = LedgerShieldEnvironment()
+    env = _diagnostics_env()
     obs = env.reset(case_id="CASE-D-001")
     assert "rankings" in obs.tool_rankings
     assert isinstance(obs.tool_rankings["rankings"], dict)
@@ -68,7 +83,7 @@ def test_tool_rankings_contain_voi_scores():
 
 
 def test_posterior_sums_to_one_after_reset():
-    env = LedgerShieldEnvironment()
+    env = _diagnostics_env()
     obs = env.reset(case_id="CASE-D-001")
     posteriors = obs.sprt_state["posterior_probabilities"]
     total = sum(posteriors.values())
@@ -80,7 +95,7 @@ def test_posterior_sums_to_one_after_reset():
 # ── Step updates SPRT state ───────────────────────────────────────────────────
 
 def test_sprt_updates_after_compare_bank_account():
-    env = LedgerShieldEnvironment()
+    env = _diagnostics_env()
     obs_reset = env.reset(case_id="CASE-D-001")
     prior_bank_fraud = obs_reset.sprt_state["posterior_probabilities"].get("bank_fraud", 0.0)
 
@@ -93,7 +108,7 @@ def test_sprt_updates_after_compare_bank_account():
 
 
 def test_reward_machine_advances_on_expected_action():
-    env = LedgerShieldEnvironment()
+    env = _diagnostics_env()
     obs_reset = env.reset(case_id="CASE-D-001")
     initial_progress = obs_reset.reward_machine.get("progress_fraction", 0.0)
 
