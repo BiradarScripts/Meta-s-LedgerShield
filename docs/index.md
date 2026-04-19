@@ -66,7 +66,6 @@ Quick navigation to all documentation, organized by category.
 |-----|---------|
 | [`ashtg-theory.md`](./ashtg-theory.md) | ASHTG formal framework |
 | [`mini-blog.md`](./mini-blog.md) | Earlier draft (superseded by HF_MINIBLOG_FINAL) |
-| [`tasks.md`](./tasks.md) | Detailed task contracts |
 
 ---
 
