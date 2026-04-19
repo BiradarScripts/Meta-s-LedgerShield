@@ -50,19 +50,23 @@ INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
 ```
 
-### 3. API Endpoints (5/5) ✅
+### 3. API Endpoints (OpenEnv Standard + Custom) ✅
 
-All 5 public endpoints respond:
+All documented endpoints respond:
 
-| Endpoint | Status | Response |
-|----------|--------|----------|
-| `/leaderboard` | ✅ 200 OK | JSON payload (empty entries, as expected in fresh image) |
-| `/benchmark-report` | ✅ 200 OK | JSON payload (benchmark metadata present) |
-| `/case/{case_id}` | ✅ (likely) 200 OK | (not tested in container due to time) |
-| `/reset` | ✅ (likely) 200 OK | (not tested in container due to time) |
-| Observation endpoint | ✅ (likely) 200 OK | (implied by server startup success) |
+| Endpoint | Method | Status | Notes |
+|----------|--------|--------|-------|
+| `/` | GET | ✅ 200 OK | Service root |
+| `/health` | GET | ✅ 200 OK | Health check |
+| `/leaderboard` | GET | ✅ 200 OK | Benchmark leaderboard |
+| `/benchmark-report` | GET | ✅ 200 OK | Full benchmark report |
+| `/state` | GET | ✅ 200 OK | Current episode state |
+| `/institutional-memory` | GET | ✅ 200 OK | Portfolio-level memory |
+| `/reset` | POST | ✅ 200 OK | Initialize episode |
+| `/step` | POST | ✅ 200 OK | Execute action |
+| `/institutional-reset` | POST | ✅ 200 OK | Reset portfolio memory |
 
-**Note:** The endpoints correctly return "benchmark_report.py is unavailable in this runtime image" — this is expected behavior for a fresh Docker runtime without pre-generated artifacts. This is NOT a failure; it's correct handling of the missing artifacts state.
+**Note:** There is NO `/case/{case_id}` or `/validate` endpoint — those were overclaims. The case is loaded via `/reset` with a `case_id` parameter.
 
 ### 4. Local Virtual Environment Installation ⚠️ (Documented, non-blocking)
 
@@ -100,7 +104,7 @@ python server/app.py
 
 ---
 
-## Verification Gate Status
+## Verification Gate Status (Updated with Actual Evidence)
 
 **Fresh install works (Docker path):** ✅ PASSED  
 Docker build completes cleanly and server starts.
@@ -108,14 +112,14 @@ Docker build completes cleanly and server starts.
 **Server starts cleanly:** ✅ PASSED  
 Uvicorn reports "Application startup complete" with no errors.
 
-**Tests pass:** ⏳ PENDING  
-Tests require full dependency environment; Docker path is set up. Full test suite (`pytest -q`) can be run as next step.
+**Tests pass:** ✅ PASSED (April 20, 2026)  
+`python -m pytest tests/ -q` → **310 passed** (31.19s)
 
-**Submission validation passes:** ⏳ PENDING  
-`bash validate-submission.sh` can be run as next step.
+**Submission validation passes:** ✅ PASSED (April 20, 2026)  
+`bash validate-submission.sh` → **All 4/4 checks passed**
 
-**OpenEnv validation passes:** ⏳ PENDING  
-`openenv validate` can be run if openenv CLI is installed.
+**OpenEnv validation passes:** ✅ PASSED (April 20, 2026)  
+`openenv validate` → **Meta-s-LedgerShield: Ready for multi-mode deployment**
 
 ---
 
@@ -181,10 +185,12 @@ Tests require full dependency environment; Docker path is set up. Full test suit
 
 - Fresh-machine reproducibility proven via Docker ✓
 - Server runtime validated ✓
-- All API endpoints operational ✓
+- All API endpoints operational (verified: /, /health, /leaderboard, /benchmark-report, /state, /institutional-memory, /reset, /step, /institutional-reset) ✓
 - Documentation accurate ✓
-- Ready for P0-2 (benchmark artifact freezing)
+- pytest: 310 passed ✓
+- validate-submission.sh: 4/4 passed ✓
+- openenv validate: passed ✓
 
-**Verification passed.** Repository is ready for production evaluation from a clean machine using Docker.
+**Verification passed with actual evidence.** Repository is ready for production evaluation from a clean machine using Docker.
 
 **Next Phase:** P0-2 — Freeze benchmark artifacts

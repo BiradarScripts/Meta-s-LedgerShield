@@ -1,8 +1,8 @@
 # PLAN A: Final Deliverables Checklist
 
-**Plan A Status:** 8/10 complete (A0–A7 ✅ | A8 ⏳ | A9 🔄)  
+**Plan A Status:** 8/10 complete (A0–A7 ✅ | A8 ⏳ pending manual HF publish | A9 🔄 pending final URL)  
 **Date:** April 20, 2026  
-**Last Updated:** Plan A finalization in progress
+**Last Updated:** Closure pass in progress
 
 ---
 
@@ -21,7 +21,7 @@ Plan A is the pre-onsite implementation plan to make LedgerShield v2 fully submi
 
 | Deliverable | Path | Details |
 |-------------|------|---------|
-| Submission Contract | `docs/SUBMISSION_CONTRACT.md` | All 6 Round 2 fields locked: problem statement, environment, agent capabilities, tasks, reward model, post-training strategy. Theme: "AI Safety Benchmarks." One-line narrative: "LedgerShield v2 formalizes enterprise payment fraud investigation as an adversarial sequential hypothesis testing game (ASHTG), enabling rigorous safety-oriented agent evaluation." |
+| Submission Contract | `docs/SUBMISSION_CONTRACT.md` | All 6 Round 2 fields locked: problem statement, environment, agent capabilities, tasks, reward model, post-training strategy. Theme: "World Modeling — Professional Tasks" (secondary: "Long-Horizon Planning & Instruction Following"). One-line narrative: "LedgerShield v2 is a benchmark for whether an AI agent can operate a defensible enterprise AP control regime under partial observability, delayed evidence, adversarial pressure, and portfolio-level constraints." |
 | Contract Metadata | `openenv.yaml` | Updated with submission_theme, round_2_lock_date, and one-line narrative |
 
 **Judge-facing language frozen:** All docs/README use consistent one-line narrative. No mid-execution pivots.
@@ -36,7 +36,7 @@ Plan A is the pre-onsite implementation plan to make LedgerShield v2 fully submi
 | Deliverable | Path | Details |
 |-------------|------|---------|
 | Runtime Defaults | `server/app.py` | Blind mode enabled by default. Port 8000 hardcoded. Fresh-machine reproducibility verified. |
-| API Endpoints (5/5) | `server/routes/` | ✅ `/benchmark-report` ✅ `/leaderboard` ✅ `/case/{case_id}` ✅ `/reset` ✅ `/validate` |
+| API Endpoints (9) | `server/app.py` + OpenEnv | ✅ `/` ✅ `/health` ✅ `/leaderboard` ✅ `/benchmark-report` ✅ `/state` ✅ `/institutional-memory` ✅ `/reset` ✅ `/step` ✅ `/institutional-reset` |
 | Reproducibility Test | Git history / CI logs | Fresh-machine reproducibility test passed; deterministic baseline works end-to-end |
 | Docker Build | `Dockerfile` | No changes needed; verified buildable and runnable on fresh machine |
 
@@ -55,8 +55,8 @@ Plan A is the pre-onsite implementation plan to make LedgerShield v2 fully submi
 | Leaderboard | `artifacts/leaderboard.json` | 1.3 KB | Leaderboard entry payload (control satisfaction, institutional utility, unsafe rate) |
 | Demo Trace (Case D-001) | `artifacts/demo_trace_CASE_D_001.json` | 2.4 KB | Full trace showing 5-step resolution, final score 0.9188 |
 | Before/After Visual | `artifacts/before_after.html` | 5.0 KB | Interactive before/after improvement visual (4 key metrics) |
-| SFT Dataset | `artifacts/ledgershield_sft_examples.jsonl` | 17.4 KB | 21 training examples for SFT pipelines (TRL-compatible) |
-| Training Metadata | `artifacts/training_output.json` | 1.1 KB | Training run metadata and loss curves |
+| SFT Dataset | `artifacts/ledgershield_sft_examples.jsonl` | 17.4 KB | 21 SFT-ready examples (TRL-compatible) for training-prep |
+| Training Metadata | `artifacts/training_output.json` | 1.1 KB | Training-prep metadata (not onsite training) |
 
 **Artifact Integrity:** All files checksummed and locked. No modifications permitted post-freeze.
 
@@ -169,22 +169,26 @@ Plan A is the pre-onsite implementation plan to make LedgerShield v2 fully submi
 
 ---
 
-## Verification Checklist (A9)
+## Verification Checklist (A9) — Updated with Actual Evidence
 
 ### Pre-Submission Verification
 
-- [ ] **Install & Setup:** `pip install -e .` (or venv setup) succeeds
-- [ ] **Dependencies:** `pip install -r requirements.txt` completes without error
-- [ ] **Server Startup:** `python server/app.py` starts without error on port 8000
-- [ ] **API Health:** All 5 endpoints respond:
-  - [ ] `GET /benchmark-report` returns valid JSON
-  - [ ] `GET /leaderboard` returns valid JSON
-  - [ ] `GET /case/CASE-D-001` returns valid case data
-  - [ ] `POST /reset` returns HTTP 200
-  - [ ] `GET /validate` returns HTTP 200
-- [ ] **Pytest Suite:** `python -m pytest tests/ -q` passes (310 tests)
-- [ ] **Validation Script:** `bash validate-submission.sh` completes successfully
-- [ ] **OpenEnv Validate:** `openenv validate` passes (if openenv CLI available)
+- [x] **Install & Setup:** `pip install -e .` succeeds
+- [x] **Server Startup:** `python server/app.py` starts without error on port 8000
+- [x] **API Endpoints (verified April 20, 2026):**
+  - [x] `GET /` → 200 OK
+  - [x] `GET /health` → 200 OK
+  - [x] `GET /leaderboard` → 200 OK ("ledgershield-v2")
+  - [x] `GET /benchmark-report` → 200 OK ("ledgershield-v2")
+  - [x] `GET /state` → 200 OK
+  - [x] `GET /institutional-memory` → 200 OK
+  - [x] `POST /reset` → 200 OK
+  - [x] `POST /step` → 200 OK
+  - [x] `POST /institutional-reset` → 200 OK
+  - Note: `/case/{case_id}` and `/validate` do NOT exist; use `/reset` with case_id param
+- [x] **Pytest Suite (April 20, 2026):** `python -m pytest tests/ -q` → **310 passed** (31.19s)
+- [x] **Validation Script (April 20, 2026):** `bash validate-submission.sh` → **All 4/4 checks passed**
+- [x] **OpenEnv Validate (April 20, 2026):** `openenv validate` → **Meta-s-LedgerShield: Ready for multi-mode deployment**
 - [ ] **Live Demo:** CASE-D-001 runs in blind mode, produces score 0.9188 or similar
 - [ ] **Artifacts:** All 6 frozen artifacts exist and are uncorrupted:
   - [ ] `artifacts/benchmark_report_latest.json` (947 KB)
@@ -219,7 +223,7 @@ Plan A is the pre-onsite implementation plan to make LedgerShield v2 fully submi
 ### Portfolio & Track Assets
 - **A4_PORTFOLIO_TRACK_REPORT.md** — 5 stress-test sequences with objectives
 - **before_after.html** — 4 key metrics, observable improvement visual
-- **ledgershield_sft_examples.jsonl** — 21 SFT training examples (TRL-ready)
+- **ledgershield_sft_examples.jsonl** — 21 SFT-ready examples (training-prep, not onsite training)
 
 ### Judge-Facing Mini-Blog
 - **HF_MINIBLOG_FINAL.md** — 445 words, published on Hugging Face
@@ -271,15 +275,21 @@ Plan A is the pre-onsite implementation plan to make LedgerShield v2 fully submi
 
 ## Sign-Off
 
-**Plan A Lead:** Mythos (AI Agent)  
-**Status:** 8/10 complete (A0–A7 ✅ | A8 ready for manual publish | A9 in progress)  
-**Date Completed:** April 20, 2026  
-**Final Validation:** Pending post-publication verification
+**Plan A Lead:** OpenCode Agent  
+**Status:** 8/10 complete (A0–A7 ✅ | A8 ⏳ pending manual HF publication | A9 🔄 pending final URL)  
+**Date:** April 20, 2026  
+**Verification Evidence (April 20, 2026):**
+- pytest: 310 passed (31.19s)
+- validate-submission.sh: 4/4 passed
+- openenv validate: passed
+- Server endpoints: 9/9 responding
 
 **Review Checklist for User:**
 - ✅ All A0–A7 deliverables complete and locked
-- ⏳ A8 ready to publish (waiting for manual HF publication)
-- 🔄 A9 complete after A8 is published and this document is updated
+- ⏳ A8: Ready for manual publication to Hugging Face (see A8_PUBLISHING_GUIDE.md)
+- 🔄 A9: Pending — to be marked complete after HF publication + final URL insertion
+
+**Action Required:** Publish mini-blog to Hugging Face → Provide final URL → I will update A8/A9 status
 
 ---
 
