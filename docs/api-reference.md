@@ -249,15 +249,15 @@ Typical response shape:
 ```json
 <!-- sync:api-leaderboard-example:start -->
 {
-  "benchmark": "ledgershield-v3",
-  "generated_at": "2026-04-16T09:58:59.221224+00:00",
+  "benchmark": "ledgershield-v2",
+  "generated_at": "2026-04-20T12:04:39.291162+00:00",
   "entries": [
     {
       "model": "ledgershield/deterministic-baseline",
       "type": "deterministic-policy",
-      "public_mean": 0.9018,
-      "holdout_mean": 0.7124,
-      "holdout_pass_k_consistent": 0.2222
+      "public_mean": 0.8876,
+      "holdout_mean": 0.7034,
+      "holdout_pass_k_consistent": 0.1667
     }
   ]
 }

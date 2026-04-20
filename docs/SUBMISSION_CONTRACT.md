@@ -47,7 +47,7 @@
 ```
 
 ### Action Space
-- **Investigation tools:** zoom, ocr, get_doc_crop, lookup_vendor, lookup_po, lookup_receipt, search_ledger, inspect_email_thread, compare_bank_account
+- **Investigation tools:** zoom, ocr, get_doc_crop, lookup_vendor, lookup_vendor_history, lookup_policy, lookup_po, lookup_receipt, search_ledger, inspect_email_thread, compare_bank_account
 - **Interventions:** request_callback_verification, freeze_vendor_profile, request_bank_change_approval_chain, request_po_reconciliation, request_additional_receipt_evidence, route_to_procurement, route_to_security, flag_duplicate_cluster_review, create_human_handoff
 - **Terminal action:** submit_decision (with structured payload including reason codes, policy checks, evidence map, decision certificate)
 
@@ -87,7 +87,7 @@ LedgerShield v2 uses 5 task families across 21 curated benchmark cases:
 | Task D | 6 | AP inbox / BEC triage | Email compromise, workflow override |
 | Task E | 2 | Coordinated campaigns | Supply-chain APT, multi-invoice tactics |
 
-**Latent Mechanisms:** 8 attack families (identity, process, document, APT, etc.) × 2-4 compromise channels per family.
+**Latent Mechanism Schema:** 8 dimensions per case (`attack_family`, `compromise_channel`, `pressure_profile`, `control_weakness`, `vendor_history_state`, `bank_adjustment_state`, `campaign_linkage`, `portfolio_context`).
 
 ---
 
@@ -116,9 +116,9 @@ LedgerShield v2 uses 5 task families across 21 curated benchmark cases:
 - **Counterfactual safety:** Checks whether decision would remain correct under plausible alternative evidence
 
 ### Official Tracks (Evaluation Modes)
-1. **Case Track:** Single-case control performance (15 cases)
-2. **Adversarial Data Track:** Robustness to deceptive content (4 cases)
-3. **Portfolio Track:** AP-week utility under queue pressure and finite review capacity (2 cases, expanded to 5 sequences)
+1. **Case Track:** Single-case control performance (all 21 curated cases are evaluated; 15 cases have `primary_track=case`)
+2. **Adversarial Data Track:** Robustness to deceptive content (10 cases carry this official track; 4 cases have `primary_track=adversarial`)
+3. **Portfolio Track:** AP-week utility under queue pressure and finite review capacity (8 cases carry this official track; evaluation runs over 5 fixed portfolio sequences)
 
 ---
 

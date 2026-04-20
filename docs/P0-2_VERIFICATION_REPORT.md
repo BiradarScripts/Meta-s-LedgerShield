@@ -7,19 +7,22 @@
 
 ## Changes Made
 
-None. All artifacts were already frozen and validated from previous work.
+- Regenerated all frozen artifacts via `python generate_artifacts.py`.
+- Updated before/after evidence to measured deterministic profile comparison (`gpt-3.5-turbo` profile vs `gpt-5.4` profile), replacing synthetic degradation.
 
 ---
 
 ## Evidence of Completion
 
-### Artifact Files (6 total, 2.8 MB frozen)
+### Artifact Files (8 total, 2.8 MB frozen)
 
 | File | Size | Status | Purpose |
 |------|------|--------|---------|
 | `artifacts/benchmark_report_latest.json` | 947 KB | ✅ Valid | Full benchmark report with all tracks, metrics, results |
 | `artifacts/leaderboard.json` | 1.3 KB | ✅ Valid | Leaderboard entry payload |
 | `artifacts/demo_trace_CASE_D_001.json` | 2.4 KB | ✅ Valid | Demo case trace for live/fallback demo |
+| `artifacts/benchmark_report_before.json` | 912 KB | ✅ Valid | Measured "before" profile report (`gpt-3.5-turbo`) |
+| `artifacts/benchmark_report_after.json` | 947 KB | ✅ Valid | Measured "after" profile report (`gpt-5.4`) |
 | `artifacts/before_after.html` | 5.0 KB | ✅ Valid | Before/after improvement visual (4 metrics) |
 | `artifacts/ledgershield_sft_examples.jsonl` | 17 KB | ✅ Valid | 21 SFT-ready examples (training-prep) |
 | `artifacts/training_output.json` | 1.1 KB | ✅ Valid | Training-prep metadata (not onsite training) |
@@ -31,8 +34,13 @@ None. All artifacts were already frozen and validated from previous work.
 **benchmark_report_latest.json:**
 - ✅ Has all required fields: `benchmark`, `generated_at`, `official_tracks`, `primary_theme`, `secondary_theme`
 - ✅ Benchmark identity: `ledgershield-v2`
-- ✅ Generated timestamp: `2026-04-19T18:43:43.319247+00:00`
+- ✅ Generated timestamp present and parseable
 - ✅ Official tracks present: `case_track`, `portfolio_track`, `adversarial_data_track`
+
+**benchmark_report_before.json / benchmark_report_after.json:**
+- ✅ Both include `comparison_context.method = deterministic_profile_comparison`
+- ✅ Both include profile provenance (`before_profile_model_name`, `after_profile_model_name`)
+- ✅ Metrics are measured from benchmark runs, not synthetic score scaling
 
 **leaderboard.json:**
 - ✅ Valid JSON with `benchmark` and `entries` fields
@@ -81,7 +89,7 @@ All artifacts are:
 ## Verification Gate Status
 
 **Real artifact files exist:** ✅ PASSED  
-All 6 frozen artifact files are present and checksummed.
+All 8 frozen artifact files are present and checksummed.
 
 **Endpoints configured to serve real artifacts:** ✅ PASSED  
 `/leaderboard` and `/benchmark-report` are wired to serve the frozen files (not placeholders).
@@ -96,12 +104,14 @@ Artifacts are pre-generated and committed; Docker runtime correctly handles miss
 
 ## Files Touched
 
-None (all artifacts were already present from Plan A work).
+Updated `generate_artifacts.py` and regenerated artifacts.
 
 **Artifacts Verified:**
 - `artifacts/benchmark_report_latest.json`
 - `artifacts/leaderboard.json`
 - `artifacts/demo_trace_CASE_D_001.json`
+- `artifacts/benchmark_report_before.json`
+- `artifacts/benchmark_report_after.json`
 - `artifacts/before_after.html`
 - `artifacts/ledgershield_sft_examples.jsonl`
 - `artifacts/training_output.json`
@@ -109,6 +119,7 @@ None (all artifacts were already present from Plan A work).
 **Configuration Files Verified:**
 - `server/app.py` (endpoint setup)
 - `benchmark_report.py` (DEFAULT_REPORT_PATH, DEFAULT_LEADERBOARD_PATH)
+- `generate_artifacts.py` (artifact generation and measured before/after flow)
 
 ---
 
@@ -116,7 +127,7 @@ None (all artifacts were already present from Plan A work).
 
 **P0-2 Status: ✅ COMPLETE**
 
-- All 6 benchmark artifacts frozen ✓
+- All 8 benchmark artifacts frozen ✓
 - Endpoints correctly configured to serve real artifacts ✓
 - Artifact content validated against contract ✓
 - No placeholder responses in final setup ✓

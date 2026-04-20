@@ -22,6 +22,8 @@ from server.data_loader import load_all
 
 
 ARTIFACT_DIR = Path("artifacts")
+DEFAULT_AFTER_PROFILE_MODEL = "gpt-5.4"
+DEFAULT_BEFORE_PROFILE_MODEL = "gpt-3.5-turbo"
 
 
 def _print_section(title: str) -> None:
@@ -30,18 +32,46 @@ def _print_section(title: str) -> None:
     print(f"{'='*60}")
 
 
+def _build_report_with_profile(
+    *,
+    profile_model_name: str,
+    holdout_seeds: list[int],
+    variants_per_case: int,
+    pass_threshold: float,
+    pass_k: int,
+    temperature: float,
+) -> dict:
+    original_model_name = inference.MODEL_NAME
+    try:
+        inference.MODEL_NAME = profile_model_name
+        report = benchmark_report.build_report(
+            holdout_seeds=list(holdout_seeds),
+            variants_per_case=int(variants_per_case),
+            pass_threshold=float(pass_threshold),
+            pass_k=max(1, int(pass_k)),
+            temperature=float(temperature),
+            client=None,
+            model_name="",
+        )
+    finally:
+        inference.MODEL_NAME = original_model_name
+
+    protocol = report.setdefault("evaluation_protocol", {})
+    protocol["profile_model_name"] = profile_model_name
+    return report
+
+
 def generate_benchmark_report() -> dict:
     """Generate full benchmark report using the deterministic baseline."""
     _print_section("Generating Benchmark Report (deterministic baseline)")
 
-    report = benchmark_report.build_report(
+    report = _build_report_with_profile(
+        profile_model_name=DEFAULT_AFTER_PROFILE_MODEL,
         holdout_seeds=list(benchmark_report.DEFAULT_HOLDOUT_SEEDS),
         variants_per_case=1,
         pass_threshold=benchmark_report.DEFAULT_PASS_THRESHOLD,
         pass_k=benchmark_report.DEFAULT_PASS_K,
         temperature=benchmark_report.DEFAULT_TEMPERATURE,
-        client=None,  # deterministic baseline — no API key needed
-        model_name="",
     )
 
     report_path = ARTIFACT_DIR / "benchmark_report_latest.json"
@@ -52,7 +82,9 @@ def generate_benchmark_report() -> dict:
     public = report.get("public_benchmark", {})
     holdout = report.get("holdout_challenge", {})
     contrastive = report.get("contrastive_pairs", {})
+    protocol = report.get("evaluation_protocol", {})
     print(f"\n  Public benchmark:")
+    print(f"    Profile:  {protocol.get('profile_model_name', 'unknown')}")
     print(f"    Cases:    {public.get('case_count', 0)}")
     print(f"    Avg score: {public.get('average_score', 0):.4f}")
     print(f"    CSR rate:  {public.get('control_satisfied_resolution_rate', 0):.4f}")
@@ -278,53 +310,64 @@ def generate_before_after(report: dict) -> None:
     """Generate before/after improvement artifacts."""
     _print_section("Generating Before/After Improvement Artifacts")
 
-    # The "after" report is the current full report
+    protocol = report.get("evaluation_protocol", {}) or {}
+    holdout_seeds = [int(seed) for seed in protocol.get("holdout_seeds", benchmark_report.DEFAULT_HOLDOUT_SEEDS)]
+    pass_threshold = float(protocol.get("pass_threshold", benchmark_report.DEFAULT_PASS_THRESHOLD))
+    pass_k = int(protocol.get("pass_k", benchmark_report.DEFAULT_PASS_K) or benchmark_report.DEFAULT_PASS_K)
+    temperature = float(protocol.get("temperature", benchmark_report.DEFAULT_TEMPERATURE))
+    variants_per_case = int(report.get("holdout_challenge", {}).get("variants_per_case", 1) or 1)
+
+    # The "after" report is the current deterministic baseline profile report
+    after_profile = str(protocol.get("profile_model_name") or DEFAULT_AFTER_PROFILE_MODEL)
+    report.setdefault("comparison_context", {})
+    report["comparison_context"].update(
+        {
+            "method": "deterministic_profile_comparison",
+            "before_profile_model_name": DEFAULT_BEFORE_PROFILE_MODEL,
+            "after_profile_model_name": after_profile,
+            "description": "Measured benchmark delta between standard and elite deterministic capability profiles.",
+        }
+    )
     after_path = ARTIFACT_DIR / "benchmark_report_after.json"
     benchmark_report.write_json_artifact(after_path, report)
     print(f"  Written (after): {after_path}")
 
-    # Generate a degraded "before" report by scaling down scores
-    import copy
-    before_report = copy.deepcopy(report)
-
-    # Degrade the before report to simulate pre-improvement state
-    degradation_factor = 0.72  # Scores were ~72% of current in "before" state
-
-    def degrade_section(section: dict) -> None:
-        if "average_score" in section:
-            section["average_score"] = round(float(section["average_score"]) * degradation_factor, 4)
-        if "score_stats" in section:
-            for key in ("mean", "min", "max"):
-                if key in section["score_stats"]:
-                    section["score_stats"][key] = round(float(section["score_stats"][key]) * degradation_factor, 4)
-        if "control_satisfied_resolution_rate" in section:
-            section["control_satisfied_resolution_rate"] = round(
-                float(section["control_satisfied_resolution_rate"]) * degradation_factor, 4
-            )
-        if "institutional_utility_stats" in section:
-            for key in ("mean", "min", "max"):
-                if key in section["institutional_utility_stats"]:
-                    section["institutional_utility_stats"][key] = round(
-                        float(section["institutional_utility_stats"][key]) * degradation_factor, 4
-                    )
-        if "unsafe_release_rate" in section:
-            # Unsafe release rate should be higher in "before"
-            current = float(section["unsafe_release_rate"])
-            section["unsafe_release_rate"] = round(min(1.0, current + 0.15), 4)
-        if "pass_rate" in section:
-            section["pass_rate"] = round(float(section["pass_rate"]) * degradation_factor, 4)
-        if "consistent_pass_rate" in section:
-            section["consistent_pass_rate"] = round(float(section["consistent_pass_rate"]) * degradation_factor, 4)
-        for result in section.get("results", []):
-            if "score" in result:
-                result["score"] = round(float(result.get("score", 0)) * degradation_factor, 4)
-
-    degrade_section(before_report.get("public_benchmark", {}))
-    degrade_section(before_report.get("holdout_challenge", {}))
+    # Build a measured "before" report using a lower-capability deterministic profile.
+    before_report = _build_report_with_profile(
+        profile_model_name=DEFAULT_BEFORE_PROFILE_MODEL,
+        holdout_seeds=holdout_seeds,
+        variants_per_case=variants_per_case,
+        pass_threshold=pass_threshold,
+        pass_k=pass_k,
+        temperature=temperature,
+    )
+    before_report.setdefault("comparison_context", {})
+    before_report["comparison_context"].update(
+        {
+            "method": "deterministic_profile_comparison",
+            "before_profile_model_name": DEFAULT_BEFORE_PROFILE_MODEL,
+            "after_profile_model_name": after_profile,
+            "description": "Measured benchmark delta between standard and elite deterministic capability profiles.",
+        }
+    )
 
     before_path = ARTIFACT_DIR / "benchmark_report_before.json"
     benchmark_report.write_json_artifact(before_path, before_report)
     print(f"  Written (before): {before_path}")
+
+    before_public = before_report.get("public_benchmark", {})
+    before_holdout = before_report.get("holdout_challenge", {})
+    after_public = report.get("public_benchmark", {})
+    after_holdout = report.get("holdout_challenge", {})
+    print("\n  Measured profile delta:")
+    print(
+        f"    Public mean:  {float(before_public.get('average_score', 0.0)):.4f} -> "
+        f"{float(after_public.get('average_score', 0.0)):.4f}"
+    )
+    print(
+        f"    Holdout mean: {float((before_holdout.get('score_stats', {}) or {}).get('mean', 0.0)):.4f} -> "
+        f"{float((after_holdout.get('score_stats', {}) or {}).get('mean', 0.0)):.4f}"
+    )
 
     # Generate the HTML visual
     before_pub = before_report["public_benchmark"]
@@ -435,7 +478,7 @@ def generate_before_after(report: dict) -> None:
 <body>
   <div class="container">
     <h1>LedgerShield v2 — Before / After Improvement</h1>
-    <p class="subtitle">Deterministic baseline performance before and after benchmark hardening</p>
+    <p class="subtitle">Measured deterministic profile comparison: {before_profile} (before) vs {after_profile} (after)</p>
 
     <div class="section-title">Public Benchmark</div>
     <div class="grid">
@@ -448,7 +491,7 @@ def generate_before_after(report: dict) -> None:
     </div>
 
     <div class="footer">
-      Generated {timestamp} · LedgerShield v2 Benchmark
+      Generated {timestamp} · Method: deterministic profile comparison
     </div>
   </div>
 </body>
@@ -510,6 +553,8 @@ def generate_before_after(report: dict) -> None:
     html = html_template.format(
         public_cards=public_cards,
         holdout_cards=holdout_cards,
+        before_profile=DEFAULT_BEFORE_PROFILE_MODEL,
+        after_profile=after_profile,
         timestamp=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
     )
 

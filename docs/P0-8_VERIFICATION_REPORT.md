@@ -39,7 +39,7 @@ Verify that the mini-blog package for Hugging Face publication is complete, cont
 - Safety metrics emphasized: unsafe_release_rate prominently featured
 - Audience correctly identified: AI safety researchers, agent developers, enterprise tech builders
 
-**Note:** GitHub URL placeholder (`https://github.com/yourusername/LedgerShield`) will be updated by user during manual publication.
+**Note:** Repository link now points to `https://github.com/BiradarScripts/Meta-s-LedgerShield`.
 
 ---
 
@@ -114,7 +114,7 @@ Verify that the mini-blog package for Hugging Face publication is complete, cont
 
 1. **Manual Publication Required:** The Hugging Face blog must be published by the user (no programmatic API available in this context).
    
-2. **GitHub URL Placeholder:** The repo URL in the mini-blog (`https://github.com/yourusername/LedgerShield`) should be updated to the actual repository URL during publication.
+2. **Repository Link Check:** Ensure the published post keeps the canonical repository URL (`https://github.com/BiradarScripts/Meta-s-LedgerShield`) or your fork URL if publishing from a fork.
 
 3. **Post-Publication Update:** After publication, the final public link (format: `https://huggingface.co/blog/YOUR-USERNAME/SLUG`) should be recorded in `docs/PLAN_A_FINAL_DELIVERABLES.md`.
 

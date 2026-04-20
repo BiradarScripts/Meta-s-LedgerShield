@@ -99,8 +99,8 @@ metadata:
       type: deterministic-policy
       temperature: 0.0
       pass_k: 1
-      public_mean: 0.9018
-      holdout_mean: 0.7124
-      holdout_pass_k_consistent: 0.2222
+      public_mean: 0.8876
+      holdout_mean: 0.7034
+      holdout_pass_k_consistent: 0.1667
       task_e_expert_mean: 0.8400
       provenance: generated-from-benchmark-report

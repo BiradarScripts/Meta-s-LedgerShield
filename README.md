@@ -57,7 +57,7 @@ LedgerShield earns high marks across five dimensions:
 | **Task quality** | 21 curated cases, 5 task families (extraction, matching, duplicates, BEC triage, campaigns), holdout/contrastive generalization |
 | **Environment design** | Blind mode by default, partial observability, institutional memory, AP-week queue pressure, evidence delay, adversarial pressure |
 | **Code quality** | Comprehensive tests (310 passing), fixtures, docstrings, typed contracts, narrow exception handling, CI/CD |
-| **Novelty** | Formal ASHTG framework, VoI-based action ranking, causal grading, decision certificates, institutional memory, 8 attack families |
+| **Novelty** | Formal ASHTG framework, VoI-based action ranking, causal grading, decision certificates, institutional memory, 16 attack types |
 
 ## Benchmark At A Glance
 
@@ -302,7 +302,7 @@ Published benchmark metadata in [`openenv.yaml`](./openenv.yaml) records meaning
 <!-- sync:readme-benchmark-summary:start -->
 | Agent | Public mean | Holdout mean | Holdout consistent pass rate |
 |---|---:|---:|---:|
-| ledgershield/deterministic-baseline (deterministic-policy) | 0.9018 | 0.7124 | 0.2222 |
+| ledgershield/deterministic-baseline (deterministic-policy) | 0.8876 | 0.7034 | 0.1667 |
 <!-- sync:readme-benchmark-summary:end -->
 
 That gap is deliberate: the benchmark looks easy on clean public cases and much harder on generated holdouts, adversarial variants, and expert Task E scenarios.

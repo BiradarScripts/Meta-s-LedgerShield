@@ -46,6 +46,19 @@ def _replace_once(content: str, pattern: str, replacement: str) -> str:
     return updated
 
 
+def _replace_once_if_present(content: str, pattern: str, replacement: str) -> str:
+    if re.search(pattern, content, flags=re.MULTILINE) is None:
+        return content
+    return _replace_once(content, pattern, replacement)
+
+
+def _replace_block_if_present(content: str, start_marker: str, end_marker: str, replacement: str) -> str:
+    marker_block = f"{start_marker}\n"
+    if marker_block not in content or end_marker not in content:
+        return content
+    return _replace_block(content, start_marker, end_marker, replacement)
+
+
 def _loader_counts() -> dict[str, int]:
     db = load_all()
     cases = list(db.get("cases", []))
@@ -291,25 +304,25 @@ def sync_readme() -> None:
     payload = _load_live_comparison()
     report = _load_report()
     content = _read(README_PATH)
-    content = _replace_once(
+    content = _replace_once_if_present(
         content,
         r"^\| Default loader behavior \| .+ \|$",
         f"| Default loader behavior | {counts['benchmark']} benchmark cases + {counts['challenge']} generated challenge variants = {counts['total']} loaded cases |",
     )
-    content = _replace_block(
+    content = _replace_block_if_present(
         content,
         "<!-- sync:readme-capability-table:start -->",
         "<!-- sync:readme-capability-table:end -->",
         _capability_table("Budget bonus"),
     )
-    content = _replace_block(
+    content = _replace_block_if_present(
         content,
         "<!-- sync:readme-live-comparison:start -->",
         "<!-- sync:readme-live-comparison:end -->",
         _comparison_block(payload, include_capability=True),
     )
     if report is not None:
-        content = _replace_block(
+        content = _replace_block_if_present(
             content,
             "<!-- sync:readme-benchmark-summary:start -->",
             "<!-- sync:readme-benchmark-summary:end -->",
@@ -322,28 +335,28 @@ def sync_index_doc() -> None:
     counts = _loader_counts()
     payload = _load_live_comparison()
     content = _read(INDEX_DOC_PATH)
-    content = _replace_once(
+    content = _replace_once_if_present(
         content,
         r"With the current loader defaults, `load_all\(\)` produces \*\*\d+ total cases\*\* locally:",
         f"With the current loader defaults, `load_all()` produces **{counts['total']} total cases** locally:",
     )
-    content = _replace_once(
+    content = _replace_once_if_present(
         content,
         r"- \d+ benchmark cases",
         f"- {counts['benchmark']} benchmark cases",
     )
-    content = _replace_once(
+    content = _replace_once_if_present(
         content,
         r"- \d+ generated challenge variants",
         f"- {counts['challenge']} generated challenge variants",
     )
-    content = _replace_block(
+    content = _replace_block_if_present(
         content,
         "<!-- sync:index-capability-table:start -->",
         "<!-- sync:index-capability-table:end -->",
         _capability_table("Budget bonus"),
     )
-    content = _replace_block(
+    content = _replace_block_if_present(
         content,
         "<!-- sync:index-live-comparison:start -->",
         "<!-- sync:index-live-comparison:end -->",
@@ -354,7 +367,7 @@ def sync_index_doc() -> None:
 
 def sync_api_doc() -> None:
     content = _read(API_DOC_PATH)
-    content = _replace_block(
+    content = _replace_block_if_present(
         content,
         "<!-- sync:api-capability-table:start -->",
         "<!-- sync:api-capability-table:end -->",
@@ -362,7 +375,7 @@ def sync_api_doc() -> None:
     )
     report = _load_report()
     if report is not None:
-        content = _replace_block(
+        content = _replace_block_if_present(
             content,
             "<!-- sync:api-leaderboard-example:start -->",
             "<!-- sync:api-leaderboard-example:end -->",

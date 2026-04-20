@@ -42,12 +42,12 @@ None. Demo path was already well-defined and frozen in previous work.
 | Asset | Type | Purpose | Status |
 |-------|------|---------|--------|
 | `demo_trace_CASE_D_001.json` | JSON trace | Full episode replay if live demo fails | ✅ Present (2.4 KB) |
-| `before_after.html` | Interactive visual | Before/after improvement metrics | ✅ Present (5.0 KB) |
+| `before_after.html` | Interactive visual | Measured profile delta metrics (`gpt-3.5-turbo` -> `gpt-5.4`) | ✅ Present (5.0 KB) |
 | `benchmark_report_latest.json` | Full report | All benchmark results and metrics | ✅ Present (947 KB) |
 
 **Fallback strategy:**
 - If live server doesn't start: show pre-recorded demo trace JSON
-- If live episode fails mid-run: show before/after visual to illustrate agent improvement
+- If live episode fails mid-run: show before/after visual to illustrate measured deterministic profile improvement
 - If report endpoint doesn't respond: serve frozen report artifact directly
 
 **Verdict:** ✅ **Fallback coverage is complete.** No single failure point.

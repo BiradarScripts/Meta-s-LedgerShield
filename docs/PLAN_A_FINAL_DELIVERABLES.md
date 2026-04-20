@@ -47,16 +47,20 @@ Plan A is the pre-onsite implementation plan to make LedgerShield v2 fully submi
 ## A2: Benchmark Artifacts Frozen ✅
 
 **Status:** COMPLETED  
-**Objective:** Generate and freeze all 6 JSON/HTML benchmark artifacts (2.8 MB total).
+**Objective:** Generate and freeze all 8 benchmark artifacts (~2.8 MB total).
 
 | Deliverable | Path | Size | Purpose |
 |-------------|------|------|---------|
 | Benchmark Report | `artifacts/benchmark_report_latest.json` | 947 KB | Full benchmark report with all official tracks, leaderboard data, metrics |
 | Leaderboard | `artifacts/leaderboard.json` | 1.3 KB | Leaderboard entry payload (control satisfaction, institutional utility, unsafe rate) |
 | Demo Trace (Case D-001) | `artifacts/demo_trace_CASE_D_001.json` | 2.4 KB | Full trace showing 5-step resolution, final score 0.9188 |
-| Before/After Visual | `artifacts/before_after.html` | 5.0 KB | Interactive before/after improvement visual (4 key metrics) |
+| Before Report | `artifacts/benchmark_report_before.json` | 912 KB | Measured "before" profile report (`gpt-3.5-turbo`) |
+| After Report | `artifacts/benchmark_report_after.json` | 947 KB | Measured "after" profile report (`gpt-5.4`) |
+| Before/After Visual | `artifacts/before_after.html` | 5.0 KB | Interactive measured profile delta visual (4 key metrics) |
 | SFT Dataset | `artifacts/ledgershield_sft_examples.jsonl` | 17.4 KB | 21 SFT-ready examples (TRL-compatible) for training-prep |
 | Training Metadata | `artifacts/training_output.json` | 1.1 KB | Training-prep metadata (not onsite training) |
+
+**Before/After Evidence Note:** The improvement visual and paired reports now reflect measured deterministic profile delta (`gpt-3.5-turbo` profile -> `gpt-5.4` profile), not synthetic score scaling.
 
 **Artifact Integrity:** All files checksummed and locked. No modifications permitted post-freeze.
 
@@ -149,6 +153,8 @@ Plan A is the pre-onsite implementation plan to make LedgerShield v2 fully submi
 | Publishing Guide | `docs/A8_PUBLISHING_GUIDE.md` | Step-by-step instructions for publishing to Hugging Face Blog. Includes cover image guidance, tag suggestions, link template. |
 | Cover Image Source | `artifacts/cover_image_source.html` | Optimized HTML showing 4 key metrics (Control-Satisfied Resolution, Institutional Utility, Unsafe Release Rate, Holdout Mean) with subtitle "Before/After improvement on LedgerShield v2 benchmark metrics." Ready for manual screenshot capture (1200×900px recommended). |
 
+**Repo Link:** `docs/HF_MINIBLOG_FINAL.md` now points to `https://github.com/BiradarScripts/Meta-s-LedgerShield`.
+
 **Next Step:** Publish to Hugging Face manually. Provide final public link to update this document.
 
 **Public Link (Pending):** [To be inserted after manual publication]
@@ -189,10 +195,12 @@ Plan A is the pre-onsite implementation plan to make LedgerShield v2 fully submi
 - [x] **Pytest Suite (April 20, 2026):** `python -m pytest tests/ -q` → **310 passed** (31.19s)
 - [x] **Validation Script (April 20, 2026):** `bash validate-submission.sh` → **All 4/4 checks passed**
 - [x] **OpenEnv Validate (April 20, 2026):** `openenv validate` → **Meta-s-LedgerShield: Ready for multi-mode deployment**
-- [x] **Artifacts:** All 6 frozen artifacts exist (verified in P0-2):
+- [x] **Artifacts:** All 8 frozen artifacts exist (verified in P0-2):
   - [x] `artifacts/benchmark_report_latest.json` (947 KB)
   - [x] `artifacts/leaderboard.json` (1.3 KB)
   - [x] `artifacts/demo_trace_CASE_D_001.json` (2.4 KB)
+  - [x] `artifacts/benchmark_report_before.json` (912 KB)
+  - [x] `artifacts/benchmark_report_after.json` (947 KB)
   - [x] `artifacts/before_after.html` (5.0 KB)
   - [x] `artifacts/ledgershield_sft_examples.jsonl` (17.4 KB)
   - [x] `artifacts/training_output.json` (1.1 KB)
@@ -238,7 +246,7 @@ Plan A is the pre-onsite implementation plan to make LedgerShield v2 fully submi
 3. `docs/SUBMISSION_CONTRACT.md` — All 6 Round 2 fields locked
 
 **Secondary Artifacts (in repo):**
-- `artifacts/` — 6 frozen benchmark files (2.8 MB total)
+- `artifacts/` — 8 frozen benchmark files (~2.8 MB total)
 - `docs/` — All Plan A reports (A3, A4, A7), mini-blog, publishing guide, verification reports
 - `server/` — Full runtime with 9 API endpoints (/, /health, /leaderboard, /benchmark-report, /state, /institutional-memory, /reset, /step, /institutional-reset), blind mode, port 8000
 - `tests/` — 310 passing tests
@@ -280,7 +288,7 @@ Plan A is the pre-onsite implementation plan to make LedgerShield v2 fully submi
 - validate-submission.sh: 4/4 passed
 - openenv validate: passed
 - Server endpoints: 9/9 responding
-- All 6 artifacts frozen and present
+- All 8 artifacts frozen and present
 - All Plan A verification reports (P0-0 through P0-8) created
 
 **Review Checklist for User:**

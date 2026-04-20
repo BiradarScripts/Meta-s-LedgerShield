@@ -66,7 +66,7 @@
    - "VoI-based action ranking"
    - "Causal grading"
    - "Decision certificates"
-   - "8 attack families"
+   - "16 attack types"
 
 2. Full "ASHTG Mathematical Framework" section with all technical details intact
 3. "Categorical MDP Composition", "RL Export", "Recent patch-level changes" all preserved

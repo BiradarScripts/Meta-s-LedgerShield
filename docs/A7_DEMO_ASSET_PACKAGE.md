@@ -108,7 +108,7 @@ If live demo fails:
    - Can be replayed or shown as screenshot
 
 2. **Before/after visual:** artifacts/before_after.html
-   - Shows benchmark improvement story
+   - Shows measured deterministic profile delta (`gpt-3.5-turbo` -> `gpt-5.4`)
    - Portfolio track snapshot
 
 3. **Deterministic baseline:** inference.py with deterministic policy
