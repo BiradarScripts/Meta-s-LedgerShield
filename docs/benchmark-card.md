@@ -4,7 +4,7 @@
 
 LedgerShield v2 is a benchmark for **verified institutional control intelligence** in enterprise accounts-payable workflows.
 
-- Primary theme: **World Modeling / Professional Tasks**
+- Primary theme: **World Modeling — Professional Tasks**
 - Secondary theme: **Long-Horizon Planning & Instruction Following**
 - Public mode: **blind by default**
 

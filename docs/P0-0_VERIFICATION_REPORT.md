@@ -25,11 +25,11 @@ The submission contract is frozen and consistent across all public-facing files.
 
 **Primary Theme:**
 - SUBMISSION_CONTRACT.md: World Modeling — Professional Tasks ✓
-- README.md: "World Modeling / Professional Tasks" ✓
+- README.md: "World Modeling — Professional Tasks" ✓ (FIXED)
 - openenv.yaml: "world-modeling-professional-tasks" ✓
-- benchmark-card.md: "World Modeling / Professional Tasks" ✓
+- benchmark-card.md: "World Modeling — Professional Tasks" ✓ (FIXED)
 - demo-script.md: (implied via control regime focus) ✓
-- HF_MINIBLOG_FINAL.md: "World Modeling — Professional Tasks" ✓ (FIXED)
+- HF_MINIBLOG_FINAL.md: "World Modeling — Professional Tasks" ✓
 
 **Secondary Theme:**
 - SUBMISSION_CONTRACT.md: Long-Horizon Planning & Instruction Following ✓

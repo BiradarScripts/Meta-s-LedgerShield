@@ -21,8 +21,8 @@ None. All artifacts were already frozen and validated from previous work.
 | `artifacts/leaderboard.json` | 1.3 KB | ✅ Valid | Leaderboard entry payload |
 | `artifacts/demo_trace_CASE_D_001.json` | 2.4 KB | ✅ Valid | Demo case trace for live/fallback demo |
 | `artifacts/before_after.html` | 5.0 KB | ✅ Valid | Before/after improvement visual (4 metrics) |
-| `artifacts/ledgershield_sft_examples.jsonl` | 17 KB | ✅ Valid | 21 SFT training examples |
-| `artifacts/training_output.json` | 1.1 KB | ✅ Valid | Training metadata |
+| `artifacts/ledgershield_sft_examples.jsonl` | 17 KB | ✅ Valid | 21 SFT-ready examples (training-prep) |
+| `artifacts/training_output.json` | 1.1 KB | ✅ Valid | Training-prep metadata (not onsite training) |
 
 **Total:** 2.8 MB of frozen, checksummed benchmark data
 
