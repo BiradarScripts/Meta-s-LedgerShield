@@ -2,9 +2,9 @@
 
 This master file is a single, code-grounded deep dive for the LedgerShield repository. It combines the root README, every current Markdown file under `docs/`, the current source code, fixture data, generated artifacts, tests, CI/deployment configuration, and the committed-but-currently-deleted `docs/project-deep-dive.md` for historical context.
 
-Inspection date: 2026-04-16  
-Workspace: `/Users/biradar/Desktop/check/Meta-s-LedgerShield`  
-Current working-tree note: `docs/project-deep-dive.md` is tracked in git but deleted in the working tree. This master file does not restore it or overwrite user changes.
+Inspection date: 2026-04-20  
+Workspace: `/Users/biradar/Desktop/Meta-s-LedgerShield`  
+Current working-tree note: All closure pass fixes applied. Plan A 9/10 complete (A8 pending manual HF publication). All docs synchronized for consistency.
 
 ## 1. Project Identity
 
@@ -149,6 +149,8 @@ Endpoints:
 | `/state` | GET | returns public non-hidden state |
 | `/leaderboard` | GET | returns `artifacts/leaderboard.json` or derives from report |
 | `/benchmark-report` | GET | returns `artifacts/benchmark_report_latest.json` if present |
+| `/institutional-memory` | GET | returns persistent AP-week portfolio memory |
+| `/institutional-reset` | POST | resets portfolio-level memory for new sequence |
 
 Common `/reset` and `/step` envelope:
 
