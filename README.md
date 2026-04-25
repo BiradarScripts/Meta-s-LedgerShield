@@ -144,7 +144,7 @@ Final action:
 
 The submission is not just a label. Strong agents are expected to return structured decisions with grounded `reason_codes`, `policy_checks`, `evidence_map`, `decision_certificate`, and task-specific fields like duplicates, campaign signals, discrepancies, or extracted invoice fields.
 
-The final payload can also include `predicted_probabilities`, a calibrated probability distribution over latent hypotheses such as `safe`, `bank_fraud`, `duplicate_billing`, or `campaign_fraud`. If this field is omitted, LedgerShield derives a backward-compatible default from `decision`, `confidence`, and the current SPRT posterior.
+The final payload can also include `predicted_probabilities`, a calibrated probability distribution over latent hypotheses such as `safe`, `bank_fraud`, `duplicate_billing`, or `campaign_fraud`. If this field is omitted, LedgerShield derives a backward-compatible default from `decision`, `confidence`, and the current SPRT posterior. Missing or degenerate confidence now explicitly restricts future authority in ControlBench sequences.
 
 The final payload can also include a `decision_certificate`: a typed Decision Certificate Graph with artifact, observation, hypothesis, policy, intervention, decision, and counterfactual nodes. The verifier checks support paths, reference grounding, contradiction handling, stability, and minimality. Legacy submissions get a synthesized diagnostic certificate; agent-authored certificates can receive a small auditability adjustment.
 

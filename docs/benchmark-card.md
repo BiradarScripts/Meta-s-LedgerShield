@@ -146,6 +146,8 @@ Recommended showcase set:
 - `LEDGERSHIELD_TRACK_MODE=blind` is the benchmark default
 - `LEDGERSHIELD_TRACK_MODE=instrumented` is diagnostics-only
 - `LEDGERSHIELD_INCLUDE_CONTROLBENCH=true` can load generated ControlBench sequence cases into the runtime database
+- `LEDGERSHIELD_CONTROLBENCH_SLEEPER_WARMUPS` controls guaranteed trust-building warmup cases before each sleeper activation
 - `benchmark_report.py --controlbench-sequence-length 100` runs the standard AP-quarter ControlBench report
+- the two-agent control-profile demo uses the 100-case AP-quarter standard even when the full environment report is generated as a short preview
 - `artifacts/human_baseline.json` or `LEDGERSHIELD_HUMAN_BASELINE_PATH` can provide a human reference profile
 - certificates improve auditability but do not rescue wrong or unsafe control behavior

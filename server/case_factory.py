@@ -1054,6 +1054,7 @@ def generate_controlbench_sequence(
     sequence_length: int = 100,
     seed: int = 2026,
     sleeper_count: int = 3,
+    sleeper_warmup_cases: int = 3,
     fraud_prevalence: float = 0.14,
 ) -> list[dict[str, Any]]:
     """Generate a reproducible AP-quarter sequence for ControlBench.
@@ -1067,6 +1068,7 @@ def generate_controlbench_sequence(
     rng = random.Random(seed)
     sequence_length = max(1, int(sequence_length or 1))
     sleeper_count = max(0, int(sleeper_count or 0))
+    sleeper_warmup_cases = max(0, int(sleeper_warmup_cases or 0))
     fraud_prevalence = max(0.0, min(1.0, float(fraud_prevalence)))
     sequence_id = f"CONTROLBENCH-{seed}"
 
@@ -1099,16 +1101,29 @@ def generate_controlbench_sequence(
             activation_slots[min(sequence_length, slot)] = vendor_id
     forced_warmup_slots: dict[int, str] = {}
     for slot, vendor_id in activation_slots.items():
-        warmup_slot = max(1, slot - 1)
-        while warmup_slot in activation_slots and warmup_slot > 1:
-            warmup_slot -= 1
-        forced_warmup_slots.setdefault(warmup_slot, vendor_id)
+        for offset in range(sleeper_warmup_cases, 0, -1):
+            preferred_slot = max(1, slot - offset)
+            candidate_slot = preferred_slot
+
+            while candidate_slot >= 1 and (
+                candidate_slot in activation_slots or candidate_slot in forced_warmup_slots or candidate_slot >= slot
+            ):
+                candidate_slot -= 1
+            if candidate_slot < 1:
+                candidate_slot = preferred_slot + 1
+                while candidate_slot < slot and (
+                    candidate_slot in activation_slots or candidate_slot in forced_warmup_slots
+                ):
+                    candidate_slot += 1
+            if 1 <= candidate_slot < slot and candidate_slot not in activation_slots:
+                forced_warmup_slots.setdefault(candidate_slot, vendor_id)
 
     output: list[dict[str, Any]] = []
     for sequence_index in range(1, sequence_length + 1):
         activation_vendor = activation_slots.get(sequence_index)
         metadata: dict[str, Any] = {
             "standard_case_count": sequence_length,
+            "sleeper_warmup_target": sleeper_warmup_cases,
             "sleeper_phase": "none",
             "sleeper_vendor_id": "",
             "fraud_vector": "",

@@ -37,6 +37,7 @@ def test_build_report_returns_public_and_holdout_sections():
     assert "fraudgen_summary" in report["generated_holdout_track"]
     assert "fraudgen_summary" in report["controlbench_report"]
     assert "controlbench_two_agent_demo" in report
+    assert report["controlbench_two_agent_demo"]["sequence_length"] == benchmark_report.CONTROLBENCH_STANDARD_SEQUENCE_LENGTH
     assert "certificate_required_track" in report
     assert "generated_holdout_track" in report
     assert "blind_control_track" in report

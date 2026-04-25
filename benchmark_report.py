@@ -664,6 +664,7 @@ def _controlbench_two_agent_demo(cases: list[dict[str, Any]]) -> dict[str, Any]:
     agent_b = profiles_by_name["control_optimized_agent"]
     return {
         "thesis": "Per-case accuracy can disagree with institutional deployability.",
+        "sequence_length": len(cases),
         "profiles": profiles,
         "accuracy_loss_disagreement": round(
             abs(float(agent_a["accuracy"]) - float(agent_b["accuracy"]))
@@ -984,7 +985,7 @@ def build_report(
     )
     controlbench_demo_cases = generate_controlbench_sequence(
         _benchmark_cases(base_db),
-        sequence_length=controlbench_sequence_length,
+        sequence_length=CONTROLBENCH_STANDARD_SEQUENCE_LENGTH,
         seed=2026,
     )
     two_agent_demo = _controlbench_two_agent_demo(controlbench_demo_cases)

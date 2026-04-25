@@ -101,6 +101,7 @@ def load_all() -> dict[str, Any]:
     controlbench_length = max(0, int(os.getenv("LEDGERSHIELD_CONTROLBENCH_CASES", "100") or 100))
     controlbench_seed = int(os.getenv("LEDGERSHIELD_CONTROLBENCH_SEED", "2026") or 2026)
     controlbench_sleepers = max(0, int(os.getenv("LEDGERSHIELD_CONTROLBENCH_SLEEPERS", "3") or 3))
+    controlbench_sleeper_warmups = max(0, int(os.getenv("LEDGERSHIELD_CONTROLBENCH_SLEEPER_WARMUPS", "3") or 3))
 
     cases = list(base_cases)
     if include_challenge and hard_cases and challenge_variants > 0:
@@ -142,6 +143,7 @@ def load_all() -> dict[str, Any]:
             sequence_length=controlbench_length,
             seed=controlbench_seed,
             sleeper_count=controlbench_sleepers,
+            sleeper_warmup_cases=controlbench_sleeper_warmups,
         )
         cases.extend(_case_defaults(case) for case in controlbench_cases)
 
