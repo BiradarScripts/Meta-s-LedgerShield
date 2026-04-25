@@ -165,6 +165,39 @@ def test_merge_submission_override_handles_non_empty_collections():
     assert "sender_domain_spoof" in merged["evidence_map"]
 
 
+def test_prepare_submission_backfills_counterfactual_into_decision_certificate():
+    prepared = inference.prepare_submission(
+        {
+            "decision": "ESCALATE_FRAUD",
+            "confidence": 0.96,
+            "reason_codes": ["shared_bank_account"],
+            "fraud_flags": ["shared_bank_account"],
+            "policy_checks": {
+                "three_way_match": "pass",
+                "bank_change_verification": "fail",
+                "duplicate_check": "fail",
+                "approval_threshold_check": "pass",
+            },
+            "evidence_map": {
+                "shared_bank_account": {
+                    "doc_id": "INV-C-003",
+                    "page": 1,
+                    "bbox": [10, 70, 170, 80],
+                    "token_ids": ["c34"],
+                }
+            },
+        },
+        {
+            "case_id": "CASE-C-003",
+            "task_type": "task_c",
+            "action_trace": [],
+        },
+    )
+
+    assert len(prepared["counterfactual"].split()) >= 6
+    assert any(node.get("type") == "counterfactual" for node in prepared["decision_certificate"]["nodes"])
+
+
 def test_run_local_baseline_blocks_unfounded_task_d_escalation(monkeypatch):
     original = inference.build_final_submission
 
@@ -394,7 +427,7 @@ def test_sanitize_task_e_submission_recovers_grounded_refs_and_policy():
     assert sanitized["evidence_map"] == grounded["evidence_map"]
 
 
-def test_prepare_submission_attaches_generated_decision_certificate():
+def test_prepare_submission_attaches_agent_authored_decision_certificate():
     submission = {
         "decision": "HOLD",
         "confidence": 0.74,
@@ -420,7 +453,7 @@ def test_prepare_submission_attaches_generated_decision_certificate():
     prepared = inference.prepare_submission(submission, collected)
 
     certificate = prepared["decision_certificate"]
-    assert certificate["auto_generated"] is True
+    assert certificate["auto_generated"] is False
     assert certificate["metadata"]["case_id"] == "CASE-X-001"
     assert certificate["metadata"]["institutional_memory"]["week_id"] == "ap-week-2026-04"
     assert "predicted_probabilities" in prepared

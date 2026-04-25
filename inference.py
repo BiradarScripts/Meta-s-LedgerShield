@@ -1425,6 +1425,16 @@ def attach_predicted_probabilities(submission: dict[str, Any]) -> dict[str, Any]
     return enriched
 
 
+def attach_counterfactual(submission: dict[str, Any], collected: dict[str, Any] | None = None) -> dict[str, Any]:
+    enriched = dict(submission)
+    counterfactual = str(enriched.get("counterfactual", "") or "").strip()
+    task_type = str((collected or {}).get("task_type") or enriched.get("task_type") or "")
+    if len(counterfactual.split()) >= 6 or not task_type:
+        return enriched
+    enriched["counterfactual"] = make_counterfactual(task_type, enriched)
+    return enriched
+
+
 def attach_decision_certificate(submission: dict[str, Any], collected: dict[str, Any] | None = None) -> dict[str, Any]:
     enriched = dict(submission)
     if isinstance(enriched.get("decision_certificate"), dict) and enriched["decision_certificate"]:
@@ -1449,13 +1459,15 @@ def attach_decision_certificate(submission: dict[str, Any], collected: dict[str,
         trajectory=list(collected.get("action_trace", []) or []),
         final_state=final_state,
         case_context=case_context,
-        auto_generated=True,
+        auto_generated=False,
     )
     return enriched
 
 
 def prepare_submission(submission: dict[str, Any], collected: dict[str, Any] | None = None) -> dict[str, Any]:
-    return attach_decision_certificate(attach_predicted_probabilities(submission), collected)
+    enriched = attach_counterfactual(submission, collected)
+    enriched = attach_predicted_probabilities(enriched)
+    return attach_decision_certificate(enriched, collected)
 
 
 def policy_check_payload(three_way_match: str, bank_change_verification: str, duplicate_check: str) -> dict[str, str]:

@@ -45,6 +45,8 @@ def _required_actions(case: dict[str, Any], hidden_signals: list[str]) -> list[s
         ],
     }.get(task_type, [])
     hidden = {normalize_text(signal) for signal in hidden_signals}
+    fraudgen = (case.get("generator_metadata", {}) or {}).get("fraudgen", {}) or {}
+    fraudgen_path = fraudgen.get("solvability_path", {}) if isinstance(fraudgen, dict) else {}
 
     seen: set[str] = set()
     ordered: list[str] = []
@@ -78,6 +80,10 @@ def _required_actions(case: dict[str, Any], hidden_signals: list[str]) -> list[s
             required.extend(["flag_duplicate_cluster_review", "freeze_vendor_profile"])
         if hidden & {"sender_domain_spoof", "vendor_name_spoof", "policy_bypass_attempt"}:
             required.append("route_to_security")
+    for action in fraudgen_path.get("required_tools", []) or []:
+        required.append(action)
+    for action in fraudgen_path.get("recommended_interventions", []) or []:
+        required.append(action)
 
     for action in required:
         norm = normalize_text(action)
@@ -109,6 +115,17 @@ def _required_artifacts(hidden_signals: list[str]) -> list[str]:
             output.append(norm)
             seen.add(norm)
     return output
+
+
+def _required_artifacts_for_case(case: dict[str, Any], hidden_signals: list[str]) -> list[str]:
+    required = _required_artifacts(hidden_signals)
+    fraudgen = (case.get("generator_metadata", {}) or {}).get("fraudgen", {}) or {}
+    fraudgen_path = fraudgen.get("solvability_path", {}) if isinstance(fraudgen, dict) else {}
+    for artifact_id in fraudgen_path.get("revealable_artifacts", []) or []:
+        norm = normalize_text(artifact_id)
+        if norm and norm not in required:
+            required.append(norm)
+    return required
 
 
 def _campaign_context(case: dict[str, Any], gold: dict[str, Any], hidden_signals: list[str]) -> dict[str, Any]:
@@ -194,18 +211,20 @@ def build_hidden_world(case: dict[str, Any]) -> dict[str, Any]:
     ) else "reconciled_clean"
 
     required_actions = _required_actions(case, hidden_signals)
-    required_artifacts = _required_artifacts(hidden_signals)
+    required_artifacts = _required_artifacts_for_case(case, hidden_signals)
     campaign_context = _campaign_context(case, gold, hidden_signals)
     pressure_event = schedule_pressure_event(case, int(case.get("max_steps", 20) or 20), case_seed)
     vendor_simulator_state = build_vendor_simulator_state(case, hidden_signals, case_seed)
 
     # Leverage EvidenceGraph for latent states
     # Map the risk signals to a scenario_type for graph initialization
-    scenario_type = "safe"
-    if "bank_override_attempt" in hidden_signals or "vendor_account_takeover_suspected" in hidden_signals:
-        scenario_type = "bank_change_fraud"
-    elif "duplicate_near_match" in hidden_signals or gold.get("duplicate_links"):
-        scenario_type = "duplicate_invoice"
+    fraudgen = (case.get("generator_metadata", {}) or {}).get("fraudgen", {}) or {}
+    scenario_type = normalize_text(fraudgen.get("scenario_type")) or "safe"
+    if scenario_type == "safe":
+        if "bank_override_attempt" in hidden_signals or "vendor_account_takeover_suspected" in hidden_signals:
+            scenario_type = "bank_change_fraud"
+        elif "duplicate_near_match" in hidden_signals or gold.get("duplicate_links"):
+            scenario_type = "duplicate_invoice"
 
     graph_state = case.get("graph_state")
     if graph_state:

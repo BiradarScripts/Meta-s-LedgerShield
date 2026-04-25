@@ -39,6 +39,7 @@ def build_trust_graph(
     institutional_memory = institutional_memory or {}
     gold = case_context.get("gold", {}) or {}
     fields = gold.get("fields", {}) or gold.get("extracted_fields", {}) or {}
+    explicit_certificate = submitted.get("decision_certificate") if isinstance(submitted.get("decision_certificate"), dict) else {}
 
     nodes: list[dict[str, Any]] = []
     edges: list[dict[str, Any]] = []
@@ -54,6 +55,7 @@ def build_trust_graph(
     institutional_graph = institutional_memory.get("trust_graph_memory", {}) if isinstance(institutional_memory.get("trust_graph_memory"), dict) else {}
     vendor_profile = (institutional_graph.get("vendor_profiles", {}) or {}).get(normalize_text(case_context.get("vendor_key") or vendor_name), {})
     controlbench = case_context.get("controlbench", {}) if isinstance(case_context.get("controlbench"), dict) else {}
+    fraudgen = (case_context.get("generator_metadata", {}) or {}).get("fraudgen", {}) if isinstance(case_context.get("generator_metadata"), dict) else {}
 
     case_node = _add_node(nodes, seen, f"case:{case_id}", "Case", task_type=case_context.get("task_type"))
     invoice_node = _add_node(nodes, seen, f"invoice:{invoice_number}", "Invoice", total=fields.get("total"), currency=fields.get("currency"))
@@ -94,6 +96,18 @@ def build_trust_graph(
             fraud_vector=controlbench.get("fraud_vector"),
         )
         _add_edge(edges, sleeper_node, vendor_node, "vendor_sequence_state")
+    scenario_type = normalize_text(fraudgen.get("scenario_type"))
+    if scenario_type:
+        scenario_node = _add_node(
+            nodes,
+            seen,
+            f"scenario:{scenario_type}",
+            "Scenario",
+            scenario_type=scenario_type,
+            difficulty=fraudgen.get("difficulty_band"),
+        )
+        _add_edge(edges, case_node, scenario_node, "generated_by")
+        _add_edge(edges, scenario_node, decision_node, "triggered_by")
     if bank_account:
         bank_node = _add_node(nodes, seen, f"bank:{normalize_text(bank_account)}", "BankAccount", account=bank_account)
         _add_edge(edges, vendor_node, bank_node, "vendor_uses_bank_account")
@@ -208,6 +222,49 @@ def build_trust_graph(
         loss_node = _add_node(nodes, seen, "loss_surface:current", "InstitutionalLossSurface", **loss_surface)
         _add_edge(edges, decision_node, loss_node, "updates")
 
+    # Project explicit decision-certificate structure so the TrustGraph reflects
+    # the proof object the agent actually authored instead of only a shallow
+    # summary node.
+    cert_node_map: dict[str, str] = {}
+    cert_type_map = {
+        "artifact": "CertificateArtifact",
+        "observation": "CertificateObservation",
+        "hypothesis": "CertificateClaim",
+        "policy": "CertificatePolicy",
+        "intervention": "CertificateIntervention",
+        "decision": "CertificateDecision",
+        "counterfactual": "CertificateCounterfactual",
+    }
+    if explicit_certificate:
+        for raw_node in explicit_certificate.get("nodes", []) or []:
+            if not isinstance(raw_node, dict):
+                continue
+            raw_id = str(raw_node.get("id") or "")
+            if not raw_id:
+                continue
+            projected_id = f"certificate_node:{raw_id}"
+            cert_node_map[raw_id] = projected_id
+            projected_type = cert_type_map.get(normalize_text(raw_node.get("type")), "CertificateNode")
+            _add_node(
+                nodes,
+                seen,
+                projected_id,
+                projected_type,
+                label=raw_node.get("label"),
+                raw_type=normalize_text(raw_node.get("type")),
+            )
+            _add_edge(edges, certificate_node, projected_id, "contains")
+            if projected_type in {"CertificateClaim", "CertificatePolicy", "CertificateCounterfactual"}:
+                _add_edge(edges, projected_id, decision_node, "supports")
+        for raw_edge in explicit_certificate.get("edges", []) or []:
+            if not isinstance(raw_edge, dict):
+                continue
+            source = cert_node_map.get(str(raw_edge.get("source") or ""))
+            target = cert_node_map.get(str(raw_edge.get("target") or ""))
+            edge_type = normalize_text(raw_edge.get("type"))
+            if source and target and edge_type:
+                _add_edge(edges, source, target, edge_type)
+
     return {
         "graph_version": "ledgershield-trustgraph-v1",
         "case_id": case_id,
@@ -244,10 +301,16 @@ def evaluate_trust_graph_projection(
     policy_path_count = 0
     authority_path_count = 0
     certificate_linked = False
+    certificate_claim_count = 0
     pending_requirement_count = 0
     counterfactual_present = any(normalize_text(node.get("type")) == "counterfactual" for node in nodes if isinstance(node, dict))
     risk_flag_count = sum(1 for node in nodes if isinstance(node, dict) and normalize_text(node.get("type")) == "riskflag")
     trust_state_present = any(normalize_text(node.get("type")) == "truststate" for node in nodes if isinstance(node, dict))
+    certificate_claim_present = any(
+        normalize_text(node.get("type")) in {"certificateclaim", "certificatepolicy", "certificatecounterfactual"}
+        for node in nodes
+        if isinstance(node, dict)
+    )
     sleeper_activation = any(
         normalize_text(node.get("type")) == "sleeperstate" and normalize_text(node.get("phase")) == "activation"
         for node in nodes
@@ -270,6 +333,8 @@ def evaluate_trust_graph_projection(
             policy_path_count += 1
         if edge_type == "decision_supported_by_certificate":
             certificate_linked = True
+        if source_type in {"certificateclaim", "certificatepolicy", "certificatecounterfactual"}:
+            certificate_claim_count += 1
         if source_type in {"authority", "authoritygate", "controlboundary"} or edge_type in {"governs", "blocked_by", "governed_by", "reviewed_by"}:
             authority_path_count += 1
         if source_type == "pendingartifact" or edge_type == "requires":
@@ -284,6 +349,8 @@ def evaluate_trust_graph_projection(
         reasons.append("trust_graph_missing_risk_flag")
     if certificate_required and not certificate_linked:
         reasons.append("trust_graph_missing_certificate_link")
+    if (risky or certificate_required) and not certificate_claim_present:
+        reasons.append("trust_graph_missing_certificate_claims")
     if authority_gate and authority_path_count == 0:
         reasons.append("trust_graph_missing_authority_path")
     if sleeper_activation and not trust_state_present:
@@ -296,6 +363,8 @@ def evaluate_trust_graph_projection(
         reasons.append("trust_graph_missing_control_boundary_path")
     if decision == "pay" and pending_requirement_count > 0:
         reasons.append("trust_graph_ignores_pending_artifacts")
+    if risky and not counterfactual_present:
+        reasons.append("trust_graph_missing_counterfactual")
 
     score = (
         0.20
@@ -305,7 +374,8 @@ def evaluate_trust_graph_projection(
         + 0.10 * (1.0 if (risk_flag_count > 0 or not risky) else 0.0)
         + 0.05 * (1.0 if (counterfactual_present or not risky) else 0.0)
         + 0.10 * (1.0 if (authority_path_count > 0 or not authority_gate) else 0.0)
-        + 0.05 * (1.0 if (trust_state_present or not sleeper_activation) else 0.0)
+        + 0.03 * (1.0 if (trust_state_present or not sleeper_activation) else 0.0)
+        + 0.02 * (1.0 if (certificate_claim_present or not (risky or certificate_required)) else 0.0)
     )
     if "trust_graph_too_shallow" in reasons:
         score -= 0.20
@@ -313,6 +383,10 @@ def evaluate_trust_graph_projection(
         score -= 0.20
     if "trust_graph_ignores_pending_artifacts" in reasons:
         score -= 0.10
+    if "trust_graph_missing_certificate_claims" in reasons:
+        score -= 0.08
+    if "trust_graph_missing_counterfactual" in reasons:
+        score -= 0.05
     score = round(max(0.0, min(1.0, score)), 4)
     required_threshold = 0.6 if (risky or certificate_required or authority_gate) else 0.45
     return {
@@ -323,6 +397,7 @@ def evaluate_trust_graph_projection(
         "policy_path_count": int(policy_path_count),
         "risk_flag_count": int(risk_flag_count),
         "certificate_linked": bool(certificate_linked),
+        "certificate_claim_count": int(certificate_claim_count),
         "authority_path_count": int(authority_path_count),
         "pending_requirement_count": int(pending_requirement_count),
         "counterfactual_present": bool(counterfactual_present),

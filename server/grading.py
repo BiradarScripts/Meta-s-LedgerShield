@@ -832,6 +832,8 @@ def _trust_graph_cap(
     score = float(trust_graph_report.get("score", 0.0) or 0.0)
     if score < 0.45:
         base_cap = min(base_cap, 0.68 if (risky_case or certificate_required) else 0.78)
+    if any(reason in {"trust_graph_missing_certificate_claims", "trust_graph_missing_counterfactual"} for reason in reasons):
+        base_cap = min(base_cap, 0.64 if (risky_case or certificate_required) else 0.76)
     return round(base_cap, 4), reasons
 
 
@@ -1263,6 +1265,7 @@ def score_submission(
         "trust_graph_cap": round(trust_graph_cap, 4) if trust_graph_cap is not None else 1.0,
         "trust_graph_reasons": trust_graph_reasons,
         "trust_graph_evidence_path_count": int(trust_graph_report.get("evidence_path_count", 0) or 0),
+        "trust_graph_certificate_claim_count": int(trust_graph_report.get("certificate_claim_count", 0) or 0),
         "institutional_loss_score": round(institutional_loss_score, 4),
         "institutional_utility": round(institutional_utility, 4),
         "result_class": result_class,

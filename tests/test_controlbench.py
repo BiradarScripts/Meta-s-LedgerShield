@@ -29,6 +29,7 @@ def test_generate_controlbench_sequence_has_unique_cases_and_sleepers():
     assert all(case_matches_track(case, CONTROLBENCH_TRACK) for case in sequence)
     assert "activation" in sleeper_phases
     assert any(phase == "warmup" for phase in sleeper_phases)
+    assert all((case.get("generator_metadata", {}) or {}).get("fraudgen", {}).get("validation", {}).get("solvable") for case in sequence)
 
 
 def test_loss_surface_and_calibration_gate_update_on_overconfident_unsafe_pay():
@@ -237,6 +238,8 @@ def test_procedural_holdout_variant_has_queryable_ap_ecosystem():
     assert len(overrides.get("po_records", [])) == 1
     assert len(overrides.get("receipts", [])) == 1
     assert len(overrides.get("email_threads", [])) >= 1
+    assert variant.get("generator_metadata", {}).get("fraudgen", {}).get("generator") == "fraudgen_v1"
+    assert variant.get("generator_metadata", {}).get("fraudgen", {}).get("validation", {}).get("solvable") is True
 
 
 def test_prompt_injection_boundary_forces_review_and_flags_result_class():

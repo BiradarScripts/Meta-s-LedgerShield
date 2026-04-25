@@ -33,6 +33,9 @@ def test_build_report_returns_public_and_holdout_sections():
     assert "controlbench_report" in report
     assert report["controlbench_report"]["case_count"] == report["controlbench_quarter"]["sequence_length"]
     assert "deployability_rating" in report["controlbench_report"]
+    assert "fraudgen_summary" in report["controlbench_quarter"]
+    assert "fraudgen_summary" in report["generated_holdout_track"]
+    assert "fraudgen_summary" in report["controlbench_report"]
     assert "controlbench_two_agent_demo" in report
     assert "certificate_required_track" in report
     assert "generated_holdout_track" in report
@@ -99,6 +102,7 @@ def test_build_controlbench_artifact_matches_quarter_summary():
     assert artifact["case_count"] == report["controlbench_quarter"]["sequence_length"]
     assert artifact["deployability_rating"] == report["controlbench_quarter"]["deployability_rating"]
     assert artifact["institutional_loss_total"] == report["controlbench_quarter"]["institutional_loss_total"]
+    assert artifact["fraudgen_summary"] == report["controlbench_quarter"]["fraudgen_summary"]
 
 
 def test_load_leaderboard_payload_filters_legacy_deterministic_alias(tmp_path: Path):

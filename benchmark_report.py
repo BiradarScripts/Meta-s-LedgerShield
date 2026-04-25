@@ -29,6 +29,7 @@ from server.benchmark_contract import (
 )
 from server.case_factory import generate_benign_twin, generate_controlbench_sequence, generate_holdout_suite
 from server.data_loader import load_all
+from server.fraudgen import fraudgen_summary
 from server.grading import evaluate_contrastive_pair
 from server.human_baseline import load_human_baseline_summary
 from server.institutional_game import InstitutionalMemory, public_institutional_memory, record_institutional_outcome
@@ -448,10 +449,11 @@ def _evaluate_controlbench_sequence(
             abs((sum(score_values) / max(len(score_values), 1)) - float(loss_ledger.get("institutional_loss_score", 0.0) or 0.0)),
             4,
         ),
+        "fraudgen_summary": fraudgen_summary(cases),
     }
 
 
-def _generated_holdout_track_summary(holdout_challenge: dict[str, Any]) -> dict[str, Any]:
+def _generated_holdout_track_summary(holdout_challenge: dict[str, Any], *, cases: list[dict[str, Any]]) -> dict[str, Any]:
     return {
         "track": GENERATED_HOLDOUT_TRACK,
         "track_label": track_label(GENERATED_HOLDOUT_TRACK),
@@ -464,6 +466,7 @@ def _generated_holdout_track_summary(holdout_challenge: dict[str, Any]) -> dict[
         "unsafe_release_rate": round(float(holdout_challenge.get("unsafe_release_rate", 0.0) or 0.0), 4),
         "mechanism_breakdown": deepcopy(holdout_challenge.get("mechanism_breakdown", {})),
         "seed_reports": deepcopy(holdout_challenge.get("seed_reports", [])),
+        "fraudgen_summary": fraudgen_summary(cases),
     }
 
 
@@ -550,6 +553,7 @@ def build_controlbench_artifact(report: dict[str, Any]) -> dict[str, Any]:
             "certificate_validity_rate": round(float(controlbench.get("certificate_validity_rate", 0.0) or 0.0), 4),
             "sleeper_detection_rate": round(float(controlbench.get("sleeper_detection_rate", 0.0) or 0.0), 4),
         },
+        "fraudgen_summary": deepcopy(controlbench.get("fraudgen_summary", {})),
         "generated_at": report.get("generated_at"),
     }
 
@@ -872,6 +876,7 @@ def build_report(
 
     seed_reports: list[dict[str, Any]] = []
     all_holdout_results: list[dict[str, Any]] = []
+    all_holdout_cases: list[dict[str, Any]] = []
     seeds = holdout_seeds or list(DEFAULT_HOLDOUT_SEEDS)
 
     for seed in seeds:
@@ -888,6 +893,7 @@ def build_report(
             pass_k=pass_k,
             pass_threshold=pass_threshold,
         )
+        all_holdout_cases.extend(deepcopy(case) for case in holdout_cases)
         holdout_results = list(holdout_eval.get("results", []))
         holdout_scores = [float(row.get("score", 0.0) or 0.0) for row in holdout_results]
         seed_reports.append(
@@ -899,6 +905,7 @@ def build_report(
                 "trial_pass_rate": round(float(holdout_eval.get("trial_pass_rate", 0.0) or 0.0), 4),
                 "consistent_pass_rate": round(float(holdout_eval.get("consistent_pass_rate", 0.0) or 0.0), 4),
                 "any_pass_rate": round(float(holdout_eval.get("any_pass_rate", 0.0) or 0.0), 4),
+                "fraudgen_summary": fraudgen_summary(holdout_cases),
                 "results": holdout_results,
             }
         )
@@ -981,7 +988,7 @@ def build_report(
         seed=2026,
     )
     two_agent_demo = _controlbench_two_agent_demo(controlbench_demo_cases)
-    generated_holdout_track = _generated_holdout_track_summary(holdout_challenge)
+    generated_holdout_track = _generated_holdout_track_summary(holdout_challenge, cases=all_holdout_cases)
     blind_control_track = _blind_control_track_summary(public_benchmark)
     sleeper_vigilance_track = _sleeper_vigilance_track_summary(controlbench_quarter)
     certificate_required_track = _evaluate_certificate_required_track(
@@ -1036,6 +1043,10 @@ def build_report(
         "controlbench_two_agent_demo": two_agent_demo,
         "certificate_required_track": certificate_required_track,
         "human_baseline_track": human_baseline_track,
+        "fraudgen_summary": {
+            "generated_holdout": fraudgen_summary(all_holdout_cases),
+            "controlbench": deepcopy(controlbench_quarter.get("fraudgen_summary", {})),
+        },
         "official_tracks": official_tracks,
         "evaluation_protocol": {
             "pass_threshold": round(float(pass_threshold), 4),
