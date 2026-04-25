@@ -1,5 +1,10 @@
 # PLAN A: Final Deliverables Checklist
 
+> Historical archive: this Plan A handoff describes the pre-ControlBench v2
+> freeze. The current codebase extends that foundation as LedgerShield
+> ControlBench with a ControlBench track, institutional loss surface,
+> calibration-gated authority, and sleeper-vendor sequence reporting.
+
 **Plan A Status:** 9/10 complete (A0–A7 ✅ | A8 ⏳ pending manual HF publish | A9 ✅ verified) — **10/10 when A8 complete after HF URL insertion**  
 **Date:** April 20, 2026  
 **Last Updated:** Closure pass complete (verification evidence recorded) — awaiting HF URL

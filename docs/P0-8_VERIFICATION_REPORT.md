@@ -1,5 +1,8 @@
 # P0-8 Verification Report: Mini-Blog Package Completeness
 
+> Historical archive: this verification report belongs to the pre-ControlBench
+> v2 freeze. Current primary docs and artifacts use `ledgershield-controlbench-v1`.
+
 **Date:** April 20, 2026  
 **Phase:** P0-8 (Mini-Blog Publishing)  
 **Status:** ✅ PASS

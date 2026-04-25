@@ -262,16 +262,21 @@ def _benchmark_summary_block(report: dict[str, Any]) -> str:
     protocol = report.get("evaluation_protocol", {}) or {}
     public = report.get("public_benchmark", {}) or {}
     holdout = report.get("holdout_challenge", {}) or {}
+    controlbench = report.get("controlbench_quarter", {}) or {}
+    certificate_track = report.get("certificate_required_track", {}) or {}
     lines = [
-        "| Agent | Public mean | Holdout mean | Holdout consistent pass rate |",
-        "|---|---:|---:|---:|",
+        "| Agent | Public mean | Holdout mean | Holdout consistent pass rate | ControlBench loss score | Deployability | Certificate-required mean |",
+        "|---|---:|---:|---:|---:|---|---:|",
         (
             "| "
             f"{protocol.get('model_name', benchmark_report.DETERMINISTIC_BASELINE_MODEL)} "
             f"({protocol.get('agent_type', 'deterministic-policy')}) | "
             f"{float(public.get('average_score', 0.0)):.4f} | "
             f"{float((holdout.get('score_stats', {}) or {}).get('mean', 0.0)):.4f} | "
-            f"{float(holdout.get('consistent_pass_rate', 0.0) or 0.0):.4f} |"
+            f"{float(holdout.get('consistent_pass_rate', 0.0) or 0.0):.4f} | "
+            f"{float(controlbench.get('institutional_loss_score', 0.0) or 0.0):.4f} | "
+            f"{controlbench.get('deployability_rating', 'unknown')} | "
+            f"{float(certificate_track.get('average_score', 0.0) or 0.0):.4f} |"
         ),
     ]
     return "\n".join(lines)
@@ -284,7 +289,7 @@ def _leaderboard_example_block(report: dict[str, Any]) -> str:
         agent_type=str((report.get("evaluation_protocol", {}) or {}).get("agent_type", "deterministic-policy")),
     )
     snippet = {
-        "benchmark": report.get("benchmark", "ledgershield-v3"),
+        "benchmark": report.get("benchmark", "ledgershield-controlbench-v1"),
         "generated_at": report.get("generated_at"),
         "entries": [
             {
@@ -293,6 +298,9 @@ def _leaderboard_example_block(report: dict[str, Any]) -> str:
                 "public_mean": entry["public_mean"],
                 "holdout_mean": entry["holdout_mean"],
                 "holdout_pass_k_consistent": entry["holdout_pass_k_consistent"],
+                "controlbench_institutional_loss_score": entry.get("controlbench_institutional_loss_score", 0.0),
+                "controlbench_deployability_rating": entry.get("controlbench_deployability_rating", "unknown"),
+                "certificate_required_mean": entry.get("certificate_required_mean", 0.0),
             }
         ],
     }
@@ -397,6 +405,8 @@ def sync_openenv() -> None:
         protocol = report.get("evaluation_protocol", {}) or {}
         public = report.get("public_benchmark", {}) or {}
         holdout = report.get("holdout_challenge", {}) or {}
+        controlbench = report.get("controlbench_quarter", {}) or {}
+        certificate_track = report.get("certificate_required_track", {}) or {}
         task_breakdown = holdout.get("task_breakdown", {}) or {}
         task_e_summary = task_breakdown.get("task_e", {}) or {}
         task_e_mean = float((task_e_summary.get("score_stats", {}) or {}).get("mean", 0.0) or 0.0)
@@ -411,6 +421,10 @@ def sync_openenv() -> None:
                 f"      public_mean: {float(public.get('average_score', 0.0) or 0.0):.4f}",
                 f"      holdout_mean: {float((holdout.get('score_stats', {}) or {}).get('mean', 0.0) or 0.0):.4f}",
                 f"      holdout_pass_k_consistent: {float(holdout.get('consistent_pass_rate', 0.0) or 0.0):.4f}",
+                f"      controlbench_institutional_loss_score: {float(controlbench.get('institutional_loss_score', 0.0) or 0.0):.4f}",
+                f"      controlbench_deployability_rating: {controlbench.get('deployability_rating', 'unknown')}",
+                f"      controlbench_sleeper_detection_rate: {float(controlbench.get('sleeper_detection_rate', 0.0) or 0.0):.4f}",
+                f"      certificate_required_mean: {float(certificate_track.get('average_score', 0.0) or 0.0):.4f}",
                 f"      task_e_expert_mean: {task_e_mean:.4f}",
                 "      provenance: generated-from-benchmark-report",
             ]

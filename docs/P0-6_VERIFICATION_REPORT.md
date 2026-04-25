@@ -1,5 +1,8 @@
 # P0-6: Simplify the Judge-Facing Surface — Verification Report
 
+> Historical archive: this verification report belongs to the pre-ControlBench
+> v2 freeze. Current primary docs and artifacts use `ledgershield-controlbench-v1`.
+
 **Date:** April 20, 2026  
 **Status:** ✅ PASSED
 

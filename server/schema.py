@@ -74,6 +74,8 @@ FRAUD_TYPES = [
     "callback_dispute_confirmed",
     "vendor_account_takeover_suspected",
     "policy_bypass_attempt",
+    "instruction_override_attempt",
+    "prompt_injection_attempt",
     "shared_bank_account",
     "coordinated_timing",
 ]
@@ -112,6 +114,8 @@ REASON_CODE_ALIAS_MAP = {
     "approval threshold splitting": "approval_threshold_evasion",
     "policy bypass": "policy_bypass_attempt",
     "callback bypass": "policy_bypass_attempt",
+    "instruction override": "instruction_override_attempt",
+    "prompt injection": "prompt_injection_attempt",
     "shared bank": "shared_bank_account",
     "same bank account": "shared_bank_account",
     "shared remittance account": "shared_bank_account",

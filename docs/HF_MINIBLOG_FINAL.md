@@ -1,5 +1,10 @@
 # LedgerShield v2: Hardening Enterprise Payment Controls through Agent Benchmarking
 
+> Historical archive: this was the final v2 publishing text. The current
+> implementation is LedgerShield ControlBench, which keeps the v2 benchmark and
+> adds institutional loss-surface, calibration-gated authority, sleeper-vendor
+> vigilance, and ControlBench sequence reporting.
+
 **Subtitle:** A benchmark that asks whether agents can operate defensible enterprise control regimes, not just spot suspicious invoices.
 
 ---

@@ -5,7 +5,7 @@ runtime: fastapi
 app: server.app:app
 port: 8000
 metadata:
-  benchmark_version: ledgershield-v2
+  benchmark_version: ledgershield-controlbench-v1
   benchmark_identity: verified-institutional-control-intelligence
   primary_theme: world-modeling-professional-tasks
   secondary_theme: long-horizon-planning-and-instruction-following
@@ -14,6 +14,12 @@ metadata:
     - case
     - portfolio
     - adversarial
+    - generated_holdout
+    - controlbench
+    - sleeper_vigilance
+    - blind_control
+    - certificate_required
+    - human_baseline
   formal_model: pomdp
   extended_formalism: ASHTG
   horizon: finite
@@ -46,6 +52,12 @@ metadata:
     - categorical-mdp-pushout-composition
     - decision-transformer-rl-state-vector-export
     - persistent-institutional-memory-and-loss-ledger
+    - institutional-loss-surface
+    - calibration-gated-authority
+    - sleeper-vendor-vigilance-sequences
+    - certificate-required-proof-gated-track
+    - deterministic-adversarial-decision-falsifier
+    - trustgraph-payment-decision-projection
     - executable-decision-certificate-graphs
     - blind-vs-instrumented-evaluation-tracks
   ashtg_formalism:
@@ -84,13 +96,22 @@ metadata:
     report_endpoint: /benchmark-report
     institutional_memory_endpoint: /institutional-memory
     institutional_reset_endpoint: /institutional-reset
+    controlbench_summary_endpoint: /controlbench-summary
+    human_baseline_endpoint: /human-baseline-summary
     artifacts_dir: ./artifacts/
     portfolio_sequences: 5
-    artifact_count: 8
-    test_coverage: 310
+    controlbench_standard_sequence_length: 100
+    artifact_count: 10
+    test_coverage: "320+"
   headline_metrics:
     - control_satisfied_resolution
     - institutional_utility
+    - institutional_loss_score
+    - loss_surface
+    - authority_level
+    - sleeper_detection_rate
+    - certificate_required_mean
+    - adversarial_falsifier_verdict
     - unsafe_release_rate
     - certificate_validity_rate
   benchmark_results:
@@ -99,8 +120,12 @@ metadata:
       type: deterministic-policy
       temperature: 0.0
       pass_k: 1
-      public_mean: 0.8876
-      holdout_mean: 0.7034
+      public_mean: 0.8749
+      holdout_mean: 0.7063
       holdout_pass_k_consistent: 0.1667
+      controlbench_institutional_loss_score: 0.5731
+      controlbench_deployability_rating: advisory
+      controlbench_sleeper_detection_rate: 1.0000
+      certificate_required_mean: 0.5500
       task_e_expert_mean: 0.8400
       provenance: generated-from-benchmark-report

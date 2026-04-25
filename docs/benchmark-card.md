@@ -1,8 +1,8 @@
-# LedgerShield v2 Benchmark Card
+# LedgerShield ControlBench Benchmark Card
 
 ## Identity
 
-LedgerShield v2 is a benchmark for **verified institutional control intelligence** in enterprise accounts-payable workflows.
+LedgerShield ControlBench is a benchmark for **verified institutional control intelligence** in enterprise accounts-payable workflows.
 
 - Primary theme: **World Modeling — Professional Tasks**
 - Secondary theme: **Long-Horizon Planning & Instruction Following**
@@ -16,7 +16,8 @@ The agent is not graded on a one-shot classification. It must:
 2. trigger enterprise controls and wait for delayed artifacts
 3. keep decisions aligned with hidden backend state
 4. manage AP-week capacity and portfolio consequences
-5. produce an auditable decision certificate
+5. preserve institutional value over long-horizon ControlBench sequences
+6. produce an auditable decision certificate
 
 ## Official Tracks
 
@@ -38,10 +39,54 @@ Hostile or deceptive content inside documents, email threads, or tool outputs.
 
 - measures: resistance to spoofing, urgency pressure, misleading evidence, and workflow override attempts
 
+### Generated Holdout Track
+
+Seeded procedural AP ecosystems generated from benchmark archetypes.
+
+- measures: anti-overfit robustness to unseen mechanism tuples and surface variation
+
+### ControlBench Track
+
+Seeded AP-quarter institutional-control performance.
+
+- measures: institutional loss surface, calibration-gated authority, sleeper-vendor vigilance, catastrophic events, and deployability rating
+
+### Sleeper-Vigilance Track
+
+The subset of ControlBench focused on trust-building vendors that later activate.
+
+- measures: whether institutional memory helps detect, rather than excuse, later fraud
+
+### Blind-Control Track
+
+Benchmark evaluation with SPRT, VoI, and reward-machine scaffolding hidden from the acting agent.
+
+- measures: whether the agent still preserves value without evaluator hints
+
+### Certificate-Required Track
+
+Strict proof-carrying payment decisions.
+
+- measures: whether agent-authored Decision Certificate Graphs survive schema, support-path, contradiction, grounding, and stability checks
+
+### Human-Baseline Track
+
+Optional AP, accounting, audit, and finance-manager participant summaries.
+
+- measures: human accuracy, escalation behavior, evidence citation, speed, and calibration anchors
+
 ## Headline Metrics
 
 - `control_satisfied_resolution`
 - `institutional_utility`
+- `institutional_loss_score`
+- `loss_surface`
+- `authority_level`
+- `sleeper_detection_rate`
+- `certificate_required_mean`
+- `adversarial_falsifier_verdict`
+- `control_boundary`
+- `human_baseline_track`
 - `unsafe_release_rate`
 - `certificate_validity_rate`
 - `result_class`
@@ -51,6 +96,8 @@ Hostile or deceptive content inside documents, email threads, or tool outputs.
 - `valid_success`
 - `correct_but_policy_incomplete`
 - `unsafe_release`
+- `authority_gate_failed`
+- `control_boundary_failed`
 - `unsupported_certificate`
 - `malformed_submission`
 - `false_positive_overcontrol`
@@ -58,11 +105,17 @@ Hostile or deceptive content inside documents, email threads, or tool outputs.
 
 ## Generalization Policy
 
-LedgerShield v2 reports:
+LedgerShield ControlBench reports:
 
 - public split performance
 - holdout performance over latent mechanism tuples
+- blind-control performance with evaluator scaffolding hidden
 - contrastive performance on near-identical surface pairs with different hidden mechanisms
+- ControlBench sequence performance over seeded AP-quarter cases
+- sleeper-vigilance performance over trust-building vendor activations
+- certificate-required proof-gated performance
+- optional human-baseline summaries
+- two-agent control-profile disagreement between accuracy and institutional loss
 
 Each case carries hidden mechanism metadata:
 
@@ -92,4 +145,7 @@ Recommended showcase set:
 
 - `LEDGERSHIELD_TRACK_MODE=blind` is the benchmark default
 - `LEDGERSHIELD_TRACK_MODE=instrumented` is diagnostics-only
+- `LEDGERSHIELD_INCLUDE_CONTROLBENCH=true` can load generated ControlBench sequence cases into the runtime database
+- `benchmark_report.py --controlbench-sequence-length 100` runs the standard AP-quarter ControlBench report
+- `artifacts/human_baseline.json` or `LEDGERSHIELD_HUMAN_BASELINE_PATH` can provide a human reference profile
 - certificates improve auditability but do not rescue wrong or unsafe control behavior

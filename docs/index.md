@@ -13,6 +13,8 @@ Quick navigation to all documentation, organized by category.
 | [`benchmark-card.md`](./benchmark-card.md) | One-page benchmark summary for judges |
 | [`demo-script.md`](./demo-script.md) | Frozen 5-step demo walkthrough (CASE-D-001) |
 
+Current codebase framing: **LedgerShield ControlBench** extends the original v2 benchmark with ControlBench, generated-holdout, sleeper-vigilance, blind-control, certificate-required, and human-baseline tracks; institutional loss surface; calibration-gated authority; a statechart-style control boundary; and `/controlbench-summary` plus `/human-baseline-summary` API support.
+
 ---
 
 ## Environment & API
@@ -28,6 +30,8 @@ Quick navigation to all documentation, organized by category.
 ---
 
 ## Verification Reports
+
+These are historical Round 2 / Plan A artifacts. They describe the pre-ControlBench `LedgerShield v2` freeze and are kept for provenance; the current implementation story is the ControlBench extension described in the root README, architecture docs, API docs, `openenv.yaml`, and `benchmark_report.py`.
 
 | Phase | Report |
 |-------|--------|
@@ -87,4 +91,4 @@ bash validate-submission.sh
 
 ---
 
-**Status:** Plan A 9/10 complete. A8 pending manual publication to Hugging Face.
+**Status:** ControlBench implementation is active in code and docs; Plan A reports remain archived provenance.

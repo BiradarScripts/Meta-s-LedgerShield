@@ -1,5 +1,10 @@
 # LedgerShield v2 Mini-Blog / 2-Minute Video Script
 
+> Historical archive: this is the pre-ControlBench v2 mini-blog draft. The
+> current project framing is LedgerShield ControlBench, adding institutional
+> loss surface, calibration-gated authority, sleeper-vendor vigilance, and a
+> ControlBench track.
+
 LedgerShield v2 asks a different question from most fraud benchmarks:
 
 not “can an agent spot a suspicious invoice?”
@@ -10,11 +15,9 @@ The environment is set inside enterprise accounts-payable workflows. Agents inve
 
 The public benchmark now runs in blind mode by default. That matters because it prevents agents from overfitting to evaluator internals like SPRT state, reward-machine progress, or tool-ranking scaffolds. Diagnostics are still available, but they are explicitly separated from benchmark runs.
 
-LedgerShield v2 also exposes three official tracks.
+The historical v2 framing exposed three official tracks.
 
-Case Track measures single-case control behavior.
-Portfolio Track measures AP-week performance with institutional memory and finite review capacity.
-Adversarial Data Track measures resistance to deceptive content inside documents, email threads, and tool outputs.
+The current ControlBench release expands that into nine: Case, Portfolio, Adversarial Data, Generated Holdout, ControlBench, Sleeper-Vigilance, Blind-Control, Certificate-Required, and Human-Baseline.
 
 The headline metrics changed too. We do not hide safety behavior inside one average score. LedgerShield now reports control-satisfied resolution, institutional utility, unsafe release rate, certificate validity, and explicit result classes like valid success, correct but policy incomplete, and unsafe release.
 

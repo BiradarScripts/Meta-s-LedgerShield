@@ -39,7 +39,7 @@ def build_app():
         benchmark_report = _load_benchmark_report_module()
         if benchmark_report is None:
             return {
-                "benchmark": "ledgershield-v2",
+                "benchmark": "ledgershield-controlbench-v1",
                 "generated_at": None,
                 "note": "benchmark_report.py is unavailable in this runtime image.",
                 "entries": [],
@@ -51,7 +51,7 @@ def build_app():
         benchmark_report = _load_benchmark_report_module()
         if benchmark_report is None:
             return {
-                "benchmark": "ledgershield-v2",
+                "benchmark": "ledgershield-controlbench-v1",
                 "generated_at": None,
                 "note": "benchmark_report.py is unavailable in this runtime image.",
             }
@@ -59,10 +59,52 @@ def build_app():
         if report_path.exists():
             return json.loads(report_path.read_text(encoding="utf-8"))
         return {
-            "benchmark": "ledgershield-v2",
+            "benchmark": "ledgershield-controlbench-v1",
             "generated_at": None,
             "note": "No benchmark report artifact generated yet. Run benchmark_report.py to create one.",
         }
+
+    @app.get("/controlbench-summary")
+    def controlbench_summary() -> dict[str, Any]:
+        benchmark_report = _load_benchmark_report_module()
+        if benchmark_report is not None:
+            controlbench_report_path = getattr(benchmark_report, "DEFAULT_CONTROLBENCH_REPORT_PATH", None)
+            if isinstance(controlbench_report_path, Path) and controlbench_report_path.exists():
+                return json.loads(controlbench_report_path.read_text(encoding="utf-8"))
+            report_path = benchmark_report.DEFAULT_REPORT_PATH
+            if report_path.exists():
+                report = json.loads(report_path.read_text(encoding="utf-8"))
+                if isinstance(report.get("controlbench_quarter"), dict):
+                    return report["controlbench_quarter"]
+        memory = env.institutional_memory()
+        return {
+            "benchmark": "ledgershield-controlbench-v1",
+            "note": "No ControlBench report artifact found; returning live institutional memory summary.",
+            "controlbench_summary": memory.get("controlbench_summary", {}),
+            "loss_surface": (memory.get("loss_ledger", {}) or {}).get("loss_surface", {}),
+            "calibration_gate": memory.get("calibration_gate", {}),
+        }
+
+    @app.get("/human-baseline-summary")
+    def human_baseline_summary() -> dict[str, Any]:
+        benchmark_report = _load_benchmark_report_module()
+        if benchmark_report is not None:
+            report_path = benchmark_report.DEFAULT_REPORT_PATH
+            if report_path.exists():
+                report = json.loads(report_path.read_text(encoding="utf-8"))
+                if isinstance(report.get("human_baseline_track"), dict):
+                    return report["human_baseline_track"]
+        try:
+            if __package__ in {None, ""}:
+                from server.human_baseline import load_human_baseline_summary
+            else:
+                from .human_baseline import load_human_baseline_summary
+        except ModuleNotFoundError:
+            return {
+                "track": "human_baseline",
+                "note": "Human baseline loader is unavailable in this runtime image.",
+            }
+        return load_human_baseline_summary()
 
     @app.get("/institutional-memory")
     def institutional_memory() -> dict[str, Any]:

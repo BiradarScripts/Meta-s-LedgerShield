@@ -2305,6 +2305,7 @@ def summarize_case_trials(
     steps = [int(trial.get("steps", 0) or 0) for trial in trials]
     passes = [score >= pass_threshold for score in scores]
     decisions = [str(trial.get("final_decision", "") or "") for trial in trials]
+    effective_decisions = [str(trial.get("effective_decision", "") or "") for trial in trials if str(trial.get("effective_decision", "") or "").strip()]
     task_type = next((str(trial.get("task_type", "unknown")) for trial in trials if trial.get("task_type")), "unknown")
     errors = [str(trial.get("error", "")).strip() for trial in trials if str(trial.get("error", "")).strip()]
     pressure_scores = [float(trial.get("pressure_resistance_score", 0.0) or 0.0) for trial in trials]
@@ -2333,7 +2334,9 @@ def summarize_case_trials(
         "successful_trials": int(sum(passes)),
         "trial_count": len(trials),
         "final_decision": dominant_value(decisions),
+        "effective_decision": dominant_value(effective_decisions),
         "trial_decisions": decisions,
+        "trial_effective_decisions": effective_decisions,
         "pressure_resistance_score": round(sum(pressure_scores) / max(len(pressure_scores), 1), 4),
         "certificate_score": round(sum(certificate_scores) / max(len(certificate_scores), 1), 4),
         "certificate_validity_score": round(sum(certificate_validity_scores) / max(len(certificate_validity_scores), 1), 4),
@@ -2344,6 +2347,9 @@ def summarize_case_trials(
         "benchmark_track": dominant_value(benchmark_tracks),
         "track_mode": dominant_value(track_modes),
         "decision_certificate_report": dict((trials[-1].get("decision_certificate_report", {}) if trials else {}) or {}),
+        "adversarial_falsifier": dict((trials[-1].get("adversarial_falsifier", {}) if trials else {}) or {}),
+        "trust_graph": dict((trials[-1].get("trust_graph", {}) if trials else {}) or {}),
+        "authority_gate": dict((trials[-1].get("authority_gate", {}) if trials else {}) or {}),
         "institutional_metrics": dict((trials[-1].get("institutional_metrics", {}) if trials else {}) or {}),
         "score_breakdown": score_breakdowns[-1] if score_breakdowns else {},
         "errors": errors,
@@ -2686,8 +2692,12 @@ def run_episode_with_env(
                 "score": final_score,
                 "steps": steps_taken,
                 "final_decision": final_decision,
+                "effective_decision": str((final_result.observation.last_tool_result or {}).get("effective_decision", "")),
                 "score_breakdown": score_breakdown,
                 "decision_certificate_report": dict(final_result.info.get("decision_certificate_report", {}) or {}),
+                "adversarial_falsifier": dict(final_result.info.get("adversarial_falsifier", {}) or {}),
+                "trust_graph": dict(final_result.info.get("trust_graph", {}) or {}),
+                "authority_gate": dict(final_result.info.get("authority_gate", {}) or {}),
                 "institutional_metrics": dict(final_result.info.get("institutional_metrics", {}) or {}),
                 "certificate_score": float(score_breakdown.get("certificate_score", 0.0) or 0.0),
                 "certificate_validity_score": float(score_breakdown.get("certificate_validity_score", 0.0) or 0.0),
@@ -2923,8 +2933,12 @@ def run_episode_with_env(
             "score": final_score,
             "steps": steps_taken,
             "final_decision": final_decision,
+            "effective_decision": str((final_result.observation.last_tool_result or {}).get("effective_decision", "")),
             "score_breakdown": score_breakdown,
             "decision_certificate_report": dict(final_result.info.get("decision_certificate_report", {}) or {}),
+            "adversarial_falsifier": dict(final_result.info.get("adversarial_falsifier", {}) or {}),
+            "trust_graph": dict(final_result.info.get("trust_graph", {}) or {}),
+            "authority_gate": dict(final_result.info.get("authority_gate", {}) or {}),
             "institutional_metrics": dict(final_result.info.get("institutional_metrics", {}) or {}),
             "certificate_score": float(score_breakdown.get("certificate_score", 0.0) or 0.0),
             "certificate_validity_score": float(score_breakdown.get("certificate_validity_score", 0.0) or 0.0),

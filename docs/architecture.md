@@ -10,17 +10,21 @@ flowchart LR
     API --> Env["LedgerShieldEnvironment"]
     Env --> SPRT["SPRT / VoI / Reward Machine"]
     Env --> Causal["Causal Model / Proper Scoring"]
+    Env --> Falsifier["Adversarial Decision Falsifier"]
+    Env --> TrustGraph["TrustGraph Projection"]
     Env --> Tools["Tools Layer"]
     Env --> World["World State"]
     Env --> Transition["Transition Engine"]
     Env --> Grader["Task + Trajectory Grading"]
     Env --> Outcome["Outcome Simulator"]
-    Env --> Memory["Institutional Memory / Loss Ledger"]
+    Env --> Memory["Institutional Memory / Loss Surface"]
+    Memory --> Gate["Calibration Gate / Authority Level"]
     Grader --> Cert["Decision Certificate Verifier"]
     World --> Pressure["Pressure Events"]
     World --> Vendor["Vendor Callback Simulator"]
     World --> Cases["Fixture Cases + Generated Variants"]
     Cases --> Attack["Attack Library / Case Factory"]
+    Cases --> ControlBench["ControlBench AP-Quarter Generator"]
     Grader --> Report["Benchmark Report / Leaderboard"]
 ```
 
@@ -50,9 +54,19 @@ Recent ASHTG additions:
 - `server/reward_machine.py` tracks task-family progress as a lightweight reward machine
 - `server/rl_export.py` exports a 37-dimensional RL/DT state vector
 - `server/institutional_game.py` persists AP-week memory, review capacity,
-  callback capacity, vendor trust, attacker belief, and institutional loss
+  callback capacity, vendor trust, attacker belief, institutional loss surface,
+  calibration-gated authority, and sleeper-vendor state
 - `server/decision_certificate.py` verifies typed proof graphs for final
   decisions
+- `server/decision_falsifier.py` runs deterministic murder-board diagnostics
+  against unsafe PAY, pending artifacts, unsupported claims, and invalid
+  certificates
+- `server/control_statechart.py` adds a statechart-style runtime control
+  boundary that detects prompt-injection-style workflow overrides and blocks
+  premature authority commits
+- `server/trust_graph.py` projects every terminal decision into a compact
+  payment TrustGraph for reports, persistent institutional memory, and audit
+  artifacts
 
 ### 2. Hidden world and public state
 
@@ -120,6 +134,8 @@ Responsibilities:
 - verify decision-certificate graphs for support, stability, minimality, and
   unsupported claims
 - expose institutional-loss metrics alongside per-case outcome metrics
+- expose ControlBench loss-surface, calibration-gate, and sleeper-vigilance metrics
+- expose deterministic adversarial-falsifier and TrustGraph diagnostics in terminal info
 
 Notable grading behaviors:
 
@@ -159,8 +175,11 @@ On terminal submission, the environment also:
 
 1. verifies or synthesizes a decision-certificate graph
 2. simulates the downstream payment outcome
-3. updates the persistent institutional memory/loss ledger
-4. adds certificate and institutional-loss metrics to the score breakdown
+3. updates the persistent institutional memory/loss surface
+4. updates calibration-gated authority and sleeper-vendor vigilance state
+5. runs deterministic adversarial falsification over the proposed decision
+6. builds a TrustGraph projection over evidence, policy, certificate, authority, and loss-surface nodes
+7. adds certificate and institutional-loss metrics to the score breakdown
 
 ## Institutional Memory Layer
 
@@ -174,10 +193,20 @@ The public snapshot tracks:
 - attacker belief over callback gaps, queue pressure, duplicate-control gaps,
   and payment-release weakness
 - fraud loss prevented/released
+- false-positive cost
 - operational delay hours
 - manual-review minutes
 - supplier friction
+- calibration debt and current `authority_level`
+- sleeper-vendor warmup/activation/detection state
+- vigilance loss and catastrophic event count
 - unsafe releases, false positives, and safe releases
+
+`InstitutionalLossLedger.loss_surface()` exposes the ControlBench vector directly.
+`CalibrationGateState` turns running calibration error and catastrophic failures
+into authority levels (`full_authority`, `restricted_authority`, `review_only`,
+or `locked`). This keeps the RL state vector stable while making long-horizon
+institutional consequences visible through observations, reports, and API output.
 
 The endpoint `/institutional-reset` clears this layer when a run needs a clean
 AP week. The default observation track is `blind`; setting
@@ -202,6 +231,31 @@ If a legacy submission omits the graph, the server creates a diagnostic graph
 from `evidence_map`, `policy_checks`, `reason_codes`, `fraud_flags`,
 `campaign_signals`, interventions, and `counterfactual`. Only agent-authored
 graphs can affect the score through the small certificate adjustment.
+
+The Certificate-Required track is stricter: compatibility certificates do not
+receive full credit, and missing or invalid agent-authored certificates cap the
+score. This turns proof-carrying decisions into an evaluation gate rather than a
+cosmetic explanation field.
+
+## TrustGraph And Decision Falsification
+
+`server/trust_graph.py` builds a compact graph at terminal submission with case,
+invoice, vendor, bank-account, evidence, risk-flag, policy, certificate,
+authority, control-boundary, decision, trust-history, sleeper-state, and
+loss-surface nodes. It is intentionally serializable and does not require Neo4j
+or external services.
+
+`server/decision_falsifier.py` implements the deterministic version of the
+runtime murder-board idea. It blocks or warns when a decision is contradicted by
+hidden gold risk, unresolved pending artifacts, unsupported certificate claims,
+policy-fail/PAY conflicts, or missing callback controls for observed bank/takeover
+signals.
+
+`server/control_statechart.py` complements that terminal falsifier with a
+runtime state boundary: intake, document review, corroboration, intervention,
+decision-ready, and terminal phases. Its main job is to stop unsafe PAY commits
+when prompt injection, pending artifacts, or missing follow-up controls are
+still present.
 
 ### End conditions
 
@@ -359,6 +413,9 @@ Core files:
 - challenge variants by sampling attacks
 - holdout suites from harder tasks (`task_c`, `task_d`, `task_e`)
 - benign contrastive twins for calibration
+- ControlBench AP-quarter sequences with reproducible seeds, loss-surface
+  metadata, calibration-gate evaluation, and sleeper-vendor activations
+- certificate-required clones for strict proof-gated evaluation
 
 ### Attack inventory
 
@@ -385,8 +442,13 @@ This is where the benchmark’s adversarial breadth comes from.
 
 ### Report generation
 
-- [`../benchmark_report.py`](../benchmark_report.py) evaluates public benchmark, holdout challenge, and contrastive pairs
+- [`../benchmark_report.py`](../benchmark_report.py) evaluates public benchmark, generated holdout, blind-control, contrastive pairs, sleeper-vigilance, human-baseline, and the ControlBench institutional sequence
+- reports also include certificate-required performance and a cheap two-agent
+  control-profile demo that compares accuracy-optimized and control-optimized
+  policies without LLM calls
 - the report can write JSON artifacts and populate `/leaderboard`
+- `/controlbench-summary` returns the latest ControlBench sequence artifact or the live institutional-memory summary when no artifact exists
+- `/human-baseline-summary` returns the loaded human-baseline summary or an empty template-style response
 
 ## Extension Points
 

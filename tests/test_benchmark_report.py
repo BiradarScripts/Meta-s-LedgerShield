@@ -27,6 +27,24 @@ def test_build_report_returns_public_and_holdout_sections():
     assert "unsafe_release_rate" in report["public_benchmark"]
     assert "official_tracks" in report
     assert report["official_tracks"]["portfolio_track"]["sequence_count"] >= 1
+    assert "controlbench_quarter" in report
+    assert report["controlbench_quarter"]["sequence_length"] >= 1
+    assert "loss_surface" in report["controlbench_quarter"]
+    assert "controlbench_report" in report
+    assert report["controlbench_report"]["case_count"] == report["controlbench_quarter"]["sequence_length"]
+    assert "deployability_rating" in report["controlbench_report"]
+    assert "controlbench_two_agent_demo" in report
+    assert "certificate_required_track" in report
+    assert "generated_holdout_track" in report
+    assert "blind_control_track" in report
+    assert "sleeper_vigilance_track" in report
+    assert "human_baseline_track" in report
+    assert "controlbench_track" in report["official_tracks"]
+    assert "certificate_required_track" in report["official_tracks"]
+    assert "generated_holdout_track" in report["official_tracks"]
+    assert "blind_control_track" in report["official_tracks"]
+    assert "sleeper_vigilance_track" in report["official_tracks"]
+    assert "human_baseline_track" in report["official_tracks"]
 
 
 def test_build_leaderboard_entry_includes_task_e_metrics():
@@ -44,6 +62,9 @@ def test_build_leaderboard_entry_includes_task_e_metrics():
     assert entry["public_task_e_expert_mean"] == report["public_benchmark"]["task_breakdown"]["task_e"]["score_stats"]["mean"]
     assert entry["holdout_task_e_expert_mean"] == report["holdout_challenge"]["task_breakdown"]["task_e"]["score_stats"]["mean"]
     assert entry["task_e_expert_mean"] == entry["holdout_task_e_expert_mean"]
+    assert entry["controlbench_deployability_rating"] == report["controlbench_quarter"]["deployability_rating"]
+    assert entry["certificate_required_mean"] == report["certificate_required_track"]["average_score"]
+    assert entry["controlbench_institutional_loss_total"] == report["controlbench_quarter"]["institutional_loss_total"]
 
 
 def test_main_cli_smoke_runs_without_token(monkeypatch, capsys):
@@ -68,6 +89,18 @@ def test_main_cli_smoke_runs_without_token(monkeypatch, capsys):
     assert "Agent type: deterministic-policy" in output
 
 
+def test_build_controlbench_artifact_matches_quarter_summary():
+    report = benchmark_report.build_report(
+        holdout_seeds=[101],
+        variants_per_case=1,
+    )
+    artifact = benchmark_report.build_controlbench_artifact(report)
+
+    assert artifact["case_count"] == report["controlbench_quarter"]["sequence_length"]
+    assert artifact["deployability_rating"] == report["controlbench_quarter"]["deployability_rating"]
+    assert artifact["institutional_loss_total"] == report["controlbench_quarter"]["institutional_loss_total"]
+
+
 def test_load_leaderboard_payload_filters_legacy_deterministic_alias(tmp_path: Path):
     report = benchmark_report.build_report(
         holdout_seeds=[101],
@@ -89,7 +122,7 @@ def test_load_leaderboard_payload_filters_legacy_deterministic_alias(tmp_path: P
     leaderboard_path.write_text(
         json.dumps(
             {
-                "benchmark": "ledgershield-v2",
+                "benchmark": "ledgershield-controlbench-v1",
                 "generated_at": report["generated_at"],
                 "entries": [legacy_alias, canonical],
             }
@@ -118,7 +151,7 @@ def test_upsert_leaderboard_entry_prunes_legacy_alias(tmp_path: Path):
         agent_type="deterministic-policy",
     )
     legacy_payload = {
-        "benchmark": "ledgershield-v2",
+        "benchmark": "ledgershield-controlbench-v1",
         "generated_at": report["generated_at"],
         "entries": [
             {

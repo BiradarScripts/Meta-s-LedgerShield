@@ -1,5 +1,8 @@
 # A3 Benchmark-Contract Audit Report
 
+> Historical archive: this audit report belongs to the pre-ControlBench v2
+> freeze. Current primary docs and artifacts use `ledgershield-controlbench-v1`.
+
 **Date:** 2026-04-20  
 **Scope:** 21 curated benchmark cases in `server/fixtures/cases.json`  
 **Auditors:** LedgerShield v2 Evaluation Pipeline

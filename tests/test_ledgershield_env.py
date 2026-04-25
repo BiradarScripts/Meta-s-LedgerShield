@@ -450,6 +450,24 @@ def test_inspect_email_thread_falls_back_to_email_document_ocr():
     assert thread["request_signals"]["urgency_language"] is True
 
 
+def test_routine_bank_update_email_does_not_create_override_signal():
+    env = LedgerShieldEnvironment()
+    env.reset(case_id="CASE-D-006")
+
+    obs = env.step(
+        LedgerShieldAction(
+            action_type="inspect_email_thread",
+            payload={"thread_id": "THR-LEGIT-001"},
+        )
+    )
+
+    thread = obs.last_tool_result["thread"]
+    assert thread["request_signals"]["bank_change_language"] is True
+    assert thread["request_signals"]["callback_discouraged"] is False
+    assert thread["sender_profile"]["domain_alignment"] == "aligned"
+    assert env.state.observed_risk_signals == []
+
+
 def test_compare_bank_account_detects_mismatch():
     env = LedgerShieldEnvironment()
     env.reset(case_id="CASE-D-001")
@@ -850,7 +868,7 @@ def test_holdout_generation_is_deterministic():
     assert all(case.get("latent_mechanism_signature") for case in first)
 
 
-def test_unsafe_pay_is_penalized():
+def test_unsafe_pay_is_blocked_and_penalized():
     env = LedgerShieldEnvironment()
     env.reset(case_id="CASE-D-001")
 
@@ -861,7 +879,9 @@ def test_unsafe_pay_is_penalized():
         )
     )
 
-    assert obs.last_tool_result["unsafe_outcome"] is True
+    assert obs.last_tool_result["effective_decision"] == "NEEDS_REVIEW"
+    assert obs.last_tool_result["control_boundary"]["blocking"] is True
+    assert obs.last_tool_result["unsafe_outcome"] is False
     assert obs.last_tool_result["final_score"] > 0.0
     assert obs.last_tool_result["final_score"] <= 0.15
 

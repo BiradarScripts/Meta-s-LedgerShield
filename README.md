@@ -15,24 +15,24 @@ tags:
   - enterprise-risk
 ---
 
-# LedgerShield 🛡️
+# LedgerShield ControlBench 🛡️
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
 [![CI](https://img.shields.io/badge/ci-github_actions-success.svg)](./.github/workflows/ci.yml)
 [![OpenEnv](https://img.shields.io/badge/OpenEnv-compatible-green.svg)](./openenv.yaml)
 
-LedgerShield v2 is a verified benchmark for **institutional control intelligence** in enterprise accounts-payable workflows. It is designed for the Round 2 framing of **World Modeling — Professional Tasks**, with **Long-Horizon Planning & Instruction Following** as the secondary theme.
+LedgerShield ControlBench is a verified benchmark for **institutional control intelligence** in enterprise accounts-payable workflows. It is designed for the Round 2 framing of **World Modeling — Professional Tasks**, with **Long-Horizon Planning & Instruction Following** as the secondary theme.
 
 Instead of asking an agent to classify one invoice, LedgerShield asks it to operate a defensible enterprise control regime: investigate, apply controls, absorb delayed evidence, manage AP-week capacity, withstand adversarial pressure, and submit an auditable decision that can be checked against hidden backend state.
 
 The environment keeps the existing AP/BEC domain, proof-carrying decision certificates, institutional memory, and OpenEnv-compatible FastAPI loop, but the public benchmark contract is now sharper:
 
 - `blind` is the default observation mode for benchmark runs
-- official tracks are `Case`, `Portfolio`, and `Adversarial Data`
-- headline metrics now include `control_satisfied_resolution`, `institutional_utility`, and `unsafe_release_rate`
+- official tracks now cover `Case`, `Portfolio`, `Adversarial Data`, `Generated Holdout`, `ControlBench`, `Sleeper-Vigilance`, `Blind-Control`, `Certificate-Required`, and `Human-Baseline`
+- headline metrics now include `control_satisfied_resolution`, `institutional_utility`, `institutional_loss_score`, `loss_surface`, calibration-gated authority, and `unsafe_release_rate`
 - holdout and contrastive reporting is mechanism-aware rather than surface-only
-- certificates remain an audit layer, not a shortcut around bad control behavior
+- certificates remain an audit layer, not a shortcut around bad control behavior; the Certificate-Required track caps scores when the agent does not author a valid proof graph
 
 > **📖 Documentation hub:** See [`docs/README.md`](./docs/README.md) for a guided tour of all documentation, reading paths by role, and a map of what lives where.
 >
@@ -55,9 +55,9 @@ LedgerShield earns high marks across five dimensions:
 |---|---|
 | **Real-world utility** | Multi-currency invoices, IBAN/SWIFT validation, SOX controls, AP inbox triage, campaign fraud, aging reports |
 | **Task quality** | 21 curated cases, 5 task families (extraction, matching, duplicates, BEC triage, campaigns), holdout/contrastive generalization |
-| **Environment design** | Blind mode by default, partial observability, institutional memory, AP-week queue pressure, evidence delay, adversarial pressure |
-| **Code quality** | Comprehensive tests (310 passing), fixtures, docstrings, typed contracts, narrow exception handling, CI/CD |
-| **Novelty** | Formal ASHTG framework, VoI-based action ranking, causal grading, decision certificates, institutional memory, 16 attack types |
+| **Environment design** | Blind mode by default, partial observability, institutional memory, AP-week queue pressure, evidence delay, adversarial pressure, sleeper-vendor sequences |
+| **Code quality** | Comprehensive tests, fixtures, docstrings, typed contracts, narrow exception handling, CI/CD |
+| **Novelty** | Formal ASHTG framework, VoI-based action ranking, causal grading, decision certificates, institutional loss surface, calibration gate, 16 attack types |
 
 ## Benchmark At A Glance
 
@@ -65,10 +65,11 @@ LedgerShield earns high marks across five dimensions:
 |---|---:|
 | Benchmark identity | verified institutional control intelligence |
 | Public observation mode | blind by default |
-| Official tracks | 3 (`case`, `portfolio`, `adversarial`) |
+| Official tracks | 9 (`case`, `portfolio`, `adversarial`, `generated_holdout`, `controlbench`, `sleeper_vigilance`, `blind_control`, `certificate_required`, `human_baseline`) |
 | Public benchmark cases | 21 curated base cases |
 | Holdout / contrastive support | latent-mechanism holdouts + benign twins |
-| Headline metrics | control-satisfied resolution, institutional utility, unsafe release rate |
+| ControlBench sequence | seeded AP-quarter generator with standard 100-case mode and lightweight report preview |
+| Headline metrics | control-satisfied resolution, institutional utility, institutional loss score, loss surface, certificate-required mean, unsafe release rate |
 | Formal model | ASHTG with SPRT belief state and VoI action ranking |
 | Institutional layer | persistent AP-week memory, capacity, attacker belief, and loss ledger |
 | Audit layer | Decision Certificate Graph verifier for proof-carrying payment decisions |
@@ -81,6 +82,12 @@ LedgerShield earns high marks across five dimensions:
 | Case Track | single-case control performance, evidence quality, intervention use, and safe resolution |
 | Portfolio Track | AP-week utility under queue pressure, finite callback/review capacity, and attacker adaptation |
 | Adversarial Data Track | robustness to deceptive content in email threads, documents, and tool outputs |
+| Generated Holdout Track | seeded procedural AP ecosystems that test unseen mechanism combinations and anti-overfit robustness |
+| ControlBench Track | long-horizon institutional-control authority using loss surface, calibration gate, and sleeper-vendor vigilance |
+| Sleeper-Vigilance Track | trust-building vendor sequences that later activate bank-change or BEC fraud |
+| Blind-Control Track | benchmark runs where SPRT, VoI, and reward-machine scaffolding stay hidden from the acting agent |
+| Certificate-Required Track | strict proof-carrying evaluation where auto-generated compatibility certificates cannot receive full credit |
+| Human-Baseline Track | optional AP/accounting/audit participant evaluations used as an operational realism anchor |
 
 ## Headline Metrics
 
@@ -88,6 +95,13 @@ LedgerShield earns high marks across five dimensions:
 |---|---|
 | `control_satisfied_resolution` | the case was correct, policy-complete, grounded, certificate-supported, and free of catastrophic unsafe shortcuts |
 | `institutional_utility` | institution-level value after fraud loss, unsafe release cost, review burn, supplier friction, and auditability |
+| `institutional_loss_score` | normalized ControlBench score over cumulative fraud loss, false positives, operational burn, calibration debt, vigilance loss, compliance, and catastrophic events |
+| `loss_surface` | auditable vector of the institutional-loss components rather than a single hidden scalar |
+| `authority_level` | calibration-gated deployment status such as `full_authority`, `restricted_authority`, or `review_only` |
+| `sleeper_detection_rate` | fraction of trust-building sleeper activations detected before unsafe release |
+| `certificate_required_mean` | score under strict agent-authored certificate gates |
+| `adversarial_falsifier_verdict` | deterministic murder-board diagnostic over unsafe PAY, unsupported claims, pending artifacts, and certificate failure |
+| `human_baseline_track` | optional AP-analyst reference profile loaded from `artifacts/human_baseline.json` or its configured path |
 | `unsafe_release_rate` | fraction of cases where the agent released money unsafely |
 | `result_class` | visible evaluator status such as `valid_success`, `correct_but_policy_incomplete`, or `unsafe_release` |
 
@@ -171,6 +185,8 @@ The benchmark upgrade work is reflected in the codebase across five phases:
 | Phase 5: Creativity and novelty | Dec-POMDP watchdog mode, curriculum adaptation, 16-attack library, exploration bonus integrated into `step()` |
 | Phase 6: ASHTG | `server/sprt_engine.py`, `server/voi_engine.py`, `server/proper_scoring.py`, `server/causal_model.py`, `server/causal_grader.py`, `server/reward_machine.py`, `server/rl_export.py` |
 | Phase 7: Institutional intelligence | `server/institutional_game.py`, `server/decision_certificate.py`, blind/instrumented tracks, `/institutional-memory`, `/institutional-reset`, certificate and institutional metrics in live comparisons |
+| Phase 8: ControlBench | `server/case_factory.py`, `benchmark_report.py`, `/controlbench-summary`, institutional loss surface, calibration-gated authority, sleeper-vendor AP-quarter generation |
+| Phase 9: Trust and falsification | `server/trust_graph.py`, `server/decision_falsifier.py`, `server/control_statechart.py`, Certificate-Required track, deterministic decision falsifier, statechart-style control boundary, persistent TrustGraph projection, two-agent control-profile report |
 
 ## ASHTG Mathematical Framework — Under the Hood
 
@@ -252,9 +268,11 @@ At every `step()`, `info["rl_data_plane"]["state_vector"]` contains a 37-dimensi
 LedgerShield is not just a server. It includes a full evaluation stack:
 
 - `benchmark_report.py` scores the public benchmark, generated holdout suites, and contrastive adversarial/benign pairs.
+- The same report now includes `controlbench_quarter`, a seeded long-horizon institutional sequence with loss surface, calibration gate, authority timeline, sleeper detection, and deployability rating.
+- Reports also include `certificate_required_track` and `controlbench_two_agent_demo`, showing proof-gated scores and accuracy-vs-loss disagreement without LLM credits.
 - `compare_models_live.py` runs live head-to-head evaluations with per-model capability profiles and writes per-case debug traces including monotonic strength ordering checks.
 - `live_model_comparison_debug/` stores action traces, planning traces, score breakdowns, and system state snapshots for diagnosis.
-- `/leaderboard` and `/benchmark-report` expose report artifacts through the API when generated.
+- `/leaderboard`, `/benchmark-report`, `/controlbench-summary`, and `/human-baseline-summary` expose report artifacts or live summaries through the API when generated.
 
 ### Latest local live comparison
 
@@ -300,9 +318,9 @@ The repo keeps the generated artifact and full trace folder so readers can verif
 Published benchmark metadata in [`openenv.yaml`](./openenv.yaml) records meaningful public-vs-holdout separation for the packaged baseline report. That report is distinct from `live_model_comparison.json`, which tracks external live-model runs:
 
 <!-- sync:readme-benchmark-summary:start -->
-| Agent | Public mean | Holdout mean | Holdout consistent pass rate |
-|---|---:|---:|---:|
-| ledgershield/deterministic-baseline (deterministic-policy) | 0.8876 | 0.7034 | 0.1667 |
+| Agent | Public mean | Holdout mean | Holdout consistent pass rate | ControlBench loss score | Deployability | Certificate-required mean |
+|---|---:|---:|---:|---:|---|---:|
+| ledgershield/deterministic-baseline (deterministic-policy) | 0.8749 | 0.7063 | 0.1667 | 0.5731 | advisory | 0.5500 |
 <!-- sync:readme-benchmark-summary:end -->
 
 That gap is deliberate: the benchmark looks easy on clean public cases and much harder on generated holdouts, adversarial variants, and expert Task E scenarios.
@@ -345,6 +363,9 @@ python inference.py
 
 ```bash
 python benchmark_report.py --format markdown
+
+# Full 100-case ControlBench AP-quarter run
+python benchmark_report.py --format markdown --controlbench-sequence-length 100
 ```
 
 ### 5. Run live model comparisons
@@ -435,7 +456,9 @@ Meta-s-LedgerShield/
 | `server/grading.py` | task rubrics, semantic counterfactual scoring, degenerate penalties |
 | `server/trajectory_grading.py` | investigation, intervention, calibration, efficiency, and outcome scoring |
 | `server/attack_library.py` | 16 adversarial attack templates |
-| `server/case_factory.py` | challenge, holdout, and benign-twin generation |
+| `server/case_factory.py` | challenge, holdout, benign-twin, and ControlBench AP-quarter generation |
+| `server/decision_falsifier.py` | deterministic adversarial decision review for unsupported/unsafe terminal actions |
+| `server/trust_graph.py` | compact TrustGraph projection over case, invoice, vendor, evidence, policy, certificate, authority, and loss-surface nodes |
 | `server/tools.py` | investigation tool implementations, email thread parsing, domain alignment inference |
 | `server/currency_engine.py` | FX conversion, IBAN/SWIFT checks, currency mismatch detection, aging reports |
 | `server/compliance_engine.py` | SOX-style AP control evaluation |
@@ -451,7 +474,7 @@ Meta-s-LedgerShield/
 | `server/adversarial_designer.py` | **Pillar 8** — PAIRED regret-guided adversarial PCG |
 | `server/categorical_composition.py` | **Pillar 9** — Categorical MDP pushout composition, wired into reset() |
 | `server/rl_export.py` | **Pillar 10** — 37-dimensional RL state vector export |
-| `benchmark_report.py` | public benchmark + holdout + contrastive reporting |
+| `benchmark_report.py` | public benchmark + holdout + contrastive + ControlBench + certificate-required + two-agent reporting |
 | `compare_models_live.py` | live multi-model evaluation with capability profiles and debug artifacts |
 | `sync_benchmark_metadata.py` | refreshes README/docs/openenv metadata from the current artifacts and runtime defaults |
 | `inference.py` | submission-safe agent with ModelCapabilityProfile tiers and evidence-grounded output |
@@ -472,8 +495,10 @@ For the full file-by-file map, see [`docs/development.md`](./docs/development.md
 - The agent (`inference.py`) now uses `ModelCapabilityProfile` tiers (elite/strong/standard) that adapt planning mode, repair level, and budget bonuses.
 - `compare_models_live.py` records per-model capability profiles and includes monotonic strength ordering checks.
 - The repo includes 21 curated benchmark cases (now with audited track assignment and latent mechanism metadata) and generated challenge/holdout tooling.
-- CI is present via GitHub Actions with pytest config now in `pyproject.toml` (310 tests passing).
+- CI is present via GitHub Actions with pytest config now in `pyproject.toml`.
 - The test suite includes API smoke, grading, environment, inference, inference-runtime, compliance, currency, curriculum, and guardrail coverage.
+- ControlBench implementation is present end to end: seeded institutional sequences, loss surface, calibration gate, sleeper-vendor states, report output, API summary, and focused tests.
+- Trust hardening is present end to end: Certificate-Required track, deterministic adversarial falsifier diagnostics, statechart-style control boundary enforcement, persistent TrustGraph projection, and two-agent control-profile report.
 - The environment remains submission-compatible through `inference.py`.
 - **Round 2 Finalization (Latest):**
   - All 8 frozen artifacts regenerated with expanded portfolio (5 sequences, up from 2)

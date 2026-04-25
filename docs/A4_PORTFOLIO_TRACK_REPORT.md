@@ -1,5 +1,8 @@
 # A4: Portfolio Track Strengthening Report
 
+> Historical archive: this portfolio report belongs to the pre-ControlBench v2
+> freeze. Current primary docs and artifacts use `ledgershield-controlbench-v1`.
+
 **Date:** 2026-04-20  
 **Status:** EXPANDED and DOCUMENTED
 

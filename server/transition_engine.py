@@ -27,16 +27,35 @@ def _signals_from_vendor_history(result: dict[str, Any]) -> list[str]:
 def _signals_from_email_thread(thread: dict[str, Any]) -> list[str]:
     sender_profile = thread.get("sender_profile", {}) or {}
     request_signals = thread.get("request_signals", {}) or {}
+    domain_mismatch = normalize_text(sender_profile.get("domain_alignment")) == "mismatch"
+    bank_change_language = bool(request_signals.get("bank_change_language"))
+    urgency_language = bool(request_signals.get("urgency_language"))
+    callback_discouraged = bool(request_signals.get("callback_discouraged"))
+    policy_override_language = bool(request_signals.get("policy_override_language"))
+    instruction_override_language = bool(request_signals.get("instruction_override_language"))
+    prompt_injection_language = bool(request_signals.get("prompt_injection_language"))
+    suspicious_bank_change = bank_change_language and (
+        domain_mismatch
+        or callback_discouraged
+        or policy_override_language
+        or urgency_language
+        or instruction_override_language
+        or prompt_injection_language
+    )
 
     signals: list[str] = []
-    if normalize_text(sender_profile.get("domain_alignment")) == "mismatch":
+    if domain_mismatch:
         signals.append("sender_domain_spoof")
-    if bool(request_signals.get("bank_change_language")):
+    if suspicious_bank_change:
         signals.append("bank_override_attempt")
-    if bool(request_signals.get("urgency_language")):
+    if urgency_language:
         signals.append("urgent_payment_pressure")
-    if bool(request_signals.get("callback_discouraged")) or bool(request_signals.get("policy_override_language")):
+    if callback_discouraged or policy_override_language:
         signals.append("policy_bypass_attempt")
+    if instruction_override_language:
+        signals.append("instruction_override_attempt")
+    if prompt_injection_language:
+        signals.append("prompt_injection_attempt")
     return signals
 
 

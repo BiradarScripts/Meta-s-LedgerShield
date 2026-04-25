@@ -1,5 +1,10 @@
 # LedgerShield v2 Demo Script
 
+> Historical archive: this script documents the frozen Round 2 v2 demo. The
+> current implementation story is LedgerShield ControlBench, which keeps this
+> case-level demo and adds long-horizon loss-surface, calibration-gate, and
+> sleeper-vendor sequence evaluation.
+
 ## Goal
 
 Show, in under three minutes, that LedgerShield is a benchmark for institutional control intelligence rather than generic fraud detection.

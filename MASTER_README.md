@@ -1,14 +1,14 @@
-# LedgerShield Master README
+# LedgerShield ControlBench Master README
 
 This master file is a single, code-grounded deep dive for the LedgerShield repository. It combines the root README, every current Markdown file under `docs/`, the current source code, fixture data, generated artifacts, tests, CI/deployment configuration, and the committed-but-currently-deleted `docs/project-deep-dive.md` for historical context.
 
 Inspection date: 2026-04-20  
 Workspace: `/Users/biradar/Desktop/Meta-s-LedgerShield`  
-Current working-tree note: All closure pass fixes applied. Plan A 9/10 complete (A8 pending manual HF publication). All docs synchronized for consistency.
+Current working-tree note: ControlBench extension implemented on top of the Plan A codebase. Core docs now frame the project as LedgerShield ControlBench: institutional loss surface, calibration-gated authority, sleeper-vendor vigilance, and seeded AP-quarter reporting.
 
 ## 1. Project Identity
 
-LedgerShield is a stateful adversarial benchmark for AI agents working inside enterprise accounts-payable payment-integrity workflows. The project is not a static invoice classifier. It is an OpenEnv-compatible/FastAPI environment where an agent must investigate a partially observable case, use tools and interventions, unlock hidden evidence, resist adversarial pressure, and submit a structured proof-carrying payment decision. The current version also adds institutional-intelligence mechanics: persistent AP-week memory, review/callback capacity, attacker-belief updates, institutional loss accounting, and executable Decision Certificate Graph verification.
+LedgerShield ControlBench is a stateful adversarial benchmark for AI agents working inside enterprise accounts-payable payment-integrity workflows. The project is not a static invoice classifier. It is an OpenEnv-compatible/FastAPI environment where an agent must investigate a partially observable case, use tools and interventions, unlock hidden evidence, resist adversarial pressure, and submit a structured proof-carrying payment decision. The current version adds ControlBench institutional-intelligence mechanics: persistent AP-week memory, review/callback capacity, attacker-belief updates, an institutional loss surface, calibration-gated authority, sleeper-vendor vigilance, seeded AP-quarter sequence generation, and executable Decision Certificate Graph verification.
 
 The benchmark is positioned around real AP and business email compromise risk. The README and OpenEnv metadata cite the FBI IC3 2023 report, where business email compromise produced 21,489 complaints and more than USD 2.9B in reported losses. The benchmark turns that risk surface into an evaluation of payment-control discipline, evidence quality, calibrated beliefs, and safe final decisions.
 
@@ -26,13 +26,16 @@ Core identity:
 | Docker command | `uvicorn server.app:app --host 0.0.0.0 --port 8000` |
 | Formal model | POMDP plus ASHTG |
 | Institutional layer | persistent AP-week memory and loss ledger |
+| ControlBench layer | seeded AP-quarter sequences, loss surface, calibration gate, sleeper vendors, generated holdouts, blind-control and certificate-required tracks |
 | Certificate layer | executable Decision Certificate Graph verifier |
+| Trust layer | deterministic decision falsifier, statechart control boundary, and compact/persistent TrustGraph projection |
 | Main environment class | `server.environment.LedgerShieldEnvironment` |
 | Main submission agent | `inference.py` |
 | Public curated cases | 21 |
 | Task families | 5 |
 | Attack types | 16 |
 | Default loaded cases | 45, because 21 curated cases plus 24 generated challenge variants |
+| ControlBench standard sequence | 100 generated AP-quarter cases when requested |
 
 ## 2. What LedgerShield Evaluates
 
@@ -149,6 +152,8 @@ Endpoints:
 | `/state` | GET | returns public non-hidden state |
 | `/leaderboard` | GET | returns `artifacts/leaderboard.json` or derives from report |
 | `/benchmark-report` | GET | returns `artifacts/benchmark_report_latest.json` if present |
+| `/controlbench-summary` | GET | returns the latest ControlBench sequence report or live institutional-memory summary |
+| `/human-baseline-summary` | GET | returns the human-baseline summary from the report or configured artifact |
 | `/institutional-memory` | GET | returns persistent AP-week portfolio memory |
 | `/institutional-reset` | POST | resets portfolio-level memory for new sequence |
 
@@ -478,6 +483,10 @@ Environment variables that control generated cases:
 | `LEDGERSHIELD_HOLDOUT_VARIANTS` | 1 | holdout variants per hard case |
 | `LEDGERSHIELD_HOLDOUT_SEED` | 31415 | holdout RNG seed |
 | `LEDGERSHIELD_INCLUDE_TWINS` | false | include benign contrastive twins |
+| `LEDGERSHIELD_INCLUDE_CONTROLBENCH` | false | include generated ControlBench AP-quarter cases in the runtime loader |
+| `LEDGERSHIELD_CONTROLBENCH_CASES` | 100 | ControlBench generated sequence length when included |
+| `LEDGERSHIELD_CONTROLBENCH_SEED` | 2026 | ControlBench sequence RNG seed |
+| `LEDGERSHIELD_CONTROLBENCH_SLEEPERS` | 3 | number of sleeper vendors in generated ControlBench sequence |
 | `LEDGERSHIELD_TRACK_MODE` | instrumented | use `blind` to hide SPRT, VoI, and reward-machine scaffolding |
 | `LEDGERSHIELD_DEBUG_ARTIFACT_DIR` | empty | optional live-comparison trace directory with certificate and institutional metrics |
 
@@ -897,23 +906,53 @@ Vector layout from code:
 ## 19. Institutional Intelligence Layer
 
 `server/institutional_game.py` turns the environment from purely case-local
-evaluation into a persistent AP-week simulation. Each
+evaluation into a persistent AP-week and ControlBench simulation. Each
 `LedgerShieldEnvironment` instance owns an `InstitutionalMemory` object that is
 not cleared by ordinary case resets. The public memory tracks week id, case
 sequence index, queue depth, review/callback capacity, vendor trust, attacker
 belief over weak controls, fraud loss prevented/released, delay hours,
-manual-review minutes, supplier friction, compliance breaches, unsafe releases,
-false positives, safe releases, and audit-amendment count.
+manual-review minutes, false-positive cost, supplier friction, calibration debt,
+vigilance loss, compliance breaches, unsafe releases, false positives, safe
+releases, catastrophic events, calibration-gated authority level, sleeper-vendor
+state, and audit-amendment count.
 
 At reset, `institutional_context_for_case()` computes a case-specific context
 from the persistent memory and loaded case pool. `attach_institutional_context()`
 then merges queue, capacity, vendor-trust, and shared-bank information into the
-hidden world's campaign context. At terminal submission,
+hidden world's campaign context. It also exposes current authority level,
+running calibration error, and sleeper-vendor state when relevant. At terminal submission,
 `record_institutional_outcome()` updates the AP-week ledger from the simulated
-outcome, trajectory, compliance result, and submitted decision.
+outcome, trajectory, compliance result, submitted decision, confidence, and
+ControlBench metadata.
 
-The API exposes this layer through `GET /institutional-memory` and
-`POST /institutional-reset`. The observation includes `institutional_memory`.
+The ControlBench loss surface is reported under
+`institutional_memory.loss_ledger.loss_surface` and includes normalized fraud
+loss, false-positive cost, operational delay, review burn, supplier friction,
+calibration debt, vigilance loss, compliance breaches, and catastrophic-event
+ratios. The calibration gate maps running calibration error and catastrophic
+failures to authority levels: `full_authority`, `restricted_authority`,
+`review_only`, or `locked`. Sleeper-vendor states track clean warmup invoices,
+activation cases, fraud vectors, and whether the activation was detected before
+unsafe release.
+
+The Certificate-Required track evaluates strict proof-carrying decisions. Cases
+in that track set `certificate_required=true`, and `server/grading.py` caps
+scores when an agent omits an authored Decision Certificate Graph, submits an
+invalid graph, lacks support paths, leaves contradictions unresolved, or pays an
+unsafe case with failed proof. Auto-generated compatibility certificates remain
+diagnostic and do not satisfy this strict track.
+
+`server/decision_falsifier.py` implements a deterministic adversarial review of
+terminal decisions. It flags unsafe PAY attempts, missing evidence, pending
+artifact shortcuts, policy-fail/PAY conflicts, unresolved callback gaps, and
+certificate failures. `server/trust_graph.py` projects terminal decisions into a
+serializable TrustGraph linking case, invoice, vendor, bank account, evidence,
+risk flags, policies, certificates, authority, decisions, and the institutional
+loss surface.
+
+The API exposes this layer through `GET /institutional-memory`,
+`POST /institutional-reset`, `GET /controlbench-summary`, and
+`GET /human-baseline-summary`. The observation includes `institutional_memory`.
 Set `LEDGERSHIELD_TRACK_MODE=blind` to hide SPRT, VoI, and reward-machine
 diagnostic scaffolding from observations while preserving hidden grader state.
 
@@ -1289,6 +1328,10 @@ Task D suspicious submissions return `ESCALATE_FRAUD`, confidence 0.99, grounded
 - public benchmark cases;
 - generated holdout challenge suites across seeds;
 - contrastive adversarial/benign pairs.
+- a ControlBench institutional sequence with loss surface, calibration gate,
+  authority timeline, sleeper detection, catastrophic events, and deployability rating.
+- a Certificate-Required track and a two-agent control-profile demo showing
+  accuracy-vs-loss disagreement without LLM calls.
 
 Defaults:
 
@@ -1302,7 +1345,7 @@ Defaults:
 
 Current `artifacts/benchmark_report_latest.json` summary:
 
-- benchmark: `ledgershield-v3`;
+- benchmark: `ledgershield-controlbench-v1` for newly generated reports;
 - generated at: `2026-04-16T09:58:59.221224+00:00`;
 - public mean: 0.9018;
 - holdout mean: 0.7124;
@@ -1455,7 +1498,7 @@ Root-level helper tests/scripts:
 | `Dockerfile` | container image for FastAPI server |
 | `README.md` | public project overview, quick start, benchmark snapshot |
 | `__init__.py` | package export surface for environment and models |
-| `benchmark_report.py` | public/holdout/contrastive benchmark reporting |
+| `benchmark_report.py` | public/holdout/blind/sleeper/ControlBench/certificate-required/human-baseline/two-agent benchmark reporting |
 | `client.py` | OpenEnv-compatible HTTP client wrapper |
 | `compare_all_models.py` | broad model comparison subprocess harness |
 | `compare_models_live.py` | focused live multi-model comparison and debug trace writer |
@@ -1495,7 +1538,7 @@ Root-level helper tests/scripts:
 | `server/app.py` | FastAPI app builder and endpoints |
 | `server/adversarial_designer.py` | regret/weakness profile and adversarial policy helpers |
 | `server/attack_library.py` | 16 AP fraud attack templates |
-| `server/case_factory.py` | generated cases, holdouts, benign twins, solvability |
+| `server/case_factory.py` | generated cases, holdouts, benign twins, ControlBench AP-quarter sequences, solvability |
 | `server/categorical_composition.py` | MDP component composition |
 | `server/causal_grader.py` | causal consistency scoring |
 | `server/causal_model.py` | SCM templates and counterfactual/d-separation utilities |
@@ -1504,12 +1547,13 @@ Root-level helper tests/scripts:
 | `server/curriculum.py` | adaptive difficulty tiers and case selection |
 | `server/data_loader.py` | fixture loading, indexing, generated suite injection |
 | `server/decision_certificate.py` | Decision Certificate Graph builder/verifier |
+| `server/decision_falsifier.py` | deterministic adversarial decision falsifier |
 | `server/dual_agent_mode.py` | Stackelberg watchdog and dual-agent scoring |
 | `server/environment.py` | main environment reset/step/reward/grading loop |
 | `server/evidence_graph.py` | latent evidence graph and scenario generation |
 | `server/grading.py` | task rubrics and final score calculation |
 | `server/information_design.py` | Markov persuasion/signaling policy |
-| `server/institutional_game.py` | persistent AP-week memory and institutional loss ledger |
+| `server/institutional_game.py` | persistent AP-week memory, ControlBench loss surface, calibration gate, sleeper-vendor state |
 | `server/outcome_simulator.py` | downstream payment outcome simulation |
 | `server/pressure_events.py` | mid-episode pressure events |
 | `server/proper_scoring.py` | proper probability scoring |
@@ -1519,6 +1563,7 @@ Root-level helper tests/scripts:
 | `server/schema.py` | constants, normalizers, aliases |
 | `server/sprt_engine.py` | sequential hypothesis testing |
 | `server/tools.py` | investigation tool implementations |
+| `server/trust_graph.py` | compact TrustGraph projection for terminal payment decisions |
 | `server/trajectory_grading.py` | investigation/intervention/efficiency/outcome scoring |
 | `server/transition_engine.py` | signal extraction and intervention handling |
 | `server/vendor_simulator.py` | callback verification simulator |

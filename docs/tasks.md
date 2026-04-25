@@ -387,5 +387,7 @@ The curated catalog is only part of the benchmark. The repo also supports:
 - generated challenge variants via [`server/case_factory.py`](../server/case_factory.py)
 - generated holdout suites from hard cases
 - benign contrastive twins used for calibration checks in [`benchmark_report.py`](../benchmark_report.py)
+- ControlBench AP-quarter sequences with seeded long-horizon cases, institutional loss surface, calibration-gated authority, and sleeper-vendor activations
+- certificate-required clones that cap scores unless an agent-authored Decision Certificate Graph survives verification
 
-That means agent quality is measured on both fixed public cases and generated robustness probes.
+That means agent quality is measured on fixed public cases, generated robustness probes, and long-horizon institutional-control behavior where per-case accuracy can disagree with deployability.

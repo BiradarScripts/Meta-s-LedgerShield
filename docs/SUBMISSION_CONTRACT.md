@@ -1,5 +1,12 @@
 # LedgerShield v2 Round 2 Submission Contract
 
+> Historical archive: this file records the frozen Round 2 `LedgerShield v2`
+> submission contract as of 2026-04-20. The current codebase and primary docs
+> now extend that foundation as **LedgerShield ControlBench**, adding the
+> ControlBench track, institutional loss surface, calibration-gated authority,
+> sleeper-vendor vigilance, statechart-style control boundaries, and
+> `/controlbench-summary` plus `/human-baseline-summary` reporting.
+
 **Locked as of:** 2026-04-20  
 **Project:** LedgerShield v2  
 **Theme:** World Modeling — Professional Tasks  

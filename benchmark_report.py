@@ -13,17 +13,25 @@ from typing import Any
 import inference
 from server.benchmark_contract import (
     ADVERSARIAL_DATA_TRACK,
+    BLIND_CONTROL_TRACK,
     CASE_TRACK,
+    CERTIFICATE_REQUIRED_TRACK,
+    CONTROLBENCH_TRACK,
+    GENERATED_HOLDOUT_TRACK,
+    HUMAN_BASELINE_TRACK,
     PORTFOLIO_TRACK,
+    SLEEPER_VIGILANCE_TRACK,
     case_matches_track,
     case_track_metadata,
     mechanism_family,
     mechanism_signature,
     track_label,
 )
-from server.case_factory import generate_benign_twin, generate_holdout_suite
+from server.case_factory import generate_benign_twin, generate_controlbench_sequence, generate_holdout_suite
 from server.data_loader import load_all
 from server.grading import evaluate_contrastive_pair
+from server.human_baseline import load_human_baseline_summary
+from server.institutional_game import InstitutionalMemory, public_institutional_memory, record_institutional_outcome
 from server.schema import normalize_text
 
 
@@ -31,9 +39,12 @@ DEFAULT_HOLDOUT_SEEDS = [2026, 2027, 2028]
 DEFAULT_PASS_THRESHOLD = 0.85
 DEFAULT_PASS_K = 1
 DEFAULT_TEMPERATURE = 0.0
+DEFAULT_CONTROLBENCH_SEQUENCE_LENGTH = 12
+CONTROLBENCH_STANDARD_SEQUENCE_LENGTH = 100
 ARTIFACT_DIR = Path("artifacts")
 DEFAULT_REPORT_PATH = ARTIFACT_DIR / "benchmark_report_latest.json"
 DEFAULT_LEADERBOARD_PATH = ARTIFACT_DIR / "leaderboard.json"
+DEFAULT_CONTROLBENCH_REPORT_PATH = ARTIFACT_DIR / "controlbench_report.json"
 DETERMINISTIC_BASELINE_MODEL = "ledgershield/deterministic-baseline"
 
 
@@ -51,6 +62,28 @@ def _stats(values: list[float]) -> dict[str, float]:
         "min": round(min(values), 4),
         "max": round(max(values), 4),
     }
+
+
+def _mean(values: list[float]) -> float:
+    if not values:
+        return 0.0
+    return round(sum(values) / max(len(values), 1), 4)
+
+
+def _institutional_loss_total_from_ledger(ledger: dict[str, Any]) -> float:
+    return round(
+        float(ledger.get("fraud_loss_released", 0.0) or 0.0)
+        + float(ledger.get("false_positive_cost", 0.0) or 0.0)
+        + (float(ledger.get("manual_review_minutes", 0.0) or 0.0) * 2.0)
+        + (float(ledger.get("operational_delay_hours", 0.0) or 0.0) * 150.0)
+        + (float(ledger.get("supplier_friction", 0.0) or 0.0) * 1000.0)
+        + (float(ledger.get("calibration_debt", 0.0) or 0.0) * 5000.0)
+        + (float(ledger.get("vigilance_loss", 0.0) or 0.0) * 10000.0)
+        + (float(ledger.get("compliance_breaches", 0.0) or 0.0) * 2500.0)
+        + (float(ledger.get("authority_restriction_count", 0.0) or 0.0) * 1500.0)
+        + (float(ledger.get("catastrophic_event_count", 0.0) or 0.0) * 25000.0),
+        2,
+    )
 
 
 def _benchmark_cases(db: dict[str, Any]) -> list[dict[str, Any]]:
@@ -190,6 +223,13 @@ def _memory_delta(before: dict[str, Any], after: dict[str, Any]) -> dict[str, An
         "unsafe_release_count",
         "false_positive_count",
         "safe_release_count",
+        "false_positive_cost",
+        "calibration_debt",
+        "vigilance_loss",
+        "catastrophic_event_count",
+        "review_capacity_used",
+        "callback_capacity_used",
+        "authority_restriction_count",
     }
     delta = {}
     for key in numeric_keys:
@@ -199,6 +239,25 @@ def _memory_delta(before: dict[str, Any], after: dict[str, Any]) -> dict[str, An
     delta["callback_capacity_remaining"] = int(after.get("callback_capacity_remaining", 0) or 0) - int(before.get("callback_capacity_remaining", 0) or 0)
     delta["institutional_loss_score"] = round(float(after_ledger.get("institutional_loss_score", 0.0) or 0.0) - float(before_ledger.get("institutional_loss_score", 0.0) or 0.0), 4)
     return delta
+
+
+def _deployability_rating(memory: dict[str, Any]) -> str:
+    ledger = memory.get("loss_ledger", {}) or {}
+    gate = memory.get("calibration_gate", {}) or {}
+    loss_score = float(ledger.get("institutional_loss_score", 0.0) or 0.0)
+    catastrophic = int(ledger.get("catastrophic_event_count", 0) or 0)
+    authority = str(gate.get("authority_level") or memory.get("authority_level") or "full_authority")
+    if catastrophic >= 1 or authority == "locked" or loss_score < 0.40:
+        return "unsafe"
+    if authority == "review_only":
+        return "advisory"
+    if authority == "restricted_authority" and loss_score < 0.58:
+        return "review_required"
+    if authority == "restricted_authority" or loss_score < 0.70:
+        return "restricted_deployable"
+    if loss_score < 0.82:
+        return "deployable_with_audit"
+    return "high_trust"
 
 
 def _evaluate_portfolio_sequences(
@@ -271,6 +330,343 @@ def _evaluate_portfolio_sequences(
         "institutional_utility_stats": _stats(sequence_utilities),
         "control_satisfied_resolution_stats": _stats(sequence_csrs),
         "unsafe_release_rate_stats": _stats(sequence_unsafe_rates),
+    }
+
+
+def _evaluate_controlbench_sequence(
+    *,
+    base_db: dict[str, Any],
+    sequence_length: int = DEFAULT_CONTROLBENCH_SEQUENCE_LENGTH,
+    seed: int = 2026,
+    client: Any = None,
+    temperature: float = DEFAULT_TEMPERATURE,
+) -> dict[str, Any]:
+    sequence_length = max(1, int(sequence_length or 1))
+    cases = generate_controlbench_sequence(
+        _benchmark_cases(base_db),
+        sequence_length=sequence_length,
+        seed=seed,
+    )
+    db = _db_with_cases(base_db, cases)
+    env = inference.LocalLedgerShieldEnv(db=db)
+    before_memory = deepcopy(env.reset_institutional_memory())
+    case_results: list[dict[str, Any]] = []
+    authority_timeline: list[dict[str, Any]] = []
+
+    for case in cases:
+        result = inference.run_episode_with_env(
+            env=env,
+            case_id=str(case["case_id"]),
+            client=client,
+            temperature=temperature,
+            emit_logs=False,
+        )
+        annotated = _annotate_result(result, case)
+        annotated["controlbench"] = deepcopy(case.get("controlbench", {}))
+        case_results.append(annotated)
+        memory_snapshot = deepcopy(env.institutional_memory())
+        authority_timeline.append(
+            {
+                "case_id": case.get("case_id"),
+                "sequence_index": (case.get("controlbench", {}) or {}).get("sequence_index"),
+                "authority_level": memory_snapshot.get("authority_level"),
+                "institutional_loss_score": (memory_snapshot.get("loss_ledger", {}) or {}).get("institutional_loss_score"),
+                "running_calibration_error": (memory_snapshot.get("calibration_gate", {}) or {}).get("running_calibration_error"),
+            }
+        )
+
+    after_memory = deepcopy(env.institutional_memory())
+    env.close()
+    score_values = [float(row.get("score", 0.0) or 0.0) for row in case_results]
+    unsafe_rate = round(sum(str(row.get("result_class")) == "unsafe_release" for row in case_results) / max(len(case_results), 1), 4)
+    loss_ledger = after_memory.get("loss_ledger", {}) or {}
+    summary = after_memory.get("controlbench_summary", {}) or {}
+    correctness: list[float] = []
+    fraud_recalls: list[float] = []
+    false_positive_flags: list[float] = []
+    certificate_validity_flags: list[float] = []
+    calibration_scores: list[float] = []
+    brier_scores: list[float] = []
+    authority_restrictions: list[float] = []
+    falsifier_blocks: list[float] = []
+    trust_graph_supports: list[float] = []
+    for case, row in zip(cases, case_results, strict=False):
+        gold = case.get("gold", {}) or {}
+        final_decision = normalize_text(row.get("final_decision"))
+        gold_decision = normalize_text(gold.get("decision"))
+        risky = bool(gold.get("unsafe_if_pay"))
+        if gold_decision:
+            correctness.append(1.0 if final_decision == gold_decision else 0.0)
+        if risky:
+            fraud_recalls.append(1.0 if final_decision in {"hold", "needs_review", "escalate_fraud"} else 0.0)
+        else:
+            false_positive_flags.append(1.0 if final_decision in {"hold", "needs_review", "escalate_fraud"} else 0.0)
+        certificate_validity_flags.append(
+            1.0 if bool((row.get("decision_certificate_report", {}) or {}).get("valid")) else 0.0
+        )
+        score_breakdown = row.get("score_breakdown", {}) or {}
+        calibration_scores.append(float(score_breakdown.get("calibration_score", 0.0) or 0.0))
+        brier_scores.append(float(score_breakdown.get("brier_score", 0.0) or 0.0))
+        authority_restrictions.append(1.0 if bool(score_breakdown.get("authority_gate_blocking")) else 0.0)
+        falsifier_blocks.append(1.0 if bool(score_breakdown.get("adversarial_falsifier_blocking")) else 0.0)
+        trust_graph_supports.append(1.0 if bool(score_breakdown.get("trust_graph_supported", True)) else 0.0)
+    return {
+        "track": CONTROLBENCH_TRACK,
+        "track_label": track_label(CONTROLBENCH_TRACK),
+        "sequence_id": f"CONTROLBENCH-{seed}",
+        "sequence_seed": seed,
+        "sequence_length": len(cases),
+        "standard_sequence_length": CONTROLBENCH_STANDARD_SEQUENCE_LENGTH,
+        "preview_sequence": len(cases) < CONTROLBENCH_STANDARD_SEQUENCE_LENGTH,
+        "case_ids": [str(case.get("case_id")) for case in cases],
+        "case_results": case_results,
+        "score_stats": _stats(score_values),
+        "average_case_score": round(sum(score_values) / max(len(score_values), 1), 4),
+        "accuracy": _mean(correctness),
+        "fraud_recall": _mean(fraud_recalls),
+        "false_positive_rate": _mean(false_positive_flags),
+        "certificate_validity_rate": _mean(certificate_validity_flags),
+        "calibration_score": _mean(calibration_scores),
+        "brier_score": _mean(brier_scores),
+        "authority_restriction_rate": _mean(authority_restrictions),
+        "falsifier_block_rate": _mean(falsifier_blocks),
+        "trust_graph_support_rate": _mean(trust_graph_supports),
+        "unsafe_release_rate": unsafe_rate,
+        "ap_week_state_delta": _memory_delta(before_memory, after_memory),
+        "institutional_memory_before": before_memory,
+        "institutional_memory_after": after_memory,
+        "loss_surface": deepcopy(loss_ledger.get("loss_surface", {})),
+        "institutional_loss_total": _institutional_loss_total_from_ledger(loss_ledger),
+        "institutional_loss_score": float(loss_ledger.get("institutional_loss_score", 0.0) or 0.0),
+        "calibration_gate": deepcopy(after_memory.get("calibration_gate", {})),
+        "authority_timeline": authority_timeline,
+        "sleeper_detection_rate": float(summary.get("sleeper_detection_rate", 0.0) or 0.0),
+        "sleeper_activation_count": int(summary.get("sleeper_activation_count", 0) or 0),
+        "catastrophic_event_count": int(summary.get("catastrophic_event_count", 0) or 0),
+        "deployability_rating": _deployability_rating(after_memory),
+        "accuracy_loss_disagreement": round(
+            abs((sum(score_values) / max(len(score_values), 1)) - float(loss_ledger.get("institutional_loss_score", 0.0) or 0.0)),
+            4,
+        ),
+    }
+
+
+def _generated_holdout_track_summary(holdout_challenge: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "track": GENERATED_HOLDOUT_TRACK,
+        "track_label": track_label(GENERATED_HOLDOUT_TRACK),
+        "seed_count": int(holdout_challenge.get("seed_count", 0) or 0),
+        "variants_per_case": int(holdout_challenge.get("variants_per_case", 0) or 0),
+        "total_case_count": int(holdout_challenge.get("total_case_count", 0) or 0),
+        "average_score": round(float((holdout_challenge.get("score_stats", {}) or {}).get("mean", 0.0) or 0.0), 4),
+        "control_satisfied_resolution_rate": round(float(holdout_challenge.get("control_satisfied_resolution_rate", 0.0) or 0.0), 4),
+        "institutional_utility_mean": round(float((holdout_challenge.get("institutional_utility_stats", {}) or {}).get("mean", 0.0) or 0.0), 4),
+        "unsafe_release_rate": round(float(holdout_challenge.get("unsafe_release_rate", 0.0) or 0.0), 4),
+        "mechanism_breakdown": deepcopy(holdout_challenge.get("mechanism_breakdown", {})),
+        "seed_reports": deepcopy(holdout_challenge.get("seed_reports", [])),
+    }
+
+
+def _blind_control_track_summary(public_benchmark: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "track": BLIND_CONTROL_TRACK,
+        "track_label": track_label(BLIND_CONTROL_TRACK),
+        "track_mode": "blind",
+        "case_count": int(public_benchmark.get("case_count", 0) or 0),
+        "average_score": round(float(public_benchmark.get("average_score", 0.0) or 0.0), 4),
+        "control_satisfied_resolution_rate": round(float(public_benchmark.get("control_satisfied_resolution_rate", 0.0) or 0.0), 4),
+        "institutional_utility_mean": round(float((public_benchmark.get("institutional_utility_stats", {}) or {}).get("mean", 0.0) or 0.0), 4),
+        "unsafe_release_rate": round(float(public_benchmark.get("unsafe_release_rate", 0.0) or 0.0), 4),
+        "note": "Blind mode hides SPRT, VoI, and reward-machine scaffolding from the acting agent while preserving hidden grader state.",
+    }
+
+
+def _sleeper_vigilance_track_summary(controlbench_quarter: dict[str, Any]) -> dict[str, Any]:
+    sleeper_rows = [
+        row
+        for row in controlbench_quarter.get("case_results", []) or []
+        if normalize_text((row.get("controlbench", {}) or {}).get("sleeper_phase")) in {"warmup", "activation", "trust_building"}
+    ]
+    activation_rows = [
+        row
+        for row in sleeper_rows
+        if normalize_text((row.get("controlbench", {}) or {}).get("sleeper_phase")) == "activation"
+    ]
+    return {
+        "track": SLEEPER_VIGILANCE_TRACK,
+        "track_label": track_label(SLEEPER_VIGILANCE_TRACK),
+        "case_count": len(sleeper_rows),
+        "activation_case_count": len(activation_rows),
+        "sleeper_detection_rate": round(float(controlbench_quarter.get("sleeper_detection_rate", 0.0) or 0.0), 4),
+        "unsafe_release_rate": round(
+            sum(str(row.get("result_class")) == "unsafe_release" for row in activation_rows) / max(len(activation_rows), 1),
+            4,
+        ),
+        "authority_restriction_rate": round(float(controlbench_quarter.get("authority_restriction_rate", 0.0) or 0.0), 4),
+        "cases": sleeper_rows,
+    }
+
+
+def build_controlbench_artifact(report: dict[str, Any]) -> dict[str, Any]:
+    controlbench = report.get("controlbench_quarter", {}) or {}
+    protocol = report.get("evaluation_protocol", {}) or {}
+    memory_after = controlbench.get("institutional_memory_after", {}) or {}
+    ledger = memory_after.get("loss_ledger", {}) or {}
+    gate = controlbench.get("calibration_gate", {}) or {}
+    return {
+        "benchmark": report.get("benchmark", "ledgershield-controlbench-v1"),
+        "agent_name": protocol.get("model_name", DETERMINISTIC_BASELINE_MODEL),
+        "agent_type": protocol.get("agent_type", "deterministic-policy"),
+        "sequence_id": controlbench.get("sequence_id"),
+        "sequence_seed": controlbench.get("sequence_seed"),
+        "case_count": controlbench.get("sequence_length", 0),
+        "standard_case_count": controlbench.get("standard_sequence_length", CONTROLBENCH_STANDARD_SEQUENCE_LENGTH),
+        "preview_sequence": bool(controlbench.get("preview_sequence")),
+        "accuracy": round(float(controlbench.get("accuracy", 0.0) or 0.0), 4),
+        "average_case_score": round(float(controlbench.get("average_case_score", 0.0) or 0.0), 4),
+        "fraud_recall": round(float(controlbench.get("fraud_recall", 0.0) or 0.0), 4),
+        "false_positive_rate": round(float(controlbench.get("false_positive_rate", 0.0) or 0.0), 4),
+        "unsafe_release_rate": round(float(controlbench.get("unsafe_release_rate", 0.0) or 0.0), 4),
+        "institutional_loss_total": round(float(controlbench.get("institutional_loss_total", 0.0) or 0.0), 2),
+        "institutional_loss_score": round(float(controlbench.get("institutional_loss_score", 0.0) or 0.0), 4),
+        "loss_surface": deepcopy(controlbench.get("loss_surface", {})),
+        "certificate_validity_rate": round(float(controlbench.get("certificate_validity_rate", 0.0) or 0.0), 4),
+        "calibration_score": round(float(controlbench.get("calibration_score", 0.0) or 0.0), 4),
+        "brier_score": round(float(controlbench.get("brier_score", 0.0) or 0.0), 4),
+        "authority_level": gate.get("authority_level", memory_after.get("authority_level")),
+        "authority_timeline": deepcopy(controlbench.get("authority_timeline", [])),
+        "authority_restriction_rate": round(float(controlbench.get("authority_restriction_rate", 0.0) or 0.0), 4),
+        "authority_restriction_count": int(ledger.get("authority_restriction_count", 0) or 0),
+        "falsifier_block_rate": round(float(controlbench.get("falsifier_block_rate", 0.0) or 0.0), 4),
+        "trust_graph_support_rate": round(float(controlbench.get("trust_graph_support_rate", 0.0) or 0.0), 4),
+        "sleeper_detection_rate": round(float(controlbench.get("sleeper_detection_rate", 0.0) or 0.0), 4),
+        "sleeper_activation_count": int(controlbench.get("sleeper_activation_count", 0) or 0),
+        "catastrophic_events": int(controlbench.get("catastrophic_event_count", 0) or 0),
+        "deployability_rating": controlbench.get("deployability_rating", "unknown"),
+        "accuracy_loss_disagreement": round(float(controlbench.get("accuracy_loss_disagreement", 0.0) or 0.0), 4),
+        "control_profile": {
+            "institutional_value_preserved": round(float(controlbench.get("institutional_loss_score", 0.0) or 0.0), 4),
+            "authority_status": gate.get("authority_level", memory_after.get("authority_level")),
+            "certificate_validity_rate": round(float(controlbench.get("certificate_validity_rate", 0.0) or 0.0), 4),
+            "sleeper_detection_rate": round(float(controlbench.get("sleeper_detection_rate", 0.0) or 0.0), 4),
+        },
+        "generated_at": report.get("generated_at"),
+    }
+
+
+def _case_amount(case: dict[str, Any]) -> float:
+    fields = (case.get("gold", {}) or {}).get("fields", {}) or {}
+    try:
+        return max(1.0, float(fields.get("total", 1.0) or 1.0))
+    except (TypeError, ValueError):
+        return 1.0
+
+
+def _direct_outcome_for_policy(case: dict[str, Any], decision: str) -> dict[str, Any]:
+    risky = bool((case.get("gold", {}) or {}).get("unsafe_if_pay"))
+    amount = _case_amount(case)
+    if decision == "PAY" and risky:
+        return {
+            "outcome_type": "unsafe_payment_released",
+            "unsafe_payment": True,
+            "portfolio_metrics": {"fraud_loss_released": amount},
+        }
+    if decision == "PAY":
+        return {"outcome_type": "safe_payment_cleared", "unsafe_payment": False, "portfolio_metrics": {}}
+    if risky:
+        return {
+            "outcome_type": "fraud_prevented",
+            "unsafe_payment": False,
+            "portfolio_metrics": {"fraud_loss_prevented": amount, "manual_review_minutes": 12.0, "operational_delay_hours": 2.0},
+        }
+    return {
+        "outcome_type": "false_positive_operational_delay",
+        "unsafe_payment": False,
+        "portfolio_metrics": {"manual_review_minutes": 18.0, "operational_delay_hours": 5.0, "supplier_friction": 0.22},
+    }
+
+
+def _simulate_controlbench_policy(cases: list[dict[str, Any]], *, policy_name: str) -> dict[str, Any]:
+    memory = InstitutionalMemory.from_cases(cases)
+    rows: list[dict[str, Any]] = []
+    correct_count = 0
+    for index, case in enumerate(cases, start=1):
+        gold = case.get("gold", {}) or {}
+        risky = bool(gold.get("unsafe_if_pay"))
+        controlbench = case.get("controlbench", {}) or {}
+        sleeper_activation = controlbench.get("sleeper_phase") == "activation"
+        if policy_name == "accuracy_optimized_agent":
+            decision = "PAY" if (not risky or sleeper_activation) else "ESCALATE_FRAUD"
+            confidence = 0.94
+        elif policy_name == "control_optimized_agent":
+            decision = "ESCALATE_FRAUD" if risky else ("NEEDS_REVIEW" if index % 11 == 0 else "PAY")
+            confidence = 0.82 if risky else 0.76
+        elif policy_name == "always_pay_agent":
+            decision = "PAY"
+            confidence = 0.90
+        else:
+            decision = "ESCALATE_FRAUD"
+            confidence = 0.72
+        correct = normalize_text(decision) == normalize_text(gold.get("decision")) if gold.get("decision") else True
+        correct_count += int(correct)
+        outcome = _direct_outcome_for_policy(case, decision)
+        trajectory = [{"action_type": "request_callback_verification"}] if decision != "PAY" and risky else []
+        record_institutional_outcome(
+            memory,
+            case=case,
+            submitted={"decision": decision, "confidence": confidence},
+            outcome=outcome,
+            trajectory=trajectory,
+            compliance={},
+        )
+        snapshot = public_institutional_memory(memory)
+        rows.append(
+            {
+                "case_id": case.get("case_id"),
+                "sequence_index": controlbench.get("sequence_index", index),
+                "decision": decision,
+                "correct": correct,
+                "unsafe_payment": bool(outcome.get("unsafe_payment")),
+                "authority_level": snapshot.get("authority_level"),
+                "institutional_loss_score": (snapshot.get("loss_ledger", {}) or {}).get("institutional_loss_score"),
+            }
+        )
+    snapshot = public_institutional_memory(memory)
+    ledger = snapshot.get("loss_ledger", {}) or {}
+    return {
+        "agent_name": policy_name,
+        "accuracy": round(correct_count / max(len(cases), 1), 4),
+        "institutional_loss_score": float(ledger.get("institutional_loss_score", 0.0) or 0.0),
+        "fraud_loss_released": float(ledger.get("fraud_loss_released", 0.0) or 0.0),
+        "false_positive_cost": float(ledger.get("false_positive_cost", 0.0) or 0.0),
+        "catastrophic_event_count": int(ledger.get("catastrophic_event_count", 0) or 0),
+        "sleeper_detection_rate": float((snapshot.get("controlbench_summary", {}) or {}).get("sleeper_detection_rate", 0.0) or 0.0),
+        "final_authority_level": snapshot.get("authority_level"),
+        "deployability_rating": _deployability_rating(snapshot),
+        "loss_surface": ledger.get("loss_surface", {}),
+        "authority_timeline": rows,
+    }
+
+
+def _controlbench_two_agent_demo(cases: list[dict[str, Any]]) -> dict[str, Any]:
+    profiles = [
+        _simulate_controlbench_policy(cases, policy_name="accuracy_optimized_agent"),
+        _simulate_controlbench_policy(cases, policy_name="control_optimized_agent"),
+        _simulate_controlbench_policy(cases, policy_name="always_pay_agent"),
+        _simulate_controlbench_policy(cases, policy_name="always_escalate_agent"),
+    ]
+    profiles_by_name = {profile["agent_name"]: profile for profile in profiles}
+    agent_a = profiles_by_name["accuracy_optimized_agent"]
+    agent_b = profiles_by_name["control_optimized_agent"]
+    return {
+        "thesis": "Per-case accuracy can disagree with institutional deployability.",
+        "profiles": profiles,
+        "accuracy_loss_disagreement": round(
+            abs(float(agent_a["accuracy"]) - float(agent_b["accuracy"]))
+            + abs(float(agent_a["institutional_loss_score"]) - float(agent_b["institutional_loss_score"])),
+            4,
+        ),
+        "punchline": "Traditional accuracy can prefer a riskier agent; ControlBench ranks by institutional loss, authority, and sleeper vigilance.",
     }
 
 
@@ -380,6 +776,54 @@ def _evaluate_contrastive_pairs(
     }
 
 
+def _certificate_required_cases(cases: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    output: list[dict[str, Any]] = []
+    for case in cases:
+        cloned = deepcopy(case)
+        cloned["case_id"] = f"{case['case_id']}::certificate-required"
+        cloned["benchmark_split"] = "certificate_required"
+        cloned["certificate_required"] = True
+        tracks = set(cloned.get("official_tracks", []) or [])
+        tracks.add(CERTIFICATE_REQUIRED_TRACK)
+        cloned["official_tracks"] = sorted(tracks)
+        cloned["primary_track"] = CERTIFICATE_REQUIRED_TRACK
+        cloned.setdefault("generator_metadata", {})["certificate_required"] = True
+        output.append(cloned)
+    return output
+
+
+def _evaluate_certificate_required_track(
+    *,
+    public_cases: list[dict[str, Any]],
+    base_db: dict[str, Any],
+    client: Any = None,
+    temperature: float = DEFAULT_TEMPERATURE,
+    pass_k: int = DEFAULT_PASS_K,
+    pass_threshold: float = DEFAULT_PASS_THRESHOLD,
+) -> dict[str, Any]:
+    cases = _certificate_required_cases(public_cases)
+    evaluation = _evaluate_cases(
+        cases,
+        base_db=base_db,
+        client=client,
+        temperature=temperature,
+        pass_k=pass_k,
+        pass_threshold=pass_threshold,
+    )
+    summary = _section_summary(evaluation, pass_threshold=pass_threshold)
+    missing_rate = round(
+        sum(str((row.get("score_breakdown", {}) or {}).get("result_class")) == "certificate_required_missing" for row in summary.get("results", []))
+        / max(len(summary.get("results", [])), 1),
+        4,
+    )
+    return {
+        "track": CERTIFICATE_REQUIRED_TRACK,
+        "track_label": track_label(CERTIFICATE_REQUIRED_TRACK),
+        "certificate_required_missing_rate": missing_rate,
+        **summary,
+    }
+
+
 def _section_summary(section: dict[str, Any], *, pass_threshold: float) -> dict[str, Any]:
     results = list(section.get("results", []))
     metrics = _aggregate_result_metrics(results, pass_threshold)
@@ -412,6 +856,7 @@ def build_report(
     temperature: float = DEFAULT_TEMPERATURE,
     client: Any = None,
     model_name: str = "",
+    controlbench_sequence_length: int = DEFAULT_CONTROLBENCH_SEQUENCE_LENGTH,
 ) -> dict[str, Any]:
     base_db = load_all()
     resolved_model_name, agent_type = _report_identity(model_name=model_name, client=client)
@@ -464,6 +909,19 @@ def build_report(
     holdout_consistent = [bool(row.get("pass_k_consistent", False)) for row in all_holdout_results]
     holdout_any = [bool(row.get("pass_k_any", False)) for row in all_holdout_results]
     holdout_seed_averages = [float(batch.get("average_score", 0.0) or 0.0) for batch in seed_reports]
+    public_benchmark = _section_summary(public_eval, pass_threshold=pass_threshold)
+    holdout_challenge = {
+        "seed_count": len(seed_reports),
+        "variants_per_case": variants_per_case,
+        "total_case_count": len(all_holdout_results),
+        **_aggregate_result_metrics(all_holdout_results, pass_threshold),
+        "suite_average_stats": _stats(holdout_seed_averages),
+        "task_breakdown": _group_by_task(all_holdout_results, pass_threshold),
+        "track_breakdown": _group_by_key(all_holdout_results, pass_threshold, key_name="benchmark_track", value_fn=lambda row: row.get("benchmark_track", "unknown")),
+        "mechanism_breakdown": _group_by_key(all_holdout_results, pass_threshold, key_name="mechanism_family", value_fn=lambda row: row.get("mechanism_family", "unknown")),
+        "split_breakdown": _group_by_key(all_holdout_results, pass_threshold, key_name="benchmark_split", value_fn=lambda row: row.get("benchmark_split", "holdout")),
+        "seed_reports": seed_reports,
+    }
     contrastive = _evaluate_contrastive_pairs(
         base_db=base_db,
         client=client,
@@ -510,34 +968,82 @@ def build_report(
             temperature=temperature,
         ),
     }
+    controlbench_quarter = _evaluate_controlbench_sequence(
+        base_db=base_db,
+        sequence_length=controlbench_sequence_length,
+        seed=2026,
+        client=client,
+        temperature=temperature,
+    )
+    controlbench_demo_cases = generate_controlbench_sequence(
+        _benchmark_cases(base_db),
+        sequence_length=controlbench_sequence_length,
+        seed=2026,
+    )
+    two_agent_demo = _controlbench_two_agent_demo(controlbench_demo_cases)
+    generated_holdout_track = _generated_holdout_track_summary(holdout_challenge)
+    blind_control_track = _blind_control_track_summary(public_benchmark)
+    sleeper_vigilance_track = _sleeper_vigilance_track_summary(controlbench_quarter)
+    certificate_required_track = _evaluate_certificate_required_track(
+        public_cases=public_cases,
+        base_db=base_db,
+        client=client,
+        temperature=temperature,
+        pass_k=pass_k,
+        pass_threshold=pass_threshold,
+    )
+    human_baseline_track = load_human_baseline_summary()
+    official_tracks["controlbench_track"] = {
+        "track": CONTROLBENCH_TRACK,
+        "track_label": track_label(CONTROLBENCH_TRACK),
+        "sequence_length": controlbench_quarter["sequence_length"],
+        "institutional_loss_score": controlbench_quarter["institutional_loss_score"],
+        "deployability_rating": controlbench_quarter["deployability_rating"],
+        "sleeper_detection_rate": controlbench_quarter["sleeper_detection_rate"],
+        "catastrophic_event_count": controlbench_quarter["catastrophic_event_count"],
+    }
+    official_tracks["generated_holdout_track"] = generated_holdout_track
+    official_tracks["blind_control_track"] = blind_control_track
+    official_tracks["sleeper_vigilance_track"] = sleeper_vigilance_track
+    official_tracks["certificate_required_track"] = certificate_required_track
+    official_tracks["human_baseline_track"] = human_baseline_track
 
     generated_at = datetime.now(timezone.utc).isoformat()
     return {
-        "benchmark": "ledgershield-v2",
+        "benchmark": "ledgershield-controlbench-v1",
         "benchmark_identity": "Verified institutional control intelligence in enterprise AP workflows",
         "primary_theme": "World Modeling — Professional Tasks",
         "secondary_theme": "Long-Horizon Planning & Instruction Following",
         "generated_at": generated_at,
-        "public_benchmark": _section_summary(public_eval, pass_threshold=pass_threshold),
-        "holdout_challenge": {
-            "seed_count": len(seed_reports),
-            "variants_per_case": variants_per_case,
-            "total_case_count": len(all_holdout_results),
-            **_aggregate_result_metrics(all_holdout_results, pass_threshold),
-            "suite_average_stats": _stats(holdout_seed_averages),
-            "task_breakdown": _group_by_task(all_holdout_results, pass_threshold),
-            "track_breakdown": _group_by_key(all_holdout_results, pass_threshold, key_name="benchmark_track", value_fn=lambda row: row.get("benchmark_track", "unknown")),
-            "mechanism_breakdown": _group_by_key(all_holdout_results, pass_threshold, key_name="mechanism_family", value_fn=lambda row: row.get("mechanism_family", "unknown")),
-            "split_breakdown": _group_by_key(all_holdout_results, pass_threshold, key_name="benchmark_split", value_fn=lambda row: row.get("benchmark_split", "holdout")),
-            "seed_reports": seed_reports,
-        },
+        "public_benchmark": public_benchmark,
+        "holdout_challenge": holdout_challenge,
+        "generated_holdout_track": generated_holdout_track,
+        "blind_control_track": blind_control_track,
         "contrastive_pairs": contrastive,
+        "controlbench_quarter": controlbench_quarter,
+        "sleeper_vigilance_track": sleeper_vigilance_track,
+        "controlbench_report": build_controlbench_artifact(
+            {
+                "benchmark": "ledgershield-controlbench-v1",
+                "generated_at": generated_at,
+                "controlbench_quarter": controlbench_quarter,
+                "evaluation_protocol": {
+                    "model_name": resolved_model_name,
+                    "agent_type": agent_type,
+                },
+            }
+        ),
+        "controlbench_two_agent_demo": two_agent_demo,
+        "certificate_required_track": certificate_required_track,
+        "human_baseline_track": human_baseline_track,
         "official_tracks": official_tracks,
         "evaluation_protocol": {
             "pass_threshold": round(float(pass_threshold), 4),
             "pass_k": int(pass_k),
             "temperature": round(float(temperature), 4),
             "holdout_seeds": seeds,
+            "controlbench_sequence_length": int(controlbench_sequence_length),
+            "controlbench_standard_sequence_length": CONTROLBENCH_STANDARD_SEQUENCE_LENGTH,
             "model_name": resolved_model_name,
             "agent_type": agent_type,
             "track_mode": "blind",
@@ -558,6 +1064,10 @@ def build_leaderboard_entry(
     public = report["public_benchmark"]
     holdout = report["holdout_challenge"]
     contrastive = report["contrastive_pairs"]
+    controlbench = report.get("controlbench_quarter", {}) or {}
+    certificate_track = report.get("certificate_required_track", {}) or {}
+    two_agent_demo = report.get("controlbench_two_agent_demo", {}) or {}
+    certificate_track = report.get("certificate_required_track", {}) or {}
     protocol = report["evaluation_protocol"]
     public_task_e_mean = _task_score_mean(public, "task_e")
     holdout_task_e_mean = _task_score_mean(holdout, "task_e")
@@ -581,6 +1091,16 @@ def build_leaderboard_entry(
         "holdout_trial_pass_rate": holdout["trial_pass_rate"],
         "holdout_pass_k_consistent": holdout["consistent_pass_rate"],
         "contrastive_joint_mean": contrastive["joint_score_stats"]["mean"],
+        "controlbench_accuracy": round(float(controlbench.get("accuracy", 0.0) or 0.0), 4),
+        "controlbench_fraud_recall": round(float(controlbench.get("fraud_recall", 0.0) or 0.0), 4),
+        "controlbench_certificate_validity_rate": round(float(controlbench.get("certificate_validity_rate", 0.0) or 0.0), 4),
+        "controlbench_institutional_loss_score": round(float(controlbench.get("institutional_loss_score", 0.0) or 0.0), 4),
+        "controlbench_institutional_loss_total": round(float(controlbench.get("institutional_loss_total", 0.0) or 0.0), 2),
+        "controlbench_deployability_rating": controlbench.get("deployability_rating", "unknown"),
+        "controlbench_sleeper_detection_rate": round(float(controlbench.get("sleeper_detection_rate", 0.0) or 0.0), 4),
+        "controlbench_catastrophic_event_count": int(controlbench.get("catastrophic_event_count", 0) or 0),
+        "certificate_required_mean": round(float(certificate_track.get("average_score", 0.0) or 0.0), 4),
+        "certificate_required_missing_rate": round(float(certificate_track.get("certificate_required_missing_rate", 0.0) or 0.0), 4),
         "public_task_e_expert_mean": public_task_e_mean,
         "holdout_task_e_expert_mean": holdout_task_e_mean,
         "task_e_expert_mean": holdout_task_e_mean if holdout_task_e_mean is not None else public_task_e_mean,
@@ -703,14 +1223,14 @@ def load_leaderboard_payload(
             agent_type=report.get("evaluation_protocol", {}).get("agent_type", "deterministic-policy"),
         )
         return {
-            "benchmark": report.get("benchmark", "ledgershield-v2"),
+            "benchmark": report.get("benchmark", "ledgershield-controlbench-v1"),
             "generated_at": report.get("generated_at"),
             "entries": [entry],
             "note": "Leaderboard artifact not found; derived from latest benchmark report artifact.",
         }
 
     return {
-        "benchmark": "ledgershield-v2",
+        "benchmark": "ledgershield-controlbench-v1",
         "generated_at": None,
         "entries": [],
         "note": "No leaderboard artifact generated yet. Run benchmark_report.py to create one.",
@@ -742,7 +1262,7 @@ def upsert_leaderboard_entry(
     retained.append(entry)
     retained = _dedupe_leaderboard_entries(retained, canonical=entry)
     updated = {
-        "benchmark": "ledgershield-v2",
+        "benchmark": "ledgershield-controlbench-v1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "entries": retained,
         "note": (
@@ -759,6 +1279,9 @@ def _format_markdown(report: dict[str, Any]) -> str:
     public = report["public_benchmark"]
     holdout = report["holdout_challenge"]
     contrastive = report["contrastive_pairs"]
+    controlbench = report.get("controlbench_quarter", {}) or {}
+    certificate_track = report.get("certificate_required_track", {}) or {}
+    two_agent_demo = report.get("controlbench_two_agent_demo", {}) or {}
     official_tracks = report.get("official_tracks", {}) or {}
     protocol = report["evaluation_protocol"]
     public_task_e_mean = _task_score_mean(public, "task_e")
@@ -777,6 +1300,8 @@ def _format_markdown(report: dict[str, Any]) -> str:
         f"- Temperature: {protocol['temperature']:.2f}",
         f"- pass^k trials: {protocol['pass_k']}",
         f"- Pass threshold: {protocol['pass_threshold']:.2f}",
+        f"- ControlBench sequence length: {protocol.get('controlbench_sequence_length', 0)} "
+        f"(standard {protocol.get('controlbench_standard_sequence_length', CONTROLBENCH_STANDARD_SEQUENCE_LENGTH)})",
         "",
         "## Public Benchmark",
         f"- Cases: {public['case_count']}",
@@ -817,6 +1342,29 @@ def _format_markdown(report: dict[str, Any]) -> str:
         f"- Adversarial/twin pairs: {contrastive['pair_count']}",
         f"- Joint score mean: {contrastive['joint_score_stats']['mean']:.4f}",
         f"- Joint score stddev: {contrastive['joint_score_stats']['stdev']:.4f}",
+        "",
+        "## ControlBench Institutional Sequence",
+        f"- Sequence length: {controlbench.get('sequence_length', 0)}",
+        f"- Accuracy: {float(controlbench.get('accuracy', 0.0) or 0.0):.4f}",
+        f"- Fraud recall: {float(controlbench.get('fraud_recall', 0.0) or 0.0):.4f}",
+        f"- False-positive rate: {float(controlbench.get('false_positive_rate', 0.0) or 0.0):.4f}",
+        f"- Institutional loss score: {float(controlbench.get('institutional_loss_score', 0.0) or 0.0):.4f}",
+        f"- Institutional loss total: {float(controlbench.get('institutional_loss_total', 0.0) or 0.0):.2f}",
+        f"- Deployability rating: {controlbench.get('deployability_rating', 'unknown')}",
+        f"- Certificate validity rate: {float(controlbench.get('certificate_validity_rate', 0.0) or 0.0):.4f}",
+        f"- Authority restriction rate: {float(controlbench.get('authority_restriction_rate', 0.0) or 0.0):.4f}",
+        f"- Sleeper detection rate: {float(controlbench.get('sleeper_detection_rate', 0.0) or 0.0):.4f}",
+        f"- Catastrophic events: {int(controlbench.get('catastrophic_event_count', 0) or 0)}",
+        f"- Accuracy/loss disagreement: {float(controlbench.get('accuracy_loss_disagreement', 0.0) or 0.0):.4f}",
+        "",
+        "## Certificate-Required Track",
+        f"- Mean score: {float(certificate_track.get('average_score', 0.0) or 0.0):.4f}",
+        f"- Missing agent-authored certificate rate: {float(certificate_track.get('certificate_required_missing_rate', 0.0) or 0.0):.4f}",
+        "",
+        "## Two-Agent Control Profile",
+        f"- Thesis: {two_agent_demo.get('thesis', '')}",
+        f"- Accuracy/loss disagreement: {float(two_agent_demo.get('accuracy_loss_disagreement', 0.0) or 0.0):.4f}",
+        f"- Punchline: {two_agent_demo.get('punchline', '')}",
     ]
     if official_tracks:
         lines.extend(
@@ -826,6 +1374,12 @@ def _format_markdown(report: dict[str, Any]) -> str:
                 f"- Case Track CSR: {official_tracks.get('case_track', {}).get('control_satisfied_resolution_rate', 0.0):.4f}",
                 f"- Adversarial Data Track unsafe release rate: {official_tracks.get('adversarial_data_track', {}).get('unsafe_release_rate', 0.0):.4f}",
                 f"- Portfolio Track institutional utility: {official_tracks.get('portfolio_track', {}).get('institutional_utility_stats', {}).get('mean', 0.0):.4f}",
+                f"- Generated Holdout Track mean: {official_tracks.get('generated_holdout_track', {}).get('average_score', 0.0):.4f}",
+                f"- ControlBench Track loss score: {official_tracks.get('controlbench_track', {}).get('institutional_loss_score', 0.0):.4f}",
+                f"- Sleeper-Vigilance Track detection rate: {official_tracks.get('sleeper_vigilance_track', {}).get('sleeper_detection_rate', 0.0):.4f}",
+                f"- Blind-Control Track mean: {official_tracks.get('blind_control_track', {}).get('average_score', 0.0):.4f}",
+                f"- Certificate-Required Track mean: {official_tracks.get('certificate_required_track', {}).get('average_score', 0.0):.4f}",
+                f"- Human-Baseline Track accuracy: {official_tracks.get('human_baseline_track', {}).get('accuracy', 0.0):.4f}",
             ]
         )
     return "\n".join(lines)
@@ -839,11 +1393,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--holdout-seeds", nargs="*", type=int, default=DEFAULT_HOLDOUT_SEEDS)
     parser.add_argument("--pass-k", type=int, default=DEFAULT_PASS_K)
     parser.add_argument("--temperature", type=float, default=DEFAULT_TEMPERATURE)
+    parser.add_argument("--controlbench-sequence-length", type=int, default=DEFAULT_CONTROLBENCH_SEQUENCE_LENGTH)
     parser.add_argument("--api-url", default=inference.API_BASE_URL)
     parser.add_argument("--model", default=inference.MODEL_NAME)
     parser.add_argument("--token", default=inference.HF_TOKEN)
     parser.add_argument("--report-path", default=str(DEFAULT_REPORT_PATH))
     parser.add_argument("--leaderboard-path", default=str(DEFAULT_LEADERBOARD_PATH))
+    parser.add_argument("--controlbench-report-path", default=str(DEFAULT_CONTROLBENCH_REPORT_PATH))
     parser.add_argument("--skip-write", action="store_true")
     parser.add_argument("--skip-leaderboard", action="store_true")
     return parser.parse_args()
@@ -864,11 +1420,13 @@ def main() -> None:
         temperature=float(args.temperature),
         client=client,
         model_name=args.model,
+        controlbench_sequence_length=max(1, int(args.controlbench_sequence_length)),
     )
 
     if not args.skip_write:
         report_path = Path(args.report_path)
         write_json_artifact(report_path, report)
+        write_json_artifact(Path(args.controlbench_report_path), report.get("controlbench_report", {}))
 
     if not args.skip_leaderboard:
         resolved_model_name, agent_type = _report_identity(model_name=args.model, client=client)

@@ -1,5 +1,8 @@
 # A8 Publishing Guide: Hugging Face Mini-Blog
 
+> Historical archive: this guide references the pre-ControlBench v2 publishing
+> package. Current primary docs and artifacts use `ledgershield-controlbench-v1`.
+
 ## Final Blog Content
 
 The finalized mini-blog is ready in `docs/HF_MINIBLOG_FINAL.md`.

@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from .benchmark_contract import ensure_case_contract_fields
-from .case_factory import generate_benign_twin, generate_case_batch, generate_holdout_suite
+from .case_factory import generate_benign_twin, generate_case_batch, generate_controlbench_sequence, generate_holdout_suite
 from .schema import normalize_id, normalize_text
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -93,10 +93,14 @@ def load_all() -> dict[str, Any]:
     include_challenge = _env_flag("LEDGERSHIELD_INCLUDE_CHALLENGE", True)
     include_holdout = _env_flag("LEDGERSHIELD_INCLUDE_HOLDOUT", False)
     include_twins = _env_flag("LEDGERSHIELD_INCLUDE_TWINS", False)
+    include_controlbench = _env_flag("LEDGERSHIELD_INCLUDE_CONTROLBENCH", False)
     challenge_variants = max(0, int(os.getenv("LEDGERSHIELD_CHALLENGE_VARIANTS", "2") or 2))
     challenge_seed = int(os.getenv("LEDGERSHIELD_CHALLENGE_SEED", "2026") or 2026)
     holdout_variants = max(0, int(os.getenv("LEDGERSHIELD_HOLDOUT_VARIANTS", "1") or 1))
     holdout_seed = int(os.getenv("LEDGERSHIELD_HOLDOUT_SEED", "31415") or 31415)
+    controlbench_length = max(0, int(os.getenv("LEDGERSHIELD_CONTROLBENCH_CASES", "100") or 100))
+    controlbench_seed = int(os.getenv("LEDGERSHIELD_CONTROLBENCH_SEED", "2026") or 2026)
+    controlbench_sleepers = max(0, int(os.getenv("LEDGERSHIELD_CONTROLBENCH_SLEEPERS", "3") or 3))
 
     cases = list(base_cases)
     if include_challenge and hard_cases and challenge_variants > 0:
@@ -131,6 +135,15 @@ def load_all() -> dict[str, Any]:
                     break
             twin = generate_benign_twin(case, seed=holdout_seed + idx, approved_bank_account=approved_bank_account)
             cases.append(_case_defaults(twin))
+
+    if include_controlbench and controlbench_length > 0:
+        controlbench_cases = generate_controlbench_sequence(
+            base_cases=base_cases,
+            sequence_length=controlbench_length,
+            seed=controlbench_seed,
+            sleeper_count=controlbench_sleepers,
+        )
+        cases.extend(_case_defaults(case) for case in controlbench_cases)
 
     po_records = load_json("po_records.json")
     receipts = load_json("receipts.json")

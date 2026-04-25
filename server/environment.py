@@ -66,6 +66,7 @@ from .reward_machine import (
 from .categorical_composition import task_family_component
 from .rl_export import export_state_vector
 from .benchmark_contract import (
+    BLIND_CONTROL_TRACK,
     CASE_TRACK,
     case_matches_track,
     case_track_metadata,
@@ -73,13 +74,17 @@ from .benchmark_contract import (
     track_description,
     track_label,
 )
+from .control_statechart import control_boundary_snapshot, evaluate_control_boundary
 from .grading import score_submission
 from .decision_certificate import build_decision_certificate, verify_decision_certificate
+from .decision_falsifier import falsify_decision
 from .institutional_game import (
     InstitutionalMemory,
     attach_institutional_context,
+    evaluate_authority_gate,
     institutional_context_for_case,
     public_institutional_memory,
+    record_trust_graph,
     record_institutional_outcome,
 )
 from .outcome_simulator import simulate_outcome
@@ -109,6 +114,7 @@ from .tools import (
     zoom_tool,
 )
 from .transition_engine import handle_intervention, normalized_result_with_signals
+from .trust_graph import build_trust_graph
 from .voi_engine import optimal_tool_selection, value_of_information
 from .world_state import (
     advance_pending_events,
@@ -306,6 +312,7 @@ class LedgerShieldEnvironment(Environment):
         """Return the public (non-hidden) state snapshot."""
         state = public_state_snapshot(self._state, self._hidden_world)
         state["institutional_memory"] = public_institutional_memory(self._institutional_memory)
+        state["control_boundary"] = control_boundary_snapshot(self._state, self._hidden_world)
         return state
 
     def institutional_memory(self) -> dict[str, Any]:
@@ -465,8 +472,9 @@ class LedgerShieldEnvironment(Environment):
         }
         if extra_metadata:
             base_metadata.update(extra_metadata)
-        base_metadata["track_mode"] = self._track_mode
-        instrumented = self._track_mode != "blind"
+        observation_track_mode = "blind" if self._benchmark_track == BLIND_CONTROL_TRACK else self._track_mode
+        base_metadata["track_mode"] = observation_track_mode
+        instrumented = observation_track_mode != "blind"
         return LedgerShieldObservation(
             case_id=self._state.case_id,
             task_type=self._state.task_type,
@@ -707,22 +715,53 @@ class LedgerShieldEnvironment(Environment):
         """
         assert self.current_case is not None
         overrides = self.current_case.get("context_overrides", {}) or {}
+        vendor_index = self.db["vendors_by_key"]
+        override_vendors = overrides.get("vendors_by_key") or overrides.get("vendors")
+        if isinstance(override_vendors, dict):
+            vendor_index = override_vendors
+        elif isinstance(override_vendors, list):
+            vendor_index = {
+                normalize_text(vendor.get("vendor_key")): vendor
+                for vendor in override_vendors
+                if isinstance(vendor, dict) and vendor.get("vendor_key")
+            } or vendor_index
+        po_index = self.db["po_by_id"]
+        override_pos = overrides.get("po_by_id") or overrides.get("po_records")
+        if isinstance(override_pos, dict):
+            po_index = override_pos
+        elif isinstance(override_pos, list):
+            po_index = {
+                str(row.get("po_id")): row
+                for row in override_pos
+                if isinstance(row, dict) and row.get("po_id")
+            } or po_index
+        receipt_index = self.db["receipt_by_id"]
+        override_receipts = overrides.get("receipt_by_id") or overrides.get("receipts")
+        if isinstance(override_receipts, dict):
+            receipt_index = override_receipts
+        elif isinstance(override_receipts, list):
+            receipt_index = {
+                str(row.get("receipt_id")): row
+                for row in override_receipts
+                if isinstance(row, dict) and row.get("receipt_id")
+            } or receipt_index
+        email_threads = overrides.get("email_threads", self.db["email_threads"])
 
         dispatch_map = {
             "zoom": lambda: zoom_tool(self.current_case, payload),
             "get_doc_crop": lambda: get_doc_crop_tool(self.current_case, payload),
             "ocr": lambda: ocr_tool(self.current_case, payload),
-            "lookup_vendor": lambda: lookup_vendor_tool(self.db["vendors_by_key"], payload),
+            "lookup_vendor": lambda: lookup_vendor_tool(vendor_index, payload),
             "lookup_vendor_history": lambda: lookup_vendor_history_tool(
                 overrides.get("vendor_history", self.db["vendor_history"]), payload),
             "lookup_policy": lambda: lookup_policy_tool(self.db["policy_by_id"], self.db["policy_rules"], payload),
-            "lookup_po": lambda: lookup_po_tool(self.db["po_by_id"], payload),
-            "lookup_receipt": lambda: lookup_receipt_tool(self.db["receipt_by_id"], payload),
+            "lookup_po": lambda: lookup_po_tool(po_index, payload),
+            "lookup_receipt": lambda: lookup_receipt_tool(receipt_index, payload),
             "search_ledger": lambda: search_ledger_tool(
                 self.current_case, overrides.get("ledger_index", self.db["ledger_index"]), payload),
             "inspect_email_thread": lambda: inspect_email_thread_tool(
-                self.current_case, self.db["email_threads"], payload),
-            "compare_bank_account": lambda: compare_bank_account_tool(self.db["vendors_by_key"], payload),
+                self.current_case, email_threads, payload),
+            "compare_bank_account": lambda: compare_bank_account_tool(vendor_index, payload),
         }
 
         handler = dispatch_map.get(tool_name)
@@ -937,6 +976,12 @@ class LedgerShieldEnvironment(Environment):
 
         payload = getattr(action, "payload", {}) or {}
         action_type = getattr(action, "action_type", "")
+        pre_boundary = evaluate_control_boundary(
+            self._state,
+            self._hidden_world,
+            action_type=action_type,
+            payload=payload,
+        )
 
         self._state.step_count += 1
         self._state.case_clock += 1
@@ -975,6 +1020,7 @@ class LedgerShieldEnvironment(Environment):
         info: dict[str, Any] = {}
         reward_components: dict[str, float] = {}
         reward_metadata: dict[str, Any] = {"action_type": action_type}
+        reward_metadata["control_boundary_phase"] = pre_boundary.get("phase")
 
         if action_type == "submit_decision":
             submitted = dict(payload)
@@ -1024,8 +1070,57 @@ class LedgerShieldEnvironment(Environment):
                 )
                 submitted["_auto_decision_certificate"] = True
 
-            outcome = simulate_outcome(
+            authority_gate = evaluate_authority_gate(
+                self._institutional_memory,
+                case=self.current_case,
                 submitted=submitted,
+                final_state=internal_system_state,
+                trajectory=self._state.trajectory,
+            )
+            control_boundary = deepcopy(pre_boundary)
+            effective_submitted = deepcopy(submitted)
+            if bool(control_boundary.get("blocking")):
+                effective_submitted["decision"] = control_boundary.get("enforced_decision", "NEEDS_REVIEW")
+            if bool(authority_gate.get("blocking")):
+                effective_submitted["decision"] = authority_gate.get("enforced_decision", "NEEDS_REVIEW")
+            if bool(authority_gate.get("requires_handoff")) and not effective_submitted.get("handoff_packet"):
+                effective_submitted["handoff_packet"] = {
+                    "reason": "authority_gate_restriction",
+                    "recommended_action": effective_submitted.get("decision", "NEEDS_REVIEW"),
+                    "authority_level": authority_gate.get("authority_level"),
+                    "reasons": list(authority_gate.get("reasons", []) or []),
+                }
+            if bool(control_boundary.get("blocking")) and not effective_submitted.get("handoff_packet"):
+                effective_submitted["handoff_packet"] = {
+                    "reason": "control_boundary_restriction",
+                    "recommended_action": effective_submitted.get("decision", "NEEDS_REVIEW"),
+                    "phase": control_boundary.get("phase"),
+                    "required_followups": list(control_boundary.get("required_followups", []) or []),
+                    "reasons": list(control_boundary.get("reasons", []) or []),
+                }
+            if control_boundary.get("reasons"):
+                boundary_note = (
+                    f"Control boundary ({control_boundary.get('phase')}) enforced "
+                    f"{effective_submitted.get('decision', 'NEEDS_REVIEW')}: "
+                    + "; ".join(str(reason) for reason in control_boundary.get("reasons", []) or [])
+                )
+                existing_notes = str(effective_submitted.get("notes", "") or "").strip()
+                effective_submitted["notes"] = boundary_note if not existing_notes else f"{existing_notes} {boundary_note}".strip()
+            if authority_gate.get("reasons"):
+                authority_note = (
+                    f"Authority gate ({authority_gate.get('authority_level')}) enforced "
+                    f"{effective_submitted.get('decision', 'NEEDS_REVIEW')}: "
+                    + "; ".join(str(reason) for reason in authority_gate.get("reasons", []) or [])
+                )
+                existing_notes = str(effective_submitted.get("notes", "") or "").strip()
+                effective_submitted["notes"] = authority_note if not existing_notes else f"{existing_notes} {authority_note}".strip()
+            internal_system_state["authority_gate"] = deepcopy(authority_gate)
+            internal_system_state["control_boundary"] = deepcopy(control_boundary)
+            internal_system_state["submitted_decision"] = str(submitted.get("decision", "") or "")
+            internal_system_state["effective_decision"] = str(effective_submitted.get("decision", "") or "")
+
+            outcome = simulate_outcome(
+                submitted=effective_submitted,
                 trajectory=self._state.trajectory,
                 hidden_world=self._hidden_world,
                 final_state=internal_system_state,
@@ -1035,7 +1130,7 @@ class LedgerShieldEnvironment(Environment):
                 task_type=self._state.task_type,
                 trajectory=self._state.trajectory,
                 revealed_artifacts=internal_system_state.get("revealed_artifact_ids", []) or [],
-                decision=str(decision),
+                decision=str(effective_submitted.get("decision", decision)),
                 gold=self.current_case["gold"],
                 case_context=self.current_case,
             )
@@ -1043,17 +1138,20 @@ class LedgerShieldEnvironment(Environment):
             institutional_update = record_institutional_outcome(
                 self._institutional_memory,
                 case=self.current_case,
-                submitted=submitted,
+                submitted=effective_submitted,
                 outcome=outcome,
                 trajectory=self._state.trajectory,
                 compliance=asdict(compliance_result),
+                authority_gate=authority_gate,
             )
             institutional_memory_snapshot = institutional_update["institutional_memory"]
             institutional_loss_ledger = dict(institutional_memory_snapshot.get("loss_ledger", {}))
             outcome["institutional_metrics"] = institutional_loss_ledger
             outcome["institutional_update"] = institutional_update["case_update"]
+            outcome["authority_gate"] = deepcopy(authority_gate)
             internal_system_state["institutional_memory"] = institutional_memory_snapshot
             internal_system_state["institutional_context"] = deepcopy(self._hidden_world.get("institutional_context", {}))
+            internal_system_state["authority_gate"] = deepcopy(authority_gate)
             certificate_report = verify_decision_certificate(
                 submitted.get("decision_certificate"),
                 submitted=submitted,
@@ -1063,11 +1161,40 @@ class LedgerShieldEnvironment(Environment):
                 trajectory=self._state.trajectory,
                 synthesize_if_missing=True,
             ).to_dict()
+            falsifier_report = falsify_decision(
+                submitted=submitted,
+                gold=self.current_case["gold"],
+                final_state=internal_system_state,
+                certificate_report=certificate_report,
+                trajectory=self._state.trajectory,
+            )
+            trust_graph = build_trust_graph(
+                submitted=submitted,
+                final_state=internal_system_state,
+                case_context=self.current_case,
+                certificate_report=certificate_report,
+                institutional_memory=institutional_memory_snapshot,
+            )
+            record_trust_graph(
+                self._institutional_memory,
+                case=self.current_case,
+                trust_graph=trust_graph,
+                submitted=submitted,
+                outcome=outcome,
+                control_boundary=control_boundary,
+            )
+            institutional_memory_snapshot = public_institutional_memory(self._institutional_memory)
+            institutional_loss_ledger = dict(institutional_memory_snapshot.get("loss_ledger", {}))
+            outcome["institutional_metrics"] = institutional_loss_ledger
+            internal_system_state["adversarial_falsifier"] = falsifier_report
+            internal_system_state["trust_graph"] = trust_graph
+            internal_system_state["institutional_memory"] = institutional_memory_snapshot
 
             submission_case_context = {
                 **self.current_case,
                 "sprt_state": deepcopy(self._state.sprt_state),
                 "latent_hypothesis": self._hidden_world.get("latent_hypothesis"),
+                "benchmark_track": self._benchmark_track,
             }
             final_score, breakdown = score_submission(
                 task_type=self._state.task_type,
@@ -1101,6 +1228,9 @@ class LedgerShieldEnvironment(Environment):
 
             public_system_state = public_state_snapshot(self._state, self._hidden_world)
             public_system_state["institutional_memory"] = institutional_memory_snapshot
+            public_system_state["authority_gate"] = deepcopy(authority_gate)
+            public_system_state["control_boundary"] = deepcopy(control_boundary)
+            public_system_state["effective_decision"] = str(effective_submitted.get("decision", "") or "")
 
             done = True
             terminated = True  # Phase 3.2: decision submission is a true termination
@@ -1119,18 +1249,27 @@ class LedgerShieldEnvironment(Environment):
                 "triggered_risk_reasons": triggered,
                 "unsafe_outcome": self._state.unsafe_outcome,
                 "decision": decision,
+                "effective_decision": effective_submitted.get("decision"),
                 "predicted_probabilities": submitted["predicted_probabilities"],
                 "outcome": outcome,
                 "system_state": public_system_state,
                 "compliance": asdict(compliance_result),
                 "currency_validation": currency_validation,
                 "decision_certificate_report": certificate_report,
+                "adversarial_falsifier": falsifier_report,
+                "trust_graph": trust_graph,
+                "authority_gate": authority_gate,
+                "control_boundary": control_boundary,
                 "institutional_metrics": institutional_loss_ledger,
                 "institutional_memory": institutional_memory_snapshot,
                 "pressure_resistance_score": self._state.pressure_resistance_score,
                 "benchmark_track": self._benchmark_track,
-                "track_mode": self._track_mode,
-                "message": "Decision submitted and graded.",
+                "track_mode": "blind" if self._benchmark_track == BLIND_CONTROL_TRACK else self._track_mode,
+                "message": (
+                    "Decision submitted, authority gate enforced review fallback, and the result was graded."
+                    if authority_gate.get("blocking") or control_boundary.get("blocking")
+                    else "Decision submitted and graded."
+                ),
                 "cost": 0.0,
             }
 
@@ -1146,11 +1285,15 @@ class LedgerShieldEnvironment(Environment):
                 "compliance": asdict(compliance_result),
                 "currency_validation": currency_validation,
                 "decision_certificate_report": certificate_report,
+                "adversarial_falsifier": falsifier_report,
+                "trust_graph": trust_graph,
+                "authority_gate": authority_gate,
+                "control_boundary": control_boundary,
                 "institutional_metrics": institutional_loss_ledger,
                 "institutional_memory": institutional_memory_snapshot,
                 "pressure_resistance_score": self._state.pressure_resistance_score,
                 "benchmark_track": self._benchmark_track,
-                "track_mode": self._track_mode,
+                "track_mode": "blind" if self._benchmark_track == BLIND_CONTROL_TRACK else self._track_mode,
                 "curriculum": curriculum_summary(self._curriculum_state),
             }
             reward_components = {"final_score": final_score}
@@ -1262,6 +1405,8 @@ class LedgerShieldEnvironment(Environment):
             "success": result.get("success", False),
             "message": result.get("message", ""),
             "is_intervention": action_type in INTERVENTION_ACTIONS,
+            "control_boundary_phase": pre_boundary.get("phase"),
+            "control_boundary_warnings": list(pre_boundary.get("warnings", []) or []),
         }
 
         self._state.tool_trace.append(
@@ -1293,6 +1438,8 @@ class LedgerShieldEnvironment(Environment):
             state_snapshot=watchdog_snapshot,
         )
         self._watchdog_state = update_watchdog_state(self._watchdog_state, watchdog_observation)
+        result.setdefault("control_boundary", deepcopy(pre_boundary))
+        info.setdefault("control_boundary", deepcopy(pre_boundary))
         if action_type == "submit_decision" and result.get("success"):
             verdict = watchdog_evaluate_decision(
                 self._watchdog_state,

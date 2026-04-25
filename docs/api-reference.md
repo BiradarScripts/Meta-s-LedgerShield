@@ -249,15 +249,18 @@ Typical response shape:
 ```json
 <!-- sync:api-leaderboard-example:start -->
 {
-  "benchmark": "ledgershield-v2",
-  "generated_at": "2026-04-20T12:04:39.291162+00:00",
+  "benchmark": "ledgershield-controlbench-v1",
+  "generated_at": "2026-04-24T11:05:28.417269+00:00",
   "entries": [
     {
       "model": "ledgershield/deterministic-baseline",
       "type": "deterministic-policy",
-      "public_mean": 0.8876,
-      "holdout_mean": 0.7034,
-      "holdout_pass_k_consistent": 0.1667
+      "public_mean": 0.8749,
+      "holdout_mean": 0.7063,
+      "holdout_pass_k_consistent": 0.1667,
+      "controlbench_institutional_loss_score": 0.5731,
+      "controlbench_deployability_rating": "advisory",
+      "certificate_required_mean": 0.55
     }
   ]
 }
@@ -268,11 +271,41 @@ Typical response shape:
 
 Returns the latest benchmark report artifact if present. If none exists yet, the endpoint returns a placeholder note telling you to run `benchmark_report.py`.
 
+The current report includes `controlbench_quarter`, a seeded institutional-control sequence with `loss_surface`, `calibration_gate`, `authority_timeline`, `sleeper_detection_rate`, `catastrophic_event_count`, and `deployability_rating`.
+
+It also includes `generated_holdout_track`, `blind_control_track`,
+`sleeper_vigilance_track`, `certificate_required_track`,
+`human_baseline_track`, and `controlbench_two_agent_demo`. Together these make
+the report cover public-core, generated-holdout, blind-control, sleeper, proof,
+human-anchor, and institutional-quarter evaluation.
+
 ### `GET /institutional-memory`
 
 Returns the persistent AP-week memory for the current environment instance:
 queue depth, remaining manual-review and callback capacity, vendor trust,
-attacker-belief weights, cumulative loss ledger, and amendment count.
+attacker-belief weights, cumulative loss surface, calibration-gated authority,
+sleeper-vendor state, and amendment count.
+
+Important ControlBench fields:
+
+| Field | Meaning |
+|---|---|
+| `loss_ledger.loss_surface` | cumulative fraud loss, false-positive cost, operational burn, calibration debt, vigilance loss, compliance, and catastrophic-event ratios |
+| `calibration_gate` | running calibration error, authority level, and gate-trigger count |
+| `authority_level` | current deployment authority (`full_authority`, `restricted_authority`, `review_only`, or `locked`) |
+| `sleeper_vendors` | trust-building vendor state and activation/detection status |
+| `trust_graph_memory` | persistent TrustGraph rollup across prior ControlBench cases |
+| `controlbench_summary` | compact institutional loss score, authority level, sleeper detection rate, and catastrophic events |
+
+### `GET /controlbench-summary`
+
+Returns the latest generated ControlBench sequence artifact when available. If no artifact exists, it falls back to the live environment's institutional-memory summary.
+
+### `GET /human-baseline-summary`
+
+Returns the loaded human-baseline summary when present in the latest benchmark
+report or on disk. If no artifact exists, the endpoint returns an empty summary
+with a note describing how to provide `artifacts/human_baseline.json`.
 
 ### `POST /institutional-reset`
 
@@ -304,7 +337,10 @@ The observation returned by `/reset` and `/step` includes:
 | `available_interventions` | list[string] | intervention subset |
 | `case_metadata` | object | task label, due-date info, benchmark track, and track mode |
 | `portfolio_context` | object | cross-invoice/campaign context when relevant |
-| `institutional_memory` | object | public AP-week memory and cumulative loss state |
+| `institutional_memory` | object | public AP-week memory with cumulative loss surface, calibration gate, authority level, and sleeper-vendor state |
+| `adversarial_falsifier` | object | terminal decision-falsifier diagnostics returned in final `/step` info |
+| `control_boundary` | object | terminal statechart-style control-boundary diagnostics returned in final `/step` info |
+| `trust_graph` | object | terminal TrustGraph projection returned in final `/step` info |
 | `sprt_state` | object | present in instrumented mode, hidden in blind mode |
 | `tool_rankings` | object | present in instrumented mode, hidden in blind mode |
 | `reward_machine` | object | present in instrumented mode, hidden in blind mode |

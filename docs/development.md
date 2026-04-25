@@ -98,7 +98,7 @@ If you change APIs, packaging, or runtime behavior, assume CI should keep passin
 | [`../compare_models_live.py`](../compare_models_live.py) | live multi-model comparison with capability profiles, monotonic strength checks, certificate metrics, and institutional-loss metrics |
 | [`../sync_benchmark_metadata.py`](../sync_benchmark_metadata.py) | refreshes README/docs/openenv metadata from current artifacts and runtime defaults |
 | [`../compare_all_models.py`](../compare_all_models.py) | broader multi-model sweep helper with `--models`, `--output`, `--timeout`, and a `0.85`-aligned pass threshold |
-| [`../benchmark_report.py`](../benchmark_report.py) | public benchmark, holdout, and contrastive report generation |
+| [`../benchmark_report.py`](../benchmark_report.py) | public benchmark, generated-holdout, blind-control, sleeper-vigilance, ControlBench, certificate-required, human-baseline, and two-agent report generation |
 | [`../generate_branch_comparison_report.py`](../generate_branch_comparison_report.py) | legacy reporting helper for saved branch comparison JSONs |
 | [`../generate_comparison_report.py`](../generate_comparison_report.py) | legacy reporting helper for multi-model JSON summaries |
 | [`../generate_final_report.py`](../generate_final_report.py) | legacy reporting helper for final comparison JSONs |
@@ -123,14 +123,17 @@ If you change APIs, packaging, or runtime behavior, assume CI should keep passin
 | [`../server/transition_engine.py`](../server/transition_engine.py) | intervention handling and signal extraction |
 | [`../server/grading.py`](../server/grading.py) | task-specific grading rubrics |
 | [`../server/decision_certificate.py`](../server/decision_certificate.py) | Decision Certificate Graph builder/verifier |
-| [`../server/institutional_game.py`](../server/institutional_game.py) | persistent AP-week memory and loss ledger |
+| [`../server/institutional_game.py`](../server/institutional_game.py) | persistent AP-week memory, loss surface, calibration gate, and sleeper-vendor state |
+| [`../server/decision_falsifier.py`](../server/decision_falsifier.py) | deterministic terminal-decision falsifier |
+| [`../server/control_statechart.py`](../server/control_statechart.py) | statechart-style control boundary and prompt-injection-aware runtime safety harness |
+| [`../server/trust_graph.py`](../server/trust_graph.py) | TrustGraph projection for payment decisions |
 | [`../server/trajectory_grading.py`](../server/trajectory_grading.py) | trajectory-aware scoring components |
 | [`../server/outcome_simulator.py`](../server/outcome_simulator.py) | downstream operational/fraud outcome simulation |
 | [`../server/risk_rules.py`](../server/risk_rules.py) | risk bucket logic and heuristic submission-risk assessment |
 | [`../server/pressure_events.py`](../server/pressure_events.py) | adversarial pressure-event templates and scoring |
 | [`../server/vendor_simulator.py`](../server/vendor_simulator.py) | callback vendor-response simulation |
 | [`../server/data_loader.py`](../server/data_loader.py) | fixture loading, indexing, and generated-case injection |
-| [`../server/case_factory.py`](../server/case_factory.py) | challenge/holdout/benign-twin generation |
+| [`../server/case_factory.py`](../server/case_factory.py) | challenge, procedural holdout ecosystems, benign twins, and ControlBench AP-quarter generation |
 | [`../server/attack_library.py`](../server/attack_library.py) | 16 adversarial AP fraud attack templates |
 | [`../server/schema.py`](../server/schema.py) | canonical field/action/reason-code constants and normalizers |
 | [`../server/currency_engine.py`](../server/currency_engine.py) | multi-currency realism utilities |
@@ -166,8 +169,8 @@ If you change APIs, packaging, or runtime behavior, assume CI should keep passin
 | Path | What it validates |
 |---|---|
 | [`../tests/conftest.py`](../tests/conftest.py) | shared fixtures and suite-wide pytest marker setup |
-| [`../tests/test_api_smoke.py`](../tests/test_api_smoke.py) | API endpoint smoke coverage |
-| [`../tests/test_benchmark_report.py`](../tests/test_benchmark_report.py) | public/holdout/contrastive reporting behavior |
+| [`../tests/test_api_smoke.py`](../tests/test_api_smoke.py) | API endpoint smoke coverage including ControlBench and human-baseline summary endpoints |
+| [`../tests/test_benchmark_report.py`](../tests/test_benchmark_report.py) | public/holdout/blind/sleeper/ControlBench/certificate-required/human-baseline reporting behavior |
 | [`../tests/test_compare_all_models.py`](../tests/test_compare_all_models.py) | score parsing helpers in broad model sweeps |
 | [`../tests/test_compare_models_live.py`](../tests/test_compare_models_live.py) | live comparison stats, capability profiles, and rendering helpers |
 | [`../tests/test_compliance_engine.py`](../tests/test_compliance_engine.py) | SOX compliance evaluation |
@@ -179,6 +182,7 @@ If you change APIs, packaging, or runtime behavior, assume CI should keep passin
 | [`../tests/test_inference_llm_powered.py`](../tests/test_inference_llm_powered.py) | derived thread reasoning in LLM-powered inference |
 | [`../tests/test_inference_runtime.py`](../tests/test_inference_runtime.py) | model capability profiles and runtime heuristics |
 | [`../tests/test_institutional_game.py`](../tests/test_institutional_game.py) | persistent AP-week memory and loss updates |
+| [`../tests/test_controlbench.py`](../tests/test_controlbench.py) | ControlBench sequence generation, procedural holdouts, control-boundary enforcement, TrustGraph persistence, and sleeper-vendor behavior |
 | [`../tests/test_ledgershield_env.py`](../tests/test_ledgershield_env.py) | environment transitions, scoring, and holdout generation |
 | [`../tests/test_schema_reason_codes.py`](../tests/test_schema_reason_codes.py) | reason-code normalization and aliasing |
 | [`../tests/test_task_c_guardrails.py`](../tests/test_task_c_guardrails.py) | Task C submission guardrails and PAY evidence |

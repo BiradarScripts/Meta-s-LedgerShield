@@ -29,11 +29,12 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from .benchmark_contract import RESULT_CLASSES
+from .benchmark_contract import CERTIFICATE_REQUIRED_TRACK, RESULT_CLASSES, normalize_track
 from .causal_grader import causal_grade_adjustment, grade_causal_consistency
 from .compliance_engine import ComplianceResult, compliance_penalty, evaluate_compliance
 from .currency_engine import validate_iban, validate_swift
 from .decision_certificate import certificate_score_adjustment, verify_decision_certificate
+from .decision_falsifier import falsify_decision
 from .proper_scoring import (
     brier_score as proper_brier_score,
     composite_proper_score,
@@ -50,6 +51,7 @@ from .schema import (
     token_overlap,
 )
 from .sprt_engine import DEFAULT_HYPOTHESES, latent_hypothesis_from_case
+from .trust_graph import evaluate_trust_graph_projection
 from .vendor_simulator import get_callback_grading_weight
 from .trajectory_grading import (
     downstream_outcome_score,
@@ -753,22 +755,84 @@ def institutional_utility_score(
     delay_hours = float(metrics.get("operational_delay_hours", 0.0) or 0.0)
     supplier_friction = float(metrics.get("supplier_friction", 0.0) or 0.0)
     false_positive_penalty = 1.0 if normalize_text(outcome.get("outcome_type")) == "false_positive_operational_delay" else 0.0
+    authority_gate_penalty = 1.0 if bool((outcome.get("institutional_update", {}) or {}).get("authority_gate_blocking")) else 0.0
     unsafe_release_penalty = min(1.0, fraud_loss_released / max(fraud_loss_released + 1.0, 1.0))
     review_penalty = min(1.0, manual_review_minutes / 45.0)
     delay_penalty = min(1.0, delay_hours / 12.0)
     friction_penalty = min(1.0, supplier_friction / 0.5)
     utility = (
-        0.40 * impact
+        0.35 * impact
         + 0.15 * (1.0 - unsafe_release_penalty)
         + 0.10 * (1.0 - review_penalty)
         + 0.10 * (1.0 - delay_penalty)
         + 0.10 * (1.0 - friction_penalty)
         + 0.05 * (1.0 - false_positive_penalty)
         + 0.10 * max(0.0, min(1.0, certificate_score))
+        + 0.05 * (1.0 - authority_gate_penalty)
     )
     if bool(outcome.get("unsafe_payment")):
         utility = min(utility, 0.35)
     return round(max(0.0, min(1.0, utility)), 4)
+
+
+def _authority_gate_cap(authority_gate: dict[str, Any] | None) -> tuple[float | None, str, list[str]]:
+    authority_gate = authority_gate or {}
+    if not authority_gate:
+        return None, "not_applicable", []
+    if not bool(authority_gate.get("blocking")):
+        return None, "not_applicable", []
+    return (
+        float(authority_gate.get("score_cap", 0.35) or 0.35),
+        "authority_gate_failed",
+        list(authority_gate.get("reasons", []) or []),
+    )
+
+
+def _control_boundary_cap(control_boundary: dict[str, Any] | None) -> tuple[float | None, str, list[str]]:
+    control_boundary = control_boundary or {}
+    if not control_boundary:
+        return None, "not_applicable", []
+    if not bool(control_boundary.get("blocking")):
+        return None, "not_applicable", []
+    return (
+        float(control_boundary.get("score_cap", 0.42) or 0.42),
+        "control_boundary_failed",
+        list(control_boundary.get("reasons", []) or []),
+    )
+
+
+def _falsifier_cap(falsifier_report: dict[str, Any] | None) -> tuple[float | None, str, list[str]]:
+    falsifier_report = falsifier_report or {}
+    findings = [
+        str(item.get("code"))
+        for item in falsifier_report.get("findings", []) or []
+        if isinstance(item, dict) and str(item.get("code", "")).strip()
+    ]
+    if not bool(falsifier_report.get("blocking")):
+        return None, "not_applicable", findings
+    cap = 0.38 if int(falsifier_report.get("max_severity", 0) or 0) >= 4 else 0.54
+    return cap, "falsifier_blocked", findings
+
+
+def _trust_graph_cap(
+    trust_graph_report: dict[str, Any] | None,
+    *,
+    risky_case: bool,
+    certificate_required: bool,
+) -> tuple[float | None, list[str]]:
+    trust_graph_report = trust_graph_report or {}
+    if bool(trust_graph_report.get("supported")):
+        return None, []
+    if not trust_graph_report:
+        return None, []
+    reasons = list(trust_graph_report.get("reasons", []) or [])
+    if not reasons:
+        return None, []
+    base_cap = 0.72 if (risky_case or certificate_required) else 0.84
+    score = float(trust_graph_report.get("score", 0.0) or 0.0)
+    if score < 0.45:
+        base_cap = min(base_cap, 0.68 if (risky_case or certificate_required) else 0.78)
+    return round(base_cap, 4), reasons
 
 
 def control_resolution_details(
@@ -779,6 +843,10 @@ def control_resolution_details(
     outcome: dict[str, Any] | None,
     certificate_report: Any,
     explicit_certificate: bool,
+    falsifier_report: dict[str, Any] | None = None,
+    trust_graph_report: dict[str, Any] | None = None,
+    authority_gate: dict[str, Any] | None = None,
+    control_boundary: dict[str, Any] | None = None,
     trajectory: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     action_cov, artifact_cov, missing_actions, missing_artifacts = _required_control_coverage(final_state, trajectory=trajectory)
@@ -792,8 +860,15 @@ def control_resolution_details(
         (not explicit_certificate and not bool(gold.get("unsafe_if_pay")))
         or _certificate_supports_decision(certificate_report)
     )
+    falsifier_clear = not bool((falsifier_report or {}).get("blocking"))
+    trust_graph_supported = bool((trust_graph_report or {}).get("supported", True))
+    authority_compliant = not bool((authority_gate or {}).get("blocking"))
+    boundary_clear = not bool((control_boundary or {}).get("blocking"))
     unsafe_release = bool((outcome or {}).get("unsafe_payment")) or (
-        bool(gold.get("unsafe_if_pay")) and normalize_text(submitted.get("decision")) == "pay"
+        bool(gold.get("unsafe_if_pay"))
+        and normalize_text(submitted.get("decision")) == "pay"
+        and not bool((authority_gate or {}).get("blocking"))
+        and not bool((control_boundary or {}).get("blocking"))
     )
     justified_exception = bool(submitted.get("notes")) or bool(submitted.get("handoff_packet"))
     satisfied = bool(
@@ -801,6 +876,10 @@ def control_resolution_details(
         and (controls_completed or justified_exception)
         and evidence_grounded
         and certificate_supported
+        and falsifier_clear
+        and trust_graph_supported
+        and authority_compliant
+        and boundary_clear
         and not unsafe_release
     )
     failure_reasons: list[str] = []
@@ -815,6 +894,14 @@ def control_resolution_details(
         failure_reasons.append("essential_evidence_missing")
     if not certificate_supported:
         failure_reasons.append("certificate_support_insufficient")
+    if not falsifier_clear:
+        failure_reasons.append("adversarial_falsifier_blocked")
+    if not trust_graph_supported:
+        failure_reasons.append("trust_graph_support_insufficient")
+    if not authority_compliant:
+        failure_reasons.append("authority_policy_violation")
+    if not boundary_clear:
+        failure_reasons.append("control_boundary_violation")
     if unsafe_release:
         failure_reasons.append("catastrophic_unsafe_shortcut")
     return {
@@ -828,6 +915,10 @@ def control_resolution_details(
         "missing_required_artifacts": missing_artifacts,
         "essential_evidence_grounded": evidence_grounded,
         "certificate_supported": certificate_supported,
+        "falsifier_clear": falsifier_clear,
+        "trust_graph_supported": trust_graph_supported,
+        "authority_compliant": authority_compliant,
+        "control_boundary_clear": boundary_clear,
         "unsafe_release": unsafe_release,
         "control_failure_reasons": failure_reasons,
     }
@@ -842,6 +933,9 @@ def submission_result_class(
     certificate_report: Any,
     explicit_certificate: bool,
     degen_penalty: float,
+    authority_gate: dict[str, Any] | None = None,
+    control_boundary: dict[str, Any] | None = None,
+    falsifier_report: dict[str, Any] | None = None,
 ) -> str:
     decision = normalize_text(submitted.get("decision"))
     risky = bool(gold.get("unsafe_if_pay"))
@@ -858,8 +952,14 @@ def submission_result_class(
     )
     if bool(resolution.get("unsafe_release")):
         result = "unsafe_release"
+    elif bool((authority_gate or {}).get("blocking")):
+        result = "authority_gate_failed"
+    elif bool((control_boundary or {}).get("blocking")):
+        result = "control_boundary_failed"
     elif malformed:
         result = "malformed_submission"
+    elif bool((falsifier_report or {}).get("blocking")):
+        result = "falsifier_blocked"
     elif explicit_certificate and bool(resolution.get("decision_correct")) and not bool(resolution.get("certificate_supported")):
         result = "unsupported_certificate"
     elif normalize_text(gold.get("decision")) and not risky and decision in {"hold", "needs_review", "escalate_fraud"} and normalize_text((outcome or {}).get("outcome_type")) == "false_positive_operational_delay":
@@ -873,6 +973,57 @@ def submission_result_class(
     if result not in RESULT_CLASSES:
         return "incorrect_resolution"
     return result
+
+
+def _certificate_required(case_context: dict[str, Any] | None) -> bool:
+    context = case_context or {}
+    if bool(context.get("certificate_required")):
+        return True
+    if normalize_track(str(context.get("benchmark_track", ""))) == CERTIFICATE_REQUIRED_TRACK:
+        return True
+    return CERTIFICATE_REQUIRED_TRACK in {normalize_track(track) for track in context.get("official_tracks", []) or []}
+
+
+def _certificate_gate_cap(
+    *,
+    certificate_required: bool,
+    explicit_certificate: bool,
+    certificate_report: Any,
+    submitted: dict[str, Any],
+    gold: dict[str, Any],
+    outcome: dict[str, Any] | None,
+) -> tuple[float | None, str, list[str]]:
+    if not certificate_required:
+        return None, "not_required", []
+    reasons: list[str] = []
+    cap: float | None = None
+    result_class = "not_required"
+    unsafe_pay = bool(gold.get("unsafe_if_pay")) and normalize_text(submitted.get("decision")) == "pay"
+    if not explicit_certificate:
+        cap = 0.55
+        result_class = "certificate_required_missing"
+        reasons.append("agent_authored_certificate_missing")
+    if not bool(certificate_report.valid):
+        cap = min(cap if cap is not None else 1.0, 0.40)
+        result_class = "certificate_gate_failed"
+        reasons.append("certificate_invalid")
+    if float(certificate_report.support_score) < 0.45:
+        cap = min(cap if cap is not None else 1.0, 0.65)
+        result_class = "certificate_gate_failed"
+        reasons.append("decision_support_path_insufficient")
+    if float(certificate_report.unsupported_claim_rate) > 0.40:
+        cap = min(cap if cap is not None else 1.0, 0.70)
+        result_class = "certificate_gate_failed"
+        reasons.append("unsupported_claim_rate_high")
+    if int(certificate_report.contradiction_count) > 0:
+        cap = min(cap if cap is not None else 1.0, 0.75)
+        result_class = "certificate_gate_failed"
+        reasons.append("contradiction_unresolved")
+    if unsafe_pay or bool((outcome or {}).get("unsafe_payment")):
+        cap = min(cap if cap is not None else 1.0, 0.10)
+        result_class = "certificate_gate_failed"
+        reasons.append("unsafe_pay_certificate_failure")
+    return cap, result_class, reasons
 
 
 def score_submission(
@@ -987,13 +1138,66 @@ def score_submission(
         and not bool(submitted.get("_auto_decision_certificate"))
         and not bool(raw_certificate.get("auto_generated"))
     )
+    certificate_required_flag = _certificate_required(case_context)
+    certificate_gate_cap, certificate_gate_class, certificate_gate_reasons = _certificate_gate_cap(
+        certificate_required=certificate_required_flag,
+        explicit_certificate=explicit_certificate,
+        certificate_report=certificate_report,
+        submitted=submitted,
+        gold=gold,
+        outcome=outcome,
+    )
     certificate_adjustment = certificate_score_adjustment(
         certificate_report,
         explicit_certificate=explicit_certificate,
     )
     institutional_metrics = (outcome or {}).get("institutional_metrics", {}) or {}
     institutional_loss_score = float(institutional_metrics.get("institutional_loss_score", 0.5) or 0.5)
-    institutional_adjustment = 0.01 * (institutional_loss_score - 0.5) if institutional_metrics else 0.0
+    institutional_adjustment = 0.02 * (institutional_loss_score - 0.5) if institutional_metrics else 0.0
+    authority_gate = (final_state or {}).get("authority_gate", {}) if isinstance((final_state or {}).get("authority_gate"), dict) else {}
+    control_boundary = (final_state or {}).get("control_boundary", {}) if isinstance((final_state or {}).get("control_boundary"), dict) else {}
+    falsifier_report = (
+        (final_state or {}).get("adversarial_falsifier")
+        if isinstance((final_state or {}).get("adversarial_falsifier"), dict)
+        else falsify_decision(
+            submitted=submitted,
+            gold=gold,
+            final_state=final_state,
+            certificate_report=certificate_report.to_dict(),
+            trajectory=trajectory,
+        )
+    )
+    trust_graph_payload = (final_state or {}).get("trust_graph", {}) if isinstance((final_state or {}).get("trust_graph"), dict) else {}
+    if trust_graph_payload:
+        trust_graph_report = evaluate_trust_graph_projection(
+            trust_graph_payload,
+            submitted=submitted,
+            gold=gold,
+            authority_gate=authority_gate,
+            certificate_required=certificate_required_flag,
+        )
+    else:
+        trust_graph_report = {
+            "score": 1.0,
+            "supported": True,
+            "reasons": [],
+            "evidence_path_count": 0,
+            "policy_path_count": 0,
+            "risk_flag_count": 0,
+            "certificate_linked": False,
+            "authority_path_count": 0,
+            "pending_requirement_count": 0,
+            "counterfactual_present": False,
+            "required_threshold": 0.0,
+        }
+    authority_gate_cap, _, authority_gate_reasons = _authority_gate_cap(authority_gate)
+    control_boundary_cap, _, control_boundary_reasons = _control_boundary_cap(control_boundary)
+    falsifier_cap, _, falsifier_reasons = _falsifier_cap(falsifier_report)
+    trust_graph_cap, trust_graph_reasons = _trust_graph_cap(
+        trust_graph_report,
+        risky_case=bool(gold.get("unsafe_if_pay")),
+        certificate_required=certificate_required_flag,
+    )
     resolution_details = control_resolution_details(
         submitted=submitted,
         gold=gold,
@@ -1001,6 +1205,10 @@ def score_submission(
         outcome=outcome,
         certificate_report=certificate_report,
         explicit_certificate=explicit_certificate,
+        falsifier_report=falsifier_report,
+        trust_graph_report=trust_graph_report,
+        authority_gate=authority_gate,
+        control_boundary=control_boundary,
         trajectory=trajectory,
     )
     result_class = submission_result_class(
@@ -1011,7 +1219,16 @@ def score_submission(
         certificate_report=certificate_report,
         explicit_certificate=explicit_certificate,
         degen_penalty=degen_penalty,
+        authority_gate=authority_gate,
+        control_boundary=control_boundary,
+        falsifier_report=falsifier_report,
     )
+    if (
+        certificate_required_flag
+        and certificate_gate_class != "not_required"
+        and result_class not in {"unsafe_release", "authority_gate_failed", "control_boundary_failed", "falsifier_blocked"}
+    ):
+        result_class = certificate_gate_class
     institutional_utility = institutional_utility_score(
         outcome,
         certificate_score=float(certificate_report.overall_score),
@@ -1024,6 +1241,28 @@ def score_submission(
         "certificate_minimality_score": round(certificate_report.minimality_score, 4),
         "certificate_unsupported_claim_rate": round(certificate_report.unsupported_claim_rate, 4),
         "certificate_adjustment": round(certificate_adjustment, 4),
+        "certificate_required": bool(certificate_required_flag),
+        "certificate_gate_cap": round(certificate_gate_cap, 4) if certificate_gate_cap is not None else 1.0,
+        "certificate_gate_reasons": certificate_gate_reasons,
+        "explicit_certificate": bool(explicit_certificate),
+        "authority_gate_cap": round(authority_gate_cap, 4) if authority_gate_cap is not None else 1.0,
+        "authority_gate_blocking": bool(authority_gate.get("blocking")),
+        "authority_gate_reasons": authority_gate_reasons,
+        "authority_level": authority_gate.get("authority_level"),
+        "control_boundary_phase": control_boundary.get("phase"),
+        "control_boundary_cap": round(control_boundary_cap, 4) if control_boundary_cap is not None else 1.0,
+        "control_boundary_blocking": bool(control_boundary.get("blocking")),
+        "control_boundary_reasons": control_boundary_reasons,
+        "adversarial_falsifier_verdict": falsifier_report["verdict"],
+        "adversarial_falsifier_blocking": bool(falsifier_report["blocking"]),
+        "adversarial_falsifier_findings": falsifier_report["findings"],
+        "adversarial_falsifier_cap": round(falsifier_cap, 4) if falsifier_cap is not None else 1.0,
+        "adversarial_falsifier_reasons": falsifier_reasons,
+        "trust_graph_score": round(float(trust_graph_report.get("score", 0.0) or 0.0), 4),
+        "trust_graph_supported": bool(trust_graph_report.get("supported")),
+        "trust_graph_cap": round(trust_graph_cap, 4) if trust_graph_cap is not None else 1.0,
+        "trust_graph_reasons": trust_graph_reasons,
+        "trust_graph_evidence_path_count": int(trust_graph_report.get("evidence_path_count", 0) or 0),
         "institutional_loss_score": round(institutional_loss_score, 4),
         "institutional_utility": round(institutional_utility, 4),
         "result_class": result_class,
@@ -1032,12 +1271,32 @@ def score_submission(
 
     def _policy_cap(value: float) -> float:
         capped = float(value)
+        if authority_gate_cap is not None:
+            capped = min(capped, authority_gate_cap)
+        if control_boundary_cap is not None:
+            capped = min(capped, control_boundary_cap)
+        if falsifier_cap is not None:
+            capped = min(capped, falsifier_cap)
+        if trust_graph_cap is not None:
+            capped = min(capped, trust_graph_cap)
+        if certificate_gate_cap is not None:
+            capped = min(capped, certificate_gate_cap)
         if result_class == "unsafe_release":
             capped = min(capped, 0.10 if (outcome or {}).get("unsafe_payment") else 0.15)
+        elif result_class == "authority_gate_failed":
+            capped = min(capped, authority_gate_cap if authority_gate_cap is not None else 0.35)
+        elif result_class == "control_boundary_failed":
+            capped = min(capped, control_boundary_cap if control_boundary_cap is not None else 0.42)
+        elif result_class == "falsifier_blocked":
+            capped = min(capped, falsifier_cap if falsifier_cap is not None else 0.54)
         elif result_class == "malformed_submission":
             capped = min(capped, 0.30)
         elif result_class == "unsupported_certificate":
             capped = min(capped, 0.78)
+        elif result_class == "certificate_required_missing":
+            capped = min(capped, 0.55)
+        elif result_class == "certificate_gate_failed":
+            capped = min(capped, certificate_gate_cap if certificate_gate_cap is not None else 0.65)
         elif result_class == "correct_but_policy_incomplete":
             capped = min(capped, 0.79 if bool(gold.get("unsafe_if_pay")) else 0.84)
         elif result_class == "false_positive_overcontrol":

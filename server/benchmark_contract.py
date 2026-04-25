@@ -9,6 +9,12 @@ from .schema import normalize_text
 CASE_TRACK = "case"
 PORTFOLIO_TRACK = "portfolio"
 ADVERSARIAL_DATA_TRACK = "adversarial"
+CONTROLBENCH_TRACK = "controlbench"
+CERTIFICATE_REQUIRED_TRACK = "certificate_required"
+GENERATED_HOLDOUT_TRACK = "generated_holdout"
+SLEEPER_VIGILANCE_TRACK = "sleeper_vigilance"
+BLIND_CONTROL_TRACK = "blind_control"
+HUMAN_BASELINE_TRACK = "human_baseline"
 
 OFFICIAL_TRACKS = {
     CASE_TRACK: {
@@ -22,6 +28,30 @@ OFFICIAL_TRACKS = {
     ADVERSARIAL_DATA_TRACK: {
         "label": "Adversarial Data Track",
         "description": "Robustness to deceptive content inside emails, documents, and tool outputs.",
+    },
+    CONTROLBENCH_TRACK: {
+        "label": "ControlBench Track",
+        "description": "Long-horizon institutional-control evaluation with loss surface, calibration gate, and sleeper-vendor vigilance.",
+    },
+    CERTIFICATE_REQUIRED_TRACK: {
+        "label": "Certificate-Required Track",
+        "description": "Strict proof-carrying evaluation where auto-generated compatibility certificates cannot receive full credit.",
+    },
+    GENERATED_HOLDOUT_TRACK: {
+        "label": "Generated Holdout Track",
+        "description": "Seeded generated AP holdouts that stress unseen mechanism combinations and anti-overfit robustness.",
+    },
+    SLEEPER_VIGILANCE_TRACK: {
+        "label": "Sleeper-Vigilance Track",
+        "description": "Trust-building vendor sequences that later activate bank-change or BEC fraud.",
+    },
+    BLIND_CONTROL_TRACK: {
+        "label": "Blind-Control Track",
+        "description": "Benchmark runs where SPRT, VoI, and reward-machine scaffolding remain hidden from the acting agent.",
+    },
+    HUMAN_BASELINE_TRACK: {
+        "label": "Human-Baseline Track",
+        "description": "Comparable AP-analyst evaluations used as an operational realism and calibration anchor.",
     },
 }
 
@@ -40,7 +70,12 @@ RESULT_CLASSES = {
     "valid_success",
     "correct_but_policy_incomplete",
     "unsafe_release",
+    "authority_gate_failed",
+    "control_boundary_failed",
+    "falsifier_blocked",
     "unsupported_certificate",
+    "certificate_required_missing",
+    "certificate_gate_failed",
     "malformed_submission",
     "false_positive_overcontrol",
     "incorrect_resolution",
@@ -58,6 +93,24 @@ def normalize_track(track: str | None) -> str:
         "adversarial_data_track": ADVERSARIAL_DATA_TRACK,
         "adversarial_data": ADVERSARIAL_DATA_TRACK,
         "adversarial": ADVERSARIAL_DATA_TRACK,
+        "controlbench_track": CONTROLBENCH_TRACK,
+        "controlbench": CONTROLBENCH_TRACK,
+        "generated_holdout_track": GENERATED_HOLDOUT_TRACK,
+        "generated_holdout": GENERATED_HOLDOUT_TRACK,
+        "holdout_track": GENERATED_HOLDOUT_TRACK,
+        "holdout": GENERATED_HOLDOUT_TRACK,
+        "sleeper_vigilance_track": SLEEPER_VIGILANCE_TRACK,
+        "sleeper_vigilance": SLEEPER_VIGILANCE_TRACK,
+        "blind_control_track": BLIND_CONTROL_TRACK,
+        "blind_control": BLIND_CONTROL_TRACK,
+        "blind": BLIND_CONTROL_TRACK,
+        "institutional_control": CONTROLBENCH_TRACK,
+        "certificate_required_track": CERTIFICATE_REQUIRED_TRACK,
+        "certificate_required": CERTIFICATE_REQUIRED_TRACK,
+        "proof_required": CERTIFICATE_REQUIRED_TRACK,
+        "human_baseline_track": HUMAN_BASELINE_TRACK,
+        "human_baseline": HUMAN_BASELINE_TRACK,
+        "human": HUMAN_BASELINE_TRACK,
     }
     return aliases.get(candidate, CASE_TRACK)
 
@@ -220,14 +273,38 @@ def mechanism_family(case: dict[str, Any]) -> str:
 def infer_official_tracks(case: dict[str, Any]) -> list[str]:
     if isinstance(case.get("official_tracks"), list):
         tracks = [normalize_track(track) for track in case.get("official_tracks", [])]
+        split = normalize_text(case.get("benchmark_split"))
+        if split in {"challenge", "generated", "holdout"}:
+            tracks.append(GENERATED_HOLDOUT_TRACK)
+        if normalize_text(case.get("benchmark_split")) == CONTROLBENCH_TRACK or case.get("controlbench"):
+            tracks.append(CONTROLBENCH_TRACK)
+        sleeper_phase = normalize_text((case.get("controlbench", {}) or {}).get("sleeper_phase"))
+        if sleeper_phase in {"warmup", "activation", "trust_building"}:
+            tracks.append(SLEEPER_VIGILANCE_TRACK)
+        if case.get("certificate_required"):
+            tracks.append(CERTIFICATE_REQUIRED_TRACK)
+        if bool(case.get("human_baseline_case")):
+            tracks.append(HUMAN_BASELINE_TRACK)
         return sorted({track for track in tracks if track})
     task_type = normalize_text(case.get("task_type"))
     gold = case.get("gold", {}) or {}
+    split = normalize_text(case.get("benchmark_split"))
     tracks = {CASE_TRACK}
     if task_type in {"task_d", "task_e"} or bool(gold.get("campaign_signals")) or len(gold.get("duplicate_links", []) or []) >= 1:
         tracks.add(ADVERSARIAL_DATA_TRACK)
     if task_type in {"task_d", "task_e"} or len(gold.get("cross_invoice_links", []) or []) >= 1:
         tracks.add(PORTFOLIO_TRACK)
+    if split in {"challenge", "generated", "holdout"}:
+        tracks.add(GENERATED_HOLDOUT_TRACK)
+    if normalize_text(case.get("benchmark_split")) == CONTROLBENCH_TRACK or case.get("controlbench"):
+        tracks.add(CONTROLBENCH_TRACK)
+    sleeper_phase = normalize_text((case.get("controlbench", {}) or {}).get("sleeper_phase"))
+    if sleeper_phase in {"warmup", "activation", "trust_building"}:
+        tracks.add(SLEEPER_VIGILANCE_TRACK)
+    if case.get("certificate_required"):
+        tracks.add(CERTIFICATE_REQUIRED_TRACK)
+    if bool(case.get("human_baseline_case")):
+        tracks.add(HUMAN_BASELINE_TRACK)
     return sorted(tracks)
 
 
@@ -237,6 +314,16 @@ def primary_track_for_case(case: dict[str, Any]) -> str:
         return CASE_TRACK
     task_type = normalize_text(case.get("task_type"))
     gold = case.get("gold", {}) or {}
+    if GENERATED_HOLDOUT_TRACK in tracks:
+        return GENERATED_HOLDOUT_TRACK
+    if CONTROLBENCH_TRACK in tracks:
+        if SLEEPER_VIGILANCE_TRACK in tracks:
+            return SLEEPER_VIGILANCE_TRACK
+        return CONTROLBENCH_TRACK
+    if CERTIFICATE_REQUIRED_TRACK in tracks:
+        return CERTIFICATE_REQUIRED_TRACK
+    if HUMAN_BASELINE_TRACK in tracks:
+        return HUMAN_BASELINE_TRACK
     if task_type == "task_e" or len(gold.get("cross_invoice_links", []) or []) >= 2:
         return PORTFOLIO_TRACK
     if bool(gold.get("unsafe_if_pay")) and task_type in {"task_d", "task_e"}:
@@ -269,6 +356,16 @@ def ensure_case_contract_fields(case: dict[str, Any]) -> dict[str, Any]:
 
 def case_matches_track(case: dict[str, Any], track: str | None) -> bool:
     normalized_track = normalize_track(track)
+    split = normalize_text(case.get("benchmark_split"))
+    if normalized_track == GENERATED_HOLDOUT_TRACK:
+        return split in {"challenge", "generated", "holdout"}
+    if normalized_track == SLEEPER_VIGILANCE_TRACK:
+        sleeper_phase = normalize_text((case.get("controlbench", {}) or {}).get("sleeper_phase"))
+        return sleeper_phase in {"warmup", "activation", "trust_building"}
+    if normalized_track == BLIND_CONTROL_TRACK:
+        return split == "benchmark"
+    if normalized_track == HUMAN_BASELINE_TRACK:
+        return bool(case.get("human_baseline_case")) or split == "benchmark"
     return normalized_track in infer_official_tracks(case)
 
 

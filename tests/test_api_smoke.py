@@ -74,7 +74,7 @@ def test_leaderboard_endpoint():
     response = client.get("/leaderboard")
     assert response.status_code == 200
     payload = response.json()
-    assert payload["benchmark"] == "ledgershield-v2"
+    assert payload["benchmark"] in {"ledgershield-v2", "ledgershield-controlbench-v1"}
     assert "entries" in payload
 
 
@@ -84,6 +84,8 @@ def test_institutional_memory_endpoints():
     payload = response.json()
     assert "loss_ledger" in payload
     assert "attacker_belief" in payload
+    assert "controlbench_summary" in payload
+    assert "calibration_gate" in payload
 
     reset_response = client.post("/institutional-reset")
     assert reset_response.status_code == 200
@@ -99,9 +101,23 @@ def test_leaderboard_endpoint_degrades_gracefully_without_benchmark_report(monke
     response = fallback_client.get("/leaderboard")
     assert response.status_code == 200
     payload = response.json()
-    assert payload["benchmark"] == "ledgershield-v2"
+    assert payload["benchmark"] == "ledgershield-controlbench-v1"
     assert payload["entries"] == []
     assert "unavailable" in payload["note"]
+
+
+def test_controlbench_summary_endpoint():
+    response = client.get("/controlbench-summary")
+    assert response.status_code == 200
+    payload = response.json()
+    assert "loss_surface" in payload or "institutional_loss_score" in payload
+
+
+def test_human_baseline_summary_endpoint():
+    response = client.get("/human-baseline-summary")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["track"] == "human_baseline"
 
 
 def test_reset_endpoint():
@@ -220,6 +236,9 @@ def test_submit_decision_endpoint():
     assert result["decision"] == "ESCALATE_FRAUD"
     assert result["final_score"] >= 0.75
     assert result["score_breakdown"]["result_class"] == "correct_but_policy_incomplete"
+    assert "adversarial_falsifier" in data["info"]
+    assert "trust_graph" in data["info"]
+    assert "control_boundary" in data["info"]
     assert data["info"]["reward_model"]["terminal"] is True
 
 
