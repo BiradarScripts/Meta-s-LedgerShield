@@ -312,13 +312,13 @@ If `compare_bank_account` costs $1.00 and would increase certainty by 30%, but `
 
 #### 🔍 DETAILED: Problem Statement & Domain Context
 
-### D.1 — The Problem Statement
+#### 🔍 The Problem Statement
 
 **Problem:** Enterprise AP departments process thousands of invoices daily. Attackers exploit this at scale through BEC, duplicate invoicing, vendor takeover, and coordinated campaigns. Existing AI benchmarks test "can the model classify fraud?" but don't test "can the model stay safe, calibrated, and trustworthy over a full quarter of operational work?"
 
 **What LedgerShield solves:** A formal benchmark that evaluates not just accuracy, but **institutional safety** — can an AI agent maintain operational authority, produce auditable decisions, and resist patient adversaries over long-horizon deployment?
 
-### A.2 — The Domain: Enterprise Payment Fraud Prevention (Section 1.2)
+#### 🔍 The Domain: Enterprise Payment Fraud Prevention
 
 | Attack Type | How It Works | Real-World Cost |
 |---|---|---|
@@ -383,7 +383,7 @@ Here's what each row in the table means:
 
 #### 🔍 DETAILED: Real-World Complexity Aligned with OpenEnv Principles
 
-### D.7 — Real-World Complexity Aligned with OpenEnv Principles
+#### 🔍 Real-World Complexity Aligned with OpenEnv Principles
 
 | OpenEnv Principle | How LedgerShield Implements It |
 |---|---|
@@ -559,16 +559,16 @@ If the certificate fails, the agent's score is penalized (up to -0.03) and the `
 
 ---
 
-#### 🔍 DETAILED: When Does the System Decide to STOP and Give the Result?
+#### 🔍 DETAILED: When Does the Agent Trigger the Decision Submission?
 
-**There are 4 ways an episode ends:**
+**There are 4 conditions that trigger a `submit_decision`:**
 
-| Stop Condition | What Triggers It | What Happens | Code Location |
-|---|---|---|---|
-| **1. Agent submits a decision** | Agent calls `submit_decision` action | The grading pipeline runs: validate → score → falsify → watchdog → institutional update. This is the NORMAL ending. | `environment.py` → `submit_decision` branch in `step()` |
-| **2. Budget exhausted** | `budget_remaining < minimum_tool_cost` | Episode is truncated. Agent gets whatever partial score it has. Budget penalty applied. | `environment.py` → `if budget_remaining < min_cost: truncated = True` |
-| **3. Max steps reached** | `step_count >= max_steps` (typically 20) | Episode is truncated. Same as budget exhaustion — partial score. | `environment.py` → `if step_count >= max_steps: truncated = True` |
-| **4. SPRT optimal stopping reached** | SPRT boundary crossed (evidence strongly supports one hypothesis) AND `max_remaining_voi <= 0` (no tool would provide meaningful new info) | The environment signals to the agent: "You have enough evidence to decide." The agent can still keep investigating, but VoI will be near-zero for all remaining tools. | `server/sprt_engine.py` → `optimal_stopping_check()` |
+| Trigger | Who Decides | What Happens |
+|---|---|---|
+| **1. The Mathematical Trigger (SPRT Optimal Stopping)** | Agent (Prompted by System) | When evidence strongly proves a hypothesis, the system flags `"optimal_stopping_reached": true`. The agent sees this, knows it has mathematically *enough* evidence, and triggers submission. |
+| **2. The Budget Trigger** | Agent (Forced) | The agent starts with 15.0 budget. If `budget_remaining` drops lower than the cost of any useful tool, the agent MUST trigger submission with whatever evidence it has. |
+| **3. The Step Limit Trigger** | Agent (Forced) | Hard cap of `max_steps` (typically 20). As the agent approaches this limit, it must trigger submission before the environment forcefully terminates the episode. |
+| **4. The High-Confidence "Smoking Gun"** | Agent (Unilateral) | If the agent's LLM logic finds overwhelming evidence early (e.g., bank mismatch + spoofed email domain), it can unilaterally decide to stop investigating and submit immediately to save budget. |
 
 **The SPRT stopping logic in detail (from `server/sprt_engine.py`):**
 
@@ -664,29 +664,7 @@ With α=0.05 (5% false positive rate) and β=0.10 (10% false negative rate), the
 
 #### 🔍 DETAILED: Agent Capabilities & Key Classes
 
-### D.3 — Agent Capabilities
-
-The agent must:
-1. **Investigate:** Use 14 tools to gather evidence under budget constraints
-2. **Intervene:** Trigger 9 enterprise controls (callbacks, freezes, escalations)
-3. **Decide:** Choose PAY/HOLD/NEEDS_REVIEW/ESCALATE_FRAUD with calibrated confidence
-4. **Certify:** Produce a Decision Certificate Graph with typed evidence-to-decision proof paths
-5. **Adapt:** Adjust strategy based on institutional memory (past vendor trust, remaining capacity, authority level)
-
-Agent capability is profiled via `ModelCapabilityProfile` — elite/strong/standard tiers with different budgets, planning modes, and repair levels.
-
-### D.4 — The Tasks
-
-5 task families (A→E) with 21 curated cases, plus 300+ generated variants:
-- **Task A:** OCR extraction (proof-carrying field extraction)
-- **Task B:** Three-way match decisioning (invoice ↔ PO ↔ receipt)
-- **Task C:** Duplicate + bank fraud triage
-- **Task D:** Full BEC investigation (email + vendor + bank + callback)
-- **Task E:** Campaign-level coordinated fraud (multi-invoice, multi-vendor)
-
-Evaluated across **9 official tracks:** Case, Portfolio, Adversarial Data, Generated Holdout, ControlBench, Sleeper-Vigilance, Blind Control, Certificate-Required, Human Baseline.
-
-### A.5 — Key Classes from `models.py`
+#### 🔍 Key Classes from `models.py`
 
 | Class | Main Fields | Role |
 |---|---|---|
@@ -794,11 +772,11 @@ R(terminal) = rubric_score + SPRT_stopping_bonus + VoI_gain_bonus + certificate_
 
 #### 🔍 DETAILED: Core Architecture & Environment
 
-### A.1 — One-Sentence Summary (Section 1.1)
+#### 🔍 One-Sentence Summary
 
 **LedgerShield** is a POMDP (Partially Observable Markov Decision Process) benchmark environment that evaluates AI agents on enterprise Accounts Payable (AP) payment integrity tasks — specifically, whether an autonomous agent can investigate invoices for fraud signals, verify vendor identities, enforce SOX compliance controls, and make correct pay/hold/escalate decisions under partial information, budget constraints, and adversarial pressure.
 
-### A.3 — Architecture: POMDP + ASHTG Framework (Section 1.3)
+#### 🔍 Architecture: POMDP + ASHTG Framework
 
 6 key architectural pillars:
 1. **POMDP Environment** — Agent has partial observability; must discover hidden risk signals through investigation tools, each costing budget
@@ -808,7 +786,7 @@ R(terminal) = rubric_score + SPRT_stopping_bonus + VoI_gain_bonus + certificate_
 5. **Structural Causal Model (SCM)** — Causal DAG with do-calculus interventions, d-separation, and counterfactuals
 6. **Multi-Rubric Grading** — Five task families with distinct scoring rubrics evaluating extraction, decision, evidence, policy, process, and utility
 
-### D.2 — The Environment
+#### 🔍 The Environment
 
 A POMDP environment where:
 - **State:** Partially observable — agent sees documents, case metadata, SPRT posteriors, tool rankings. Hidden: latent fraud hypothesis, hidden risk signals, attacker beliefs
@@ -926,7 +904,7 @@ Case 12: CASE-E-001 (campaign fraud)          → sleeper_phase = "none"
 
 #### 🔍 DETAILED: LedgerShield ControlBench Evolution
 
-### A.4 — LedgerShield ControlBench Evolution (Section 1.7)
+#### 🔍 LedgerShield ControlBench Evolution
 
 The current codebase has evolved beyond a case-level POMDP into **LedgerShield ControlBench** — a long-horizon institutional-control benchmark adding:
 - Persistent AP-week institutional memory across cases
@@ -996,7 +974,7 @@ Here's what each authority level means in plain English, and what the agent can/
 ### What Are Guardrails?
 Guardrails are safety checks and validation layers that prevent the agent from submitting bad, incomplete, or dangerous outputs. LedgerShield has **5 layers of guardrails**:
 
-### B.1 — Task-Specific Submission Guardrails
+#### 🔍 Task-Specific Submission Guardrails
 
 | Guardrail File | Task | What It Does |
 |---|---|---|
@@ -1008,31 +986,31 @@ Guardrails are safety checks and validation layers that prevent the agent from s
 - `sanitize_task_X_submission()` — Cleans/normalizes field values (e.g., lowercase decisions, deduplicate reason codes)
 - `grounded_task_X_submission()` — Ensures evidence references (doc_id, bbox, token_ids) point to actual OCR data
 
-### B.2 — Authority Gate Guardrail
+#### 🔍 Authority Gate Guardrail
 
 | What | Where | Why |
 |---|---|---|
 | **Calibration-gated authority** | `server/institutional_game.py` → `evaluate_authority_gate()` | Prevents agents with poor calibration from making high-stakes decisions. If authority = `review_only` or `locked`, agent's decision is forced to NEEDS_REVIEW regardless of what it submitted. |
 
-### B.3 — Control Boundary Guardrail
+#### 🔍 Control Boundary Guardrail
 
 | What | Where | Why |
 |---|---|---|
 | **Control-statechart boundary** | `server/world_state.py` → `evaluate_control_boundary()` | Phase-based enforcement: checks if the agent has completed required investigation steps before submitting. If not, decision may be overridden or blocked. |
 
-### B.4 — Decision Certificate Falsifier Guardrail
+#### 🔍 Decision Certificate Falsifier Guardrail
 
 | What | Where | Why |
 |---|---|---|
 | **Deterministic adversarial falsifier** | `server/decision_falsifier.py` | Attacks the agent's Decision Certificate Graph looking for unsupported claims, missing evidence paths, and contradictions. If the certificate fails verification, the score is penalized by up to -0.03. |
 
-### B.5 — SOX Compliance Guardrail
+#### 🔍 SOX Compliance Guardrail
 
 | What | Where | Why |
 |---|---|---|
 | **8 SOX internal controls** | `server/compliance_engine.py` | Evaluates whether the agent followed required enterprise controls (three-way match, callback verification, audit trail, etc.). Missing critical controls incur -0.08 penalty each. |
 
-### B.6 — Degenerate Submission Guardrail
+#### 🔍 Degenerate Submission Guardrail
 
 | What | Where | Why |
 |---|---|---|
@@ -1335,7 +1313,7 @@ Shaping Signal
 
 #### 🔍 DETAILED: Reward Model & Post-Training Strategy
 
-### D.5 — The Reward Model / Evaluation Logic
+#### 🔍 The Reward Model / Evaluation Logic
 
 **Reward = PBRS + VoI + Milestones + Terminal Score**
 - **PBRS:** Continuous shaping via `γ·Φ(s') - Φ(s)` (guaranteed policy-invariant)
@@ -1346,7 +1324,7 @@ Shaping Signal
 
 **Key property:** Strictly proper scoring rules make truthful confidence reporting the dominant strategy. SPRT provides mathematically optimal stopping boundaries.
 
-### D.6 — Post-Training / Self-Improvement Strategy
+#### 🔍 Post-Training / Self-Improvement Strategy
 
 1. **37-dimensional RL state vector** exported at every `step()` — enables Decision Transformer training from episode traces
 2. **TRL SFT training notebook** (`training/LedgerShield_v2_TRL_SFT_Training.ipynb`) — Colab-compatible, uses Unsloth + TRL library
@@ -1438,7 +1416,7 @@ So when the slide says "320+ test coverage", it means the benchmark evaluates ag
 
 #### 🔍 DETAILED: Key Server Modules Architecture
 
-### A.6 — Key Server Modules
+#### 🔍 Key Server Modules
 
 **`server/environment.py` (1,633 lines) — THE CORE FILE:**
 - `__init__()`: Initializes DataLoader, InstitutionalMemory, CurriculumState
@@ -1553,7 +1531,7 @@ Penalties: Critical = -0.08, High = -0.04, Medium = -0.02 per failure (capped at
 
 ### SLIDE 14 — Rubric Parameter Answers (How LedgerShield Scores on Each)
 
-### C.1 — Real-World Utility (30%)
+#### 🔍 Real-World Utility (30%)
 
 > **Question:** Does the environment model a genuine task? Would someone actually use this to train or evaluate agents?
 
@@ -1566,7 +1544,7 @@ Penalties: Critical = -0.08, High = -0.04, Medium = -0.02 per failure (capped at
 
 **Evidence:** The 21 curated test cases are based on real-world fraud patterns documented by FBI IC3, ACFE (Association of Certified Fraud Examiners), and enterprise AP audit frameworks. The 16 attack types correspond to known fraud taxonomies.
 
-### C.2 — Task & Grader Quality (25%)
+#### 🔍 Task & Grader Quality (25%)
 
 > **Question:** Are tasks well-defined with clear objectives? Do graders accurately and fairly measure success? Meaningful difficulty progression?
 
@@ -1577,7 +1555,7 @@ Penalties: Critical = -0.08, High = -0.04, Medium = -0.02 per failure (capped at
 - **Difficulty progression:** Easy (Task A-001) → Medium (Task B-001) → Hard (Task C-001, D-001) → Expert (Task E-001). Verified by live model comparison: gpt-3.5-turbo scores 0.99 on A-001 but 0.06 on C-001
 - **Fair scoring:** Proper scoring rules (Brier + Log + Penalized Brier) are mathematically proven strategy-proof — misreporting confidence cannot improve score
 
-### C.3 — Environment Design (20%)
+#### 🔍 Environment Design (20%)
 
 > **Question:** Clean state management, sensible action/observation spaces, good reward shaping, proper episode boundaries.
 
@@ -1589,7 +1567,7 @@ Penalties: Critical = -0.08, High = -0.04, Medium = -0.02 per failure (capped at
 - **Proper episode boundaries:** Episodes terminate on: submit_decision, max_steps reached, or budget exhausted. Truncated episodes flagged separately from completed ones
 - **Cross-episode persistence:** InstitutionalMemory carries over between episodes for ControlBench sequences
 
-### C.4 — Code Quality & Spec Compliance (15%)
+#### 🔍 Code Quality & Spec Compliance (15%)
 
 > **Question:** Follows OpenEnv spec, clean project structure, typed models, documented, tested, Dockerfile works.
 
@@ -1601,7 +1579,7 @@ Penalties: Critical = -0.08, High = -0.04, Medium = -0.02 per failure (capped at
 - **Testing:** `validate_grader.py`, `validate_agent_grading.py`, `validate-submission.sh` (4-gate validator)
 - **Dockerfile:** Working `python:3.11-slim` image with `pip install`, `uvicorn` startup
 
-### C.5 — Creativity & Novelty (10%)
+#### 🔍 Creativity & Novelty (10%)
 
 > **Question:** Novel problem domain, interesting mechanics, clever reward design, original approach.
 
