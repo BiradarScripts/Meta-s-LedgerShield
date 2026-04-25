@@ -106,6 +106,50 @@ def test_leaderboard_endpoint_degrades_gracefully_without_benchmark_report(monke
     assert "unavailable" in payload["note"]
 
 
+def test_report_endpoints_generate_runtime_preview_without_artifacts(monkeypatch, tmp_path):
+    import benchmark_report
+
+    monkeypatch.setattr(benchmark_report, "DEFAULT_REPORT_PATH", tmp_path / "missing_report.json")
+    monkeypatch.setattr(benchmark_report, "DEFAULT_LEADERBOARD_PATH", tmp_path / "missing_leaderboard.json")
+
+    def fake_build_report(**kwargs):
+        assert kwargs["controlbench_sequence_length"] >= 1
+        return {
+            "benchmark": "ledgershield-controlbench-v1",
+            "generated_at": "test-generated-at",
+            "public_benchmark": {"case_count": 1},
+            "evaluation_protocol": {
+                "model_name": "ledgershield/deterministic-baseline",
+                "agent_type": "deterministic-policy",
+            },
+        }
+
+    monkeypatch.setattr(benchmark_report, "build_report", fake_build_report)
+    monkeypatch.setattr(
+        benchmark_report,
+        "build_leaderboard_entry",
+        lambda report, *, model_name, agent_type: {
+            "model": model_name,
+            "type": agent_type,
+            "public_mean": 0.5,
+        },
+    )
+
+    fallback_client = TestClient(app_module.build_app())
+
+    report_response = fallback_client.get("/benchmark-report")
+    assert report_response.status_code == 200
+    report_payload = report_response.json()
+    assert report_payload["runtime_preview"] is True
+    assert report_payload["public_benchmark"]["case_count"] == 1
+
+    leaderboard_response = fallback_client.get("/leaderboard")
+    assert leaderboard_response.status_code == 200
+    leaderboard_payload = leaderboard_response.json()
+    assert leaderboard_payload["runtime_preview"] is True
+    assert len(leaderboard_payload["entries"]) == 1
+
+
 def test_controlbench_summary_endpoint():
     response = client.get("/controlbench-summary")
     assert response.status_code == 200

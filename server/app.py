@@ -37,6 +37,37 @@ def _load_benchmark_report_module():
 def build_app():
     env = LedgerShieldEnvironment()
     app = create_fastapi_app(env, LedgerShieldAction, LedgerShieldObservation)
+    runtime_report_cache: dict[str, Any] | None = None
+
+    def _runtime_report_preview(benchmark_report: Any) -> dict[str, Any]:
+        """Build a small in-memory report when packaged artifacts are absent."""
+        nonlocal runtime_report_cache
+        if runtime_report_cache is not None:
+            return runtime_report_cache
+
+        controlbench_length = max(
+            1,
+            int(os.getenv("LEDGERSHIELD_RUNTIME_REPORT_CONTROLBENCH_CASES", "12") or 12),
+        )
+        holdout_seed = int((benchmark_report.DEFAULT_HOLDOUT_SEEDS or [2026])[0])
+        report = benchmark_report.build_report(
+            holdout_seeds=[holdout_seed],
+            variants_per_case=1,
+            pass_threshold=benchmark_report.DEFAULT_PASS_THRESHOLD,
+            pass_k=benchmark_report.DEFAULT_PASS_K,
+            temperature=benchmark_report.DEFAULT_TEMPERATURE,
+            client=None,
+            model_name="",
+            controlbench_sequence_length=controlbench_length,
+        )
+        report["runtime_preview"] = True
+        report["artifact_note"] = (
+            "Generated in memory because no benchmark report artifact was found. "
+            "Run benchmark_report.py to write the full artifact set."
+        )
+        report.setdefault("evaluation_protocol", {})["runtime_preview"] = True
+        runtime_report_cache = report
+        return report
 
     def _latest_report() -> dict[str, Any]:
         benchmark_report = _load_benchmark_report_module()
@@ -45,7 +76,15 @@ def build_app():
         report_path = benchmark_report.DEFAULT_REPORT_PATH
         if report_path.exists():
             return json.loads(report_path.read_text(encoding="utf-8"))
-        return {}
+        try:
+            return _runtime_report_preview(benchmark_report)
+        except Exception as exc:  # pragma: no cover - defensive runtime fallback
+            return {
+                "benchmark": "ledgershield-controlbench-v1",
+                "generated_at": None,
+                "runtime_preview": False,
+                "note": f"No benchmark report artifact found and runtime preview generation failed: {exc}",
+            }
 
     @app.get("/leaderboard")
     def leaderboard() -> dict[str, Any]:
@@ -57,7 +96,32 @@ def build_app():
                 "note": "benchmark_report.py is unavailable in this runtime image.",
                 "entries": [],
             }
-        return benchmark_report.load_leaderboard_payload()
+        leaderboard_path = benchmark_report.DEFAULT_LEADERBOARD_PATH
+        if leaderboard_path.exists():
+            return benchmark_report.load_leaderboard_payload()
+
+        report = _latest_report()
+        if isinstance(report.get("public_benchmark"), dict):
+            protocol = report.get("evaluation_protocol", {}) or {}
+            entry = benchmark_report.build_leaderboard_entry(
+                report,
+                model_name=protocol.get("model_name", benchmark_report.DETERMINISTIC_BASELINE_MODEL),
+                agent_type=protocol.get("agent_type", "deterministic-policy"),
+            )
+            return {
+                "benchmark": report.get("benchmark", "ledgershield-controlbench-v1"),
+                "generated_at": report.get("generated_at"),
+                "entries": [entry],
+                "runtime_preview": bool(report.get("runtime_preview")),
+                "note": report.get("artifact_note", "Leaderboard derived from the runtime benchmark preview."),
+            }
+
+        return {
+            "benchmark": "ledgershield-controlbench-v1",
+            "generated_at": None,
+            "entries": [],
+            "note": report.get("note", "No leaderboard artifact or runtime benchmark report is available."),
+        }
 
     @app.get("/benchmark-report")
     def latest_benchmark_report() -> dict[str, Any]:
@@ -71,11 +135,7 @@ def build_app():
         report_path = benchmark_report.DEFAULT_REPORT_PATH
         if report_path.exists():
             return json.loads(report_path.read_text(encoding="utf-8"))
-        return {
-            "benchmark": "ledgershield-controlbench-v1",
-            "generated_at": None,
-            "note": "No benchmark report artifact generated yet. Run benchmark_report.py to create one.",
-        }
+        return _latest_report()
 
     @app.post("/certify")
     def certify(payload: dict[str, Any] | None = None) -> dict[str, Any]:
