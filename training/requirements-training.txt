@@ -1,0 +1,17 @@
+# Install these in a clean Colab/venv for the TRL training run.
+# The runtime Space dependencies intentionally stay separate from ML training deps.
+accelerate>=0.34,<2
+datasets>=2.20,<4
+fastapi>=0.110
+huggingface-hub>=0.24,<1.0
+httpx>=0.27
+matplotlib>=3.8
+openai>=1
+peft>=0.12,<1
+pydantic>=2
+PyYAML>=6
+requests>=2
+torch>=2.3
+transformers>=4.44,<5
+trl>=0.11,<1
+uvicorn>=0.30

@@ -7,8 +7,14 @@ __pycache__/
 *.log
 .DS_Store
 venv/
+.venv_training/
 discarded/
-artifacts/
+artifacts/*
+!artifacts/training_output.json
+!artifacts/trl-openenv-hf-a10g-qwen-rich/
+!artifacts/trl-openenv-hf-a10g-qwen-rich/**
+artifacts/trl-openenv-hf-a10g-qwen-rich/checkpoints/
+artifacts/trl-openenv-hf-a10g-qwen-rich/tokenizer/
 .analysis_logs/
 .git/
 

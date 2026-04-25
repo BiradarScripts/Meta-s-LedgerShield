@@ -5,6 +5,7 @@
 
 # Python artifacts
 .venv
+.venv_training
 venv
 __pycache__
 .pytest_cache
@@ -31,6 +32,17 @@ envs/
 live_model_comparison_debug/
 live_model_comparison.json
 final_corrected_comparison.json
+artifacts/trl-openenv-debug*/
+artifacts/trl-openenv-smoke*/
+artifacts/trl-openenv-run/checkpoints/
+artifacts/trl-openenv-run/final_model/
+artifacts/trl-openenv-run/tokenizer/
+artifacts/trl-openenv-hf-a10g-qwen-full/final_model/
+artifacts/trl-openenv-hf-a10g-qwen-full/tokenizer/
+artifacts/trl-openenv-hf-a10g-qwen-reward/final_model/
+artifacts/trl-openenv-hf-a10g-qwen-reward/tokenizer/
+artifacts/trl-openenv-hf-a10g-qwen-rich/final_model/
+artifacts/trl-openenv-hf-a10g-qwen-rich/tokenizer/
 
 # Development scripts (not needed at runtime)
 compare_models_live.py

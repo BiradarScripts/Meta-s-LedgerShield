@@ -10,6 +10,7 @@ This single document consolidates the full documentation set for LedgerShield Co
 - [Documentation Index](#documentation-index)
 - [Benchmark Card](#benchmark-card)
 - [Tasks](#tasks)
+- [Training Evidence Report](./training-report.md)
 - [API Reference](#api-reference)
 - [Architecture](#architecture)
 - [ASHTG Theory](#ashtg-theory)
@@ -56,8 +57,8 @@ This document contains the long-form documentation for LedgerShield ControlBench
 #### Evaluating the benchmark (reviewer, researcher)
 
 1. [`README.md`](../README.md) — project overview, benchmark at a glance, upgrade snapshot
-2. [`index.md`](#documentation-index) — why LedgerShield exists, core concepts, scoring philosophy
-3. [`tasks.md`](#tasks) — task families, case catalog, output contracts, scoring dimensions
+2. [`training-report.md`](./training-report.md) — real A10G training evidence, reward curves, baseline comparison, and artifact map
+3. [`index.md`](#documentation-index) — why LedgerShield exists, core concepts, scoring philosophy
 4. [`architecture.md`](#architecture) — system layers, hidden state, reward flow, grading pipeline
 
 #### Building an agent
@@ -87,6 +88,7 @@ This document contains the long-form documentation for LedgerShield ControlBench
 | File | Best for | Contents |
 |---|---|---|
 | [`index.md`](#documentation-index) | first-time readers | motivation, benchmark scope, core concepts, quick start, and evaluation framing |
+| [`training-report.md`](./training-report.md) | judges and reviewers | real OpenEnv-connected TRL training evidence, plots, reward checkpoints, and grading alignment |
 | [`tasks.md`](#tasks) | agent builders and benchmark users | task families A–E, case catalog, output contracts by task, scoring weights, and penalties |
 | [`api-reference.md`](#api-reference) | integrators and agent builders | REST endpoints (`/reset`, `/step`, `/state`, `/leaderboard`, `/benchmark-report`, `/controlbench-summary`, `/human-baseline-summary`, `/institutional-memory`, `/institutional-reset`), request/response envelopes, action taxonomy, reward model |
 | [`architecture.md`](#architecture) | researchers and maintainers | system layers, hidden-state mechanics, reward design, grading pipeline, case generation, realism modules |

@@ -1,0 +1,4 @@
+step,mean_score,mean_total_reward,parse_success_rate,unsafe_release_rate,control_satisfied_resolution_rate
+300,0.3599,-2.8615,1.0,0.0,0.3333
+600,0.509,-3.0566,1.0,0.0,1.0
+900,0.4743,-3.0913,1.0,0.0,0.6667

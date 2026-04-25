@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>LedgerShield A10G Qwen Training Dashboard</title>
+  <style>
+    body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #08111f; color: #edf6ff; }
+    header { padding: 48px 56px 28px; background: radial-gradient(circle at top left, #125a8a, #08111f 52%); border-bottom: 1px solid rgba(255,255,255,.08); }
+    h1 { font-size: 42px; margin: 0 0 10px; letter-spacing: -.03em; }
+    .subtitle { color: #9fb7d8; font-size: 17px; max-width: 920px; line-height: 1.55; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; padding: 26px 56px; }
+    .card { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.10); border-radius: 18px; padding: 18px; box-shadow: 0 12px 32px rgba(0,0,0,.22); }
+    .label { color: #9fb7d8; font-size: 12px; text-transform: uppercase; letter-spacing: .12em; }
+    .value { margin-top: 8px; font-size: 30px; font-weight: 800; }
+    .note { margin-top: 5px; color: #b9c9df; font-size: 13px; }
+    .plots { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 18px; padding: 8px 56px 56px; }
+    figure { background: #ffffff; color: #172033; margin: 0; padding: 12px; border-radius: 18px; box-shadow: 0 18px 42px rgba(0,0,0,.30); }
+    img { width: 100%; display: block; border-radius: 10px; }
+    figcaption { padding: 10px 4px 0; color: #344154; font-weight: 700; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>LedgerShield A10G Qwen Training</h1>
+    <div class="subtitle">OpenEnv-connected TRL SFT on Hugging Face Jobs using Qwen/Qwen2.5-0.5B-Instruct. Losses are logged every optimizer step, evaluation runs back through the LedgerShield environment, and the dashboard shows both training dynamics and safety metrics.</div>
+  </header>
+  <section class="cards">
+    <div class="card"><div class="label">Hardware</div><div class="value">NVIDIA A10G</div><div class="note">cuda</div></div>
+    <div class="card"><div class="label">Final Loss</div><div class="value">0.0885</div><div class="note">36 train cases</div></div>
+    <div class="card"><div class="label">Trained Score</div><div class="value">0.4394</div><div class="note">base 0.1283</div></div>
+    <div class="card"><div class="label">Parse Success</div><div class="value">100.00%</div><div class="note">held-out eval</div></div>
+    <div class="card"><div class="label">Unsafe Release</div><div class="value">0.00%</div><div class="note">lower is better</div></div>
+    <div class="card"><div class="label">Teacher Ceiling</div><div class="value">0.6627</div><div class="note">deterministic policy</div></div>
+  </section>
+  <section class="plots"><figure><img src="plots/training_loss.png" /><figcaption>Training Loss</figcaption></figure>
+<figure><img src="plots/training_loss_smoothed.png" /><figcaption>Training Loss Smoothed</figcaption></figure>
+<figure><img src="plots/token_accuracy_curve.png" /><figcaption>Token Accuracy Curve</figcaption></figure>
+<figure><img src="plots/learning_rate_schedule.png" /><figcaption>Learning Rate Schedule</figcaption></figure>
+<figure><img src="plots/grad_norm_curve.png" /><figcaption>Grad Norm Curve</figcaption></figure>
+<figure><img src="plots/entropy_curve.png" /><figcaption>Entropy Curve</figcaption></figure>
+<figure><img src="plots/tokens_processed_curve.png" /><figcaption>Tokens Processed Curve</figcaption></figure>
+<figure><img src="plots/loss_accuracy_scatter.png" /><figcaption>Loss Accuracy Scatter</figcaption></figure>
+<figure><img src="plots/checkpoint_reward_curve.png" /><figcaption>Checkpoint Reward Curve</figcaption></figure>
+<figure><img src="plots/reward_improvement_ladder.png" /><figcaption>Reward Improvement Ladder</figcaption></figure>
+<figure><img src="plots/mean_reward_by_policy.png" /><figcaption>Mean Reward By Policy</figcaption></figure>
+<figure><img src="plots/mean_total_reward_by_policy.png" /><figcaption>Mean Total Reward By Policy</figcaption></figure>
+<figure><img src="plots/case_reward_delta.png" /><figcaption>Case Reward Delta</figcaption></figure>
+<figure><img src="plots/cumulative_mean_reward.png" /><figcaption>Cumulative Mean Reward</figcaption></figure>
+<figure><img src="plots/safety_and_parse_metrics.png" /><figcaption>Safety And Parse Metrics</figcaption></figure>
+<figure><img src="plots/result_class_distribution.png" /><figcaption>Result Class Distribution</figcaption></figure>
+<figure><img src="plots/institutional_reward_components.png" /><figcaption>Institutional Reward Components</figcaption></figure>
+<figure><img src="plots/certificate_score_by_policy.png" /><figcaption>Certificate Score By Policy</figcaption></figure>
+<figure><img src="plots/score_safety_frontier.png" /><figcaption>Score Safety Frontier</figcaption></figure>
+<figure><img src="plots/mean_episode_length.png" /><figcaption>Mean Episode Length</figcaption></figure>
+<figure><img src="plots/per_case_scores_by_policy.png" /><figcaption>Per Case Scores By Policy</figcaption></figure>
+<figure><img src="plots/policy_score_boxplot.png" /><figcaption>Policy Score Boxplot</figcaption></figure>
+<figure><img src="plots/reward_vs_steps_scatter.png" /><figcaption>Reward Vs Steps Scatter</figcaption></figure></section>
+</body>
+</html>

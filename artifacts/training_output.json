@@ -1,0 +1,177 @@
+{
+  "commands": [
+    "pip install -r training/requirements-training.txt",
+    "HF_TOKEN=... python training/launch_hf_a10g_qwen_job.py --repo-id shreayas/ledgershield-controlbench --hardware A10G_LARGE --output-dir artifacts/trl-openenv-hf-a10g-qwen-rich --max-steps 900 --case-limit 45 --model-eval-case-limit 9 --reward-eval-interval 300"
+  ],
+  "dataset": "artifacts/trl-openenv-hf-a10g-qwen-rich/openenv_sft_examples.jsonl",
+  "dataset_format": {
+    "completion_template": "Executable JSON action plan collected from live environment rollouts, preserving final-decision evidence fields",
+    "fields": [
+      "prompt",
+      "completion",
+      "metadata"
+    ],
+    "prompt_template": "AP analyst instruction + live reset observation summary + available tools",
+    "type": "JSONL"
+  },
+  "eval_example_count": 9,
+  "evaluation_summary": {
+    "base_model": {
+      "case_count": 9,
+      "certificate_score_mean": 0.4044,
+      "control_satisfied_resolution_rate": 0.0,
+      "done_rate": 1.0,
+      "institutional_loss_score_mean": 0.9744,
+      "institutional_utility_mean": 0.7194,
+      "mean_score": 0.1283,
+      "mean_steps": 2.5556,
+      "mean_total_reward": -1.4473,
+      "parse_success_rate": 1.0,
+      "result_class_counts": {
+        "control_boundary_failed": 7,
+        "correct_but_policy_incomplete": 1,
+        "false_positive_overcontrol": 1
+      },
+      "unsafe_release_rate": 0.0
+    },
+    "naive_baseline": {
+      "case_count": 9,
+      "certificate_score_mean": 0.4794,
+      "control_satisfied_resolution_rate": 0.2222,
+      "done_rate": 1.0,
+      "institutional_loss_score_mean": 0.9755,
+      "institutional_utility_mean": 0.8002,
+      "mean_score": 0.0693,
+      "mean_steps": 1.0,
+      "mean_total_reward": 0.0493,
+      "parse_success_rate": 1.0,
+      "result_class_counts": {
+        "control_boundary_failed": 7,
+        "valid_success": 2
+      },
+      "unsafe_release_rate": 0.0
+    },
+    "random_baseline": {
+      "case_count": 9,
+      "certificate_score_mean": 0.4461,
+      "control_satisfied_resolution_rate": 0.0,
+      "done_rate": 1.0,
+      "institutional_loss_score_mean": 0.9684,
+      "institutional_utility_mean": 0.699,
+      "mean_score": 0.1088,
+      "mean_steps": 1.0,
+      "mean_total_reward": 0.0888,
+      "parse_success_rate": 1.0,
+      "result_class_counts": {
+        "control_boundary_failed": 7,
+        "correct_but_policy_incomplete": 1,
+        "false_positive_overcontrol": 1
+      },
+      "unsafe_release_rate": 0.0
+    },
+    "teacher_policy": {
+      "case_count": 9,
+      "certificate_score_mean": 0.9472,
+      "control_satisfied_resolution_rate": 0.5556,
+      "done_rate": 1.0,
+      "institutional_loss_score_mean": 0.9846,
+      "institutional_utility_mean": 0.891,
+      "mean_score": 0.6627,
+      "mean_steps": 11.4444,
+      "mean_total_reward": -2.709,
+      "parse_success_rate": 1.0,
+      "result_class_counts": {
+        "control_boundary_failed": 2,
+        "incorrect_resolution": 2,
+        "valid_success": 5
+      },
+      "unsafe_release_rate": 0.0
+    },
+    "trained_model": {
+      "case_count": 9,
+      "certificate_score_mean": 0.8478,
+      "control_satisfied_resolution_rate": 0.2222,
+      "done_rate": 1.0,
+      "institutional_loss_score_mean": 0.9728,
+      "institutional_utility_mean": 0.8197,
+      "mean_score": 0.4394,
+      "mean_steps": 12.2222,
+      "mean_total_reward": -3.1019,
+      "parse_success_rate": 1.0,
+      "result_class_counts": {
+        "correct_but_policy_incomplete": 2,
+        "false_positive_overcontrol": 1,
+        "falsifier_blocked": 2,
+        "incorrect_resolution": 2,
+        "valid_success": 2
+      },
+      "unsafe_release_rate": 0.0
+    }
+  },
+  "example_count": 45,
+  "framework": "trl",
+  "generated_at": "2026-04-25T16:16:47.127148+00:00",
+  "hardware": {
+    "flavor": "a10g-large",
+    "gpu": "NVIDIA A10G",
+    "memory_gb": 22.3,
+    "platform": "Hugging Face Jobs"
+  },
+  "learning_rate": 2e-05,
+  "max_steps": 900,
+  "method": "SFT with LoRA",
+  "model": "Qwen/Qwen2.5-0.5B-Instruct",
+  "note": "OpenEnv-connected TRL SFT run completed on Hugging Face Jobs A10G: 45 live trajectories collected through reset/step, 36 train cases, 9 held-out eval cases, 900 optimizer steps, checkpoint reward evaluation at steps 300/600/900, final training_loss=0.0885, trained mean_score=0.4394 vs base Qwen 0.1283 and random baseline 0.1088, LoRA adapter uploaded, and 23 PNG diagnostics generated.",
+  "plot_paths": [
+    "artifacts/trl-openenv-hf-a10g-qwen-rich/plots/training_loss.png",
+    "artifacts/trl-openenv-hf-a10g-qwen-rich/plots/training_loss_smoothed.png",
+    "artifacts/trl-openenv-hf-a10g-qwen-rich/plots/token_accuracy_curve.png",
+    "artifacts/trl-openenv-hf-a10g-qwen-rich/plots/learning_rate_schedule.png",
+    "artifacts/trl-openenv-hf-a10g-qwen-rich/plots/grad_norm_curve.png",
+    "artifacts/trl-openenv-hf-a10g-qwen-rich/plots/entropy_curve.png",
+    "artifacts/trl-openenv-hf-a10g-qwen-rich/plots/tokens_processed_curve.png",
+    "artifacts/trl-openenv-hf-a10g-qwen-rich/plots/loss_accuracy_scatter.png",
+    "artifacts/trl-openenv-hf-a10g-qwen-rich/plots/checkpoint_reward_curve.png",
+    "artifacts/trl-openenv-hf-a10g-qwen-rich/plots/reward_improvement_ladder.png",
+    "artifacts/trl-openenv-hf-a10g-qwen-rich/plots/mean_reward_by_policy.png",
+    "artifacts/trl-openenv-hf-a10g-qwen-rich/plots/mean_total_reward_by_policy.png",
+    "artifacts/trl-openenv-hf-a10g-qwen-rich/plots/case_reward_delta.png",
+    "artifacts/trl-openenv-hf-a10g-qwen-rich/plots/cumulative_mean_reward.png",
+    "artifacts/trl-openenv-hf-a10g-qwen-rich/plots/safety_and_parse_metrics.png",
+    "artifacts/trl-openenv-hf-a10g-qwen-rich/plots/result_class_distribution.png",
+    "artifacts/trl-openenv-hf-a10g-qwen-rich/plots/institutional_reward_components.png",
+    "artifacts/trl-openenv-hf-a10g-qwen-rich/plots/certificate_score_by_policy.png",
+    "artifacts/trl-openenv-hf-a10g-qwen-rich/plots/score_safety_frontier.png",
+    "artifacts/trl-openenv-hf-a10g-qwen-rich/plots/mean_episode_length.png",
+    "artifacts/trl-openenv-hf-a10g-qwen-rich/plots/per_case_scores_by_policy.png",
+    "artifacts/trl-openenv-hf-a10g-qwen-rich/plots/policy_score_boxplot.png",
+    "artifacts/trl-openenv-hf-a10g-qwen-rich/plots/reward_vs_steps_scatter.png"
+  ],
+  "reward_eval_history": [
+    {
+      "mean_score": 0.3599,
+      "mean_total_reward": -2.8615,
+      "parse_success_rate": 1.0,
+      "step": 300,
+      "unsafe_release_rate": 0.0
+    },
+    {
+      "mean_score": 0.509,
+      "mean_total_reward": -3.0566,
+      "parse_success_rate": 1.0,
+      "step": 600,
+      "unsafe_release_rate": 0.0
+    },
+    {
+      "mean_score": 0.4743,
+      "mean_total_reward": -3.0913,
+      "parse_success_rate": 1.0,
+      "step": 900,
+      "unsafe_release_rate": 0.0
+    }
+  ],
+  "status": "trl_training_completed",
+  "train_example_count": 36,
+  "train_runtime_seconds": 1516.9058,
+  "training_loss": 0.08846680386218295
+}

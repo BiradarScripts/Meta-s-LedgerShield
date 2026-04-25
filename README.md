@@ -22,6 +22,14 @@ tags:
 [![CI](https://img.shields.io/badge/ci-github_actions-success.svg)](./.github/workflows/ci.yml)
 [![OpenEnv](https://img.shields.io/badge/OpenEnv-compatible-green.svg)](./openenv.yaml)
 
+**Runnable Hugging Face Space:** https://huggingface.co/spaces/shreayas/ledgershield-controlbench
+
+**Training evidence report:** [`docs/training-report.md`](./docs/training-report.md)
+
+**Short mini-blog source:** [`docs/HF_MINIBLOG_FINAL.md`](./docs/HF_MINIBLOG_FINAL.md)
+
+**Consolidated writeup / mini-blog / demo script:** [`docs/DOCUMENTATION.md`](./docs/DOCUMENTATION.md)
+
 LedgerShield ControlBench is a verified benchmark for **institutional control intelligence** in enterprise accounts-payable workflows. It is designed for the Round 2 framing of **World Modeling — Professional Tasks**, with **Long-Horizon Planning & Instruction Following** as the secondary theme.
 
 Instead of asking an agent to classify one invoice, LedgerShield asks it to operate a defensible enterprise control regime: investigate, apply controls, absorb delayed evidence, manage AP-week capacity, withstand adversarial pressure, and submit an auditable decision that can be checked against hidden backend state.
@@ -36,7 +44,7 @@ The environment keeps the existing AP/BEC domain, proof-carrying decision certif
 
 > **Documentation hub:** See [`docs/DOCUMENTATION.md`](./docs/DOCUMENTATION.md) for the full consolidated documentation (reading paths, task contracts, API reference, architecture, ASHTG theory, deployment, verification reports, and the file-level implementation deep-dive).
 >
-> **Submission assets:** [Benchmark card](./docs/DOCUMENTATION.md#benchmark-card) · [Demo script](./docs/DOCUMENTATION.md#demo-script) · [Mini-blog](./docs/DOCUMENTATION.md#mini-blog)
+> **Submission assets:** [Training evidence report](./docs/training-report.md) · [Mini-blog source](./docs/HF_MINIBLOG_FINAL.md) · [Benchmark card](./docs/DOCUMENTATION.md#benchmark-card) · [Demo script](./docs/DOCUMENTATION.md#demo-script)
 
 ## Why This Matters
 
@@ -452,12 +460,113 @@ If `openenv` is installed in your environment, you can also run:
 openenv validate
 ```
 
+### 7. Train With TRL
+
+The training runner collects trajectories through live LedgerShield `reset()` and `step()` calls before fine-tuning. The committed run used Hugging Face Jobs on `a10g-large` hardware with `Qwen/Qwen2.5-0.5B-Instruct`, logged every optimizer-step loss, evaluated rewards during training, uploaded the LoRA adapter/tokenizer, and generated a 23-plot analysis pack.
+
+```bash
+export HF_TOKEN="your_token"
+python training/launch_hf_a10g_qwen_job.py \
+  --repo-id shreayas/ledgershield-controlbench \
+  --hardware A10G_LARGE \
+  --output-dir artifacts/trl-openenv-hf-a10g-qwen-rich \
+  --max-steps 900 \
+  --case-limit 45 \
+  --model-eval-case-limit 9 \
+  --reward-eval-interval 300
+```
+
+Fast smoke test without model training:
+
+```bash
+python training/ledgershield_trl_training.py \
+  --output-dir artifacts/trl-openenv-smoke \
+  --case-limit 5
+```
+
+Training assets:
+
+| Asset | Path |
+|---|---|
+| Judge-facing training report | [`docs/training-report.md`](./docs/training-report.md) |
+| OpenEnv-connected TRL runner | [`training/ledgershield_trl_training.py`](./training/ledgershield_trl_training.py) |
+| Re-runnable Colab notebook | [`training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb`](./training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb) |
+| HF A10G Qwen launcher | [`training/launch_hf_a10g_qwen_job.py`](./training/launch_hf_a10g_qwen_job.py) |
+| Training dependency pins | [`training/requirements-training.txt`](./training/requirements-training.txt) |
+| Plot renderer | [`training/plot_training_results.py`](./training/plot_training_results.py) |
+
+Current real-run evidence is committed under `artifacts/trl-openenv-hf-a10g-qwen-rich/`. The run collected 45 live trajectories from the environment, trained on 36 cases, evaluated on 9 held-out cases, ran 900 TRL optimizer steps, and reached final training loss `0.0885`.
+
+HF training job: https://huggingface.co/jobs/shreayas/69ecd421d70108f37acde80d
+
+Observed hardware: `NVIDIA A10G` on Hugging Face Jobs `a10g-large` with `22.3 GB` GPU memory.
+
+Loss records: `900` optimizer-step rows, from first logged loss `1.6154` to final logged loss `0.0009`.
+
+Loss logs:
+
+| Artifact | Path |
+|---|---|
+| Step-by-step CSV | [`artifacts/trl-openenv-hf-a10g-qwen-rich/loss_history.csv`](./artifacts/trl-openenv-hf-a10g-qwen-rich/loss_history.csv) |
+| Step-by-step JSON | [`artifacts/trl-openenv-hf-a10g-qwen-rich/loss_history.json`](./artifacts/trl-openenv-hf-a10g-qwen-rich/loss_history.json) |
+| Reward checkpoint CSV | [`artifacts/trl-openenv-hf-a10g-qwen-rich/reward_eval_history.csv`](./artifacts/trl-openenv-hf-a10g-qwen-rich/reward_eval_history.csv) |
+| HF job log | [`artifacts/trl-openenv-hf-a10g-qwen-rich/hf_job_api.log`](./artifacts/trl-openenv-hf-a10g-qwen-rich/hf_job_api.log) |
+| Training summary | [`artifacts/trl-openenv-hf-a10g-qwen-rich/analysis_summary.md`](./artifacts/trl-openenv-hf-a10g-qwen-rich/analysis_summary.md) |
+| Showcase dashboard | [`artifacts/trl-openenv-hf-a10g-qwen-rich/showcase_dashboard.html`](./artifacts/trl-openenv-hf-a10g-qwen-rich/showcase_dashboard.html) |
+| LoRA adapter | [`artifacts/trl-openenv-hf-a10g-qwen-rich/final_model/`](./artifacts/trl-openenv-hf-a10g-qwen-rich/final_model/) |
+
+| Policy | Eval cases | Mean score | Mean total reward | Control satisfied | Certificate mean | Parse success | Unsafe release |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Random baseline | 9 | 0.1088 | 0.0888 | 0.0000 | 0.4461 | 1.0000 | 0.0000 |
+| Naive PAY baseline | 9 | 0.0693 | 0.0493 | 0.2222 | 0.4794 | 1.0000 | 0.0000 |
+| Base Qwen model | 9 | 0.1283 | -1.4473 | 0.0000 | 0.4044 | 1.0000 | 0.0000 |
+| Trained Qwen LoRA | 9 | 0.4394 | -3.1019 | 0.2222 | 0.8478 | 1.0000 | 0.0000 |
+| Teacher policy | 9 | 0.6627 | -2.7090 | 0.5556 | 0.9472 | 1.0000 | 0.0000 |
+
+The trained Qwen LoRA improved held-out mean score by `+0.3111` over the base Qwen model and `+0.3306` over the random baseline. Mean total reward includes tool costs and step penalties, so the headline learning signal here is the environment final score, control satisfaction, parse success, certificate score, and unsafe-release rate.
+
+Reward checkpoints during training used a fixed 3-case held-out subset:
+
+| Training step | Mean score | Mean total reward | Parse success | Unsafe release |
+|---:|---:|---:|---:|---:|
+| 300 | 0.3599 | -2.8615 | 1.0000 | 0.0000 |
+| 600 | 0.5090 | -3.0566 | 1.0000 | 0.0000 |
+| 900 | 0.4743 | -3.0913 | 1.0000 | 0.0000 |
+
+![Training loss](./artifacts/trl-openenv-hf-a10g-qwen-rich/plots/training_loss.png)
+Caption: TRL SFT loss over 900 optimizer steps, showing the model fitting executable LedgerShield action plans.
+
+![Reward during training](./artifacts/trl-openenv-hf-a10g-qwen-rich/plots/checkpoint_reward_curve.png)
+Caption: Held-out environment score and parse success measured during training at steps 300, 600, and 900.
+
+![Reward improvement ladder](./artifacts/trl-openenv-hf-a10g-qwen-rich/plots/reward_improvement_ladder.png)
+Caption: Random, naive, base Qwen, trained Qwen, and teacher policy scores on the same axis.
+
+![Mean reward by policy](./artifacts/trl-openenv-hf-a10g-qwen-rich/plots/mean_reward_by_policy.png)
+Caption: Final held-out environment score comparison after training.
+
+![Per-case scores by policy](./artifacts/trl-openenv-hf-a10g-qwen-rich/plots/per_case_scores_by_policy.png)
+Caption: Case-level held-out scores reveal where training helped and where teacher-level behavior is still missing.
+
+![Safety and parse metrics](./artifacts/trl-openenv-hf-a10g-qwen-rich/plots/safety_and_parse_metrics.png)
+Caption: Parse success and unsafe-release rate confirm the trained policy remains executable and safe on the held-out split.
+
+![Certificate score by policy](./artifacts/trl-openenv-hf-a10g-qwen-rich/plots/certificate_score_by_policy.png)
+Caption: Certificate/audit quality improved materially after training.
+
+![Result class distribution](./artifacts/trl-openenv-hf-a10g-qwen-rich/plots/result_class_distribution.png)
+Caption: Result classes show how behavior changed qualitatively, not just numerically.
+
+Full plot pack: [`artifacts/trl-openenv-hf-a10g-qwen-rich/plots/`](./artifacts/trl-openenv-hf-a10g-qwen-rich/plots/)
+
 ## Documentation
 
 All long-form documentation now lives in a single consolidated file: [`docs/DOCUMENTATION.md`](./docs/DOCUMENTATION.md). Jump to a section via anchor:
 
 | Section | What it covers |
 |---|---|
+| [Training Evidence Report](./docs/training-report.md) | real OpenEnv-connected TRL run, reward curves, baseline comparison, plots, and grading alignment |
+| [HF Mini-Blog Final](./docs/HF_MINIBLOG_FINAL.md) | short public-facing writeup for HF/community readers |
 | [Documentation Hub](./docs/DOCUMENTATION.md#documentation-hub) | docs landing page and reading paths |
 | [Documentation Index](./docs/DOCUMENTATION.md#documentation-index) | benchmark overview, quick start, and core concepts |
 | [Tasks](./docs/DOCUMENTATION.md#tasks) | task families, outputs, scoring, and case catalog |
@@ -469,7 +578,7 @@ All long-form documentation now lives in a single consolidated file: [`docs/DOCU
 
 Recommended reading paths:
 
-- First-time reader or reviewer: [Documentation Index](./docs/DOCUMENTATION.md#documentation-index) -> [Tasks](./docs/DOCUMENTATION.md#tasks) -> [Architecture](./docs/DOCUMENTATION.md#architecture)
+- First-time reader or reviewer: [Training Evidence Report](./docs/training-report.md) -> [Documentation Index](./docs/DOCUMENTATION.md#documentation-index) -> [Architecture](./docs/DOCUMENTATION.md#architecture)
 - Agent builder: [Tasks](./docs/DOCUMENTATION.md#tasks) -> [API Reference](./docs/DOCUMENTATION.md#api-reference) -> [Development](./docs/DOCUMENTATION.md#development)
 - Contributor: [Development](./docs/DOCUMENTATION.md#development) -> [Architecture](./docs/DOCUMENTATION.md#architecture)
 - Operator: [Deployment](./docs/DOCUMENTATION.md#deployment) -> [API Reference](./docs/DOCUMENTATION.md#api-reference)
@@ -537,6 +646,7 @@ Meta-s-LedgerShield/
 | `compare_models_live.py` | live multi-model evaluation with capability profiles and debug artifacts |
 | `sync_benchmark_metadata.py` | refreshes README/docs/openenv metadata from the current artifacts and runtime defaults |
 | `inference.py` | submission-safe agent with ModelCapabilityProfile tiers and evidence-grounded output |
+| `training/ledgershield_trl_training.py` | OpenEnv-connected TRL SFT collection, training, evaluation, and plot generation |
 | `inference_improved.py` | experimental improved agent entrypoint |
 | `inference_llm_powered.py` | richer LLM-powered agent used for debugging and comparisons |
 | `task_c_guardrails.py` / `task_d_guardrails.py` | grounded output sanitizers with composite signal detection and PAY evidence construction |
@@ -563,7 +673,8 @@ For the full file-by-file map, see the [Development section](./docs/DOCUMENTATIO
   - All 8 frozen artifacts regenerated with an expanded portfolio (5 sequences, up from 2).
   - All 21 cases audited with `primary_track`, `official_tracks`, and `latent_mechanism` fields.
   - Server endpoints validated: `/health`, `/leaderboard`, and `/benchmark-report` return correct JSON.
-  - TRL SFT training notebook (`training/LedgerShield_v2_TRL_SFT_Training.ipynb`) added with full Colab compatibility.
+  - OpenEnv-connected TRL SFT runner and Colab notebook added under `training/`, with live trajectory collection and PNG reward/loss plots.
+  - Rich-field A10G Qwen run completed and documented in [`docs/training-report.md`](./docs/training-report.md), with 45 live rollouts, 900 optimizer steps, baseline comparisons, and reward checkpoints.
 
 ## Safety Note
 
