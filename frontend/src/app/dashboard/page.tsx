@@ -20,8 +20,12 @@ import {
   TrendUp,
   Robot,
   ArrowLeft,
+  BookOpen,
+  ArrowSquareOut,
 } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
+
+const DOCS_URL = "https://aryaman.mintlify.app/benchmark/benchmark-card";
 
 function ToolButton({
   tool,
@@ -264,6 +268,17 @@ export default function Dashboard() {
             </button>
           </div>
           <div className="flex items-center gap-2">
+            <a
+              href={DOCS_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 hover:bg-white/5 transition-colors text-xs text-zinc-300"
+              title="Open benchmark card docs"
+            >
+              <BookOpen size={14} />
+              <span>Docs</span>
+              <ArrowSquareOut size={11} className="opacity-70" />
+            </a>
             <button
               onClick={() => setShowSettings(!showSettings)}
               className="p-2 rounded-lg hover:bg-white/5 transition-colors"

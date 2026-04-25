@@ -2,8 +2,10 @@
 
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { ArrowRight } from "@phosphor-icons/react";
+import { ArrowRight, ArrowSquareOut, BookOpen } from "@phosphor-icons/react";
 import LanyardWithControls from "@/components/lanyard-with-controls";
+
+const DOCS_URL = "https://aryaman.mintlify.app/benchmark/benchmark-card";
 
 const NOVELTY_CARDS = [
   {
@@ -58,6 +60,16 @@ export default function LandingPage() {
       <header className="border-b border-white/10 bg-black/20 backdrop-blur-sm">
         <div className="mx-auto flex h-16 w-full max-w-[1600px] items-center justify-between px-6">
           <p className="font-mono text-lg tracking-tight text-zinc-100">LedgerShield.</p>
+          <a
+            href={DOCS_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 rounded-md border border-white/15 bg-white/5 px-3 py-1.5 font-mono text-xs uppercase tracking-[0.2em] text-zinc-300 transition hover:bg-white/10"
+          >
+            <BookOpen size={14} />
+            Benchmark card
+            <ArrowSquareOut size={12} className="opacity-70" />
+          </a>
         </div>
       </header>
       <main className="relative">
@@ -107,6 +119,15 @@ export default function LandingPage() {
                 >
                   Test Agent
                 </button>
+                <a
+                  href={DOCS_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-transparent px-6 py-3 text-base font-medium text-zinc-200 transition hover:border-white/30 hover:bg-white/5"
+                >
+                  Read the docs
+                  <ArrowSquareOut size={14} className="opacity-70" />
+                </a>
               </motion.div>
             </div>
 

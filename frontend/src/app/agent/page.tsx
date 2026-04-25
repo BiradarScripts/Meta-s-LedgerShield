@@ -1,39 +1,71 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  ShieldCheck, 
-  Gear, 
-  Key, 
-  Globe, 
-  Brain,
+import {
+  Gear,
+  Key,
   Play,
   ArrowLeft,
   Robot,
   Cpu,
-  Circle
+  Circle,
+  Stop,
+  Eye,
+  EyeSlash,
+  CheckCircle,
+  XCircle,
+  Spinner,
+  Plug,
+  BookOpen,
+  ArrowSquareOut,
+  TreeStructure,
 } from "@phosphor-icons/react";
-import AgentStream from "@/components/AgentStream";
+
+import AgentStream, { StreamEvent } from "@/components/AgentStream";
+import { EnvironmentPanel } from "@/components/EnvironmentPanel";
+import type { StepMath } from "@/lib/agent/diagnostics";
+import { CertificateGraphModal } from "@/components/CertificateGraphModal";
+
+const DOCS_URL = "https://aryaman.mintlify.app/benchmark/benchmark-card";
+
+type AgentMode = "demo" | "custom";
 
 interface AgentConfig {
-  type: "custom" | "demo";
+  mode: AgentMode;
+  model: string;
+  apiUrl: string;
+  apiKey: string;
+}
+
+interface AvailableCase {
+  case_id: string;
+  task_type: string;
+  instruction: string;
+}
+
+type LlmHealthStatus = "idle" | "checking" | "ok" | "error";
+
+interface LlmHealth {
+  status: LlmHealthStatus;
+  message?: string;
+  latencyMs?: number;
   model?: string;
-  apiUrl?: string;
-  apiKey?: string;
-  baseUrl?: string;
+  sampleReply?: string;
 }
 
 const AVAILABLE_MODELS = [
   { id: "gpt-4o", name: "GPT-4o", provider: "OpenAI" },
   { id: "gpt-4o-mini", name: "GPT-4o Mini", provider: "OpenAI" },
-  { id: "claude-sonnet", name: "Claude Sonnet", provider: "Anthropic" },
-  { id: "claude-haiku", name: "Claude Haiku", provider: "Anthropic" },
-  { id: "gemini-pro", name: "Gemini Pro", provider: "Google" },
+  { id: "gpt-4.1-mini", name: "GPT-4.1 Mini", provider: "OpenAI" },
+  { id: "gpt-3.5-turbo", name: "GPT-3.5 Turbo", provider: "OpenAI" },
+  { id: "claude-3-5-sonnet-latest", name: "Claude 3.5 Sonnet", provider: "Anthropic-compat" },
+  { id: "claude-3-5-haiku-latest", name: "Claude 3.5 Haiku", provider: "Anthropic-compat" },
+  { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro", provider: "Google-compat" },
 ];
 
-const AVAILABLE_CASES = [
+const FALLBACK_CASES: AvailableCase[] = [
   { case_id: "CASE-A-001", task_type: "task_a", instruction: "Extract invoice fields from document" },
   { case_id: "CASE-A-002", task_type: "task_a", instruction: "Extract invoice fields from document" },
   { case_id: "CASE-A-003", task_type: "task_a", instruction: "Extract invoice fields from document" },
@@ -59,23 +91,286 @@ const AVAILABLE_CASES = [
 
 export default function AgentTestPage() {
   const router = useRouter();
-  const [config, setConfig] = useState<AgentConfig>({ 
-    type: "demo",
-    model: "",
+
+  const [config, setConfig] = useState<AgentConfig>({
+    mode: "demo",
+    model: "gpt-4o-mini",
     apiUrl: "https://api.openai.com/v1",
     apiKey: "",
   });
+  const [showApiKey, setShowApiKey] = useState(false);
   const [selectedCase, setSelectedCase] = useState("CASE-A-001");
-  const [isRunning, setIsRunning] = useState(false);
+  const [cases, setCases] = useState<AvailableCase[]>(FALLBACK_CASES);
+  const [backendStatus, setBackendStatus] = useState<"unknown" | "ok" | "down">(
+    "unknown",
+  );
+
   const [showSettings, setShowSettings] = useState(true);
-  const [runKey, setRunKey] = useState(0);
-  
+  const [isRunning, setIsRunning] = useState(false);
+  const [events, setEvents] = useState<StreamEvent[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [finalScore, setFinalScore] = useState<number | null>(null);
+  const [llmHealth, setLlmHealth] = useState<LlmHealth>({ status: "idle" });
+  const [envObservation, setEnvObservation] = useState<Record<
+    string,
+    unknown
+  > | null>(null);
+  const [cumulativeReward, setCumulativeReward] = useState(0);
+  const [lastStepReward, setLastStepReward] = useState<number | null>(null);
+  const [trustGraph, setTrustGraph] = useState<Record<string, unknown> | null>(
+    null,
+  );
+  const [showCertificateModal, setShowCertificateModal] = useState(false);
+  const [stepMath, setStepMath] = useState<StepMath | null>(null);
+
+  const abortRef = useRef<AbortController | null>(null);
+  const healthAbortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/agent/cases")
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        if (Array.isArray(data?.cases) && data.cases.length) {
+          setCases(data.cases);
+        }
+        setBackendStatus(data?.backend_healthy ? "ok" : "down");
+      })
+      .catch(() => {
+        if (!cancelled) setBackendStatus("down");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+      healthAbortRef.current?.abort();
+    };
+  }, []);
+
+  const updateConfig = (patch: Partial<AgentConfig>) => {
+    setConfig((prev) => ({ ...prev, ...patch }));
+    setLlmHealth((prev) =>
+      prev.status === "idle" ? prev : { status: "idle" },
+    );
+  };
+
+  const testLlmConnection = async () => {
+    if (config.mode !== "custom") return;
+    if (!config.apiKey.trim() || !config.model.trim()) {
+      setLlmHealth({
+        status: "error",
+        message: "Provide API key and model first.",
+      });
+      return;
+    }
+
+    healthAbortRef.current?.abort();
+    const controller = new AbortController();
+    healthAbortRef.current = controller;
+    setLlmHealth({ status: "checking" });
+
+    try {
+      const res = await fetch("/api/agent/health-check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          apiKey: config.apiKey,
+          baseUrl: config.apiUrl,
+          model: config.model,
+        }),
+        signal: controller.signal,
+      });
+      const data = (await res.json()) as {
+        ok: boolean;
+        backend?: { ok: boolean; url?: string };
+        llm?: {
+          ok: boolean;
+          error?: string;
+          latency_ms?: number;
+          model?: string;
+          sample_reply?: string;
+        };
+      };
+
+      if (data?.backend?.ok !== undefined) {
+        setBackendStatus(data.backend.ok ? "ok" : "down");
+      }
+
+      if (data?.llm?.ok) {
+        setLlmHealth({
+          status: "ok",
+          latencyMs: data.llm.latency_ms,
+          model: data.llm.model,
+          sampleReply: data.llm.sample_reply,
+        });
+      } else {
+        setLlmHealth({
+          status: "error",
+          message: data?.llm?.error || "Connection failed.",
+        });
+      }
+    } catch (err) {
+      if ((err as Error).name === "AbortError") return;
+      setLlmHealth({
+        status: "error",
+        message: (err as Error).message || "Connection failed.",
+      });
+    }
+  };
+
+  const startRun = async () => {
+    if (config.mode === "custom") {
+      if (!config.apiKey.trim()) {
+        setError("API key is required for custom mode.");
+        setShowSettings(true);
+        return;
+      }
+      if (!config.model.trim()) {
+        setError("Model is required for custom mode.");
+        setShowSettings(true);
+        return;
+      }
+    }
+    setError(null);
+    setEvents([]);
+    setFinalScore(null);
+    setEnvObservation(null);
+    setCumulativeReward(0);
+    setLastStepReward(null);
+    setTrustGraph(null);
+    setShowCertificateModal(false);
+    setStepMath(null);
+    setShowSettings(false);
+    setIsRunning(true);
+
+    const controller = new AbortController();
+    abortRef.current?.abort();
+    abortRef.current = controller;
+
+    try {
+      const response = await fetch("/api/agent/run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          caseId: selectedCase,
+          mode: config.mode,
+          model: config.model,
+          baseUrl: config.apiUrl,
+          apiKey: config.apiKey,
+        }),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || `Request failed: ${response.status}`);
+      }
+      if (!response.body) {
+        throw new Error("Response has no body.");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        let idx = buffer.indexOf("\n\n");
+        while (idx !== -1) {
+          const chunk = buffer.slice(0, idx);
+          buffer = buffer.slice(idx + 2);
+          processChunk(chunk);
+          idx = buffer.indexOf("\n\n");
+        }
+      }
+      if (buffer.trim()) processChunk(buffer);
+    } catch (err) {
+      if ((err as Error).name === "AbortError") {
+        setEvents((prev) => [
+          ...prev,
+          { type: "status", content: "Run stopped by user." },
+        ]);
+      } else {
+        const msg = (err as Error).message || "Agent run failed";
+        setError(msg);
+        setEvents((prev) => [
+          ...prev,
+          { type: "error", error: msg },
+        ]);
+      }
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  const processChunk = (chunk: string) => {
+    const lines = chunk.split("\n");
+    for (const line of lines) {
+      if (!line.startsWith("data:")) continue;
+      const payload = line.slice(5).trim();
+      if (!payload) continue;
+      try {
+        const raw = JSON.parse(payload) as Record<string, unknown> & {
+          type: string;
+        };
+        if (raw.type === "env_state") {
+          if (raw.observation && typeof raw.observation === "object") {
+            setEnvObservation(raw.observation as Record<string, unknown>);
+          }
+          setCumulativeReward(
+            typeof raw.cumulative_reward === "number"
+              ? raw.cumulative_reward
+              : 0,
+          );
+          setLastStepReward(
+            typeof raw.step_reward === "number" ? raw.step_reward : null,
+          );
+          if (raw.step_math && typeof raw.step_math === "object") {
+            setStepMath(raw.step_math as StepMath);
+          }
+          continue;
+        }
+        if (
+          raw.type === "result" &&
+          raw.trust_graph &&
+          typeof raw.trust_graph === "object"
+        ) {
+          setTrustGraph(raw.trust_graph as Record<string, unknown>);
+        }
+        setEvents((prev) => [...prev, raw as unknown as StreamEvent]);
+      } catch {
+        /* ignore malformed lines */
+      }
+    }
+  };
+
+  const stopRun = () => {
+    abortRef.current?.abort();
+  };
+
+  const credsFilled =
+    config.apiKey.trim().length > 0 && config.model.trim().length > 0;
+  const ready =
+    config.mode === "demo" ||
+    (credsFilled && llmHealth.status === "ok");
+
   return (
     <div className="min-h-screen bg-black text-white">
       <header className="fixed top-0 left-0 right-0 z-50 glass-subtle">
         <div className="max-w-[1600px] mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button onClick={() => router.push("/")} className="p-2 hover:bg-white/5 rounded-lg transition-colors">
+            <button
+              onClick={() => router.push("/")}
+              className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+            >
               <ArrowLeft size={20} />
             </button>
             <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center">
@@ -83,19 +378,34 @@ export default function AgentTestPage() {
             </div>
             <div>
               <h1 className="text-lg font-semibold tracking-tight">Agent Test</h1>
-              <p className="text-xs text-zinc-500">Run AI agent on LedgerShield</p>
+              <p className="text-xs text-zinc-500">Run an LLM agent against LedgerShield</p>
             </div>
           </div>
-          <button
-            onClick={() => setShowSettings(!showSettings)}
-            className="p-2 rounded-lg hover:bg-white/5 transition-colors"
-          >
-            <Gear size={20} />
-          </button>
+          <div className="flex items-center gap-3">
+            <BackendBadge status={backendStatus} />
+            <a
+              href={DOCS_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 hover:bg-white/5 transition-colors text-xs text-zinc-300"
+              title="Open benchmark card docs"
+            >
+              <BookOpen size={14} />
+              <span>Docs</span>
+              <ArrowSquareOut size={11} className="opacity-70" />
+            </a>
+            <button
+              onClick={() => setShowSettings((v) => !v)}
+              className="p-2 rounded-lg hover:bg-white/5 transition-colors"
+              aria-label="Toggle settings"
+            >
+              <Gear size={20} />
+            </button>
+          </div>
         </div>
       </header>
 
-      <main className="pt-24 px-6 pb-12 max-w-4xl mx-auto">
+      <main className="pt-24 px-4 sm:px-6 pb-12 max-w-[1600px] mx-auto">
         <AnimatePresence mode="wait">
           {showSettings && (
             <motion.div
@@ -108,82 +418,157 @@ export default function AgentTestPage() {
                 <Cpu size={20} />
                 Agent Configuration
               </h2>
-              
+
               <div className="space-y-6">
                 <div>
                   <label className="text-sm text-zinc-400 mb-3 block">Agent Type</label>
                   <div className="grid grid-cols-2 gap-3">
                     <button
-                      onClick={() => setConfig({ ...config, type: "custom" })}
+                      onClick={() => updateConfig({ mode: "custom" })}
                       className={`p-4 rounded-xl border text-left transition-all ${
-                        config.type === "custom" 
-                          ? "border-emerald-500 bg-emerald-500/10" 
+                        config.mode === "custom"
+                          ? "border-emerald-500 bg-emerald-500/10"
                           : "border-white/10 hover:border-white/20"
                       }`}
                     >
-                      <Key size={24} className={config.type === "custom" ? "text-emerald-400" : "text-zinc-500"} />
+                      <Key
+                        size={24}
+                        className={
+                          config.mode === "custom" ? "text-emerald-400" : "text-zinc-500"
+                        }
+                      />
                       <div className="mt-2 font-medium">Custom Agent</div>
-                      <div className="text-xs text-zinc-500">Use your own API key</div>
+                      <div className="text-xs text-zinc-500">
+                        Bring your own API key (OpenAI-compatible)
+                      </div>
                     </button>
                     <button
-                      onClick={() => setConfig({ ...config, type: "demo" })}
+                      onClick={() => updateConfig({ mode: "demo" })}
                       className={`p-4 rounded-xl border text-left transition-all ${
-                        config.type === "demo" 
-                          ? "border-emerald-500 bg-emerald-500/10" 
+                        config.mode === "demo"
+                          ? "border-emerald-500 bg-emerald-500/10"
                           : "border-white/10 hover:border-white/20"
                       }`}
                     >
-                      <Robot size={24} className={config.type === "demo" ? "text-emerald-400" : "text-zinc-500"} />
+                      <Robot
+                        size={24}
+                        className={
+                          config.mode === "demo" ? "text-emerald-400" : "text-zinc-500"
+                        }
+                      />
                       <div className="mt-2 font-medium">Demo Agent</div>
-                      <div className="text-xs text-zinc-500">Hardcoded rules</div>
+                      <div className="text-xs text-zinc-500">
+                        Pre-recorded trace, no key needed
+                      </div>
                     </button>
                   </div>
                 </div>
-                
-                {config.type === "custom" && (
+
+                {config.mode === "custom" && (
                   <>
                     <div>
                       <label className="text-sm text-zinc-400 mb-2 block">Model</label>
-                      <select
+                      <input
+                        type="text"
                         value={config.model}
-                        onChange={(e) => setConfig({ ...config, model: e.target.value })}
-                        className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 focus:border-purple-500/50 outline-none transition-colors"
-                      >
-                        <option value="">Select model...</option>
-                        {AVAILABLE_MODELS.map(m => (
-                          <option key={m.id} value={m.id}>{m.name} ({m.provider})</option>
+                        onChange={(e) =>
+                          updateConfig({ model: e.target.value })
+                        }
+                        list="agent-model-suggestions"
+                        className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 focus:border-emerald-500/50 outline-none transition-colors font-mono text-sm"
+                        placeholder="gpt-4o-mini"
+                      />
+                      <datalist id="agent-model-suggestions">
+                        {AVAILABLE_MODELS.map((m) => (
+                          <option key={m.id} value={m.id}>
+                            {m.name} ({m.provider})
+                          </option>
                         ))}
-                      </select>
+                      </datalist>
+                      <p className="text-[10px] text-zinc-500 mt-1">
+                        Any model id supported by the configured base URL.
+                      </p>
                     </div>
-                    
+
                     <div>
-                      <label className="text-sm text-zinc-400 mb-2 block">API URL</label>
+                      <label className="text-sm text-zinc-400 mb-2 block">
+                        API Base URL
+                      </label>
                       <input
                         type="text"
                         value={config.apiUrl}
-                        onChange={(e) => setConfig({ ...config, apiUrl: e.target.value })}
-                        className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 focus:border-emerald-500/50 outline-none transition-colors"
+                        onChange={(e) =>
+                          updateConfig({ apiUrl: e.target.value })
+                        }
+                        className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 focus:border-emerald-500/50 outline-none transition-colors font-mono text-sm"
                         placeholder="https://api.openai.com/v1"
                       />
+                      <p className="text-[10px] text-zinc-500 mt-1">
+                        OpenAI-compatible endpoint. Use a proxy URL for Anthropic/Gemini if needed.
+                      </p>
                     </div>
-                    
+
                     <div>
                       <label className="text-sm text-zinc-400 mb-2 block">API Key</label>
-                      <input
-                        type="password"
-                        value={config.apiKey}
-                        onChange={(e) => setConfig({ ...config, apiKey: e.target.value })}
-                        className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 focus:border-emerald-500/50 outline-none transition-colors"
-                        placeholder="sk-..."
-                      />
+                      <div className="relative">
+                        <input
+                          type={showApiKey ? "text" : "password"}
+                          value={config.apiKey}
+                          onChange={(e) =>
+                            updateConfig({ apiKey: e.target.value })
+                          }
+                          className="w-full px-4 py-3 pr-12 rounded-lg bg-white/5 border border-white/10 focus:border-emerald-500/50 outline-none transition-colors font-mono text-sm"
+                          placeholder="sk-..."
+                          autoComplete="off"
+                          spellCheck={false}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowApiKey((v) => !v)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-200"
+                        >
+                          {showApiKey ? <EyeSlash size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-zinc-500 mt-1">
+                        Your key is sent to your own Next.js server only and is never stored.
+                      </p>
                     </div>
+
+                    <ConnectionCheck
+                      health={llmHealth}
+                      disabled={!credsFilled || llmHealth.status === "checking"}
+                      onTest={testLlmConnection}
+                    />
                   </>
                 )}
-                
+
                 <div>
-                  <label className="text-sm text-zinc-400 mb-3 block">Select Case</label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                    {AVAILABLE_CASES.map(c => (
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-sm text-zinc-400">Select Case</label>
+                    <a
+                      href={`${DOCS_URL}#demo-cases`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500 hover:text-zinc-300 transition-colors"
+                    >
+                      What are these?
+                      <ArrowSquareOut size={10} />
+                    </a>
+                  </div>
+                  {config.mode === "custom" && llmHealth.status !== "ok" && (
+                    <p className="text-[11px] text-amber-300/80 mb-2">
+                      Test your LLM connection above before selecting a case.
+                    </p>
+                  )}
+                  <div
+                    className={`grid grid-cols-2 md:grid-cols-3 gap-2 max-h-[300px] overflow-y-auto pr-1 transition-opacity ${
+                      config.mode === "custom" && llmHealth.status !== "ok"
+                        ? "opacity-40 pointer-events-none"
+                        : ""
+                    }`}
+                  >
+                    {cases.map((c) => (
                       <button
                         key={c.case_id}
                         onClick={() => setSelectedCase(c.case_id)}
@@ -193,8 +578,12 @@ export default function AgentTestPage() {
                             : "border-white/10 hover:border-white/20"
                         }`}
                       >
-                        <span className="text-xs font-mono text-zinc-500">{c.case_id}</span>
-                        <p className="text-sm mt-1">{c.instruction}</p>
+                        <span className="text-xs font-mono text-zinc-500">
+                          {c.case_id}
+                        </span>
+                        <p className="text-xs mt-1 text-zinc-300 leading-snug">
+                          {c.instruction}
+                        </p>
                       </button>
                     ))}
                   </div>
@@ -203,28 +592,40 @@ export default function AgentTestPage() {
             </motion.div>
           )}
         </AnimatePresence>
-        
-        {!isRunning ? (
+
+        {error && (
+          <div className="mb-4 px-4 py-3 rounded-lg border border-red-500/30 bg-red-500/10 text-sm text-red-300">
+            {error}
+          </div>
+        )}
+
+        {!isRunning && events.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-center py-12"
           >
             <button
-              onClick={() => {
-                if (config.type === "custom" && (!config.apiKey || !config.model)) {
-                  setShowSettings(true);
-                  return;
-                }
-                setShowSettings(false);
-                setRunKey(k => k + 1);
-                setIsRunning(true);
-              }}
-              className="px-8 py-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 transition-all font-semibold text-black flex items-center gap-2 mx-auto"
+              onClick={startRun}
+              disabled={!ready}
+              className="px-8 py-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 disabled:bg-zinc-700 disabled:cursor-not-allowed transition-all font-semibold text-black flex items-center gap-2 mx-auto"
             >
               <Play size={20} weight="fill" />
               Start Agent Run
             </button>
+            {backendStatus === "down" && config.mode === "custom" && (
+              <p className="text-xs text-amber-400 mt-3">
+                LedgerShield backend looks unreachable. Start it with{" "}
+                <code className="font-mono">python -m server.app</code>.
+              </p>
+            )}
+            {config.mode === "custom" &&
+              credsFilled &&
+              llmHealth.status !== "ok" && (
+                <p className="text-xs text-amber-400 mt-3">
+                  Test your LLM connection in settings before starting a run.
+                </p>
+              )}
           </motion.div>
         ) : (
           <motion.div
@@ -232,35 +633,248 @@ export default function AgentTestPage() {
             animate={{ opacity: 1 }}
             className="glass-subtle rounded-2xl p-6"
           >
+            <div className="grid lg:grid-cols-[1fr_minmax(280px,340px)] gap-6 items-start">
+              <div className="min-w-0">
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs font-mono text-zinc-500">{selectedCase}</span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
-                  {config.type === "demo" ? "DEMO" : "CUSTOM"}
+                <span
+                  className={`text-xs px-2 py-0.5 rounded-full ${
+                    config.mode === "demo"
+                      ? "bg-blue-500/20 text-blue-400"
+                      : "bg-emerald-500/20 text-emerald-400"
+                  }`}
+                >
+                  {config.mode.toUpperCase()}
+                </span>
+                {config.mode === "custom" && (
+                  <span className="text-[10px] font-mono text-zinc-500">
+                    · {config.model}
+                  </span>
+                )}
+                {finalScore !== null && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono">
+                    score {finalScore.toFixed(3)}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                {isRunning ? (
+                  <button
+                    onClick={stopRun}
+                    className="text-xs px-3 py-1.5 rounded-lg border border-red-500/30 text-red-300 hover:bg-red-500/10 transition-colors flex items-center gap-1"
+                  >
+                    <Stop size={14} weight="fill" /> Stop
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setEvents([]);
+                      setFinalScore(null);
+                      setError(null);
+                      setEnvObservation(null);
+                      setCumulativeReward(0);
+                      setLastStepReward(null);
+                      setTrustGraph(null);
+                      setShowCertificateModal(false);
+                      setStepMath(null);
+                    }}
+                    className="text-xs px-3 py-1.5 rounded-lg border border-white/10 hover:bg-white/5 transition-colors"
+                  >
+                    Reset
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowSettings((v) => !v)}
+                  className="text-xs px-3 py-1.5 rounded-lg border border-white/10 hover:bg-white/5 transition-colors"
+                >
+                  {showSettings ? "Hide" : "Show"} settings
+                </button>
+                {!isRunning && (
+                  <button
+                    onClick={startRun}
+                    disabled={!ready}
+                    className="text-xs px-3 py-1.5 rounded-lg bg-emerald-500 text-black hover:bg-emerald-400 disabled:bg-zinc-700 disabled:text-zinc-400 transition-colors flex items-center gap-1"
+                  >
+                    <Play size={14} weight="fill" /> Run again
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-black/30 rounded-xl p-4 min-h-[400px] max-h-[640px] overflow-y-auto">
+              <AgentStream
+                events={events}
+                isStreaming={isRunning}
+                onResultRevealed={(r) => setFinalScore(r.final_score)}
+              />
+            </div>
+
+            <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-zinc-500">
+              <div className="flex items-center gap-2">
+                <Circle
+                  size={10}
+                  weight="fill"
+                  className={
+                    isRunning
+                      ? "text-emerald-400 animate-pulse"
+                      : finalScore !== null
+                        ? "text-amber-400"
+                        : "text-zinc-500"
+                  }
+                />
+                <span>
+                  {isRunning
+                    ? "Agent running..."
+                    : finalScore !== null
+                      ? "Episode complete"
+                      : "Idle"}
                 </span>
               </div>
-              <button
-                onClick={() => setIsRunning(false)}
-                className="text-sm text-zinc-400 hover:text-white transition-colors"
-              >
-                Stop
-              </button>
+              <span>{events.length} events</span>
             </div>
-            
-            <div className="bg-black/30 rounded-xl p-4 min-h-[400px] max-h-[600px] overflow-y-scroll">
-              <AgentStream key={runKey} isDemo={config.type === "demo"} />
-            </div>
-            
-            <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-between text-sm text-zinc-500">
-              <div className="flex items-center gap-2">
-                <Circle size={14} className="text-emerald-500" weight="fill" />
-                <span>Connected to LedgerShield</span>
               </div>
-              <span>Case: {selectedCase}</span>
+
+              <aside className="space-y-3 lg:sticky lg:top-24 lg:self-start">
+                <EnvironmentPanel
+                  observation={envObservation}
+                  cumulativeReward={cumulativeReward}
+                  stepReward={lastStepReward}
+                  stepMath={stepMath}
+                  isRunning={isRunning}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCertificateModal(true)}
+                  disabled={!trustGraph}
+                  className="w-full flex items-center justify-center gap-2 rounded-xl border border-violet-500/30 bg-violet-500/10 px-4 py-3 text-sm font-medium text-violet-200 hover:bg-violet-500/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-violet-500/10"
+                >
+                  <TreeStructure size={18} className="shrink-0" />
+                  View certificate graph
+                </button>
+                {!trustGraph && finalScore !== null && (
+                  <p className="text-[10px] text-zinc-600 text-center px-1">
+                    Graph appears when the backend returns a trust/certificate
+                    payload after grading.
+                  </p>
+                )}
+              </aside>
             </div>
           </motion.div>
         )}
       </main>
+
+      <CertificateGraphModal
+        open={showCertificateModal}
+        onClose={() => setShowCertificateModal(false)}
+        graph={trustGraph}
+      />
     </div>
+  );
+}
+
+function ConnectionCheck({
+  health,
+  disabled,
+  onTest,
+}: {
+  health: LlmHealth;
+  disabled: boolean;
+  onTest: () => void;
+}) {
+  const palette: Record<LlmHealthStatus, string> = {
+    idle: "border-white/10 bg-white/5 text-zinc-400",
+    checking: "border-blue-500/30 bg-blue-500/10 text-blue-300",
+    ok: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
+    error: "border-red-500/30 bg-red-500/10 text-red-300",
+  };
+
+  const Icon =
+    health.status === "ok"
+      ? CheckCircle
+      : health.status === "error"
+        ? XCircle
+        : health.status === "checking"
+          ? Spinner
+          : Plug;
+
+  const headline =
+    health.status === "ok"
+      ? "Connection successful"
+      : health.status === "error"
+        ? "Connection failed"
+        : health.status === "checking"
+          ? "Testing connection…"
+          : "Connection not tested";
+
+  const detail =
+    health.status === "ok"
+      ? `${health.model || "model"} responded${
+          typeof health.latencyMs === "number"
+            ? ` in ${health.latencyMs} ms`
+            : ""
+        }${health.sampleReply ? ` · "${health.sampleReply}"` : ""}`
+      : health.status === "error"
+        ? health.message || "Unknown error"
+        : health.status === "checking"
+          ? "Sending a 1-token chat completion to verify the key, base URL and model."
+          : "Run a connection test to verify your key, base URL and model before selecting a case.";
+
+  return (
+    <div
+      className={`rounded-xl border px-4 py-3 flex items-start gap-3 ${palette[health.status]}`}
+    >
+      <Icon
+        size={20}
+        weight={health.status === "ok" ? "fill" : "regular"}
+        className={`mt-0.5 shrink-0 ${
+          health.status === "checking" ? "animate-spin" : ""
+        }`}
+      />
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <span className="text-sm font-medium">{headline}</span>
+          <button
+            type="button"
+            onClick={onTest}
+            disabled={disabled}
+            className="text-xs px-3 py-1.5 rounded-lg border border-current/20 hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+          >
+            {health.status === "checking" ? (
+              <>
+                <Spinner size={12} className="animate-spin" /> Testing
+              </>
+            ) : (
+              <>
+                <Plug size={12} /> Test connection
+              </>
+            )}
+          </button>
+        </div>
+        <p className="text-[11px] mt-1 leading-snug break-words opacity-80">
+          {detail}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function BackendBadge({
+  status,
+}: {
+  status: "unknown" | "ok" | "down";
+}) {
+  const map: Record<typeof status, { label: string; color: string }> = {
+    unknown: { label: "checking", color: "text-zinc-400 bg-zinc-500/10 border-zinc-500/30" },
+    ok: { label: "backend live", color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30" },
+    down: { label: "backend down", color: "text-red-400 bg-red-500/10 border-red-500/30" },
+  };
+  const cfg = map[status];
+  return (
+    <span
+      className={`text-[10px] font-mono px-2 py-1 rounded-full border ${cfg.color}`}
+    >
+      {cfg.label}
+    </span>
   );
 }

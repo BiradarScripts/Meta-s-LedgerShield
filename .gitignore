@@ -7,6 +7,7 @@ __pycache__/
 *.log
 .DS_Store
 venv/
+discarded/
 artifacts/
 .analysis_logs/
 .git/
