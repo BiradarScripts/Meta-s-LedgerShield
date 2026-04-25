@@ -13,8 +13,13 @@ artifacts/*
 !artifacts/training_output.json
 !artifacts/trl-openenv-hf-a10g-qwen-rich/
 !artifacts/trl-openenv-hf-a10g-qwen-rich/**
+!artifacts/exquisite-training/
+!artifacts/exquisite-training/**
 artifacts/trl-openenv-hf-a10g-qwen-rich/checkpoints/
 artifacts/trl-openenv-hf-a10g-qwen-rich/tokenizer/
+artifacts/exquisite-training/**/checkpoints/
+artifacts/exquisite-training/**/final_model/
+artifacts/exquisite-training/**/tokenizer/
 .analysis_logs/
 .git/
 

@@ -1,0 +1,16 @@
+{
+  "generated_at": "2026-04-25T20:00:00.881511+00:00",
+  "policy_result_class_counts": {
+    "control_boundary_failed": 23,
+    "correct_but_policy_incomplete": 4,
+    "false_positive_overcontrol": 3,
+    "falsifier_blocked": 2,
+    "incorrect_resolution": 4,
+    "valid_success": 9
+  },
+  "selfplay_failure_reason_counts": {
+    "control_boundary_failed": 6,
+    "correct_but_policy_incomplete": 1,
+    "valid_success": 5
+  }
+}

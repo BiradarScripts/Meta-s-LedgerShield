@@ -1,0 +1,13 @@
+case_id,candidate_id,candidate_rank,env_reward,score,certificate_score,unsafe_release,parse_success,failure_reason,generation_source
+CASE-C-001,CASE-C-001::00,1,0.940385,0.9002,0.95,False,True,valid_success,teacher_replay
+CASE-C-001,CASE-C-001::01,2,0.863885,0.7302,0.95,False,True,valid_success,compact_teacher
+CASE-C-001,CASE-C-001::02,3,0.288,0.01,0.41,False,True,control_boundary_failed,naive_pay
+CASE-C-001,CASE-C-001::03,4,0.287755,0.01,0.41,False,True,control_boundary_failed,seeded_random
+CASE-A-002,CASE-A-002::00,1,0.941345,0.9641,0.95,False,True,valid_success,teacher_replay
+CASE-A-002,CASE-A-002::01,3,0.498605,0.0255,0.61,False,True,valid_success,naive_pay
+CASE-A-002,CASE-A-002::02,4,0.29466,0.0264,0.56,False,True,correct_but_policy_incomplete,seeded_random
+CASE-A-002,CASE-A-002::03,2,0.941345,0.9641,0.95,False,True,valid_success,teacher_mutation
+CASE-B-002,CASE-B-002::00,1,0.57244,0.42,1.0,False,True,control_boundary_failed,teacher_replay
+CASE-B-002,CASE-B-002::01,4,0.291125,0.01,0.41,False,True,control_boundary_failed,naive_pay
+CASE-B-002,CASE-B-002::02,3,0.291545,0.01,0.41,False,True,control_boundary_failed,seeded_random
+CASE-B-002,CASE-B-002::03,2,0.57244,0.42,1.0,False,True,control_boundary_failed,teacher_mutation

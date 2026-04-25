@@ -60,6 +60,15 @@ metadata:
     - trustgraph-payment-decision-projection
     - executable-decision-certificate-graphs
     - blind-vs-instrumented-evaluation-tracks
+    - verified-institutional-control-benchmark
+    - proof-carrying-decision-certificates
+    - deterministic-falsifier-audit-layer
+    - environment-in-the-loop-grpo
+    - falsifier-guided-self-play
+    - reward-derived-preference-distillation
+    - sft-to-rl-post-training-pipeline
+    - scaling-law-training-evidence
+    - score-safety-frontier-analysis
   ashtg_formalism:
     description: >
       LedgerShield formalizes fraud investigation as an Adversarial Sequential

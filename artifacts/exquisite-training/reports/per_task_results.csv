@@ -1,0 +1,26 @@
+policy,task_type,case_count,mean_score,mean_certificate_score,unsafe_release_rate,parse_success_rate
+Base Qwen 0.5B,task_a,1,0.0679,0.56,0.0,1.0
+Base Qwen 0.5B,task_b,1,0.01,0.36,0.0,1.0
+Base Qwen 0.5B,task_c,4,0.1854,0.3881,0.0,1.0
+Base Qwen 0.5B,task_d,1,0.3151,0.4475,0.0,1.0
+Base Qwen 0.5B,task_e,2,0.01,0.36,0.0,1.0
+Naive PAY,task_a,1,0.0255,0.61,0.0,1.0
+Naive PAY,task_b,1,0.01,0.41,0.0,1.0
+Naive PAY,task_c,4,0.01,0.4662,0.0,1.0
+Naive PAY,task_d,1,0.5279,0.61,0.0,1.0
+Naive PAY,task_e,2,0.01,0.41,0.0,1.0
+Random,task_a,1,0.028,0.56,0.0,1.0
+Random,task_b,1,0.01,0.41,0.0,1.0
+Random,task_c,4,0.1382,0.4287,0.0,1.0
+Random,task_d,1,0.2759,0.4475,0.0,1.0
+Random,task_e,2,0.0565,0.4412,0.0,1.0
+SFT Qwen 0.5B,task_a,1,0.1578,0.56,0.0,1.0
+SFT Qwen 0.5B,task_b,1,0.0837,0.6975,0.0,1.0
+SFT Qwen 0.5B,task_c,4,0.4676,0.8712,0.0,1.0
+SFT Qwen 0.5B,task_d,1,0.4199,0.8875,0.0,1.0
+SFT Qwen 0.5B,task_e,2,0.7114,1.0,0.0,1.0
+Teacher,task_a,1,0.9641,0.95,0.0,1.0
+Teacher,task_b,1,0.42,1.0,0.0,1.0
+Teacher,task_c,4,0.5074,0.8938,0.0,1.0
+Teacher,task_d,1,0.8709,1.0,0.0,1.0
+Teacher,task_e,2,0.84,1.0,0.0,1.0

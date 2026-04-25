@@ -26,6 +26,8 @@ tags:
 
 **Training evidence report:** [`docs/training-report.md`](./docs/training-report.md)
 
+**Exquisite training layer:** [`docs/exquisite-training-layer.md`](./docs/exquisite-training-layer.md)
+
 **Short mini-blog source:** [`docs/HF_MINIBLOG_FINAL.md`](./docs/HF_MINIBLOG_FINAL.md)
 
 **Consolidated writeup / mini-blog / demo script:** [`docs/DOCUMENTATION.md`](./docs/DOCUMENTATION.md)
@@ -558,6 +560,36 @@ Caption: Certificate/audit quality improved materially after training.
 Caption: Result classes show how behavior changed qualitatively, not just numerically.
 
 Full plot pack: [`artifacts/trl-openenv-hf-a10g-qwen-rich/plots/`](./artifacts/trl-openenv-hf-a10g-qwen-rich/plots/)
+
+### Exquisite Training Layer: Environment-in-the-Loop Self-Improvement
+
+The original LedgerShield training proof is preserved under:
+
+`artifacts/trl-openenv-hf-a10g-qwen-rich/`
+
+That run demonstrated live OpenEnv-connected SFT on LedgerShield trajectories.
+
+The new Exquisite Training Layer adds a second post-training stage:
+
+1. Start from the existing SFT LoRA checkpoint.
+2. Generate multiple candidate AP-control action plans per case.
+3. Execute every candidate inside the LedgerShield environment.
+4. Score each candidate with final score, certificate quality, control satisfaction, institutional utility, parse validity, and unsafe-release penalties.
+5. Train with GRPO using environment rewards.
+6. Build best-vs-worst falsifier preference pairs.
+7. Optionally distill the strongest behavior into a final DPO adapter.
+8. Produce a 40+ plot evidence pack with scaling laws, policy ladders, safety frontiers, falsifier analysis, and ablations.
+
+This turns LedgerShield from a static benchmark into a self-improving enterprise-control training environment.
+
+See:
+
+- [`docs/exquisite-training-layer.md`](./docs/exquisite-training-layer.md)
+- [`docs/exquisite-visual-analysis.md`](./docs/exquisite-visual-analysis.md)
+- [`training/exquisite/`](./training/exquisite/)
+- [`artifacts/exquisite-training/reports/exquisite_training_report.md`](./artifacts/exquisite-training/reports/exquisite_training_report.md)
+- [`artifacts/exquisite-training/plots/`](./artifacts/exquisite-training/plots/)
+- [`artifacts/exquisite-training/dashboard/index.html`](./artifacts/exquisite-training/dashboard/index.html)
 
 ## Documentation
 

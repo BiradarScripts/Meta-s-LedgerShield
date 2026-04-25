@@ -1,0 +1,11 @@
+policy_key,policy,model,method,mean_score,mean_total_reward,certificate_score,control_satisfied,unsafe_release,parse_success,status,source
+random_baseline,Random,-,baseline,0.1088,0.0888,0.4461,0.0000,0.0000,1.0000,completed,artifacts/trl-openenv-hf-a10g-qwen-rich/training_metrics.json
+naive_baseline,Naive PAY,-,baseline,0.0693,0.0493,0.4794,0.2222,0.0000,1.0000,completed,artifacts/trl-openenv-hf-a10g-qwen-rich/training_metrics.json
+base_model,Base Qwen,0.5B,base,0.1283,-1.4473,0.4044,0.0000,0.0000,1.0000,completed,artifacts/trl-openenv-hf-a10g-qwen-rich/training_metrics.json
+trained_model,SFT Qwen,0.5B,SFT,0.4394,-3.1019,0.8478,0.2222,0.0000,1.0000,completed,artifacts/trl-openenv-hf-a10g-qwen-rich/training_metrics.json
+grpo_0_5b,GRPO Qwen,0.5B,SFT->GRPO,PENDING,PENDING,PENDING,PENDING,PENDING,PENDING,PENDING,PENDING
+sft_1_5b,SFT Qwen,1.5B,SFT,PENDING,PENDING,PENDING,PENDING,PENDING,PENDING,PENDING,PENDING
+grpo_1_5b,GRPO Qwen,1.5B,SFT->GRPO,PENDING,PENDING,PENDING,PENDING,PENDING,PENDING,PENDING,PENDING
+grpo_3b,GRPO Qwen,3B,SFT+GRPO,PENDING,PENDING,PENDING,PENDING,PENDING,PENDING,PENDING,PENDING
+dpo_falsifier,DPO-Falsifier,1.5B/3B,GRPO->DPO,PENDING,PENDING,PENDING,PENDING,PENDING,PENDING,PENDING,PENDING
+teacher_policy,Teacher,-,oracle-ish,0.6627,-2.7090,0.9472,0.5556,0.0000,1.0000,completed,artifacts/trl-openenv-hf-a10g-qwen-rich/training_metrics.json

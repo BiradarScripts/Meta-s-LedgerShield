@@ -1,0 +1,42 @@
+{
+  "ablations": [
+    {
+      "name": "without_certificate_bonus",
+      "status": "PENDING"
+    },
+    {
+      "name": "without_unsafe_penalty",
+      "status": "PENDING"
+    },
+    {
+      "name": "without_parse_bonus",
+      "status": "PENDING"
+    },
+    {
+      "name": "num_generations",
+      "status": "PENDING"
+    },
+    {
+      "name": "model_size",
+      "status": "PENDING"
+    },
+    {
+      "name": "sft_checkpoint_vs_base_start",
+      "status": "PENDING"
+    },
+    {
+      "name": "grpo_steps",
+      "status": "PENDING"
+    },
+    {
+      "name": "temperature",
+      "status": "PENDING"
+    },
+    {
+      "name": "dpo_after_grpo",
+      "status": "PENDING"
+    }
+  ],
+  "generated_at": "2026-04-25T20:00:00.882087+00:00",
+  "status": "pending_hf_runs"
+}

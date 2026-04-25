@@ -1,0 +1,493 @@
+{
+  "cards": [
+    {
+      "label": "Best policy score",
+      "note": "Teacher",
+      "value": "0.6627"
+    },
+    {
+      "label": "Best GRPO improvement",
+      "note": "over SFT 0.5B",
+      "value": "PENDING"
+    },
+    {
+      "label": "Unsafe release",
+      "note": "best numeric policy",
+      "value": "0.0000"
+    },
+    {
+      "label": "Parse success",
+      "note": "best numeric policy",
+      "value": "1.0000"
+    },
+    {
+      "label": "Certificate score",
+      "note": "best numeric policy",
+      "value": "0.9472"
+    },
+    {
+      "label": "Control satisfaction",
+      "note": "best numeric policy",
+      "value": "0.5556"
+    },
+    {
+      "label": "Self-play candidates",
+      "note": "generated candidates",
+      "value": "12"
+    },
+    {
+      "label": "Preference pairs",
+      "note": "best-vs-worst falsifier pairs",
+      "value": "3"
+    },
+    {
+      "label": "GPU hours",
+      "note": "filled after HF jobs",
+      "value": "PENDING"
+    }
+  ],
+  "generated_at": "2026-04-25T20:00:16.104266+00:00",
+  "manifest": {
+    "generated_at": "2026-04-25T20:00:14.192144+00:00",
+    "plot_count": 56,
+    "plots": [
+      {
+        "caption": "Compares every policy on the same LedgerShield held-out split. Pending HF policies are omitted until their final evaluations exist.",
+        "filename": "01_final_policy_ladder.png",
+        "path": "artifacts/exquisite-training/plots/01_final_policy_ladder.png"
+      },
+      {
+        "caption": "Shows whether environment-in-the-loop RL improves over pure imitation at the same model size.",
+        "filename": "02_sft_vs_grpo_grouped_bar.png",
+        "path": "artifacts/exquisite-training/plots/02_sft_vs_grpo_grouped_bar.png"
+      },
+      {
+        "caption": "Measures whether LedgerShield remains sensitive to model capacity rather than saturating at small-model performance.",
+        "filename": "03_scaling_law_score_vs_model_size.png",
+        "path": "artifacts/exquisite-training/plots/03_scaling_law_score_vs_model_size.png"
+      },
+      {
+        "caption": "Plots mean environment score against unsafe-release rate. A good policy moves rightward in score without moving upward on unsafe release.",
+        "filename": "04_score_safety_frontier_all_policies.png",
+        "path": "artifacts/exquisite-training/plots/04_score_safety_frontier_all_policies.png"
+      },
+      {
+        "caption": "Measures what fraction of the gap between base Qwen and teacher policy is closed by SFT, GRPO, and DPO.",
+        "filename": "05_teacher_gap_closure.png",
+        "path": "artifacts/exquisite-training/plots/05_teacher_gap_closure.png"
+      },
+      {
+        "caption": "Shows the additive SFT -> self-play -> falsifier reward -> GRPO -> DPO evidence pipeline.",
+        "filename": "06_exquisite_pipeline_diagram.png",
+        "path": "artifacts/exquisite-training/plots/06_exquisite_pipeline_diagram.png"
+      },
+      {
+        "caption": "07 Grpo Reward Curve Raw",
+        "filename": "07_grpo_reward_curve_raw.png",
+        "path": "artifacts/exquisite-training/plots/07_grpo_reward_curve_raw.png"
+      },
+      {
+        "caption": "08 Grpo Reward Curve Smoothed",
+        "filename": "08_grpo_reward_curve_smoothed.png",
+        "path": "artifacts/exquisite-training/plots/08_grpo_reward_curve_smoothed.png"
+      },
+      {
+        "caption": "09 Grpo Reward Std Over Time",
+        "filename": "09_grpo_reward_std_over_time.png",
+        "path": "artifacts/exquisite-training/plots/09_grpo_reward_std_over_time.png"
+      },
+      {
+        "caption": "10 Grpo Kl Or Beta Penalty Curve",
+        "filename": "10_grpo_kl_or_beta_penalty_curve.png",
+        "path": "artifacts/exquisite-training/plots/10_grpo_kl_or_beta_penalty_curve.png"
+      },
+      {
+        "caption": "11 Grpo Completion Length Curve",
+        "filename": "11_grpo_completion_length_curve.png",
+        "path": "artifacts/exquisite-training/plots/11_grpo_completion_length_curve.png"
+      },
+      {
+        "caption": "12 Grpo Parse Success Over Time",
+        "filename": "12_grpo_parse_success_over_time.png",
+        "path": "artifacts/exquisite-training/plots/12_grpo_parse_success_over_time.png"
+      },
+      {
+        "caption": "13 Grpo Unsafe Release Over Time",
+        "filename": "13_grpo_unsafe_release_over_time.png",
+        "path": "artifacts/exquisite-training/plots/13_grpo_unsafe_release_over_time.png"
+      },
+      {
+        "caption": "14 Grpo Certificate Score Over Time",
+        "filename": "14_grpo_certificate_score_over_time.png",
+        "path": "artifacts/exquisite-training/plots/14_grpo_certificate_score_over_time.png"
+      },
+      {
+        "caption": "15 Grpo Control Satisfaction Over Time",
+        "filename": "15_grpo_control_satisfaction_over_time.png",
+        "path": "artifacts/exquisite-training/plots/15_grpo_control_satisfaction_over_time.png"
+      },
+      {
+        "caption": "16 Grpo Policy Entropy Proxy",
+        "filename": "16_grpo_policy_entropy_proxy.png",
+        "path": "artifacts/exquisite-training/plots/16_grpo_policy_entropy_proxy.png"
+      },
+      {
+        "caption": "Shows the spread of candidate plan quality generated by the same model before GRPO updates.",
+        "filename": "17_selfplay_candidate_reward_distribution.png",
+        "path": "artifacts/exquisite-training/plots/17_selfplay_candidate_reward_distribution.png"
+      },
+      {
+        "caption": "18 Selfplay Best Vs Worst Margin",
+        "filename": "18_selfplay_best_vs_worst_margin.png",
+        "path": "artifacts/exquisite-training/plots/18_selfplay_best_vs_worst_margin.png"
+      },
+      {
+        "caption": "19 Selfplay Candidate Rank Heatmap",
+        "filename": "19_selfplay_candidate_rank_heatmap.png",
+        "path": "artifacts/exquisite-training/plots/19_selfplay_candidate_rank_heatmap.png"
+      },
+      {
+        "caption": "Shows how often candidate plans survive deterministic audit versus being blocked or degraded by the control stack.",
+        "filename": "20_falsifier_verdict_distribution.png",
+        "path": "artifacts/exquisite-training/plots/20_falsifier_verdict_distribution.png"
+      },
+      {
+        "caption": "21 Falsifier Block Reasons",
+        "filename": "21_falsifier_block_reasons.png",
+        "path": "artifacts/exquisite-training/plots/21_falsifier_block_reasons.png"
+      },
+      {
+        "caption": "22 Parse Failure Taxonomy",
+        "filename": "22_parse_failure_taxonomy.png",
+        "path": "artifacts/exquisite-training/plots/22_parse_failure_taxonomy.png"
+      },
+      {
+        "caption": "23 Invalid Json Examples Count",
+        "filename": "23_invalid_json_examples_count.png",
+        "path": "artifacts/exquisite-training/plots/23_invalid_json_examples_count.png"
+      },
+      {
+        "caption": "24 Unsafe Pay Blocked By Falsifier",
+        "filename": "24_unsafe_pay_blocked_by_falsifier.png",
+        "path": "artifacts/exquisite-training/plots/24_unsafe_pay_blocked_by_falsifier.png"
+      },
+      {
+        "caption": "25 Certificate Failure Modes",
+        "filename": "25_certificate_failure_modes.png",
+        "path": "artifacts/exquisite-training/plots/25_certificate_failure_modes.png"
+      },
+      {
+        "caption": "26 Policy Incomplete Failure Modes",
+        "filename": "26_policy_incomplete_failure_modes.png",
+        "path": "artifacts/exquisite-training/plots/26_policy_incomplete_failure_modes.png"
+      },
+      {
+        "caption": "27 Per Case Score Heatmap",
+        "filename": "27_per_case_score_heatmap.png",
+        "path": "artifacts/exquisite-training/plots/27_per_case_score_heatmap.png"
+      },
+      {
+        "caption": "28 Per Case Policy Delta From Sft",
+        "filename": "28_per_case_policy_delta_from_sft.png",
+        "path": "artifacts/exquisite-training/plots/28_per_case_policy_delta_from_sft.png"
+      },
+      {
+        "caption": "29 Per Task Family Score",
+        "filename": "29_per_task_family_score.png",
+        "path": "artifacts/exquisite-training/plots/29_per_task_family_score.png"
+      },
+      {
+        "caption": "30 Task A Extraction Performance",
+        "filename": "30_task_a_extraction_performance.png",
+        "path": "artifacts/exquisite-training/plots/30_task_a_extraction_performance.png"
+      },
+      {
+        "caption": "31 Task B Matching Performance",
+        "filename": "31_task_b_matching_performance.png",
+        "path": "artifacts/exquisite-training/plots/31_task_b_matching_performance.png"
+      },
+      {
+        "caption": "32 Task C Duplicate Detection Performance",
+        "filename": "32_task_c_duplicate_detection_performance.png",
+        "path": "artifacts/exquisite-training/plots/32_task_c_duplicate_detection_performance.png"
+      },
+      {
+        "caption": "33 Task D Bec Triage Performance",
+        "filename": "33_task_d_bec_triage_performance.png",
+        "path": "artifacts/exquisite-training/plots/33_task_d_bec_triage_performance.png"
+      },
+      {
+        "caption": "34 Task E Campaign Performance",
+        "filename": "34_task_e_campaign_performance.png",
+        "path": "artifacts/exquisite-training/plots/34_task_e_campaign_performance.png"
+      },
+      {
+        "caption": "35 Hardest Cases Before After",
+        "filename": "35_hardest_cases_before_after.png",
+        "path": "artifacts/exquisite-training/plots/35_hardest_cases_before_after.png"
+      },
+      {
+        "caption": "36 Cases Where Grpo Hurt",
+        "filename": "36_cases_where_grpo_hurt.png",
+        "path": "artifacts/exquisite-training/plots/36_cases_where_grpo_hurt.png"
+      },
+      {
+        "caption": "37 Unsafe Release Rate By Policy",
+        "filename": "37_unsafe_release_rate_by_policy.png",
+        "path": "artifacts/exquisite-training/plots/37_unsafe_release_rate_by_policy.png"
+      },
+      {
+        "caption": "38 Certificate Score By Policy",
+        "filename": "38_certificate_score_by_policy.png",
+        "path": "artifacts/exquisite-training/plots/38_certificate_score_by_policy.png"
+      },
+      {
+        "caption": "39 Control Satisfied Resolution By Policy",
+        "filename": "39_control_satisfied_resolution_by_policy.png",
+        "path": "artifacts/exquisite-training/plots/39_control_satisfied_resolution_by_policy.png"
+      },
+      {
+        "caption": "40 Institutional Utility By Policy",
+        "filename": "40_institutional_utility_by_policy.png",
+        "path": "artifacts/exquisite-training/plots/40_institutional_utility_by_policy.png"
+      },
+      {
+        "caption": "41 Institutional Loss Surface Radar",
+        "filename": "41_institutional_loss_surface_radar.png",
+        "path": "artifacts/exquisite-training/plots/41_institutional_loss_surface_radar.png"
+      },
+      {
+        "caption": "42 Authority Level Distribution",
+        "filename": "42_authority_level_distribution.png",
+        "path": "artifacts/exquisite-training/plots/42_authority_level_distribution.png"
+      },
+      {
+        "caption": "43 Review Burn Vs Score",
+        "filename": "43_review_burn_vs_score.png",
+        "path": "artifacts/exquisite-training/plots/43_review_burn_vs_score.png"
+      },
+      {
+        "caption": "44 Supplier Friction Vs Fraud Prevention",
+        "filename": "44_supplier_friction_vs_fraud_prevention.png",
+        "path": "artifacts/exquisite-training/plots/44_supplier_friction_vs_fraud_prevention.png"
+      },
+      {
+        "caption": "45 Calibration Error By Policy",
+        "filename": "45_calibration_error_by_policy.png",
+        "path": "artifacts/exquisite-training/plots/45_calibration_error_by_policy.png"
+      },
+      {
+        "caption": "46 Auditability Vs Score",
+        "filename": "46_auditability_vs_score.png",
+        "path": "artifacts/exquisite-training/plots/46_auditability_vs_score.png"
+      },
+      {
+        "caption": "47 Reward Ablation Score",
+        "filename": "47_reward_ablation_score.png",
+        "path": "artifacts/exquisite-training/plots/47_reward_ablation_score.png"
+      },
+      {
+        "caption": "48 Without Certificate Bonus",
+        "filename": "48_without_certificate_bonus.png",
+        "path": "artifacts/exquisite-training/plots/48_without_certificate_bonus.png"
+      },
+      {
+        "caption": "49 Without Unsafe Penalty",
+        "filename": "49_without_unsafe_penalty.png",
+        "path": "artifacts/exquisite-training/plots/49_without_unsafe_penalty.png"
+      },
+      {
+        "caption": "50 Without Parse Bonus",
+        "filename": "50_without_parse_bonus.png",
+        "path": "artifacts/exquisite-training/plots/50_without_parse_bonus.png"
+      },
+      {
+        "caption": "51 Num Generations Ablation",
+        "filename": "51_num_generations_ablation.png",
+        "path": "artifacts/exquisite-training/plots/51_num_generations_ablation.png"
+      },
+      {
+        "caption": "52 Model Size Ablation",
+        "filename": "52_model_size_ablation.png",
+        "path": "artifacts/exquisite-training/plots/52_model_size_ablation.png"
+      },
+      {
+        "caption": "53 Sft Checkpoint Vs Base Start",
+        "filename": "53_sft_checkpoint_vs_base_start.png",
+        "path": "artifacts/exquisite-training/plots/53_sft_checkpoint_vs_base_start.png"
+      },
+      {
+        "caption": "54 Grpo Steps Ablation",
+        "filename": "54_grpo_steps_ablation.png",
+        "path": "artifacts/exquisite-training/plots/54_grpo_steps_ablation.png"
+      },
+      {
+        "caption": "55 Temperature Ablation",
+        "filename": "55_temperature_ablation.png",
+        "path": "artifacts/exquisite-training/plots/55_temperature_ablation.png"
+      },
+      {
+        "caption": "56 Dpo After Grpo Ablation",
+        "filename": "56_dpo_after_grpo_ablation.png",
+        "path": "artifacts/exquisite-training/plots/56_dpo_after_grpo_ablation.png"
+      }
+    ]
+  },
+  "matrix": [
+    {
+      "certificate_score": "0.4461",
+      "control_satisfied": "0.0000",
+      "mean_score": "0.1088",
+      "mean_total_reward": "0.0888",
+      "method": "baseline",
+      "model": "-",
+      "parse_success": "1.0000",
+      "policy": "Random",
+      "policy_key": "random_baseline",
+      "source": "artifacts/trl-openenv-hf-a10g-qwen-rich/training_metrics.json",
+      "status": "completed",
+      "unsafe_release": "0.0000"
+    },
+    {
+      "certificate_score": "0.4794",
+      "control_satisfied": "0.2222",
+      "mean_score": "0.0693",
+      "mean_total_reward": "0.0493",
+      "method": "baseline",
+      "model": "-",
+      "parse_success": "1.0000",
+      "policy": "Naive PAY",
+      "policy_key": "naive_baseline",
+      "source": "artifacts/trl-openenv-hf-a10g-qwen-rich/training_metrics.json",
+      "status": "completed",
+      "unsafe_release": "0.0000"
+    },
+    {
+      "certificate_score": "0.4044",
+      "control_satisfied": "0.0000",
+      "mean_score": "0.1283",
+      "mean_total_reward": "-1.4473",
+      "method": "base",
+      "model": "0.5B",
+      "parse_success": "1.0000",
+      "policy": "Base Qwen",
+      "policy_key": "base_model",
+      "source": "artifacts/trl-openenv-hf-a10g-qwen-rich/training_metrics.json",
+      "status": "completed",
+      "unsafe_release": "0.0000"
+    },
+    {
+      "certificate_score": "0.8478",
+      "control_satisfied": "0.2222",
+      "mean_score": "0.4394",
+      "mean_total_reward": "-3.1019",
+      "method": "SFT",
+      "model": "0.5B",
+      "parse_success": "1.0000",
+      "policy": "SFT Qwen",
+      "policy_key": "trained_model",
+      "source": "artifacts/trl-openenv-hf-a10g-qwen-rich/training_metrics.json",
+      "status": "completed",
+      "unsafe_release": "0.0000"
+    },
+    {
+      "certificate_score": "PENDING",
+      "control_satisfied": "PENDING",
+      "mean_score": "PENDING",
+      "mean_total_reward": "PENDING",
+      "method": "SFT->GRPO",
+      "model": "0.5B",
+      "parse_success": "PENDING",
+      "policy": "GRPO Qwen",
+      "policy_key": "grpo_0_5b",
+      "source": "PENDING",
+      "status": "PENDING",
+      "unsafe_release": "PENDING"
+    },
+    {
+      "certificate_score": "PENDING",
+      "control_satisfied": "PENDING",
+      "mean_score": "PENDING",
+      "mean_total_reward": "PENDING",
+      "method": "SFT",
+      "model": "1.5B",
+      "parse_success": "PENDING",
+      "policy": "SFT Qwen",
+      "policy_key": "sft_1_5b",
+      "source": "PENDING",
+      "status": "PENDING",
+      "unsafe_release": "PENDING"
+    },
+    {
+      "certificate_score": "PENDING",
+      "control_satisfied": "PENDING",
+      "mean_score": "PENDING",
+      "mean_total_reward": "PENDING",
+      "method": "SFT->GRPO",
+      "model": "1.5B",
+      "parse_success": "PENDING",
+      "policy": "GRPO Qwen",
+      "policy_key": "grpo_1_5b",
+      "source": "PENDING",
+      "status": "PENDING",
+      "unsafe_release": "PENDING"
+    },
+    {
+      "certificate_score": "PENDING",
+      "control_satisfied": "PENDING",
+      "mean_score": "PENDING",
+      "mean_total_reward": "PENDING",
+      "method": "SFT+GRPO",
+      "model": "3B",
+      "parse_success": "PENDING",
+      "policy": "GRPO Qwen",
+      "policy_key": "grpo_3b",
+      "source": "PENDING",
+      "status": "PENDING",
+      "unsafe_release": "PENDING"
+    },
+    {
+      "certificate_score": "PENDING",
+      "control_satisfied": "PENDING",
+      "mean_score": "PENDING",
+      "mean_total_reward": "PENDING",
+      "method": "GRPO->DPO",
+      "model": "1.5B/3B",
+      "parse_success": "PENDING",
+      "policy": "DPO-Falsifier",
+      "policy_key": "dpo_falsifier",
+      "source": "PENDING",
+      "status": "PENDING",
+      "unsafe_release": "PENDING"
+    },
+    {
+      "certificate_score": "0.9472",
+      "control_satisfied": "0.5556",
+      "mean_score": "0.6627",
+      "mean_total_reward": "-2.7090",
+      "method": "oracle-ish",
+      "model": "-",
+      "parse_success": "1.0000",
+      "policy": "Teacher",
+      "policy_key": "teacher_policy",
+      "source": "artifacts/trl-openenv-hf-a10g-qwen-rich/training_metrics.json",
+      "status": "completed",
+      "unsafe_release": "0.0000"
+    }
+  ],
+  "paths": {
+    "dashboard": "artifacts/exquisite-training/dashboard/index.html",
+    "data": "artifacts/exquisite-training/dashboard/dashboard_data.json"
+  },
+  "summary": {
+    "completed_policy_count": 5,
+    "generated_at": "2026-04-25T20:00:00.882093+00:00",
+    "matrix_path": "artifacts/exquisite-training/reports/final_policy_matrix.csv",
+    "note": "New GRPO/DPO rows remain PENDING until Hugging Face jobs upload final_policy_eval.json artifacts.",
+    "pending_policy_count": 5,
+    "per_case_row_count": 45,
+    "policy_count": 10,
+    "selfplay_candidate_count": 12,
+    "status": "completed_with_pending_new_runs"
+  }
+}
