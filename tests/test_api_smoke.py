@@ -120,6 +120,27 @@ def test_human_baseline_summary_endpoint():
     assert payload["track"] == "human_baseline"
 
 
+def test_certify_endpoint_returns_authority_recommendation():
+    response = client.post(
+        "/certify",
+        json={"agent_name": "demo-agent", "workflow_profile": {"name": "demo AP", "case_count": 5}},
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["product"] == "LedgerShield Certify"
+    assert "authority_recommendation" in payload
+    assert "red_team_plan" in payload
+
+
+def test_controlbench_visualization_endpoint_returns_graph_ready_payload():
+    response = client.get("/controlbench-visualization")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["artifact_version"] == "ledgershield-controlbench-visualization-v1"
+    assert "charts" in payload
+    assert "graph_layers" in payload
+
+
 def test_reset_endpoint():
     response = client.post("/reset", json={"case_id": "CASE-A-001"})
     assert response.status_code == 200

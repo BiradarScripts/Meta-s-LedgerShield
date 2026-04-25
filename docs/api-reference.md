@@ -307,6 +307,26 @@ Returns the loaded human-baseline summary when present in the latest benchmark
 report or on disk. If no artifact exists, the endpoint returns an empty summary
 with a note describing how to provide `artifacts/human_baseline.json`.
 
+### `POST /certify`
+
+Returns a product-facing **LedgerShield Certify** report for an agent/workflow
+payload. The response packages the latest ControlBench report or live
+institutional-memory state into a certification status, deployability rating,
+authority recommendation, red-team plan, and monitoring requirements. This does
+not fabricate real human-baseline results or real uploaded ERP execution.
+
+### `GET /certify-summary`
+
+Returns the same Certify report using the latest benchmark artifact or live
+environment memory without requiring a request body.
+
+### `GET /controlbench-visualization`
+
+Returns a graph-ready visualization artifact with accuracy-vs-loss points,
+authority timeline, loss-surface bars, certificate-gate panel data, TrustGraph
+health, and demo-script hints. It is intended for dashboards or notebooks rather
+than as a full frontend UI.
+
 ### `POST /institutional-reset`
 
 Resets the persistent institutional memory and loss ledger without changing the

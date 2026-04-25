@@ -38,6 +38,14 @@ def test_build_report_returns_public_and_holdout_sections():
     assert "fraudgen_summary" in report["controlbench_report"]
     assert "controlbench_two_agent_demo" in report
     assert report["controlbench_two_agent_demo"]["sequence_length"] == benchmark_report.CONTROLBENCH_STANDARD_SEQUENCE_LENGTH
+    assert "experiment_suite" in report
+    assert "baseline_matrix" in report["experiment_suite"]
+    assert "cost_sensitivity" in report["experiment_suite"]
+    assert "trust_graph_ablation" in report["experiment_suite"]
+    assert "independent_fraudgen_ecosystem" in report
+    assert report["independent_fraudgen_ecosystem"]["case_count"] == benchmark_report.CONTROLBENCH_STANDARD_SEQUENCE_LENGTH
+    assert report["independent_fraudgen_ecosystem"]["validation"]["curated_case_sampling"] is False
+    assert "controlbench_visualization" in report
     assert "certificate_required_track" in report
     assert "generated_holdout_track" in report
     assert "blind_control_track" in report
@@ -83,6 +91,8 @@ def test_main_cli_smoke_runs_without_token(monkeypatch, capsys):
             "--skip-leaderboard",
             "--holdout-seeds",
             "101",
+            "--controlbench-sequence-length",
+            "12",
         ],
     )
 
@@ -104,6 +114,7 @@ def test_build_controlbench_artifact_matches_quarter_summary():
     assert artifact["deployability_rating"] == report["controlbench_quarter"]["deployability_rating"]
     assert artifact["institutional_loss_total"] == report["controlbench_quarter"]["institutional_loss_total"]
     assert artifact["fraudgen_summary"] == report["controlbench_quarter"]["fraudgen_summary"]
+    assert artifact["experiment_suite"]["suite_version"] == "controlbench-experiments-v1"
 
 
 def test_load_leaderboard_payload_filters_legacy_deterministic_alias(tmp_path: Path):

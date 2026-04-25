@@ -149,5 +149,7 @@ Recommended showcase set:
 - `LEDGERSHIELD_CONTROLBENCH_SLEEPER_WARMUPS` controls guaranteed trust-building warmup cases before each sleeper activation
 - `benchmark_report.py --controlbench-sequence-length 100` runs the standard AP-quarter ControlBench report
 - the two-agent control-profile demo uses the 100-case AP-quarter standard even when the full environment report is generated as a short preview
+- the benchmark report includes an executable experiment suite: baseline matrix, accuracy-vs-loss disagreement, certificate/calibration/TrustGraph ablations, cost sensitivity, sleeper tests, and independent FraudGen ecosystem validation
+- `/certify`, `/certify-summary`, and `/controlbench-visualization` expose the product-facing certification and graph-ready demo payloads
 - `artifacts/human_baseline.json` or `LEDGERSHIELD_HUMAN_BASELINE_PATH` can provide a human reference profile
 - certificates improve auditability but do not rescue wrong or unsafe control behavior

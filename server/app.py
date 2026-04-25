@@ -19,8 +19,12 @@ from openenv_compat import create_fastapi_app
 
 if __package__ in {None, ""}:
     from server.environment import LedgerShieldEnvironment
+    from server.certify import build_certify_report
+    from server.visualization import build_controlbench_visualization
 else:
     from .environment import LedgerShieldEnvironment
+    from .certify import build_certify_report
+    from .visualization import build_controlbench_visualization
 
 
 def _load_benchmark_report_module():
@@ -33,6 +37,15 @@ def _load_benchmark_report_module():
 def build_app():
     env = LedgerShieldEnvironment()
     app = create_fastapi_app(env, LedgerShieldAction, LedgerShieldObservation)
+
+    def _latest_report() -> dict[str, Any]:
+        benchmark_report = _load_benchmark_report_module()
+        if benchmark_report is None:
+            return {}
+        report_path = benchmark_report.DEFAULT_REPORT_PATH
+        if report_path.exists():
+            return json.loads(report_path.read_text(encoding="utf-8"))
+        return {}
 
     @app.get("/leaderboard")
     def leaderboard() -> dict[str, Any]:
@@ -63,6 +76,29 @@ def build_app():
             "generated_at": None,
             "note": "No benchmark report artifact generated yet. Run benchmark_report.py to create one.",
         }
+
+    @app.post("/certify")
+    def certify(payload: dict[str, Any] | None = None) -> dict[str, Any]:
+        return build_certify_report(
+            payload or {},
+            benchmark_report=_latest_report(),
+            institutional_memory=env.institutional_memory(),
+        )
+
+    @app.get("/certify-summary")
+    def certify_summary() -> dict[str, Any]:
+        return build_certify_report(
+            {},
+            benchmark_report=_latest_report(),
+            institutional_memory=env.institutional_memory(),
+        )
+
+    @app.get("/controlbench-visualization")
+    def controlbench_visualization() -> dict[str, Any]:
+        report = _latest_report()
+        if report and isinstance(report.get("controlbench_visualization"), dict):
+            return report["controlbench_visualization"]
+        return build_controlbench_visualization(report, institutional_memory=env.institutional_memory())
 
     @app.get("/controlbench-summary")
     def controlbench_summary() -> dict[str, Any]:

@@ -187,6 +187,7 @@ The benchmark upgrade work is reflected in the codebase across five phases:
 | Phase 7: Institutional intelligence | `server/institutional_game.py`, `server/decision_certificate.py`, blind/instrumented tracks, `/institutional-memory`, `/institutional-reset`, certificate and institutional metrics in live comparisons |
 | Phase 8: ControlBench | `server/case_factory.py`, `benchmark_report.py`, `/controlbench-summary`, institutional loss surface, calibration-gated authority, sleeper-vendor AP-quarter generation |
 | Phase 9: Trust and falsification | `server/trust_graph.py`, `server/decision_falsifier.py`, `server/control_statechart.py`, Certificate-Required track, deterministic decision falsifier, statechart-style control boundary, persistent TrustGraph projection, two-agent control-profile report |
+| Phase 10: Certify and experiments | `server/certify.py`, `server/visualization.py`, `/certify`, `/certify-summary`, `/controlbench-visualization`, independent FraudGen ecosystem generation, ablation suite, cost sensitivity, baseline matrix |
 
 ## ASHTG Mathematical Framework — Under the Hood
 

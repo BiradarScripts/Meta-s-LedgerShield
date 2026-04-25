@@ -3,7 +3,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 from server.benchmark_contract import CONTROLBENCH_TRACK, GENERATED_HOLDOUT_TRACK, case_matches_track
-from server.case_factory import generate_case_variant, generate_controlbench_sequence
+from server.case_factory import generate_case_variant, generate_controlbench_sequence, generate_independent_fraudgen_ecosystem
 from server.data_loader import load_all
 from server.decision_falsifier import falsify_decision
 from server.environment import LedgerShieldEnvironment
@@ -278,6 +278,16 @@ def test_procedural_holdout_variant_has_queryable_ap_ecosystem():
     assert len(overrides.get("email_threads", [])) >= 1
     assert variant.get("generator_metadata", {}).get("fraudgen", {}).get("generator") == "fraudgen_v1"
     assert variant.get("generator_metadata", {}).get("fraudgen", {}).get("validation", {}).get("solvable") is True
+
+
+def test_independent_fraudgen_ecosystem_is_solvable_without_curated_sampling():
+    sequence = generate_independent_fraudgen_ecosystem(sequence_length=12, seed=707)
+
+    assert len(sequence) == 12
+    assert all(case.get("generator_metadata", {}).get("independent_ecosystem") for case in sequence)
+    assert all(case.get("primary_track") == GENERATED_HOLDOUT_TRACK for case in sequence)
+    assert all((case.get("generator_metadata", {}) or {}).get("fraudgen", {}).get("validation", {}).get("solvable") for case in sequence)
+    assert {case.get("task_type") for case in sequence} & {"task_b", "task_c", "task_d", "task_e"}
 
 
 def test_prompt_injection_boundary_forces_review_and_flags_result_class():
