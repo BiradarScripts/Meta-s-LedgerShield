@@ -10,3 +10,10 @@ venv/
 artifacts/
 .analysis_logs/
 .git/
+
+docs/.mintlify/
+docs/node_modules/
+docs/.next/
+docs/.vercel/
+docs/build/
+docs/dist/

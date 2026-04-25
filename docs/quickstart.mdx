@@ -1,0 +1,141 @@
+---
+title: "Quickstart"
+sidebarTitle: "Quickstart"
+description: "Bring up the LedgerShield environment, run the submission-safe agent, and generate a benchmark report in five minutes."
+icon: "rocket"
+---
+
+LedgerShield ships an OpenEnv-compatible FastAPI server, a submission-safe reference agent, and a benchmark/leaderboard pipeline. This page walks through the first end-to-end run.
+
+<Note>
+  Need the deeper, ops-oriented version (Docker, Hugging Face Space, environment variables, troubleshooting)? Jump to [Deployment](/guides/deployment).
+</Note>
+
+## Prerequisites
+
+<CardGroup cols={2}>
+  <Card title="Python 3.11+" icon="python">
+    LedgerShield targets Python 3.11. Earlier versions are not supported.
+  </Card>
+  <Card title="Optional: Docker" icon="docker">
+    Use the Dockerfile if you prefer a hermetic image — see [Deployment](/guides/deployment).
+  </Card>
+</CardGroup>
+
+## 1. Install
+
+```bash
+git clone https://github.com/BiradarScripts/Meta-s-LedgerShield.git
+cd Meta-s-LedgerShield
+
+python -m venv .venv
+source .venv/bin/activate
+
+pip install -e .
+pip install -r requirements.txt
+```
+
+## 2. Start the environment server
+
+```bash
+python -m server.app
+```
+
+The API comes up on `http://127.0.0.1:8000` by default. Confirm the service is healthy:
+
+```bash
+curl http://127.0.0.1:8000/health
+```
+
+## 3. Run the submission-safe agent
+
+<Tabs>
+  <Tab title="OpenAI">
+    ```bash
+    export API_BASE_URL="https://api.openai.com/v1"
+    export MODEL_NAME="gpt-5.4"
+    export OPENAI_API_KEY="sk-..."
+    export ENV_URL="http://127.0.0.1:8000"
+
+    python inference.py
+    ```
+  </Tab>
+  <Tab title="Hugging Face Inference">
+    ```bash
+    export API_BASE_URL="https://api-inference.huggingface.co/v1"
+    export MODEL_NAME="meta-llama/Llama-3.3-70B-Instruct"
+    export HF_TOKEN="hf_..."
+    export ENV_URL="http://127.0.0.1:8000"
+
+    python inference.py
+    ```
+  </Tab>
+  <Tab title="Local (no LLM)">
+    ```bash
+    export ENV_URL="http://127.0.0.1:8000"
+
+    python inference.py --policy deterministic
+    ```
+  </Tab>
+</Tabs>
+
+<Tip>
+  `inference.py` adapts planning depth and repair level to the model's `ModelCapabilityProfile` tier (`elite`, `strong`, `standard`). See [Tasks & scoring](/benchmark/tasks) for the contracts the agent must produce.
+</Tip>
+
+## 4. Generate a benchmark report
+
+```bash
+python benchmark_report.py --format markdown
+
+# Full 100-case ControlBench AP-quarter run
+python benchmark_report.py --format markdown --controlbench-sequence-length 100
+```
+
+The report includes the public benchmark, generated holdout, blind-control, contrastive, sleeper-vigilance, certificate-required, human-baseline, and ControlBench institutional sequence.
+
+## 5. Run live model comparisons
+
+```bash
+export OPENAI_API_KEY="your_api_key"
+export API_BASE_URL="https://api.openai.com/v1"
+export ENV_URL="http://127.0.0.1:8000"
+
+python compare_models_live.py \
+  --models gpt-3.5-turbo,gpt-4o,gpt-5.4 \
+  --output live_model_comparison.json
+
+python sync_benchmark_metadata.py
+```
+
+Per-case action traces, planning traces, and score breakdowns are written under `live_model_comparison_debug/<model>/`.
+
+## 6. Validate locally
+
+```bash
+python -m pytest tests/ -q
+bash validate-submission.sh
+```
+
+If `openenv` is installed in your environment:
+
+```bash
+openenv validate
+```
+
+## What to read next
+
+<CardGroup cols={2}>
+  <Card title="Tasks & scoring" icon="list-checks" href="/benchmark/tasks">
+    Output contracts, per-task fields, and the scoring weights every agent must satisfy.
+  </Card>
+  <Card title="API reference" icon="webhook" href="/api-reference">
+    Endpoint payloads, observation envelope, and the action taxonomy.
+  </Card>
+  <Card title="Architecture" icon="layers" href="/architecture/overview">
+    Hidden state, reward design, institutional memory, and certificate verification.
+  </Card>
+  <Card title="Demo script" icon="play" href="/guides/demo-script">
+    The frozen 5-step CASE-D-001 walkthrough used for live demos.
+  </Card>
+</CardGroup>

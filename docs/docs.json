@@ -1,0 +1,230 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "LedgerShield ControlBench",
+  "description": "Verified benchmark for institutional control intelligence in enterprise accounts-payable workflows.",
+  "colors": {
+    "primary": "#1F6FEB",
+    "light": "#5AA9FF",
+    "dark": "#0B3D91"
+  },
+  "favicon": "/favicon.svg",
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg",
+    "href": "/"
+  },
+  "appearance": {
+    "default": "system"
+  },
+  "background": {
+    "decoration": "gradient"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "GitHub",
+        "href": "https://github.com/BiradarScripts/Meta-s-LedgerShield"
+      },
+      {
+        "label": "Hugging Face Space",
+        "href": "https://huggingface.co/spaces"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Run Benchmark",
+      "href": "/guides/deployment"
+    }
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "icon": "compass",
+            "pages": [
+              "index",
+              "introduction",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Overview",
+            "icon": "book-open",
+            "pages": [
+              "overview/documentation-hub",
+              "overview/documentation-index"
+            ]
+          },
+          {
+            "group": "Benchmark",
+            "icon": "shield-check",
+            "pages": [
+              "benchmark/benchmark-card",
+              "benchmark/tasks"
+            ]
+          },
+          {
+            "group": "Architecture",
+            "icon": "layers",
+            "pages": [
+              "architecture/overview",
+              "architecture/ashtg-theory"
+            ]
+          },
+          {
+            "group": "Implementation",
+            "icon": "microscope",
+            "pages": [
+              "implementation/deep-dive"
+            ]
+          },
+          {
+            "group": "Guides",
+            "icon": "book",
+            "pages": [
+              "guides/development",
+              "guides/deployment",
+              "guides/demo-script"
+            ]
+          },
+          {
+            "group": "Blog",
+            "icon": "newspaper",
+            "pages": [
+              "blog/mini-blog",
+              "blog/hf-mini-blog"
+            ]
+          },
+          {
+            "group": "Contracts",
+            "icon": "file-signature",
+            "pages": [
+              "contracts/submission-contract"
+            ]
+          },
+          {
+            "group": "Reports",
+            "icon": "clipboard-check",
+            "pages": [
+              "reports/plan-a-deliverables",
+              "reports/a3-case-audit",
+              "reports/a4-portfolio-track",
+              "reports/a7-demo-assets",
+              "reports/a8-publishing-guide"
+            ]
+          },
+          {
+            "group": "Verification",
+            "icon": "check-square",
+            "pages": [
+              "verification/p0-0",
+              "verification/p0-1",
+              "verification/p0-2",
+              "verification/p0-3",
+              "verification/p0-4",
+              "verification/p0-5",
+              "verification/p0-6",
+              "verification/p0-7",
+              "verification/p0-8"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "icon": "webhook",
+        "groups": [
+          {
+            "group": "Overview",
+            "icon": "compass",
+            "pages": [
+              "api-reference"
+            ]
+          },
+          {
+            "group": "HTTP API",
+            "icon": "plug",
+            "pages": [
+              "api-reference/endpoints",
+              "api-reference/observation",
+              "api-reference/actions",
+              "api-reference/reward-and-runtime"
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "GitHub",
+          "href": "https://github.com/BiradarScripts/Meta-s-LedgerShield",
+          "icon": "github"
+        },
+        {
+          "anchor": "OpenEnv",
+          "href": "https://github.com/BiradarScripts/Meta-s-LedgerShield/blob/main/openenv.yaml",
+          "icon": "box"
+        },
+        {
+          "anchor": "Leaderboard",
+          "href": "/contracts/submission-contract",
+          "icon": "trophy"
+        }
+      ]
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/BiradarScripts/Meta-s-LedgerShield"
+    },
+    "links": [
+      {
+        "header": "Resources",
+        "items": [
+          {
+            "label": "Benchmark Card",
+            "href": "/benchmark/benchmark-card"
+          },
+          {
+            "label": "Demo Script",
+            "href": "/guides/demo-script"
+          },
+          {
+            "label": "Mini-Blog",
+            "href": "/blog/mini-blog"
+          }
+        ]
+      },
+      {
+        "header": "Reference",
+        "items": [
+          {
+            "label": "API",
+            "href": "/api-reference"
+          },
+          {
+            "label": "Architecture",
+            "href": "/architecture/overview"
+          },
+          {
+            "label": "ASHTG Theory",
+            "href": "/architecture/ashtg-theory"
+          }
+        ]
+      }
+    ]
+  },
+  "search": {
+    "prompt": "Search LedgerShield docs..."
+  },
+  "seo": {
+    "metatags": {
+      "og:site_name": "LedgerShield ControlBench"
+    }
+  }
+}

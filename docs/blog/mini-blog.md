@@ -1,0 +1,37 @@
+---
+title: "Mini-Blog"
+description: "Short-form story explaining what LedgerShield does, why it matters, and how it differs from one-shot benchmarks."
+icon: "newspaper"
+sidebarTitle: "Mini-Blog"
+---
+
+> Source: `docs/mini-blog.md` (consolidated)
+
+> Historical archive: this is the pre-ControlBench v2 mini-blog draft. The
+> current project framing is LedgerShield ControlBench, adding institutional
+> loss surface, calibration-gated authority, sleeper-vendor vigilance, and a
+> ControlBench track.
+
+LedgerShield v2 asks a different question from most fraud benchmarks:
+
+not “can an agent spot a suspicious invoice?”
+
+but “can an agent operate a defensible enterprise control regime?”
+
+The environment is set inside enterprise accounts-payable workflows. Agents investigate invoices, vendor histories, email threads, bank changes, and delayed callback artifacts. They work under budget and step limits, and they are graded against hidden backend state rather than exposed scaffold metrics.
+
+The public benchmark now runs in blind mode by default. That matters because it prevents agents from overfitting to evaluator internals like SPRT state, reward-machine progress, or tool-ranking scaffolds. Diagnostics are still available, but they are explicitly separated from benchmark runs.
+
+The historical v2 framing exposed three official tracks.
+
+The current ControlBench release expands that into nine: Case, Portfolio, Adversarial Data, Generated Holdout, ControlBench, Sleeper-Vigilance, Blind-Control, Certificate-Required, and Human-Baseline.
+
+The headline metrics changed too. We do not hide safety behavior inside one average score. LedgerShield now reports control-satisfied resolution, institutional utility, unsafe release rate, certificate validity, and explicit result classes like valid success, correct but policy incomplete, and unsafe release.
+
+Finally, generalization is mechanism-aware. Holdout and contrastive suites are defined by hidden mechanism tuples like attack family, compromise channel, pressure profile, and control weakness, so agents are tested on control logic rather than surface memorization.
+
+That is the core idea behind LedgerShield v2:
+
+make the benchmark stricter, clearer, and harder to game, while keeping it grounded in real enterprise payment integrity work.
+
+---
