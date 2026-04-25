@@ -7,6 +7,7 @@ import type {
 import { envReset, envStep, type StepResponse } from "./env-client";
 import { extractStepMath, type StepMath } from "./diagnostics";
 import { LEDGER_TOOLS, SYSTEM_PROMPT, TOOL_NAMES } from "./tools";
+import { chatCompletionTemperatureFields } from "./openai-params";
 
 export type AgentRunEvent =
   | { type: "status"; content: string }
@@ -195,7 +196,7 @@ export async function* runAgent(
     try {
       completion = await client.chat.completions.create({
         model: config.model,
-        temperature: config.temperature ?? 0.0,
+        ...chatCompletionTemperatureFields(config.model, config.temperature),
         messages,
         tools: LEDGER_TOOLS,
         tool_choice: "auto",

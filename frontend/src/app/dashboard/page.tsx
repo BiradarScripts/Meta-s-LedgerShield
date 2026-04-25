@@ -22,10 +22,113 @@ import {
   ArrowLeft,
   BookOpen,
   ArrowSquareOut,
+  FileText,
 } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
+import { LedgerShieldLogo } from "@/components/LedgerShieldLogo";
+import {
+  DocumentPreviewModal,
+  sampleDocIdForCase,
+  type PreviewDoc,
+} from "@/components/DocumentPreviewModal";
 
 const DOCS_URL = "https://aryaman.mintlify.app/benchmark/benchmark-card";
+
+const TOOL_CARD_META: Record<
+  string,
+  { label: string; icon: typeof MagnifyingGlass; summary: string }
+> = {
+  ocr: {
+    label: "OCR Document",
+    icon: MagnifyingGlass,
+    summary:
+      "Runs text extraction on a visible document. Use first to capture vendor, totals, and line items for the case.",
+  },
+  get_doc_crop: {
+    label: "Doc crop",
+    icon: MagnifyingGlass,
+    summary:
+      "Reads a bounded region of a page when you need a tighter text slice than full-document OCR.",
+  },
+  zoom: {
+    label: "Zoom region",
+    icon: MagnifyingGlass,
+    summary:
+      "Focuses OCR on a specific area—useful for stamps, remit-to boxes, or fine print.",
+  },
+  lookup_vendor: {
+    label: "Lookup Vendor",
+    icon: BuildingOffice,
+    summary:
+      "Pulls master-data profile: legal name, default bank, domains, and risk flags for a vendor key.",
+  },
+  lookup_vendor_history: {
+    label: "Vendor History",
+    icon: BuildingOffice,
+    summary:
+      "Shows past bank changes, disputes, and fraud signals tied to the vendor across episodes.",
+  },
+  inspect_email_thread: {
+    label: "Inspect Email",
+    icon: Envelope,
+    summary:
+      "Opens the AP email thread to verify sender domains, urgency language, and payment instructions.",
+  },
+  compare_bank_account: {
+    label: "Compare Bank",
+    icon: Bank,
+    summary:
+      "Checks a proposed account number against the vendor master record to spot takeover attempts.",
+  },
+  search_ledger: {
+    label: "Search Ledger",
+    icon: TrendUp,
+    summary:
+      "Searches posted invoices for duplicates or anomalies using vendor, amount, and reference fields.",
+  },
+  lookup_policy: {
+    label: "Lookup Policy",
+    icon: ShieldCheck,
+    summary:
+      "Returns the control rule text (thresholds, approvals) that apply before a PAY decision.",
+  },
+  lookup_po: {
+    label: "Lookup PO",
+    icon: ChartBar,
+    summary:
+      "Fetches the purchase order tied to the invoice for three-way match (qty, price, terms).",
+  },
+  lookup_receipt: {
+    label: "Lookup Receipt",
+    icon: ChartBar,
+    summary:
+      "Loads the goods receipt to confirm delivery before paying against the PO and invoice.",
+  },
+  request_callback_verification: {
+    label: "Request Callback",
+    icon: Phone,
+    summary:
+      "Schedules an outbound callback to validate high-risk changes (e.g., bank updates) out-of-band.",
+  },
+  route_to_security: {
+    label: "Route to Security",
+    icon: Warning,
+    summary:
+      "Escalates the packet to the security queue when fraud signals exceed the automated policy path.",
+  },
+  create_human_handoff: {
+    label: "Human Handoff",
+    icon: BuildingOffice,
+    summary:
+      "Creates a procurement / AP handoff ticket with context when automation should stop.",
+  },
+  route_to_procurement: {
+    label: "Route to Procurement",
+    icon: BuildingOffice,
+    summary:
+      "Sends the case to procurement for vendor onboarding or master-data corrections.",
+  },
+};
 
 function ToolButton({
   tool,
@@ -38,36 +141,43 @@ function ToolButton({
   disabled?: boolean;
   loading?: boolean;
 }) {
-  const toolLabels: Record<string, { label: string; icon: any }> = {
-    ocr: { label: "OCR Document", icon: MagnifyingGlass },
-    lookup_vendor: { label: "Lookup Vendor", icon: BuildingOffice },
-    lookup_vendor_history: { label: "Vendor History", icon: BuildingOffice },
-    inspect_email_thread: { label: "Inspect Email", icon: Envelope },
-    compare_bank_account: { label: "Compare Bank", icon: Bank },
-    search_ledger: { label: "Search Ledger", icon: TrendUp },
-    lookup_policy: { label: "Lookup Policy", icon: ShieldCheck },
-    lookup_po: { label: "Lookup PO", icon: ChartBar },
-    lookup_receipt: { label: "Lookup Receipt", icon: ChartBar },
-    request_callback_verification: { label: "Request Callback", icon: Phone },
-    route_to_security: { label: "Route to Security", icon: Warning },
-    create_human_handoff: { label: "Human Handoff", icon: BuildingOffice },
-    route_to_procurement: { label: "Route to Procurement", icon: BuildingOffice },
+  const info = TOOL_CARD_META[tool] || {
+    label: tool.replace(/_/g, " "),
+    icon: Gear,
+    summary: "Invoke this environment action to advance the investigation for the current observation.",
   };
-
-  const info = toolLabels[tool] || { label: tool, icon: Gear };
   const Icon = info.icon;
+  const isDisabled = Boolean(disabled || loading);
 
   return (
-    <motion.button
+    <button
+      type="button"
       onClick={onClick}
-      disabled={disabled || loading}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium"
+      disabled={isDisabled}
+      className="group relative w-full min-h-[5.25rem] rounded-xl border border-white/10 bg-transparent p-0 text-left outline-none transition-shadow focus-visible:ring-2 focus-visible:ring-sky-500/50 disabled:cursor-not-allowed disabled:opacity-45 [perspective:1000px]"
     >
-      <Icon size={18} />
-      <span>{info.label}</span>
-    </motion.button>
+      <div
+        className={`relative h-full min-h-[5.25rem] w-full transition-transform duration-500 [transform-style:preserve-3d] ease-out ${
+          isDisabled ? "" : "group-hover:[transform:rotateY(180deg)]"
+        }`}
+      >
+        <div
+          className="absolute inset-0 flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.06] px-3 py-3 text-sm font-medium text-zinc-100 shadow-inner shadow-black/20 [backface-visibility:hidden] [-webkit-backface-visibility:hidden]"
+          style={{ backfaceVisibility: "hidden" }}
+        >
+          <Icon size={20} className="shrink-0 text-zinc-300" />
+          <span className="leading-snug">{info.label}</span>
+        </div>
+        <div
+          className="absolute inset-0 flex items-center justify-center rounded-xl border border-sky-500/35 bg-sky-950/55 px-3 py-3 text-center shadow-inner shadow-black/30 [backface-visibility:hidden] [-webkit-backface-visibility:hidden] [transform:rotateY(180deg)]"
+          style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+        >
+          <p className="text-[11px] font-medium leading-relaxed text-sky-200 line-clamp-4">
+            {info.summary}
+          </p>
+        </div>
+      </div>
+    </button>
   );
 }
 
@@ -178,6 +288,11 @@ export default function Dashboard() {
   const { setApiUrl, apiUrl } = useAppStore();
   const router = useRouter();
   const [showSettings, setShowSettings] = useState(false);
+  const [docPreview, setDocPreview] = useState<{
+    doc: PreviewDoc;
+    caseId?: string;
+    instruction?: string;
+  } | null>(null);
 
   const handleReset = async (caseId: string) => {
     await reset(caseId);
@@ -266,6 +381,14 @@ export default function Dashboard() {
             <button onClick={() => router.push("/")} className="p-2 hover:bg-white/5 rounded-lg transition-colors">
               <ArrowLeft size={20} />
             </button>
+            <button
+              type="button"
+              onClick={() => router.push("/")}
+              className="flex items-center gap-2 rounded-lg py-1 pr-2 hover:bg-white/5 transition-colors"
+            >
+              <LedgerShieldLogo size={34} className="shrink-0" />
+              <span className="font-mono text-sm tracking-tight text-zinc-100">LedgerShield</span>
+            </button>
           </div>
           <div className="flex items-center gap-2">
             <a
@@ -315,13 +438,22 @@ export default function Dashboard() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {AVAILABLE_CASES.map((caseItem) => (
-                <motion.button
+                <motion.div
                   key={caseItem.case_id}
-                  onClick={() => handleReset(caseItem.case_id)}
-                  disabled={isLoading}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => !isLoading && handleReset(caseItem.case_id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      if (!isLoading) handleReset(caseItem.case_id);
+                    }
+                  }}
                   whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  className="text-left p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all group"
+                  className={`text-left p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all group ${
+                    isLoading ? "opacity-50 pointer-events-none" : "cursor-pointer"
+                  }`}
                 >
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-xs font-mono text-zinc-500">{caseItem.case_id}</span>
@@ -332,11 +464,32 @@ export default function Dashboard() {
                   <p className="text-sm font-medium text-zinc-200 line-clamp-2">
                     {caseItem.instruction}
                   </p>
-                  <div className="mt-4 flex items-center gap-2 text-xs text-zinc-500 group-hover:text-zinc-400 transition-colors">
-                    <Play size={14} />
-                    <span>Start</span>
+                  <div className="mt-4 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 text-xs text-zinc-500 group-hover:text-zinc-400 transition-colors">
+                      <Play size={14} />
+                      <span>Start episode</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDocPreview({
+                          doc: {
+                            doc_id: sampleDocIdForCase(caseItem.case_id),
+                            doc_type: "invoice",
+                            page_count: 1,
+                          },
+                          caseId: caseItem.case_id,
+                          instruction: caseItem.instruction,
+                        });
+                      }}
+                      className="inline-flex items-center gap-1 rounded-lg border border-white/15 bg-black/30 px-2.5 py-1.5 text-[10px] font-mono uppercase tracking-wide text-zinc-300 hover:border-emerald-500/40 hover:text-emerald-300 transition-colors"
+                    >
+                      <FileText size={14} />
+                      Invoice
+                    </button>
                   </div>
-                </motion.button>
+                </motion.div>
               ))}
             </div>
           </motion.div>
@@ -512,10 +665,23 @@ export default function Dashboard() {
                     <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">
                       <span className="text-xs font-mono">{doc.doc_type}</span>
                     </div>
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium">{doc.doc_id}</p>
                       <p className="text-xs text-zinc-500">{doc.page_count} pages</p>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDocPreview({
+                          doc,
+                          caseId: currentCaseId || undefined,
+                          instruction: currentObs?.instruction,
+                        });
+                      }}
+                      className="shrink-0 rounded-lg border border-white/15 px-2.5 py-1.5 text-[10px] font-mono uppercase tracking-wide text-zinc-300 hover:border-emerald-500/40 hover:text-emerald-300 transition-colors"
+                    >
+                      View
+                    </button>
                   </div>
                 )) || <p className="text-sm text-zinc-500">No documents visible</p>}
               </div>
@@ -579,6 +745,20 @@ export default function Dashboard() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <DocumentPreviewModal
+        open={docPreview !== null}
+        onClose={() => setDocPreview(null)}
+        doc={docPreview?.doc ?? null}
+        caseId={docPreview?.caseId}
+        instruction={docPreview?.instruction}
+        lastToolResult={
+          currentObs?.last_tool_result &&
+          typeof currentObs.last_tool_result === "object"
+            ? (currentObs.last_tool_result as Record<string, unknown>)
+            : undefined
+        }
+      />
     </div>
   );
 }

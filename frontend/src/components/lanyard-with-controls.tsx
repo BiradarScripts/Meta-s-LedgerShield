@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
 import Lanyard from "@/components/ui/lanyard";
 import CardTemplate, { type CardTemplateRef, type CardVariant } from "@/components/card-template";
 
@@ -26,13 +26,6 @@ export default function LanyardWithControls({
     setTextureKey((prev) => prev + 1);
   }, []);
 
-  useEffect(() => {
-    const timer = setTimeout(async () => {
-      await cardTemplateRef.current?.captureTexture();
-    }, 120);
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
     <div className="flex flex-col">
       <CardTemplate
@@ -40,6 +33,7 @@ export default function LanyardWithControls({
         userName={ATTENDEE_NAME}
         variant={CARD_VARIANT}
         onTextureReady={handleTextureReady}
+        roleLabel="BUILDER"
         city={HACKATHON_LABEL}
         date={ATTENDEE_NAME}
       />

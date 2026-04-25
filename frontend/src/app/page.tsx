@@ -2,55 +2,261 @@
 
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { ArrowRight, ArrowSquareOut, BookOpen } from "@phosphor-icons/react";
+import {
+  ArrowRight,
+  ArrowsClockwise,
+  ArrowSquareOut,
+  BookOpen,
+  Brain,
+  ClockCounterClockwise,
+  Key,
+  SealCheck,
+  SquaresFour,
+  TreeStructure,
+} from "@phosphor-icons/react";
 import LanyardWithControls from "@/components/lanyard-with-controls";
 
 const DOCS_URL = "https://aryaman.mintlify.app/benchmark/benchmark-card";
 
-const NOVELTY_CARDS = [
+type FeatureFigure =
+  | "memory"
+  | "authority"
+  | "replay"
+  | "longcon"
+  | "proof"
+  | "audit"
+  | "generation";
+
+function FeatureCardBackdrop() {
+  return (
+    <div
+      className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-2xl"
+      aria-hidden
+    >
+      <div
+        className="absolute inset-0 opacity-[0.45]"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at center, rgba(255,255,255,0.11) 0.55px, transparent 0.6px)",
+          backgroundSize: "11px 11px",
+        }}
+      />
+      <div className="absolute bottom-3 left-3 grid grid-cols-2 gap-1 opacity-[0.35]">
+        {Array.from({ length: 8 }, (_, i) => (
+          <span key={i} className="size-1 bg-white" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const NOVELTY_CARDS: {
+  eyebrow: string;
+  title: string;
+  copy: string;
+  className: string;
+  tags: string[];
+  figure: FeatureFigure;
+  icon: typeof Brain;
+}[] = [
   {
     eyebrow: "01 / Memory",
     title: "Persistent Institutional Memory",
     copy: "Tracks vendor trust, fraud losses, authority pressure, and institutional outcomes across episodes.",
-    className: "md:col-span-5 md:row-span-2",
-    accent: "from-blue-500/14 to-white/[0.03]",
+    className: "md:col-span-5",
+    tags: ["vendor_trust", "loss_ledger", "authority_pressure"],
+    figure: "memory",
+    icon: Brain,
   },
   {
     eyebrow: "02 / Authority",
     title: "Calibration-Gated Authority",
     copy: "Agents earn or lose operational authority based on calibration quality and catastrophic mistakes.",
     className: "md:col-span-7",
-    accent: "from-cyan-500/12 to-white/[0.03]",
+    tags: ["calibration", "clearance_band", "catastrophic_events"],
+    figure: "authority",
+    icon: Key,
   },
   {
-    eyebrow: "03 / Long Con",
+    eyebrow: "03 / Replay",
+    title: "Audit-Grade Reproducibility",
+    copy: "Re-run episodes with frozen seeds and stable artifact hashes so scores and evidence traces line up every time.",
+    className: "md:col-span-5",
+    tags: ["frozen_seed", "artifact_hash", "trace_parity"],
+    figure: "replay",
+    icon: ArrowsClockwise,
+  },
+  {
+    eyebrow: "04 / Long Con",
     title: "Sleeper-Vendor Vigilance",
     copy: "Tests whether agents catch vendors that behave normally first, then activate fraud later.",
     className: "md:col-span-3",
-    accent: "from-zinc-400/10 to-white/[0.02]",
+    tags: ["quiet_phase", "switch_event"],
+    figure: "longcon",
+    icon: ClockCounterClockwise,
   },
   {
-    eyebrow: "04 / Proof",
+    eyebrow: "05 / Proof",
     title: "Decision Certificates",
     copy: "Every decision can carry auditable evidence, policy, intervention, and counterfactual nodes.",
     className: "md:col-span-4",
-    accent: "from-blue-500/10 to-white/[0.02]",
+    tags: ["evidence", "policy", "counterfactuals"],
+    figure: "proof",
+    icon: SealCheck,
   },
   {
-    eyebrow: "05 / Audit",
+    eyebrow: "06 / Audit",
     title: "Falsifier + TrustGraph",
     copy: "After decisions, a deterministic adversary attacks unsupported claims and unsafe PAY actions.",
     className: "md:col-span-7",
-    accent: "from-white/[0.08] to-white/[0.02]",
+    tags: ["claim_graph", "unsafe_pay_probe"],
+    figure: "audit",
+    icon: TreeStructure,
   },
   {
-    eyebrow: "06 / Generation",
+    eyebrow: "07 / Generation",
     title: "FraudGen Ecosystems",
     copy: "Generates novel fraud worlds with solvability manifests, tool paths, artifacts, and validation metadata.",
     className: "md:col-span-5",
-    accent: "from-cyan-500/10 to-white/[0.02]",
+    tags: ["manifest", "tool_path", "validation_meta"],
+    figure: "generation",
+    icon: SquaresFour,
   },
 ];
+
+function FeatureCardFigure({ variant }: { variant: FeatureFigure }) {
+  switch (variant) {
+    case "memory":
+      return (
+        <div className="mt-5 border-t border-white/10 pt-4">
+          <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.18em] text-zinc-500">
+            Cross-episode state
+          </p>
+          <div className="flex gap-2">
+            {["T−2", "T−1", "T"].map((label, i) => (
+              <div key={label} className="flex min-w-0 flex-1 flex-col gap-2">
+                <span className="font-mono text-[10px] text-zinc-500">{label}</span>
+                <div
+                  className={`rounded border p-2 ${i === 2 ? "border-white/30 bg-zinc-950" : "border-white/15 bg-black"}`}
+                >
+                  <div className="space-y-1.5">
+                    <div className="h-px w-full bg-white/25" />
+                    <div className="h-px w-4/5 bg-white/40" />
+                    <div className="h-px w-3/5 bg-white/15" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    case "authority":
+      return (
+        <div className="mt-5 border-t border-white/10 pt-4">
+          <div className="flex items-center justify-between font-mono text-[10px] text-zinc-500">
+            <span>Calibration signal</span>
+            <span>Authority band</span>
+          </div>
+          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/10">
+            <div className="h-full w-[68%] rounded-full bg-white" />
+          </div>
+          <div className="mt-2 flex justify-between font-mono text-[10px] text-zinc-400">
+            <span>↓ after mistakes</span>
+            <span>↑ when stable</span>
+          </div>
+        </div>
+      );
+    case "replay":
+      return (
+        <div className="mt-5 border-t border-white/10 pt-4">
+          <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-zinc-500">
+            Same inputs → same trace
+          </p>
+          <div className="flex items-stretch gap-2 font-mono text-[10px]">
+            <div className="flex min-w-0 flex-1 flex-col gap-1.5 rounded border border-white/15 bg-zinc-950 p-2">
+              <span className="text-zinc-500">run_a.digest</span>
+              <span className="truncate text-zinc-300">sha256···c41e</span>
+            </div>
+            <div className="flex shrink-0 items-center text-zinc-600">≡</div>
+            <div className="flex min-w-0 flex-1 flex-col gap-1.5 rounded border border-white/15 bg-zinc-950 p-2">
+              <span className="text-zinc-500">run_b.digest</span>
+              <span className="truncate text-zinc-300">sha256···c41e</span>
+            </div>
+          </div>
+          <p className="mt-2 text-[10px] text-zinc-500">episode_seed locked · tool RNG pinned</p>
+        </div>
+      );
+    case "longcon":
+      return (
+        <div className="mt-5 border-t border-white/10 pt-4">
+          <div className="flex items-stretch gap-1 sm:gap-2">
+            <div className="min-w-0 flex-1 rounded-lg border border-white/20 p-2.5">
+              <p className="font-mono text-[10px] uppercase tracking-wider text-zinc-500">Phase A</p>
+              <p className="mt-1 text-xs leading-snug text-zinc-400">Benign vendor surface</p>
+            </div>
+            <div className="flex shrink-0 items-center font-mono text-zinc-600">→</div>
+            <div className="min-w-0 flex-1 rounded-lg border border-dashed border-white/35 p-2.5">
+              <p className="font-mono text-[10px] uppercase tracking-wider text-white">Phase B</p>
+              <p className="mt-1 text-xs leading-snug text-zinc-400">Fraud activates</p>
+            </div>
+          </div>
+        </div>
+      );
+    case "proof":
+      return (
+        <div className="mt-5 border-t border-white/10 pt-4">
+          <div className="rounded-lg border border-white/25 bg-zinc-950 p-3 font-mono text-[10px] leading-relaxed">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div className="space-y-1 text-zinc-400">
+                <div className="text-white">DECISION_CERT</div>
+                <div>evidence_nodes · 14</div>
+                <div>policy_refs · 3</div>
+              </div>
+              <div className="shrink-0 rounded border border-white/20 px-2 py-1 text-zinc-500">sha256···a3f9</div>
+            </div>
+          </div>
+        </div>
+      );
+    case "audit":
+      return (
+        <div className="mt-5 border-t border-white/10 pt-4">
+          <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-zinc-500">
+            Deterministic challenge
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-2 py-1">
+            <span className="rounded border border-white/25 px-2 py-1 font-mono text-[10px]">claim</span>
+            <span className="text-zinc-600">—</span>
+            <span className="rounded border border-dashed border-white/35 px-2 py-1 font-mono text-[10px] text-zinc-400">
+              falsifier
+            </span>
+            <span className="text-zinc-600">—</span>
+            <span className="rounded border border-white/25 px-2 py-1 font-mono text-[10px]">PAY gate</span>
+          </div>
+        </div>
+      );
+    case "generation":
+      return (
+        <div className="mt-5 border-t border-white/10 pt-4">
+          <div className="space-y-2 font-mono text-[10px]">
+            <div className="flex justify-between gap-2 border-b border-white/10 pb-2 text-zinc-500">
+              <span>manifest.solvable</span>
+              <span className="text-zinc-300">true</span>
+            </div>
+            <div className="flex justify-between gap-2 border-b border-white/10 pb-2 text-zinc-500">
+              <span>tool_path.len</span>
+              <span className="text-white">7</span>
+            </div>
+            <div className="flex justify-between gap-2 text-zinc-500">
+              <span>world_id</span>
+              <span className="truncate text-zinc-400">fg-eco-192.ax</span>
+            </div>
+          </div>
+        </div>
+      );
+    default:
+      return null;
+  }
+}
 
 export default function LandingPage() {
   const router = useRouter();
@@ -145,10 +351,10 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="relative px-6 pb-24 pt-10">
+        <section className="relative border-t border-white/15 px-6 pb-24 pt-16">
           <div className="mx-auto w-full max-w-[1600px]">
-            <div className="mb-8 max-w-3xl">
-              <p className="mb-3 font-mono text-xs uppercase tracking-[0.24em] text-zinc-500">
+            <div className="mb-10 max-w-3xl">
+              <p className="mb-3 font-mono text-xs uppercase tracking-[0.24em] text-zinc-400">
                 Why LedgerShield is different
               </p>
               <h2 className="text-balance text-4xl font-semibold tracking-tight text-white md:text-6xl">
@@ -156,33 +362,52 @@ export default function LandingPage() {
               </h2>
             </div>
 
-            <div className="grid auto-rows-[210px] grid-cols-1 gap-4 md:grid-cols-12">
-              {NOVELTY_CARDS.map((card, index) => (
-                <motion.article
-                  key={card.title}
-                  initial={{ opacity: 0, y: 18 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-80px" }}
-                  transition={{ delay: index * 0.05, duration: 0.35 }}
-                  className={`group relative overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br ${card.accent} ${card.className} p-7 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-sm`}
-                >
-                  <div className="absolute right-5 top-5 h-20 w-20 rounded-full border border-white/10 bg-white/[0.03] transition-transform duration-500 group-hover:scale-125" />
-                  <div className="absolute -bottom-14 -right-14 h-40 w-40 rounded-full bg-white/[0.04]" />
-                  <div className="relative flex h-full flex-col justify-between">
-                    <p className="font-mono text-xs uppercase tracking-[0.22em] text-zinc-500">
-                      {card.eyebrow}
-                    </p>
-                    <div>
-                      <h3 className="max-w-xl text-3xl font-semibold tracking-tight text-white">
-                        {card.title}
-                      </h3>
-                      <p className="mt-3 max-w-xl text-base leading-relaxed text-zinc-400">
-                        {card.copy}
+            <div className="grid auto-rows-[minmax(220px,auto)] grid-cols-1 gap-3 md:grid-cols-12 md:gap-4">
+              {NOVELTY_CARDS.map((card, index) => {
+                const Icon = card.icon;
+                return (
+                  <motion.article
+                    key={card.title}
+                    initial={{ opacity: 0, y: 18 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-80px" }}
+                    transition={{ delay: index * 0.05, duration: 0.35 }}
+                    className={`group relative flex overflow-hidden rounded-2xl border border-white/20 bg-black p-7 text-left transition-colors hover:border-white/40 ${card.className}`}
+                  >
+                    <FeatureCardBackdrop />
+                    <Icon
+                      className="pointer-events-none absolute right-5 top-14 z-[1] text-white/[0.09] transition-colors group-hover:text-white/[0.14]"
+                      size={72}
+                      weight="thin"
+                      aria-hidden
+                    />
+                    <div className="relative z-[1] flex w-full min-w-0 flex-col">
+                      <p className="font-mono text-xs uppercase tracking-[0.22em] text-zinc-400">
+                        {card.eyebrow}
                       </p>
+                      <div className="mt-4 min-w-0 pr-16">
+                        <h3 className="max-w-xl text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+                          {card.title}
+                        </h3>
+                        <p className="mt-3 max-w-xl text-base leading-relaxed text-zinc-300">
+                          {card.copy}
+                        </p>
+                        <ul className="mt-4 flex flex-wrap gap-1.5">
+                          {card.tags.map((tag) => (
+                            <li
+                              key={tag}
+                              className="rounded border border-white/15 bg-zinc-950 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-zinc-400"
+                            >
+                              {tag}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <FeatureCardFigure variant={card.figure} />
                     </div>
-                  </div>
-                </motion.article>
-              ))}
+                  </motion.article>
+                );
+              })}
             </div>
           </div>
         </section>

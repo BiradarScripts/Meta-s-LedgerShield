@@ -27,8 +27,15 @@ import AgentStream, { StreamEvent } from "@/components/AgentStream";
 import { EnvironmentPanel } from "@/components/EnvironmentPanel";
 import type { StepMath } from "@/lib/agent/diagnostics";
 import { CertificateGraphModal } from "@/components/CertificateGraphModal";
+import { LedgerShieldLogo } from "@/components/LedgerShieldLogo";
+import {
+  clearAgentFormStorage,
+  loadAgentFormFromStorage,
+  saveAgentFormToStorage,
+} from "@/lib/agent/local-settings";
 
 const DOCS_URL = "https://aryaman.mintlify.app/benchmark/benchmark-card";
+const DEFAULT_API_URL = "https://api.openai.com/v1";
 
 type AgentMode = "demo" | "custom";
 
@@ -55,15 +62,47 @@ interface LlmHealth {
   sampleReply?: string;
 }
 
-const AVAILABLE_MODELS = [
-  { id: "gpt-4o", name: "GPT-4o", provider: "OpenAI" },
-  { id: "gpt-4o-mini", name: "GPT-4o Mini", provider: "OpenAI" },
-  { id: "gpt-4.1-mini", name: "GPT-4.1 Mini", provider: "OpenAI" },
-  { id: "gpt-3.5-turbo", name: "GPT-3.5 Turbo", provider: "OpenAI" },
-  { id: "claude-3-5-sonnet-latest", name: "Claude 3.5 Sonnet", provider: "Anthropic-compat" },
-  { id: "claude-3-5-haiku-latest", name: "Claude 3.5 Haiku", provider: "Anthropic-compat" },
-  { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro", provider: "Google-compat" },
+/** Preset ids — your account may not expose every name; check the provider dashboard or /v1/models. */
+const AVAILABLE_MODELS: { id: string; name: string; provider: string }[] = [
+  { id: "gpt-5.5", name: "GPT-5.5", provider: "OpenAI · GPT-5 family" },
+  { id: "gpt-5.4", name: "GPT-5.4", provider: "OpenAI · GPT-5 family" },
+  { id: "gpt-5.4-mini", name: "GPT-5.4 mini", provider: "OpenAI · GPT-5 family" },
+  { id: "gpt-5.4-nano", name: "GPT-5.4 nano", provider: "OpenAI · GPT-5 family" },
+  { id: "gpt-5", name: "GPT-5", provider: "OpenAI · GPT-5 family" },
+  { id: "gpt-4.1", name: "GPT-4.1", provider: "OpenAI · GPT-4.x" },
+  { id: "gpt-4.1-mini", name: "GPT-4.1 mini", provider: "OpenAI · GPT-4.x" },
+  { id: "gpt-4.1-nano", name: "GPT-4.1 nano", provider: "OpenAI · GPT-4.x" },
+  { id: "gpt-4o", name: "GPT-4o", provider: "OpenAI · GPT-4.x" },
+  { id: "gpt-4o-mini", name: "GPT-4o mini", provider: "OpenAI · GPT-4.x" },
+  { id: "chatgpt-4o-latest", name: "ChatGPT-4o latest", provider: "OpenAI · GPT-4.x" },
+  { id: "gpt-4-turbo", name: "GPT-4 Turbo", provider: "OpenAI · GPT-4.x" },
+  { id: "gpt-3.5-turbo", name: "GPT-3.5 Turbo", provider: "OpenAI · GPT-4.x" },
+  { id: "o4-mini", name: "o4-mini", provider: "OpenAI · reasoning" },
+  { id: "o3", name: "o3", provider: "OpenAI · reasoning" },
+  { id: "o3-mini", name: "o3-mini", provider: "OpenAI · reasoning" },
+  { id: "o3-pro", name: "o3-pro", provider: "OpenAI · reasoning" },
+  { id: "o1", name: "o1", provider: "OpenAI · reasoning" },
+  { id: "o1-mini", name: "o1-mini", provider: "OpenAI · reasoning" },
+  { id: "o1-preview", name: "o1-preview", provider: "OpenAI · reasoning" },
+  {
+    id: "claude-sonnet-4-20250514",
+    name: "Claude Sonnet 4 (example id)",
+    provider: "Other · via compatible proxy",
+  },
+  { id: "claude-3-5-sonnet-latest", name: "Claude 3.5 Sonnet", provider: "Other · via compatible proxy" },
+  { id: "claude-3-5-haiku-latest", name: "Claude 3.5 Haiku", provider: "Other · via compatible proxy" },
+  { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash (example)", provider: "Other · via compatible proxy" },
+  { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro", provider: "Other · via compatible proxy" },
 ];
+
+const MODEL_PROVIDERS_ORDER = [
+  "OpenAI · GPT-5 family",
+  "OpenAI · GPT-4.x",
+  "OpenAI · reasoning",
+  "Other · via compatible proxy",
+];
+
+const CUSTOM_MODEL_SELECT = "__custom__";
 
 const FALLBACK_CASES: AvailableCase[] = [
   { case_id: "CASE-A-001", task_type: "task_a", instruction: "Extract invoice fields from document" },
@@ -95,9 +134,10 @@ export default function AgentTestPage() {
   const [config, setConfig] = useState<AgentConfig>({
     mode: "demo",
     model: "gpt-4o-mini",
-    apiUrl: "https://api.openai.com/v1",
+    apiUrl: DEFAULT_API_URL,
     apiKey: "",
   });
+  const [rememberOnDevice, setRememberOnDevice] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
   const [selectedCase, setSelectedCase] = useState("CASE-A-001");
   const [cases, setCases] = useState<AvailableCase[]>(FALLBACK_CASES);
@@ -125,6 +165,30 @@ export default function AgentTestPage() {
 
   const abortRef = useRef<AbortController | null>(null);
   const healthAbortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    const saved = loadAgentFormFromStorage();
+    if (saved) {
+      setRememberOnDevice(true);
+      setConfig((prev) => ({
+        ...prev,
+        mode: saved.mode,
+        apiKey: saved.apiKey,
+        apiUrl: saved.apiUrl || DEFAULT_API_URL,
+        model: saved.model || prev.model,
+      }));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!rememberOnDevice) return;
+    saveAgentFormToStorage({
+      mode: config.mode,
+      apiKey: config.apiKey,
+      apiUrl: config.apiUrl,
+      model: config.model,
+    });
+  }, [rememberOnDevice, config.mode, config.apiKey, config.apiUrl, config.model]);
 
   useEffect(() => {
     let cancelled = false;
@@ -373,8 +437,8 @@ export default function AgentTestPage() {
             >
               <ArrowLeft size={20} />
             </button>
-            <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center">
-              <Robot size={24} weight="bold" className="text-black" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-black/40 ring-1 ring-white/10">
+              <LedgerShieldLogo size={34} />
             </div>
             <div>
               <h1 className="text-lg font-semibold tracking-tight">Agent Test</h1>
@@ -468,25 +532,54 @@ export default function AgentTestPage() {
                   <>
                     <div>
                       <label className="text-sm text-zinc-400 mb-2 block">Model</label>
-                      <input
-                        type="text"
-                        value={config.model}
-                        onChange={(e) =>
-                          updateConfig({ model: e.target.value })
-                        }
-                        list="agent-model-suggestions"
-                        className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 focus:border-emerald-500/50 outline-none transition-colors font-mono text-sm"
-                        placeholder="gpt-4o-mini"
-                      />
-                      <datalist id="agent-model-suggestions">
-                        {AVAILABLE_MODELS.map((m) => (
-                          <option key={m.id} value={m.id}>
-                            {m.name} ({m.provider})
-                          </option>
-                        ))}
-                      </datalist>
+                      <div className="space-y-2">
+                        <select
+                          value={
+                            AVAILABLE_MODELS.some((m) => m.id === config.model)
+                              ? config.model
+                              : CUSTOM_MODEL_SELECT
+                          }
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            if (v === CUSTOM_MODEL_SELECT) {
+                              updateConfig({ model: "" });
+                            } else {
+                              updateConfig({ model: v });
+                            }
+                          }}
+                          className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 focus:border-emerald-500/50 outline-none transition-colors font-mono text-sm"
+                        >
+                          {MODEL_PROVIDERS_ORDER.map((provider) => (
+                            <optgroup label={provider} key={provider}>
+                              {AVAILABLE_MODELS.filter((m) => m.provider === provider).map(
+                                (m) => (
+                                  <option key={m.id} value={m.id}>
+                                    {m.name} ({m.id})
+                                  </option>
+                                ),
+                              )}
+                            </optgroup>
+                          ))}
+                          <option value={CUSTOM_MODEL_SELECT}>Custom model ID…</option>
+                        </select>
+                        {!AVAILABLE_MODELS.some((m) => m.id === config.model) && (
+                          <input
+                            type="text"
+                            value={config.model}
+                            onChange={(e) =>
+                              updateConfig({ model: e.target.value })
+                            }
+                            className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 focus:border-emerald-500/50 outline-none transition-colors font-mono text-sm"
+                            placeholder="Exact id from your provider (e.g. gpt-5.5)"
+                            spellCheck={false}
+                          />
+                        )}
+                      </div>
                       <p className="text-[10px] text-zinc-500 mt-1">
-                        Any model id supported by the configured base URL.
+                        Presets follow common OpenAI-style ids (incl. GPT-5.x / o-series names from
+                        provider docs). If a call fails, confirm the id with{" "}
+                        <code className="font-mono">GET /v1/models</code> or your dashboard — names
+                        change by rollout.
                       </p>
                     </div>
 
@@ -530,9 +623,32 @@ export default function AgentTestPage() {
                           {showApiKey ? <EyeSlash size={16} /> : <Eye size={16} />}
                         </button>
                       </div>
-                      <p className="text-[10px] text-zinc-500 mt-1">
-                        Your key is sent to your own Next.js server only and is never stored.
-                      </p>
+                      <label className="mt-3 flex items-start gap-2 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          className="mt-1 rounded border-white/20 bg-white/5"
+                          checked={rememberOnDevice}
+                          onChange={(e) => {
+                            const on = e.target.checked;
+                            setRememberOnDevice(on);
+                            if (!on) clearAgentFormStorage();
+                            else {
+                              saveAgentFormToStorage({
+                                mode: config.mode,
+                                apiKey: config.apiKey,
+                                apiUrl: config.apiUrl,
+                                model: config.model,
+                              });
+                            }
+                          }}
+                        />
+                        <span className="text-xs text-zinc-400 leading-snug">
+                          Remember API key, base URL, and model in{" "}
+                          <span className="text-zinc-300">this browser only</span> (localStorage).
+                          Uncheck to clear saved values. Your key is only sent to this app’s server
+                          when you run the agent — it is not uploaded elsewhere by LedgerShield.
+                        </span>
+                      </label>
                     </div>
 
                     <ConnectionCheck

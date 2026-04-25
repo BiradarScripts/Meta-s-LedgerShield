@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 
 import { envHealth, getBackendUrl } from "@/lib/agent/env-client";
+import {
+  chatCompletionOutputTokenParam,
+  chatCompletionTemperatureFields,
+} from "@/lib/agent/openai-params";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -60,8 +64,8 @@ export async function POST(request: NextRequest) {
         { role: "system", content: "Respond with the single word: ok" },
         { role: "user", content: "ping" },
       ],
-      max_tokens: 4,
-      temperature: 0,
+      ...chatCompletionOutputTokenParam(model, 4),
+      ...chatCompletionTemperatureFields(model, 0),
     });
 
     const latencyMs = Date.now() - start;

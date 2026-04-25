@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Pulse,
   Gauge,
@@ -7,9 +8,11 @@ import {
   WarningCircle,
   Calculator,
   ChartLine,
+  Eye,
 } from "@phosphor-icons/react";
 
 import type { StepMath } from "@/lib/agent/diagnostics";
+import { DocumentPreviewModal, type PreviewDoc } from "@/components/DocumentPreviewModal";
 
 function asRecord(v: unknown): Record<string, unknown> | null {
   return v && typeof v === "object" && !Array.isArray(v)
@@ -101,6 +104,8 @@ export function EnvironmentPanel({
   const rmState = asRecord(observation.reward_machine);
   const rmProgress = rmState ? asNumber(rmState.progress_fraction) : null;
   const rmStateId = rmState ? asNumber(rmState.state_id) : null;
+
+  const [previewDoc, setPreviewDoc] = useState<PreviewDoc | null>(null);
 
   const rankingEntries =
     rankings && typeof rankings === "object" && !Array.isArray(rankings)
@@ -416,18 +421,23 @@ export function EnvironmentPanel({
           <p className="text-[10px] text-zinc-500 mb-1">
             Visible documents ({docs.length})
           </p>
-          <ul className="space-y-1 max-h-28 overflow-y-auto">
+          <ul className="space-y-1 max-h-36 overflow-y-auto">
             {docs.slice(0, 8).map((d, i) => {
               const doc = asRecord(d) || {};
+              const row = doc as PreviewDoc;
               return (
-                <li
-                  key={i}
-                  className="text-[10px] font-mono text-zinc-400 truncate border border-white/5 rounded px-2 py-0.5"
-                >
-                  {asString(doc.doc_id)}{" "}
-                  <span className="text-zinc-600">
-                    ({asString(doc.doc_type)})
-                  </span>
+                <li key={i} className="border border-white/5 rounded overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewDoc(row)}
+                    className="w-full flex items-center justify-between gap-2 text-left px-2 py-1.5 text-[10px] font-mono text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200 transition-colors"
+                  >
+                    <span className="truncate">
+                      {asString(doc.doc_id)}{" "}
+                      <span className="text-zinc-600">({asString(doc.doc_type)})</span>
+                    </span>
+                    <Eye size={14} className="shrink-0 text-zinc-500" aria-hidden />
+                  </button>
                 </li>
               );
             })}
@@ -441,6 +451,19 @@ export function EnvironmentPanel({
           </div>
         )}
       </div>
+
+      <DocumentPreviewModal
+        open={previewDoc !== null}
+        onClose={() => setPreviewDoc(null)}
+        doc={previewDoc}
+        caseId={caseId || undefined}
+        instruction={instruction || undefined}
+        lastToolResult={
+          lastTool && typeof lastTool === "object"
+            ? (lastTool as Record<string, unknown>)
+            : undefined
+        }
+      />
     </div>
   );
 }
