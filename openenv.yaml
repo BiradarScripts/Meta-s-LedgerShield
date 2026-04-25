@@ -71,7 +71,7 @@ metadata:
       sequential hypothesis test, rewards ARE derived from Value of Information, and
       grading IS provably strategy-proof.
     citations: 30
-    theory_reference: docs/ashtg-theory.md
+    theory_reference: docs/DOCUMENTATION.md#ashtg-theory
     components:
       sprt_engine: server/sprt_engine.py
       voi_engine: server/voi_engine.py

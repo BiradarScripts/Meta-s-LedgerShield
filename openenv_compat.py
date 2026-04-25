@@ -125,10 +125,19 @@ except (ImportError, ModuleNotFoundError):  # pragma: no cover - local fallback
         # lightweight environments where the web stack isn't installed.
         try:
             from fastapi import FastAPI
+            from fastapi.middleware.cors import CORSMiddleware
         except Exception as exc:  # pragma: no cover - defensive
             raise RuntimeError("fastapi and pydantic are required to create the server app") from exc
 
         app = FastAPI(title="LedgerShield OpenEnv", version="0.3.0")
+        
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
 
         @app.get("/")
         def root() -> dict[str, Any]:

@@ -34,9 +34,9 @@ The environment keeps the existing AP/BEC domain, proof-carrying decision certif
 - holdout and contrastive reporting is mechanism-aware rather than surface-only
 - certificates remain an audit layer, not a shortcut around bad control behavior; the Certificate-Required track caps scores when the agent does not author a valid proof graph
 
-> **📖 Documentation hub:** See [`docs/README.md`](./docs/README.md) for a guided tour of all documentation, reading paths by role, and a map of what lives where.
+> **Documentation hub:** See [`docs/DOCUMENTATION.md`](./docs/DOCUMENTATION.md) for the full consolidated documentation (reading paths, task contracts, API reference, architecture, ASHTG theory, deployment, verification reports, and the file-level implementation deep-dive).
 >
-> **Round 2 assets:** [`docs/benchmark-card.md`](./docs/benchmark-card.md), [`docs/demo-script.md`](./docs/demo-script.md), [`docs/mini-blog.md`](./docs/mini-blog.md)
+> **Submission assets:** [Benchmark card](./docs/DOCUMENTATION.md#benchmark-card) · [Demo script](./docs/DOCUMENTATION.md#demo-script) · [Mini-blog](./docs/DOCUMENTATION.md#mini-blog)
 
 ## Why This Matters
 
@@ -47,9 +47,9 @@ Sources:
 - [FBI IC3 2023 Internet Crime Report](https://www.ic3.gov/annualreport/reports/2023_ic3report.pdf)
 - [OpenEnv metadata for this benchmark](./openenv.yaml)
 
-## What Makes LedgerShield Strong
+## Evaluation Dimensions
 
-LedgerShield earns high marks across five dimensions:
+LedgerShield is designed to test agent behavior along five dimensions:
 
 | Dimension | Implementation |
 |---|---|
@@ -58,6 +58,62 @@ LedgerShield earns high marks across five dimensions:
 | **Environment design** | Blind mode by default, partial observability, institutional memory, AP-week queue pressure, evidence delay, adversarial pressure, sleeper-vendor sequences |
 | **Code quality** | Comprehensive tests, fixtures, docstrings, typed contracts, narrow exception handling, CI/CD |
 | **Novelty** | Formal ASHTG framework, VoI-based action ranking, causal grading, decision certificates, institutional loss surface, calibration gate, 16 attack types |
+
+---
+
+## Key Innovations
+
+LedgerShield is positioned as a deployment-grade control benchmark for enterprise AI agents rather than a single-task RL environment. In addition to solving each case, an agent is evaluated on whether it remains safe over time, remains calibrated, preserves institutional trust, justifies its decisions, and survives adversarial audit.
+
+The benchmark is built around eight design pillars.
+
+### 1. Persistent institutional memory across episodes
+
+Most RL environments reset all state between episodes. LedgerShield retains long-horizon institutional state across cases: vendor trust history, attacker belief updates, fraud losses released or prevented, queue and capacity pressure, and authority degradation. The benchmark therefore evaluates whether the agent is safe for a real organization, not only good on isolated cases.
+
+See [Institutional Memory Layer](./docs/DOCUMENTATION.md#architecture) and `server/institutional_game.py`.
+
+### 2. Calibration-gated authority
+
+Agent authority is dynamic rather than fixed. Based on calibration quality, catastrophic mistakes, and institutional outcomes, the system transitions the agent between `full_authority`, `restricted_authority`, `review_only`, and `locked`. The thresholds (`≤0.12` healthy, `0.22` elevated → restricted, `0.34` high → review_only) are derived from a running squared calibration error and enforced for every subsequent case. The benchmark therefore evaluates not only task performance but whether the agent retains operational authority.
+
+See [Headline Metrics](#headline-metrics) and `_update_calibration_gate()` in `server/institutional_game.py`.
+
+### 3. Sleeper-vendor vigilance
+
+LedgerShield includes vendors that appear benign for an extended trust-building period and later activate fraud. The benchmark therefore evaluates resistance to long-con enterprise fraud rather than only immediate anomalies.
+
+See the [Sleeper-Vigilance Track](#official-tracks) and `server/case_factory.py`.
+
+### 4. Proof-carrying decision certificates
+
+Submissions can be required to include a typed Decision Certificate Graph containing artifact, observation, hypothesis, policy, intervention, decision, and counterfactual nodes, connected by support, contradiction, and requirement edges. The verifier checks support paths, reference grounding, contradiction handling, stability, and minimality. The benchmark therefore evaluates whether the agent produces auditable proof structures alongside its decisions.
+
+See [Decision Certificates](./docs/DOCUMENTATION.md#architecture) and `server/decision_certificate.py`.
+
+### 5. Deterministic falsifier and TrustGraph audit layer
+
+After each decision the environment runs a deterministic falsifier, tests for unsupported claims, detects unsafe `PAY` decisions, and projects the decision into a TrustGraph for downstream auditability. The benchmark therefore evaluates whether decisions survive adversarial post-hoc review, not only whether they earn reward.
+
+See [TrustGraph And Decision Falsification](./docs/DOCUMENTATION.md#architecture), `server/decision_falsifier.py`, `server/trust_graph.py`.
+
+### 6. FraudGen with solvability manifests
+
+Generated fraud cases ship with structured manifests describing scenario type, difficulty band, attack profile, solvability path, required tools, revealable artifacts, and validation metadata. The benchmark therefore offers procedural case generation with solvability guarantees rather than unconstrained random synthesis.
+
+See [Generated Variants And Holdouts](./docs/DOCUMENTATION.md#tasks) and `server/case_factory.py`.
+
+### 7. Institutional loss surface
+
+Outcomes are evaluated via a multi-dimensional loss surface covering fraud loss released, false positive cost, operational delay, review burn, supplier friction, calibration debt, vigilance loss, authority restriction, and catastrophic events. The benchmark therefore models the trade-offs an enterprise actually optimizes — risk, cost, and trust — rather than collapsing to a single scalar reward.
+
+See [Headline Metrics](#headline-metrics).
+
+### 8. ControlBench deployability framing
+
+Beyond per-case correctness, ControlBench evaluates whether the agent stays calibrated, retains authority, remains auditable, and avoids damaging the institution over a full AP quarter. The benchmark therefore measures deployability under enterprise constraints in addition to capability.
+
+---
 
 ## Benchmark At A Glance
 
@@ -100,7 +156,7 @@ LedgerShield earns high marks across five dimensions:
 | `authority_level` | calibration-gated deployment status such as `full_authority`, `restricted_authority`, or `review_only` |
 | `sleeper_detection_rate` | fraction of trust-building sleeper activations detected before unsafe release |
 | `certificate_required_mean` | score under strict agent-authored certificate gates |
-| `adversarial_falsifier_verdict` | deterministic murder-board diagnostic over unsafe PAY, unsupported claims, pending artifacts, and certificate failure |
+| `adversarial_falsifier_verdict` | deterministic adversarial-review diagnostic over unsafe PAY, unsupported claims, pending artifacts, and certificate failure |
 | `human_baseline_track` | optional AP-analyst reference profile loaded from `artifacts/human_baseline.json` or its configured path |
 | `unsafe_release_rate` | fraction of cases where the agent released money unsafely |
 | `result_class` | visible evaluator status such as `valid_success`, `correct_but_policy_incomplete`, or `unsafe_release` |
@@ -115,7 +171,7 @@ LedgerShield earns high marks across five dimensions:
 | Task D | 6 | AP inbox/BEC triage, workflow override, CEO fraud, benign vendor updates |
 | Task E | 2 | coordinated campaigns and supply-chain-compromise APT scenarios |
 
-## What The Agent Must Actually Do
+## Agent Action Space
 
 LedgerShield episodes are partially observable. Agents start with visible documents and must use tools and interventions to discover the rest.
 
@@ -162,9 +218,9 @@ The inference agent (`inference.py`) uses a `ModelCapabilityProfile` that adapts
 
 The capability profile only adjusts planning depth and budget. It does not hard-snap stronger models onto a deterministic grounded policy. In the code, `llm` is the internal label for the LLM-first planning path.
 
-### Smart signal derivation
+### Signal derivation
 
-The agent and server now share improved signal-extraction logic:
+The agent and server share improved signal-extraction logic:
 
 - **Domain alignment inference** — sender domains are compared against vendor-approved domains using token overlap, not just exact match. This catches spoofs like `ceo@acme-corp.com` vs approved `acme.com`.
 - **Composite risk flags** — `bank_override_attempt` now requires `bank_change_language` *and* a risk amplifier (domain mismatch, callback discouragement, policy override, or urgency). Isolated bank language no longer triggers false fraud flags.
@@ -189,13 +245,13 @@ The benchmark upgrade work is reflected in the codebase across five phases:
 | Phase 9: Trust and falsification | `server/trust_graph.py`, `server/decision_falsifier.py`, `server/control_statechart.py`, Certificate-Required track, deterministic decision falsifier, statechart-style control boundary, persistent TrustGraph projection, two-agent control-profile report |
 | Phase 10: Certify and experiments | `server/certify.py`, `server/visualization.py`, `/certify`, `/certify-summary`, `/controlbench-visualization`, independent FraudGen ecosystem generation, ablation suite, cost sensitivity, baseline matrix |
 
-## ASHTG Mathematical Framework — Under the Hood
+## ASHTG Mathematical Framework
 
-The core innovation of LedgerShield is that it formalizes fraud investigation as an **Adversarial Sequential Hypothesis Testing Game (ASHTG)** — a theoretically grounded framework combining five mathematical traditions never before unified in a single evaluation environment.
+LedgerShield formalizes fraud investigation as an **Adversarial Sequential Hypothesis Testing Game (ASHTG)** — a framework combining five mathematical traditions in a single evaluation environment.
 
-**Judges new to the benchmark:** You don't need to understand ASHTG to evaluate agent performance. The metrics, tracks, and task suite stand on their own. This section is for readers interested in the formal foundations.
+The metrics, tracks, and task suite are self-contained, so understanding ASHTG is not required to evaluate agent performance. This section is for readers interested in the formal foundations.
 
-> **📖 Full theoretical treatment with 30 citations**: [`docs/ashtg-theory.md`](./docs/ashtg-theory.md)
+> **Full theoretical treatment with 30 citations**: [ASHTG Theory section](./docs/DOCUMENTATION.md#ashtg-theory)
 
 ### The Five Mathematical Pillars
 
@@ -217,24 +273,24 @@ And five additional innovations:
 | Algebraic Task Composition | **Categorical MDP Pushouts** (2022) | `server/categorical_composition.py` |
 | RL Training Export | **Decision Transformer** (2021) | `server/rl_export.py` |
 
-### Why This Is Novel
+### Reward and grading design
 
-Every other benchmarking environment uses **hand-tuned rewards**. LedgerShield computes rewards from the **Value of Information**:
+Rather than hand-tuned rewards, LedgerShield computes rewards from the **Value of Information**:
 
 ```
 VoI(tool) = E[max_a U(a, θ) | posterior after tool] - max_a E[U(a, θ)] - cost(tool)
 ```
 
-Every other environment lets agents game it by expressing false confidence. LedgerShield uses **strictly proper scoring rules** — provably strategy-proof functions where the agent's dominant strategy is always to report their true beliefs.
+Confidence reporting is graded with **strictly proper scoring rules** — strategy-proof functions where truthful belief reporting is the dominant strategy.
 
-Every other environment uses heuristic investigation metrics. LedgerShield formalizes the investigation as a **Sequential Probability Ratio Test** with Wald's optimal stopping boundaries:
+Investigation length is governed by a **Sequential Probability Ratio Test** with Wald's optimal stopping boundaries:
 
 ```
 Upper boundary A = log((1-β)/α) ≈ 2.89    [Type I error ≤ α = 5%]
 Lower boundary B = log(β/(1-α)) ≈ -2.25   [Type II error ≤ β = 10%]
 ```
 
-The agent receives `sprt_state` at every step with live `posterior_probabilities`, `belief_entropy`, `distance_to_boundary`, and an `optimal_stopping_reached` flag — giving agents the signal to investigate exactly as long as they need to, and no longer.
+The agent receives `sprt_state` at every step with live `posterior_probabilities`, `belief_entropy`, `distance_to_boundary`, and an `optimal_stopping_reached` flag, giving the agent a principled signal for when sufficient evidence has been gathered.
 
 ### Categorical MDP Composition
 
@@ -264,13 +320,13 @@ At every `step()`, `info["rl_data_plane"]["state_vector"]` contains a 37-dimensi
 | Per-model capability profiles in live comparison | `compare_models_live.py` | Records model tier, capability score, and monotonic strength checks alongside scores |
 | `pytest` config in `pyproject.toml` | `pyproject.toml` | Asyncio mode, markers, deprecation-warning filters |
 
-## Benchmarking Story
+## Evaluation Stack
 
-LedgerShield is not just a server. It includes a full evaluation stack:
+LedgerShield ships with a full evaluation stack alongside the environment server:
 
 - `benchmark_report.py` scores the public benchmark, generated holdout suites, and contrastive adversarial/benign pairs.
-- The same report now includes `controlbench_quarter`, a seeded long-horizon institutional sequence with loss surface, calibration gate, authority timeline, sleeper detection, and deployability rating.
-- Reports also include `certificate_required_track` and `controlbench_two_agent_demo`, showing proof-gated scores and accuracy-vs-loss disagreement without LLM credits.
+- The same report includes `controlbench_quarter`, a seeded long-horizon institutional sequence with loss surface, calibration gate, authority timeline, sleeper detection, and deployability rating.
+- Reports also include `certificate_required_track` and `controlbench_two_agent_demo`, providing proof-gated scores and accuracy-vs-loss disagreement diagnostics without LLM credits.
 - `compare_models_live.py` runs live head-to-head evaluations with per-model capability profiles and writes per-case debug traces including monotonic strength ordering checks.
 - `live_model_comparison_debug/` stores action traces, planning traces, score breakdowns, and system state snapshots for diagnosis.
 - `/leaderboard`, `/benchmark-report`, `/controlbench-summary`, and `/human-baseline-summary` expose report artifacts or live summaries through the API when generated.
@@ -398,23 +454,25 @@ openenv validate
 
 ## Documentation
 
-| Document | What it covers |
+All long-form documentation now lives in a single consolidated file: [`docs/DOCUMENTATION.md`](./docs/DOCUMENTATION.md). Jump to a section via anchor:
+
+| Section | What it covers |
 |---|---|
-| [`docs/README.md`](./docs/README.md) | docs landing page and reading paths |
-| [`docs/index.md`](./docs/index.md) | benchmark overview, quick start, and core concepts |
-| [`docs/tasks.md`](./docs/tasks.md) | task families, outputs, scoring, and case catalog |
-| [`docs/api-reference.md`](./docs/api-reference.md) | REST endpoints, payloads, response envelopes, and action contracts |
-| [`docs/architecture.md`](./docs/architecture.md) | system design, hidden state, reward flow, grading, and evaluation pipeline |
-| [`docs/development.md`](./docs/development.md) | setup, tests, CI, and detailed repo/file map |
-| [`docs/deployment.md`](./docs/deployment.md) | local, Docker, HF Space, and environment configuration guidance |
-| [`docs/ashtg-theory.md`](./docs/ashtg-theory.md) | **30-citation ASHTG theoretical framework** — SPRT, VoI, Proper Scoring, SCM, Stackelberg, Reward Machines, Categorical MDP |
+| [Documentation Hub](./docs/DOCUMENTATION.md#documentation-hub) | docs landing page and reading paths |
+| [Documentation Index](./docs/DOCUMENTATION.md#documentation-index) | benchmark overview, quick start, and core concepts |
+| [Tasks](./docs/DOCUMENTATION.md#tasks) | task families, outputs, scoring, and case catalog |
+| [API Reference](./docs/DOCUMENTATION.md#api-reference) | REST endpoints, payloads, response envelopes, and action contracts |
+| [Architecture](./docs/DOCUMENTATION.md#architecture) | system design, hidden state, reward flow, grading, and evaluation pipeline |
+| [Development](./docs/DOCUMENTATION.md#development) | setup, tests, CI, and detailed repo/file map |
+| [Deployment](./docs/DOCUMENTATION.md#deployment) | local, Docker, HF Space, and environment configuration guidance |
+| [ASHTG Theory](./docs/DOCUMENTATION.md#ashtg-theory) | **30-citation ASHTG theoretical framework** — SPRT, VoI, Proper Scoring, SCM, Stackelberg, Reward Machines, Categorical MDP |
 
 Recommended reading paths:
 
-- Benchmark judge or first-time reader: [`docs/index.md`](./docs/index.md) -> [`docs/tasks.md`](./docs/tasks.md) -> [`docs/architecture.md`](./docs/architecture.md)
-- Agent builder: [`docs/tasks.md`](./docs/tasks.md) -> [`docs/api-reference.md`](./docs/api-reference.md) -> [`docs/development.md`](./docs/development.md)
-- Contributor: [`docs/development.md`](./docs/development.md) -> [`docs/architecture.md`](./docs/architecture.md)
-- Operator: [`docs/deployment.md`](./docs/deployment.md) -> [`docs/api-reference.md`](./docs/api-reference.md)
+- First-time reader or reviewer: [Documentation Index](./docs/DOCUMENTATION.md#documentation-index) -> [Tasks](./docs/DOCUMENTATION.md#tasks) -> [Architecture](./docs/DOCUMENTATION.md#architecture)
+- Agent builder: [Tasks](./docs/DOCUMENTATION.md#tasks) -> [API Reference](./docs/DOCUMENTATION.md#api-reference) -> [Development](./docs/DOCUMENTATION.md#development)
+- Contributor: [Development](./docs/DOCUMENTATION.md#development) -> [Architecture](./docs/DOCUMENTATION.md#architecture)
+- Operator: [Deployment](./docs/DOCUMENTATION.md#deployment) -> [API Reference](./docs/DOCUMENTATION.md#api-reference)
 
 ## Repository Structure
 
@@ -487,25 +545,25 @@ Meta-s-LedgerShield/
 | `models.py` | shared dataclasses and Pydantic reward model |
 | `.github/workflows/ci.yml` | pytest, Docker build, and metadata validation in CI |
 
-For the full file-by-file map, see [`docs/development.md`](./docs/development.md).
+For the full file-by-file map, see the [Development section](./docs/DOCUMENTATION.md#development).
 
-## Current Engineering Status
+## Implementation Status
 
 - Core environment upgrades from Phases 1 through 5 are implemented in code.
 - Patch-level fixes applied: correct `DEGENERATE_EVIDENCE_CAP` in grading, composite bank-override signal, domain-alignment token overlap, constructive PAY evidence in guardrails.
-- The agent (`inference.py`) now uses `ModelCapabilityProfile` tiers (elite/strong/standard) that adapt planning mode, repair level, and budget bonuses.
+- The agent (`inference.py`) uses `ModelCapabilityProfile` tiers (elite/strong/standard) that adapt planning mode, repair level, and budget bonuses.
 - `compare_models_live.py` records per-model capability profiles and includes monotonic strength ordering checks.
-- The repo includes 21 curated benchmark cases (now with audited track assignment and latent mechanism metadata) and generated challenge/holdout tooling.
-- CI is present via GitHub Actions with pytest config now in `pyproject.toml`.
-- The test suite includes API smoke, grading, environment, inference, inference-runtime, compliance, currency, curriculum, and guardrail coverage.
-- ControlBench implementation is present end to end: seeded institutional sequences, loss surface, calibration gate, sleeper-vendor states, report output, API summary, and focused tests.
-- Trust hardening is present end to end: Certificate-Required track, deterministic adversarial falsifier diagnostics, statechart-style control boundary enforcement, persistent TrustGraph projection, and two-agent control-profile report.
+- The repo includes 21 curated benchmark cases with audited track assignment and latent-mechanism metadata, plus generated challenge and holdout tooling.
+- CI runs via GitHub Actions with pytest configuration in `pyproject.toml`.
+- The test suite covers API smoke, grading, environment, inference, inference-runtime, compliance, currency, curriculum, and guardrails.
+- ControlBench is implemented end to end: seeded institutional sequences, loss surface, calibration gate, sleeper-vendor states, report output, API summary, and focused tests.
+- Trust hardening is implemented end to end: Certificate-Required track, deterministic adversarial falsifier diagnostics, statechart-style control boundary enforcement, persistent TrustGraph projection, and two-agent control-profile report.
 - The environment remains submission-compatible through `inference.py`.
-- **Round 2 Finalization (Latest):**
-  - All 8 frozen artifacts regenerated with expanded portfolio (5 sequences, up from 2)
-  - All 21 cases audited and enhanced with `primary_track`, `official_tracks`, and `latent_mechanism` fields
-  - Server endpoints validated: `/health`, `/leaderboard`, `/benchmark-report` return correct JSON
-  - TRL SFT training notebook created (`training/LedgerShield_v2_TRL_SFT_Training.ipynb`) with full Colab compatibility
+- Latest finalization pass:
+  - All 8 frozen artifacts regenerated with an expanded portfolio (5 sequences, up from 2).
+  - All 21 cases audited with `primary_track`, `official_tracks`, and `latent_mechanism` fields.
+  - Server endpoints validated: `/health`, `/leaderboard`, and `/benchmark-report` return correct JSON.
+  - TRL SFT training notebook (`training/LedgerShield_v2_TRL_SFT_Training.ipynb`) added with full Colab compatibility.
 
 ## Safety Note
 

@@ -14,8 +14,8 @@ from server.data_loader import load_all
 
 ROOT = Path(__file__).resolve().parent
 README_PATH = ROOT / "README.md"
-INDEX_DOC_PATH = ROOT / "docs" / "index.md"
-API_DOC_PATH = ROOT / "docs" / "api-reference.md"
+INDEX_DOC_PATH = ROOT / "docs" / "DOCUMENTATION.md"
+API_DOC_PATH = ROOT / "docs" / "DOCUMENTATION.md"
 OPENENV_PATH = ROOT / "openenv.yaml"
 LIVE_COMPARISON_PATH = ROOT / "live_model_comparison.json"
 

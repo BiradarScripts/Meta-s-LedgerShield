@@ -78,4 +78,4 @@ jobs:
 
       - name: Check Metadata Sync
         run: |
-          git diff --exit-code README.md docs/index.md docs/api-reference.md openenv.yaml
+          git diff --exit-code README.md docs/DOCUMENTATION.md openenv.yaml
