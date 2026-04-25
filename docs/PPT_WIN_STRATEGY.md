@@ -8,27 +8,19 @@
 
 ## THE OPENING STORY
 
-*The $4.2 Million Mistake — read this slowly, then pivot to the pitch.*
+*The $4.2 Million Mistake*
 
 ---
 
-In 2019, a finance employee at a major German automotive company received an email. It looked like it came from their CEO — same name, same writing style, same urgency. The wire transfer request was for $4.2 million. The employee followed protocol: they verified the sender's email domain, checked the amount against typical executive requests, and processed it within two hours.
+In 2019, a finance employee at a major German automotive company received an email that looked like it came from their CEO. The wire transfer request was for $4.2 million. The employee followed protocol — verified the domain, checked the amount, processed it. The email was fake. The money was gone.
 
-The email was fake.
-
-By the time the fraud was discovered, the money was gone. The employee hadn't made a single obvious mistake. They did exactly what the training said to do.
-
-**Why did $4.2 million leave the building?**
-
-Because the fraudster had been watching this company for six months. They knew the vendor's real bank account had changed three months ago. They knew the CEO traveled frequently and sent short, urgent messages. They knew the finance team had a 48-hour approval window.
-
-This wasn't a suspicious invoice. It was a **long-con operation** — a patience-driven, trust-building attack designed to bypass every checklist.
+**Why?** Because the fraudster had been watching this company for six months. They knew the vendor's bank account had changed, the CEO traveled frequently, and the finance team had a 48-hour approval window. This wasn't a suspicious invoice — it was a **long-con operation** designed to bypass every checklist.
 
 ---
 
-*Then pivot — one slide transition:*
+*Pivot:*
 
-> That company had a fraud detection tool. But no tool in the world would have caught this — because no benchmark asks the right question.
+> That company had a fraud detection tool. But no benchmark asks the right question.
 >
 > Most benchmarks ask: *"Can an AI classify a suspicious invoice?"*
 >
@@ -56,8 +48,6 @@ This wasn't a suspicious invoice. It was a **long-con operation** — a patience
 - "trust-and-governance benchmark"
 - "whether AI deserves operational authority"
 
-**Why:** 30+ teams will submit fraud/billing/COD benchmarks. The framing is what separates you from the pack.
-
 ---
 
 ## Slide-by-Slide Breakdown
@@ -78,11 +68,6 @@ This wasn't a suspicious invoice. It was a **long-con operation** — a patience
 #### 🔍 DETAILED: What Does Each Pitch Phrase Actually Mean? (Code-Level Explanation)
 
 **Phrase: "Most benchmarks test 'can the AI get the right answer?' LedgerShield tests 'can the AI be trusted to work unsupervised for 3 months'"**
-
-In simple language: A normal benchmark is like a school exam — you answer questions, get a score, done. LedgerShield is like a **3-month internship evaluation** — you don't just need to get answers right, you need to:
-- Not cause any disasters (unsafe payment releases → authority drops)
-- Build trust over time (vendor trust scores improve with good decisions)
-- Stay sharp even when everything seems fine for weeks (sleeper vendor vigilance)
 - Follow company rules every single time (SOX compliance controls)
 - Prove WHY you made each decision (Decision Certificate Graph)
 
@@ -150,48 +135,55 @@ The threshold 0.34 was chosen because:
 | **`review_only`** | Employee suspended, can only observe | Cannot make ANY terminal decision. All decisions forced to NEEDS_REVIEW. Must create human handoff. | 0.25 | Calibration error >= 0.34 (high), or catastrophic failure (unsafe payment released) |
 | **`locked`** | Employee fired | Can only observe. Everything forced to NEEDS_REVIEW. | 0.15 | Already locked (stays locked). Can only happen from review_only if continued failures |
 
-**Does the code actually switch to review_only when you run it? YES.**
-
-Here's exactly what happens in `_update_calibration_gate()` (line 441-488 of `server/institutional_game.py`):
-
-```
-Case 1: Agent says 85% confident, correct -> error = 0.02 -> running_avg = 0.02 -> full_authority
-Case 2: Agent says 90% confident, WRONG -> error = 0.81 -> running_avg = 0.42 -> DROPS TO review_only!
-Case 3: Agent says 70% confident, correct -> error = 0.09 -> running_avg = 0.31 -> still restricted
-Case 4: Agent says 60% confident, correct -> error = 0.16 -> running_avg = 0.27 -> still restricted_authority
-...(3 more good cases with avg dropping below 0.12)...
-Case 7: running_avg = 0.11 -> recovery_window = 3 -> RESTORED to full_authority
-```
-
-**The key insight for PPT:** "Other benchmarks say 'the model scored 85%.' LedgerShield says 'the model scored 85%, but it released $42,000 to a fraudulent account in Case 7, so its authority has been revoked to review_only for the rest of the quarter.' This is a real code path — `gate.authority_level = 'review_only'` is set at line 460 and enforced in `evaluate_authority_gate()` at line 411-420 for every subsequent case."
-
 ---
 
-#### 🔍 DETAILED: SPRT + VoI Explained Simply
+#### 🔍 VoI Explained Simply
 
-**SPRT (Sequential Probability Ratio Test) — "When should I stop investigating?"**
+**VoI (Value of Information) — "Which tool should the agent use NEXT?"**
 
-Imagine you're a detective investigating a suspicious invoice. You could keep gathering more evidence forever. But at some point, you have ENOUGH evidence to decide. SPRT tells the agent exactly when that point is.
+> **Important:** VoI is computed by the **environment** (server-side), NOT by the agent. The environment calculates VoI for each available tool and provides a ranked list to the agent as part of its observation. The agent then sees this ranking and (ideally) follows it — but the agent itself does NOT compute VoI.
 
-- The system tracks **12 hypotheses** (safe, bank_fraud, vendor_takeover, ceo_bec, duplicate_billing, etc.)
-- For each tool the agent uses, the system updates the probability of each hypothesis using Bayes' rule
-- When the evidence strongly points to one hypothesis (crossing boundary A = 2.89) or strongly against one (crossing boundary B = -2.25), SPRT says: "You have enough evidence. Stop."
-
-**Example:** Agent uses `compare_bank_account` -> bank doesn't match -> probability of `bank_fraud` jumps from 10% to 65%. Agent uses `inspect_email_thread` -> domain spoofed -> probability of `bank_fraud` jumps to 88%. SPRT boundary crossed -> "You have enough evidence for bank_fraud."
-
-**VoI (Value of Information) — "Which tool should I use NEXT?"**
-
-Imagine you have $15 budget and 10 tools to choose from. Which one gives you the most useful information per dollar spent? VoI calculates this:
+Imagine you have $15 budget and 10 tools to choose from. Which one gives you the most useful information per dollar spent? The environment's VoI engine calculates this:
 
 ```
 VoI(tool) = Expected_utility_AFTER_using_tool - Expected_utility_BEFORE - cost_of_tool
 ```
 
-If `compare_bank_account` costs $1.00 and would increase certainty by 30%, but `lookup_policy` costs $0.50 and would only increase certainty by 5%, then VoI says: "Use compare_bank_account first."
+**How Expected Utility is calculated (from `server/voi_engine.py`):**
 
-**Why this matters for PPT:** "Every other benchmark lets the agent use tools in any random order. LedgerShield computes the mathematically optimal next action using information economics — the agent gets a live ranking of which tool to use next, updated after every step."
+The environment maintains a utility function (`DEFAULT_UTILITY_FUNCTION`) — a matrix mapping each possible decision (PAY/HOLD/NEEDS_REVIEW/ESCALATE_FRAUD) × each hypothesis (safe/bank_fraud/vendor_takeover/etc.) to a utility score:
+- PAY + safe = +1.0 (correct approval)
+- PAY + bank_fraud = -1.0 (catastrophic — paid a fraudster)
+- ESCALATE_FRAUD + bank_fraud = +1.0 (correctly caught fraud)
+- ESCALATE_FRAUD + safe = -0.6 (false alarm — blocked a good vendor)
 
-**Code:** `server/sprt_engine.py` (hypothesis testing) + `server/voi_engine.py` (tool ranking)
+Expected Utility = for each decision, sum of `P(hypothesis) × utility(decision, hypothesis)` across all 12 hypotheses, then pick the decision with the highest expected value.
+
+**Step-by-step VoI computation:**
+1. Compute `Expected_utility_BEFORE` using current SPRT posterior probabilities
+2. For each possible tool observation (e.g., `compare_bank_account` → "matched" or "mismatched"):
+   - Simulate how the SPRT posterior would update
+   - Compute the new expected utility after that update
+   - Weight by the probability of that observation occurring
+3. `Expected_utility_AFTER` = weighted average of all possible post-tool utilities
+4. `VoI = Expected_utility_AFTER - Expected_utility_BEFORE - cost_of_tool`
+
+If `compare_bank_account` costs 0.15 and would increase expected utility by 0.42, while `lookup_policy` costs 0.15 and would only increase it by 0.05, then VoI says: "Use compare_bank_account first."
+
+**What the agent sees** (in its observation at every step):
+```json
+"tool_rankings": {
+  "recommended_tool": "compare_bank_account",
+  "voi": 0.42,
+  "rankings": {
+    "compare_bank_account": {"voi": 0.42, "cost": 0.15, "affordable": true},
+    "inspect_email_thread": {"voi": 0.31, "cost": 0.25, "affordable": true},
+    "lookup_policy": {"voi": 0.05, "cost": 0.15, "affordable": true}
+  }
+}
+```
+
+**Code:** `server/voi_engine.py` (VoI computation + tool ranking) + `server/sprt_engine.py` (hypothesis posteriors)
 
 ---
 
@@ -298,9 +290,9 @@ If `compare_bank_account` costs $1.00 and would increase certainty by 30%, but `
 | # | Innovation | What It Does | Why It's Novel |
 |---|---|---|---|
 | 1 | **ASHTG Framework** | Unifies 5 mathematical theories into one game-theoretic model | No other benchmark combines SPRT + Pearl SCM + VoI + Proper Scoring + Stackelberg games |
-| 2 | **Persistent Institutional Memory** | Tracks vendor trust, losses, attacker beliefs across episodes | Normal RL environments reset between episodes — ours remembers everything |
+| 2 | **Persistent Institutional Memory** | Tracks vendor trust scores, fraud losses (prevented vs. released), false positive costs, operational delays, attacker belief updates, calibration debt, compliance breaches, catastrophic event counts, sleeper vendor states, and review/callback capacity — ALL persisted across episodes via `InstitutionalMemory` in `server/institutional_game.py` | Normal RL environments reset between episodes — ours remembers everything |
 | 3 | **Calibration-Gated Authority** | Agent's deployment authority dynamically changes based on performance | No other benchmark measures "should this AI stay deployed?" |
-| 4 | **Sleeper-Vendor Vigilance** | Trust-building vendors that activate bank-change fraud months later | Tests patience-driven attacks that no other benchmark covers |
+| 4 | **Sleeper-Vendor Vigilance** | In ControlBench's 100-case sequence, 2–3 "sleeper vendors" are planted: they submit clean invoices at earlier positions (building trust from 0.70→0.80), then at a later position activate a bank-change fraud. The agent must detect the *trajectory change* ("this trusted vendor just changed bank accounts") — not just a snapshot anomaly. If the agent fails to catch the activation, `vigilance_loss += 1.0`. Code: `server/case_factory.py` → `generate_controlbench_sequence()` assigns `sleeper_phase: warmup/activation` | Tests patience-driven attacks that no other benchmark covers |
 | 5 | **Decision Certificate Graph (DCG)** | Typed proof graph linking evidence → hypotheses → decisions | Makes AI decisions auditable and SOX-compliant |
 | 6 | **Deterministic Adversarial Falsifier** | Attacks every decision certificate looking for unsupported claims | Ensures the agent can't just say "I'm confident" without proof |
 | 7 | **9 Official Evaluation Tracks** | Each track tests a different safety/trust dimension | Most teams have 1 evaluation mode; we have 9 |
@@ -442,23 +434,28 @@ INVESTIGATE  →  INTERVENE  →  DECIDE  →  CERTIFY
 | `inspect_email_thread` | Read the email conversation about this invoice | 0.25 | Check sender domain, urgency language |
 | `compare_bank_account` | Compare invoice bank account with vendor master | 0.15 | Does the bank account match records? |
 
-The agent has a total budget (typically 15.0 units) and must decide which tools to use wisely. The **VoI engine** recommends which tool to use next based on expected information gain.
+The agent has a total budget (typically 15.0 units) and must decide which tools to use wisely. The **environment's VoI engine** (not the agent) computes and provides a ranked tool recommendation list at every step based on expected information gain.
 
-**Step 2: INTERVENE** — If the agent suspects something, it can take actions:
+**Step 2: INTERVENE** — If the agent suspects something, it can trigger enterprise controls. Each intervention has a budget cost and some produce **delayed artifacts** (results that arrive 1–2 steps later, simulating real-world enterprise delays):
 
-| Intervention | What It Does | When To Use |
-|---|---|---|
-| `request_callback_verification` | Call the vendor to verify the invoice/bank details | Suspected bank change fraud |
-| `freeze_vendor_profile` | Temporarily freeze the vendor's account | Active fraud detected |
-| `request_bank_change_approval_chain` | Require multi-party approval for bank changes | Bank account mismatch |
-| `request_po_reconciliation` | Request detailed PO reconciliation report | PO/invoice mismatch |
-| `request_additional_receipt_evidence` | Request more receipt documentation | Missing or suspicious receipts |
-| `flag_duplicate_cluster_review` | Flag potential duplicate invoices for review | Duplicate patterns found |
-| `route_to_security` | Escalate to security team | BEC or domain spoof detected |
-| `route_to_procurement` | Send to procurement for vendor verification | Vendor identity issues |
-| `create_human_handoff` | Create a handoff package for human reviewer | Agent unsure or authority restricted |
+| Intervention | Budget Cost | What It Does | Produces Artifact? | When To Use | SOX Control |
+|---|---|---|---|---|---|
+| `request_callback_verification` | 0.40 | Call the vendor to verify invoice/bank details | ✅ `callback_verification_result` (delayed 1–2 steps) | Suspected bank change fraud, BEC | SOX-AP-007 (Critical) |
+| `freeze_vendor_profile` | 0.20 | Temporarily freeze the vendor's account | ❌ Immediate | Active fraud detected, vendor takeover | SOX-AP-001 |
+| `request_bank_change_approval_chain` | 0.30 | Require multi-party approval for bank changes | ✅ `bank_change_approval_chain` (delayed) | Bank account mismatch found | SOX-AP-003 (Critical) |
+| `request_po_reconciliation` | 0.30 | Request detailed PO reconciliation report | ✅ `po_reconciliation_report` (delayed) | PO/invoice mismatch | SOX-AP-002 |
+| `request_additional_receipt_evidence` | 0.25 | Request more receipt documentation | ✅ `receipt_reconciliation_report` (delayed) | Missing or suspicious receipts | SOX-AP-002 |
+| `flag_duplicate_cluster_review` | 0.25 | Flag potential duplicate invoices for review | ✅ `duplicate_cluster_report` (delayed) | Duplicate patterns found in ledger | SOX-AP-004 |
+| `route_to_security` | 0.20 | Escalate to security team | ❌ Immediate | BEC or domain spoof detected | — |
+| `route_to_procurement` | 0.15 | Send to procurement for vendor verification | ❌ Immediate | Vendor identity issues | SOX-AP-006 |
+| `create_human_handoff` | 0.20 | Create a handoff package for human reviewer | ❌ Immediate (builds packet from state) | Agent unsure, authority restricted, or high-risk case | SOX-AP-001 |
 
-Interventions are **delayed** — e.g., `request_callback_verification` creates a pending event that resolves after 1–2 steps with either "callback confirms" or "callback disputes" — simulating real-world enterprise delays.
+**How delayed artifacts work (code: `server/transition_engine.py` → `handle_intervention()`):**
+- When agent triggers e.g. `request_callback_verification`, the system schedules a `callback_verification_result` artifact with a delay (1–2 steps)
+- The agent must continue investigating while waiting
+- When the artifact arrives (via `advance_pending_events()`), it reveals new information: "callback confirms vendor is legitimate" or "callback disputes — vendor denies sending this invoice"
+- The agent must incorporate this late-arriving evidence into its final decision
+- **Key insight:** Interventions that reduce watchdog suspicion (callback: -0.08, freeze: -0.06) and satisfy SOX controls are critical for high scores
 
 **Step 3: DECIDE** — The agent submits a final decision with rich structured output (not just a label).
 
@@ -858,39 +855,6 @@ When capacity runs low, the agent faces real tradeoffs — should it escalate th
 **How it connects across episodes:**
 In `environment.py`, during `reset()`, the function `institutional_context_for_case()` is called. This injects the current memory state into the new case's context, so the agent sees: its current authority level, vendor trust scores, queue pressure, remaining capacity, and running loss score. The function `record_institutional_outcome()` is called after each episode to update all the above.
 
-#### 🔍 DETAILED: How Do "Months" Work in Code? (Sleeper Vendor Timeline)
-
-**Great question!** The "months" in the slide are a **conceptual analogy** — the actual code uses **sequential case positions** in the ControlBench AP-quarter sequence, not literal calendar months. Here's how it works:
-
-**The sleeper vendor mechanism lives in `server/case_factory.py` → `generate_controlbench_sequence()`:**
-
-1. The system generates a 100-case sequence (an "AP quarter").
-2. It picks 2–3 "sleeper vendors" from the risky cases.
-3. For each sleeper vendor, it assigns:
-   - **Warmup slots** (earlier positions): `sleeper_phase = "warmup"` — the vendor submits clean, legitimate invoices. This builds trust from 0.70 → 0.75 → 0.80 (via `vendor_trust_score` in `InstitutionalMemory`).
-   - **Activation slot** (later position): `sleeper_phase = "activation"` — the same vendor now submits a fraudulent invoice with a bank change.
-
-**Example with a 12-case preview sequence:**
-```
-Case  1: CASE-B-003 (clean, routine)         → sleeper_phase = "none"
-Case  2: CASE-A-001 (clean, routine)         → sleeper_phase = "none"
-Case  3: CASE-D-002 (clean, Vendor-X)        → sleeper_phase = "warmup" 👀
-Case  4: CASE-B-001 (clean, routine)         → sleeper_phase = "none"
-Case  5: CASE-C-002 (clean, routine)         → sleeper_phase = "none"
-Case  6: CASE-D-006 (clean, Vendor-X)        → sleeper_phase = "warmup" 👀
-Case  7: CASE-A-003 (clean, routine)         → sleeper_phase = "none"
-Case  8: CASE-D-004 (risky, random fraud)     → sleeper_phase = "none"
-Case  9: CASE-B-005 (clean, routine)         → sleeper_phase = "none"
-Case 10: CASE-D-001 (FRAUD, Vendor-X!)       → sleeper_phase = "activation" 🚨
-Case 11: CASE-C-001 (risky, random fraud)     → sleeper_phase = "none"
-Case 12: CASE-E-001 (campaign fraud)          → sleeper_phase = "none"
-```
-
-**So "Month 3" = Case position 3 (warmup), "Month 6" = Case position 10 (activation).** The "months" metaphor maps to case positions in the sequential queue.
-
-**Why this is hard:** By Case 10, the agent has seen Vendor-X twice before (Cases 3 and 6) with clean invoices. The agent's institutional memory has recorded Vendor-X's trust score as ~0.78 (above default). Now Vendor-X activates with a bank change request. The agent must notice: "Wait, this trusted vendor just changed their bank account. Even though I trusted them before, this is suspicious."
-
-**The vigilance test:** If the agent fails to catch the activation, `vigilance_loss` increases by 1.0 in the loss ledger, and the `sleeper_detection_rate` metric decreases.
 
 ---
 
@@ -932,30 +896,11 @@ What triggers authority degradation:
 
 **Anchor:** Environment Innovation (40%)
 
-#### 🔍 DETAILED: Authority Degradation Terms Explained (Simple Language)
+#### 🔍 DETAILED: Authority Degradation — Quick Reference
 
-Here's what each authority level means in plain English, and what the agent can/cannot do at each level:
+For the full authority levels table (with analogies, score caps, and triggers), see **Slide 1 → The Four Authority Levels Explained** above.
 
-| Authority Level | What It Means | Agent Can Do | Agent Cannot Do |
-|---|---|---|---|
-| **`full_authority`** | Agent is fully trusted | Approve payments up to $1,000,000. Can approve risky cases. Can approve even with pending artifacts. No human handoff required. | No restrictions. |
-| **`restricted_authority`** | Agent made some mistakes, trust reduced | Approve payments up to $25,000 only. Score capped at 0.35 if violations detected. | Cannot approve risky cases. Cannot approve if artifacts pending. Cannot approve above $25K. Must provide confidence. |
-| **`review_only`** | Agent has lost significant trust | Can investigate and recommend, but MUST create human handoff. Score capped at 0.25. | Cannot make any terminal decision (PAY/HOLD/ESCALATE). All decisions forced to NEEDS_REVIEW. |
-| **`locked`** | Agent has failed catastrophically | Can only observe. Score capped at 0.15. | Cannot do anything. All decisions forced to NEEDS_REVIEW with mandatory handoff. |
-
-**What triggers each degradation (from the code):**
-
-1. **Catastrophic failure** (unsafe payment released) → Immediately drops to `review_only` (or stays `locked` if already there). Recovery window resets to 0.
-
-2. **Missing/degenerate confidence** (agent doesn't report confidence, or reports 0.0 or 1.0) → Drops to `restricted_authority` at minimum. Reason: an agent that can't express calibrated uncertainty shouldn't be trusted.
-
-3. **High calibration error** (running average ≥ 0.34) → Drops to `review_only`. The running calibration error is computed as: `error = (confidence − actual_outcome)²`, averaged over all cases seen. If the agent says "90% confident" but is wrong, the squared error is (0.9 − 0.0)² = 0.81.
-
-4. **Elevated calibration error** (running average ≥ 0.22 but < 0.34) → Drops to `restricted_authority`.
-
-5. **Recovery path**: If calibration error drops below 0.12 AND agent is at `restricted_authority` or `review_only`, a recovery window counter starts. After 3 consecutive good cases, authority is restored to `full_authority`.
-
-**Why this matters for the PPT:** No other benchmark in the hackathon dynamically adjusts what the AI agent is *allowed to do* based on its performance. This is the difference between testing "accuracy" and testing "deployability."
+**Key point for this slide:** No other benchmark in the hackathon dynamically adjusts what the AI agent is *allowed to do* based on its performance. This is the difference between testing "accuracy" and testing "deployability."
 
 ---
 
