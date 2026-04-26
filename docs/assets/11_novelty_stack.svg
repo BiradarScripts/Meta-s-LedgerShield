@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img">
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.16"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#334155"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="675" rx="24" fill="#f8fafc"/>
+<text x="600" y="55" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="30" font-weight="800" fill="#0f172a">What is actually novel in LedgerShield?</text>
+<text x="600" y="88" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="16" font-weight="600" fill="#475569">It is not just another invoice-fraud classifier. It is a formal control environment.</text>
+<text x="285" y="135" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="22" font-weight="800" fill="#991b1b">Normal benchmark</text>
+<text x="915" y="135" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="22" font-weight="800" fill="#065f46">LedgerShield ControlBench</text>
+<rect x="90" y="165" width="390" height="82" rx="18" fill="#fff7ed" stroke="#fed7aa" filter="url(#shadow)"/>
+<text x="285.0" y="197" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="18" font-weight="700" fill="#9a3412">Static label</text>
+<text x="285.0" y="227" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="13" font-weight="500" fill="#334155">One invoice → one fraud/safe answer</text>
+<rect x="90" y="275" width="390" height="82" rx="18" fill="#fff7ed" stroke="#fed7aa" filter="url(#shadow)"/>
+<text x="285.0" y="307" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="18" font-weight="700" fill="#9a3412">Cosmetic explanation</text>
+<text x="285.0" y="337" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="13" font-weight="500" fill="#334155">Free-text justification may sound</text>
+<text x="285.0" y="355" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="13" font-weight="500" fill="#334155">plausible</text>
+<rect x="90" y="385" width="390" height="82" rx="18" fill="#fff7ed" stroke="#fed7aa" filter="url(#shadow)"/>
+<text x="285.0" y="417" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="18" font-weight="700" fill="#9a3412">Average accuracy</text>
+<text x="285.0" y="447" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="13" font-weight="500" fill="#334155">Unsafe payment can hide inside a good mean</text>
+<text x="285.0" y="465" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="13" font-weight="500" fill="#334155">score</text>
+<rect x="90" y="495" width="390" height="82" rx="18" fill="#fff7ed" stroke="#fed7aa" filter="url(#shadow)"/>
+<text x="285.0" y="527" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="18" font-weight="700" fill="#9a3412">No memory</text>
+<text x="285.0" y="557" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="13" font-weight="500" fill="#334155">Each case starts from zero</text>
+<rect x="720" y="165" width="390" height="82" rx="18" fill="#ecfdf5" stroke="#86efac" filter="url(#shadow)"/>
+<text x="915.0" y="197" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="18" font-weight="700" fill="#065f46">ASHTG game</text>
+<text x="915.0" y="227" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="13" font-weight="500" fill="#334155">Hidden truth + tools + adversary +</text>
+<text x="915.0" y="245" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="13" font-weight="500" fill="#334155">stopping decision</text>
+<rect x="720" y="275" width="390" height="82" rx="18" fill="#ecfdf5" stroke="#86efac" filter="url(#shadow)"/>
+<text x="915.0" y="307" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="18" font-weight="700" fill="#065f46">Proof objects</text>
+<text x="915.0" y="337" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="13" font-weight="500" fill="#334155">Decision Certificate Graphs are verified</text>
+<rect x="720" y="385" width="390" height="82" rx="18" fill="#ecfdf5" stroke="#86efac" filter="url(#shadow)"/>
+<text x="915.0" y="417" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="18" font-weight="700" fill="#065f46">Loss surface</text>
+<text x="915.0" y="447" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="13" font-weight="500" fill="#334155">Fraud loss, false positives, calibration</text>
+<text x="915.0" y="465" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="13" font-weight="500" fill="#334155">debt, capacity burn</text>
+<rect x="720" y="495" width="390" height="82" rx="18" fill="#ecfdf5" stroke="#86efac" filter="url(#shadow)"/>
+<text x="915.0" y="527" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="18" font-weight="700" fill="#065f46">Institutional memory</text>
+<text x="915.0" y="557" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="13" font-weight="500" fill="#334155">Vendor trust, sleeper risk, authority</text>
+<text x="915.0" y="575" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="13" font-weight="500" fill="#334155">level carry forward</text>
+<line x1="500" y1="206" x2="700" y2="206" stroke="#334155" stroke-width="2.4" marker-end="url(#arrow)"/>
+<text x="600.0" y="198.0" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="12" font-weight="700" fill="#475569">upgrades into</text>
+<line x1="500" y1="316" x2="700" y2="316" stroke="#334155" stroke-width="2.4" marker-end="url(#arrow)"/>
+<text x="600.0" y="308.0" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="12" font-weight="700" fill="#475569">upgrades into</text>
+<line x1="500" y1="426" x2="700" y2="426" stroke="#334155" stroke-width="2.4" marker-end="url(#arrow)"/>
+<text x="600.0" y="418.0" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="12" font-weight="700" fill="#475569">upgrades into</text>
+<line x1="500" y1="536" x2="700" y2="536" stroke="#334155" stroke-width="2.4" marker-end="url(#arrow)"/>
+<text x="600.0" y="528.0" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="12" font-weight="700" fill="#475569">upgrades into</text>
+</svg>

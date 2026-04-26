@@ -43,6 +43,14 @@ That is the core design choice behind LedgerShield.
 
 ---
 
+### Novelty at a glance
+
+The most important novelty is that LedgerShield does **not** treat finance control as a static classification task. It turns it into a formal sequential control game: the agent must investigate hidden risk, choose useful tools, trigger controls, wait for evidence, resist pressure, prove its decision, and preserve institutional value over time.
+
+![LedgerShield Novelty Stack](./assets/11_novelty_stack.svg)
+
+---
+
 ## 3. What the agent actually does
 
 The agent starts with a case: maybe an invoice, maybe an email thread, maybe a vendor update, maybe a suspected duplicate payment. It can use investigation tools and control actions.
@@ -397,30 +405,78 @@ This makes the benchmark closer to a real audit environment: a decision without 
 
 ---
 
-## 15. The mathematical spine, explained simply
+## 15. The novelty layer: ASHTG and the mathematical spine, explained simply
 
-LedgerShield is built on a theoretical framework called **Adversarial Sequential Hypothesis Testing Game**.
+LedgerShield is built on a theoretical framework called **Adversarial Sequential Hypothesis Testing Game**, or **ASHTG**.
 
 The name sounds heavy, but the intuition is simple:
 
 > The agent is investigating a hidden truth. Every tool gives partial evidence. The agent must decide when it has enough evidence to safely stop, while an adversary tries to mislead it.
 
-The full system combines several ideas:
+![ASHTG Loop](./assets/12_ashtg_loop.svg)
 
-| Concept | Simple explanation |
-|---|---|
-| Sequential testing | Keep collecting evidence until the decision is strong enough. |
-| Value of Information | Prefer tools that are worth their cost. |
-| Proper scoring | Reward honest uncertainty instead of overconfident guesses. |
-| Causal reasoning | Ask whether the agent found the actual reason, not just a correlated clue. |
-| Reward machines | Track progress through required control stages. |
-| Security-game thinking | Model adversarial behavior and watchdog-style oversight. |
-| Bayesian persuasion | Track whether evidence presentation changes belief responsibly. |
-| Procedural generation | Generate new cases that prevent memorization. |
-| MDP composition | Compose state/action/reward pieces into a coherent environment. |
-| Decision-transformer export | Provide structured state vectors for offline analysis and sequence modeling. |
+Here is the non-technical version of the novelty:
 
-Non-technical takeaway: LedgerShield is not a random collection of cases. It is built as a structured decision environment where investigation, uncertainty, adversarial pressure, and long-term consequences are all part of the task.
+| Novelty piece | Simple meaning | Why it matters |
+|---|---|---|
+| **SPRT / sequential testing** | The agent should stop only when evidence is strong enough. | Prevents both premature payment and endless investigation. |
+| **Value of Information** | The next tool should be worth its cost. | Forces budget-aware investigation. |
+| **Proper scoring** | The agent should report honest uncertainty. | Punishes confident wrong guesses. |
+| **Causal counterfactual grading** | The agent should identify the real reason, not just a suspicious clue. | Makes explanations less cosmetic. |
+| **Reward machines** | Required control stages are tracked as progress. | Prevents skipping important workflow steps. |
+| **Security-game / watchdog thinking** | A control layer can warn, veto, or escalate. | Models oversight instead of blind autonomy. |
+| **Decision certificates** | Final decisions can be checked as proof graphs. | Turns “because I said so” into auditable support. |
+| **ControlBench loss surface** | Long-term damage is tracked across cases. | Makes deployability more important than one-case accuracy. |
+
+### 15.1 SPRT: when should the agent stop?
+
+In a real AP team, stopping too early is dangerous, but using every possible tool is also wasteful. The SPRT idea says: keep collecting evidence until the evidence crosses a defensible boundary.
+
+![SPRT Decision Boundaries](./assets/13_sprt_boundaries.svg)
+
+Plain-English takeaway: LedgerShield rewards agents that investigate enough to be defensible, not agents that either guess immediately or burn the whole budget.
+
+### 15.2 Value of Information: what should the agent check next?
+
+Every action has a cost. OCR, ledger search, bank comparison, vendor callback, and security routing should not be used randomly. Value of Information asks: “Which action is most likely to change the decision enough to justify its cost?”
+
+![Value of Information Tool Selection](./assets/14_voi_tool_selection.svg)
+
+Plain-English takeaway: the benchmark tests whether the agent can spend investigation budget like a real operator.
+
+### 15.3 Causal counterfactuals: did the agent find the real reason?
+
+A model can be accidentally right for the wrong reason. For example, it might flag an invoice because the email sounds urgent, while the actual control failure is a bank-account mismatch. LedgerShield’s causal layer rewards the agent for uncovering the mechanism that actually explains the risk.
+
+![Causal Counterfactual Grading](./assets/15_causal_counterfactual.svg)
+
+Plain-English takeaway: LedgerShield cares whether the agent found the control failure, not just whether it used scary words.
+
+### 15.4 Proper scoring: honest uncertainty matters
+
+In finance, a model that is 99% confident and wrong is much more dangerous than a model that says, “I am uncertain; route this for review.” Proper scoring rewards calibrated probability estimates and punishes overconfident wrong decisions.
+
+![Proper Scoring and Calibration](./assets/16_proper_scoring.svg)
+
+Plain-English takeaway: LedgerShield does not only ask “what did you decide?” It also asks “were you honest about uncertainty?”
+
+### 15.5 Security-game and watchdog control
+
+LedgerShield can model an analyst-style agent and a watchdog/control layer. The attacker tries to exploit weaknesses. The analyst investigates. The watchdog can warn, veto, escalate, or approve.
+
+![Security Game Watchdog](./assets/17_stackelberg_watchdog.svg)
+
+Plain-English takeaway: the benchmark is closer to enterprise governance than a simple chatbot task.
+
+### 15.6 Loss surface and authority gate
+
+ControlBench does not only measure whether the agent got one case right. It asks whether the agent should be trusted with authority over time. Unsafe releases, false positives, operational burn, calibration debt, and catastrophic events all affect deployment authority.
+
+![Loss Surface and Authority Gate](./assets/18_loss_surface_authority.svg)
+
+Plain-English takeaway: LedgerShield can say, “This agent may be useful as an advisor, but it should not have full payment authority yet.”
+
+Non-technical summary: LedgerShield is not a random collection of invoice examples. It is a structured decision environment where investigation, uncertainty, adversarial pressure, proof, oversight, and long-term institutional consequences are all part of the task.
 
 ---
 

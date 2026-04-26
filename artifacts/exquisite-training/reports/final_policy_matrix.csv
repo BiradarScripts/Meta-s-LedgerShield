@@ -4,6 +4,6 @@ naive_baseline,Naive PAY,-,baseline,0.0693,0.0493,0.4794,0.2222,0.0000,1.0000,co
 base_model,Base Qwen,0.5B,base,0.1283,-1.4473,0.4044,0.0000,0.0000,1.0000,completed,artifacts/trl-openenv-hf-a10g-qwen-rich/training_metrics.json
 trained_model,SFT Qwen,0.5B,SFT,0.4394,-3.1019,0.8478,0.2222,0.0000,1.0000,completed,artifacts/trl-openenv-hf-a10g-qwen-rich/training_metrics.json
 grpo_0_5b,GRPO Qwen,0.5B,SFT->GRPO,PENDING,PENDING,PENDING,PENDING,PENDING,PENDING,PENDING,PENDING
-sft_1_5b,SFT Qwen,1.5B,SFT,PENDING,PENDING,PENDING,PENDING,PENDING,PENDING,PENDING,PENDING
+sft_1_5b,SFT Qwen,1.5B,SFT,0.4798,-2.3567,0.7992,0.0000,0.0000,1.0000,completed,artifacts/exquisite-training/sft-1.5b/training_metrics.json
 dpo_falsifier,DPO-Falsifier,1.5B/3B,GRPO->DPO,0.4503,-3.1759,0.8408,0.2222,0.0000,1.0000,completed,artifacts/exquisite-training/dpo-falsifier-distill/final_policy_eval.json
 teacher_policy,Teacher,-,oracle-ish,0.6627,-2.7090,0.9472,0.5556,0.0000,1.0000,completed,artifacts/trl-openenv-hf-a10g-qwen-rich/training_metrics.json

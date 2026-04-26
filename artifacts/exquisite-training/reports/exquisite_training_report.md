@@ -1,6 +1,6 @@
 # LedgerShield Exquisite Training Report
 
-Generated at `2026-04-26T01:57:45.725153+00:00`.
+Generated at `2026-04-26T02:34:38.114184+00:00`.
 
 ## Summary
 
@@ -13,12 +13,12 @@ The current best numeric policy is `Teacher` with mean score `0.6627`.
 
 ## Status
 
-- Policy rows completed: `6` of `8`
-- New-policy rows pending HF uploads: `2`
+- Policy rows completed: `7` of `8`
+- New-policy rows pending HF uploads: `1`
 - Self-play candidates recorded: `72`
 - Plots generated: `56`
-- HF jobs running: `2`
-- HF jobs completed: `1`
+- HF jobs running: `1`
+- HF jobs completed: `2`
 - Planned GPU hours: `12.0`
 - Planned max cost (based on timeout caps): `$25.00`
 - Live report exclusions: `grpo-1.5b, grpo-3b-flagship`
@@ -39,7 +39,7 @@ The current best numeric policy is `Teacher` with mean score `0.6627`.
 | Base Qwen | 0.5B | base | 0.1283 | 0.4044 | 0.0000 | 0.0000 | 1.0000 | completed |
 | SFT Qwen | 0.5B | SFT | 0.4394 | 0.8478 | 0.2222 | 0.0000 | 1.0000 | completed |
 | GRPO Qwen | 0.5B | SFT->GRPO | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING |
-| SFT Qwen | 1.5B | SFT | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING |
+| SFT Qwen | 1.5B | SFT | 0.4798 | 0.7992 | 0.0000 | 0.0000 | 1.0000 | completed |
 | DPO-Falsifier | 1.5B/3B | GRPO->DPO | 0.4503 | 0.8408 | 0.2222 | 0.0000 | 1.0000 | completed |
 | Teacher | - | oracle-ish | 0.6627 | 0.9472 | 0.5556 | 0.0000 | 1.0000 | completed |
 
@@ -50,7 +50,7 @@ The current best numeric policy is `Teacher` with mean score `0.6627`.
 | selfplay-0.5b | a10g-large | ERROR | 2h | 1.5 | 3.0 | https://huggingface.co/jobs/king673134/69ed4706d70108f37acdf1aa |
 | grpo-0.5b | a100-large | RUNNING | 4h | 2.5 | 10.0 | https://huggingface.co/jobs/king673134/69ed4707d2c8bd8662bce980 |
 | dpo-falsifier-distill | a10g-large | COMPLETED | 3h | 1.5 | 4.5 | https://huggingface.co/jobs/king673134/69ed470ad70108f37acdf1ae |
-| sft-1.5b | a100-large | RUNNING | 3h | 2.5 | 7.5 | https://huggingface.co/jobs/king673134/69ed70e7d70108f37acdf48e |
+| sft-1.5b | a100-large | COMPLETED | 3h | 2.5 | 7.5 | https://huggingface.co/jobs/king673134/69ed70e7d70108f37acdf48e |
 
 ## Key Artifacts
 

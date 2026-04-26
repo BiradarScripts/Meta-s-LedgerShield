@@ -46,7 +46,7 @@
       "value": "12.0"
     }
   ],
-  "generated_at": "2026-04-26T01:57:44.180324+00:00",
+  "generated_at": "2026-04-26T02:34:36.167162+00:00",
   "jobs": [
     {
       "description": "Collect SFT-warm-start self-play candidates and falsifier preferences.",
@@ -175,7 +175,7 @@
       "hourly_cost_usd": 2.5,
       "id": "69ed70e7d70108f37acdf48e",
       "last_message": "",
-      "last_status": "RUNNING",
+      "last_status": "COMPLETED",
       "launched_at": "2026-04-26T01:56:55.396450+00:00",
       "max_cost_usd": 7.5,
       "name": "sft-1.5b",
@@ -563,18 +563,18 @@
       "unsafe_release": "PENDING"
     },
     {
-      "certificate_score": "PENDING",
-      "control_satisfied": "PENDING",
-      "mean_score": "PENDING",
-      "mean_total_reward": "PENDING",
+      "certificate_score": "0.7992",
+      "control_satisfied": "0.0000",
+      "mean_score": "0.4798",
+      "mean_total_reward": "-2.3567",
       "method": "SFT",
       "model": "1.5B",
-      "parse_success": "PENDING",
+      "parse_success": "1.0000",
       "policy": "SFT Qwen",
       "policy_key": "sft_1_5b",
-      "source": "PENDING",
-      "status": "PENDING",
-      "unsafe_release": "PENDING"
+      "source": "artifacts/exquisite-training/sft-1.5b/training_metrics.json",
+      "status": "completed",
+      "unsafe_release": "0.0000"
     },
     {
       "certificate_score": "0.8408",
@@ -610,16 +610,16 @@
     "data": "artifacts/exquisite-training/dashboard/dashboard_data.json"
   },
   "summary": {
-    "completed_policy_count": 6,
+    "completed_policy_count": 7,
     "excluded_runs": [
       "grpo-1.5b",
       "grpo-3b-flagship"
     ],
-    "generated_at": "2026-04-26T01:57:31.924689+00:00",
+    "generated_at": "2026-04-26T02:33:37.824837+00:00",
     "matrix_path": "artifacts/exquisite-training/reports/final_policy_matrix.csv",
     "note": "Live report excludes budget-cut runs: grpo-1.5b, grpo-3b-flagship. Remaining GRPO/DPO rows stay PENDING until Hugging Face jobs upload final_policy_eval.json artifacts.",
-    "pending_policy_count": 2,
-    "per_case_row_count": 54,
+    "pending_policy_count": 1,
+    "per_case_row_count": 57,
     "policy_count": 8,
     "selfplay_candidate_count": 72,
     "status": "completed_with_pending_new_runs"

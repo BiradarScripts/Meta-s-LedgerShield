@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-26T02:05:42.870774+00:00",
+  "generated_at": "2026-04-26T02:33:36.574858+00:00",
   "jobs": [
     {
       "description": "Collect SFT-warm-start self-play candidates and falsifier preferences.",
@@ -234,7 +234,7 @@
       "hourly_cost_usd": 2.5,
       "id": "69ed70e7d70108f37acdf48e",
       "last_message": "",
-      "last_status": "RUNNING",
+      "last_status": "COMPLETED",
       "launched_at": "2026-04-26T01:56:55.396450+00:00",
       "max_cost_usd": 7.5,
       "name": "sft-1.5b",
