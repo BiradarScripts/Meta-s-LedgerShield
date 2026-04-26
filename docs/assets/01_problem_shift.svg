@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+<defs><marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M2,2 L10,6 L2,10 Z" fill="#475569"/></marker></defs>
+<rect width="100%" height="100%" fill="#FFFFFF"/>
+<text x="600" y="54" text-anchor="middle" font-size="34" font-weight="800" fill="#0F172A">From Fraud Detection to Institutional Control</text>
+<rect x="70" y="150" width="430" height="300" rx="22" fill="#FEF2F2" stroke="#DC2626" stroke-width="3"/>
+<text x="285" y="188" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Old benchmark</text>
+<text x="285" y="215" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">question</text>
+<text x="285" y="252" text-anchor="middle" font-size="18" fill="#475569">Can the agent spot a</text>
+<text x="285" y="275" text-anchor="middle" font-size="18" fill="#475569">suspicious invoice?</text>
+<rect x="700" y="150" width="430" height="300" rx="22" fill="#EFF6FF" stroke="#2563EB" stroke-width="3"/>
+<text x="915" y="188" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">LedgerShield question</text>
+<text x="915" y="225" text-anchor="middle" font-size="18" fill="#475569">Can the agent run a</text>
+<text x="915" y="248" text-anchor="middle" font-size="18" fill="#475569">defensible AP control</text>
+<text x="915" y="271" text-anchor="middle" font-size="18" fill="#475569">process?</text>
+<line x1="510" y1="300" x2="690" y2="300" stroke="#475569" stroke-width="4" marker-end="url(#arrow)"/><rect x="520" y="276" width="160" height="34" rx="12" fill="#FFFFFF" stroke="#CBD5E1"/><text x="600" y="298" text-anchor="middle" font-size="16" fill="#334155">shift</text>
+<text x="285" y="500" text-anchor="middle" font-size="22" fill="#475569">One answer, one score</text>
+<text x="915" y="500" text-anchor="middle" font-size="22" fill="#475569">Investigation, evidence, controls, memory, audit</text>
+</svg>

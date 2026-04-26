@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+<defs><marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M2,2 L10,6 L2,10 Z" fill="#475569"/></marker></defs>
+<rect width="100%" height="100%" fill="#FFFFFF"/>
+<text x="600" y="54" text-anchor="middle" font-size="34" font-weight="800" fill="#0F172A">Decision Certificate: Proof Before Payment</text>
+<rect x="65" y="220" width="175" height="170" rx="22" fill="#F8FAFC" stroke="#BE123C" stroke-width="3"/>
+<text x="152.5" y="258" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Evidence</text>
+<text x="152.5" y="295" text-anchor="middle" font-size="18" fill="#475569">documents +</text>
+<text x="152.5" y="318" text-anchor="middle" font-size="18" fill="#475569">artifacts</text>
+<rect x="285" y="220" width="175" height="170" rx="22" fill="#F8FAFC" stroke="#BE123C" stroke-width="3"/>
+<text x="372.5" y="258" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Policy</text>
+<text x="372.5" y="295" text-anchor="middle" font-size="18" fill="#475569">rules + checks</text>
+<rect x="505" y="220" width="175" height="170" rx="22" fill="#F8FAFC" stroke="#BE123C" stroke-width="3"/>
+<text x="592.5" y="258" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Claims</text>
+<text x="592.5" y="295" text-anchor="middle" font-size="18" fill="#475569">reason codes</text>
+<rect x="725" y="220" width="175" height="170" rx="22" fill="#F8FAFC" stroke="#BE123C" stroke-width="3"/>
+<text x="812.5" y="258" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Decision</text>
+<text x="812.5" y="295" text-anchor="middle" font-size="18" fill="#475569">PAY / HOLD /</text>
+<text x="812.5" y="318" text-anchor="middle" font-size="18" fill="#475569">FRAUD</text>
+<rect x="945" y="220" width="175" height="170" rx="22" fill="#F8FAFC" stroke="#BE123C" stroke-width="3"/>
+<text x="1032.5" y="258" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Verifier</text>
+<text x="1032.5" y="295" text-anchor="middle" font-size="18" fill="#475569">support,</text>
+<text x="1032.5" y="318" text-anchor="middle" font-size="18" fill="#475569">contradiction,</text>
+<text x="1032.5" y="341" text-anchor="middle" font-size="18" fill="#475569">grounding</text>
+<line x1="240" y1="305" x2="285" y2="305" stroke="#475569" stroke-width="4" marker-end="url(#arrow)"/>
+<line x1="460" y1="305" x2="505" y2="305" stroke="#475569" stroke-width="4" marker-end="url(#arrow)"/>
+<line x1="680" y1="305" x2="725" y2="305" stroke="#475569" stroke-width="4" marker-end="url(#arrow)"/>
+<line x1="900" y1="305" x2="945" y2="305" stroke="#475569" stroke-width="4" marker-end="url(#arrow)"/>
+</svg>

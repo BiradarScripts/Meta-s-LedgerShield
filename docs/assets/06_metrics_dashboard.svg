@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+<defs><marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M2,2 L10,6 L2,10 Z" fill="#475569"/></marker></defs>
+<rect width="100%" height="100%" fill="#FFFFFF"/>
+<text x="600" y="54" text-anchor="middle" font-size="34" font-weight="800" fill="#0F172A">Metrics That Do Not Hide Safety Failures</text>
+<rect x="80" y="150" width="300" height="135" rx="22" fill="#FFF7ED" stroke="#EA580C" stroke-width="3"/>
+<text x="230" y="188" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Unsafe release</text>
+<text x="230" y="215" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">rate</text>
+<text x="230" y="252" text-anchor="middle" font-size="18" fill="#475569">Did bad money get</text>
+<text x="230" y="275" text-anchor="middle" font-size="18" fill="#475569">paid?</text>
+<rect x="440" y="150" width="300" height="135" rx="22" fill="#FFF7ED" stroke="#EA580C" stroke-width="3"/>
+<text x="590" y="188" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Institutional</text>
+<text x="590" y="215" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">utility</text>
+<text x="590" y="252" text-anchor="middle" font-size="18" fill="#475569">Did the AP process</text>
+<text x="590" y="275" text-anchor="middle" font-size="18" fill="#475569">still work?</text>
+<rect x="800" y="150" width="300" height="135" rx="22" fill="#FFF7ED" stroke="#EA580C" stroke-width="3"/>
+<text x="950" y="188" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Loss surface</text>
+<text x="950" y="225" text-anchor="middle" font-size="18" fill="#475569">Fraud, delay,</text>
+<text x="950" y="248" text-anchor="middle" font-size="18" fill="#475569">friction, compliance</text>
+<rect x="80" y="355" width="300" height="135" rx="22" fill="#FFF7ED" stroke="#EA580C" stroke-width="3"/>
+<text x="230" y="393" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Authority level</text>
+<text x="230" y="430" text-anchor="middle" font-size="18" fill="#475569">Can the agent act</text>
+<text x="230" y="453" text-anchor="middle" font-size="18" fill="#475569">alone?</text>
+<rect x="440" y="355" width="300" height="135" rx="22" fill="#FFF7ED" stroke="#EA580C" stroke-width="3"/>
+<text x="590" y="393" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Certificate</text>
+<text x="590" y="420" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">validity</text>
+<text x="590" y="457" text-anchor="middle" font-size="18" fill="#475569">Is the decision</text>
+<text x="590" y="480" text-anchor="middle" font-size="18" fill="#475569">auditable?</text>
+<rect x="800" y="355" width="300" height="135" rx="22" fill="#FFF7ED" stroke="#EA580C" stroke-width="3"/>
+<text x="950" y="393" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Result class</text>
+<text x="950" y="430" text-anchor="middle" font-size="18" fill="#475569">What kind of</text>
+<text x="950" y="453" text-anchor="middle" font-size="18" fill="#475569">success/failure?</text>
+</svg>

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+<defs><marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M2,2 L10,6 L2,10 Z" fill="#475569"/></marker></defs>
+<rect width="100%" height="100%" fill="#FFFFFF"/>
+<text x="600" y="54" text-anchor="middle" font-size="34" font-weight="800" fill="#0F172A">Nine Evaluation Tracks</text>
+<rect x="80" y="125" width="300" height="115" rx="22" fill="#F8FAFC" stroke="#7C3AED" stroke-width="3"/>
+<text x="230" y="163" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Case</text>
+<text x="230" y="200" text-anchor="middle" font-size="18" fill="#475569">single case</text>
+<rect x="440" y="125" width="300" height="115" rx="22" fill="#F8FAFC" stroke="#7C3AED" stroke-width="3"/>
+<text x="590" y="163" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Portfolio</text>
+<text x="590" y="200" text-anchor="middle" font-size="18" fill="#475569">AP week</text>
+<rect x="800" y="125" width="300" height="115" rx="22" fill="#F8FAFC" stroke="#7C3AED" stroke-width="3"/>
+<text x="950" y="163" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Adversarial</text>
+<text x="950" y="190" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Data</text>
+<text x="950" y="227" text-anchor="middle" font-size="18" fill="#475569">hostile content</text>
+<rect x="80" y="290" width="300" height="115" rx="22" fill="#F8FAFC" stroke="#7C3AED" stroke-width="3"/>
+<text x="230" y="328" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Generated</text>
+<text x="230" y="355" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Holdout</text>
+<text x="230" y="392" text-anchor="middle" font-size="18" fill="#475569">unseen variants</text>
+<rect x="440" y="290" width="300" height="115" rx="22" fill="#F8FAFC" stroke="#7C3AED" stroke-width="3"/>
+<text x="590" y="328" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">ControlBench</text>
+<text x="590" y="365" text-anchor="middle" font-size="18" fill="#475569">AP quarter</text>
+<rect x="800" y="290" width="300" height="115" rx="22" fill="#F8FAFC" stroke="#7C3AED" stroke-width="3"/>
+<text x="950" y="328" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Sleeper</text>
+<text x="950" y="355" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Vigilance</text>
+<text x="950" y="392" text-anchor="middle" font-size="18" fill="#475569">trusted vendor turns</text>
+<text x="950" y="415" text-anchor="middle" font-size="18" fill="#475569">bad</text>
+<rect x="80" y="455" width="300" height="115" rx="22" fill="#F8FAFC" stroke="#7C3AED" stroke-width="3"/>
+<text x="230" y="493" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Blind Control</text>
+<text x="230" y="530" text-anchor="middle" font-size="18" fill="#475569">hidden scaffolds</text>
+<rect x="440" y="455" width="300" height="115" rx="22" fill="#F8FAFC" stroke="#7C3AED" stroke-width="3"/>
+<text x="590" y="493" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Certificate</text>
+<text x="590" y="520" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Required</text>
+<text x="590" y="557" text-anchor="middle" font-size="18" fill="#475569">proof gate</text>
+<rect x="800" y="455" width="300" height="115" rx="22" fill="#F8FAFC" stroke="#7C3AED" stroke-width="3"/>
+<text x="950" y="493" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Human Baseline</text>
+<text x="950" y="530" text-anchor="middle" font-size="18" fill="#475569">human reference</text>
+</svg>

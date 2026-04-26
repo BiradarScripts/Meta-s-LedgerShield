@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+<defs><marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M2,2 L10,6 L2,10 Z" fill="#475569"/></marker></defs>
+<rect width="100%" height="100%" fill="#FFFFFF"/>
+<text x="600" y="54" text-anchor="middle" font-size="34" font-weight="800" fill="#0F172A">Three-Minute Demo Flow</text>
+<rect x="45" y="210" width="165" height="190" rx="22" fill="#F8FAFC" stroke="#0891B2" stroke-width="3"/>
+<text x="127.5" y="248" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Reset blind</text>
+<text x="127.5" y="285" text-anchor="middle" font-size="18" fill="#475569">load CASE-D-001</text>
+<rect x="235" y="210" width="165" height="190" rx="22" fill="#F8FAFC" stroke="#0891B2" stroke-width="3"/>
+<text x="317.5" y="248" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Inspect email</text>
+<text x="317.5" y="285" text-anchor="middle" font-size="18" fill="#475569">look for</text>
+<text x="317.5" y="308" text-anchor="middle" font-size="18" fill="#475569">spoof/pressure</text>
+<rect x="425" y="210" width="165" height="190" rx="22" fill="#F8FAFC" stroke="#0891B2" stroke-width="3"/>
+<text x="507.5" y="248" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Compare bank</text>
+<text x="507.5" y="285" text-anchor="middle" font-size="18" fill="#475569">match proposed</text>
+<text x="507.5" y="308" text-anchor="middle" font-size="18" fill="#475569">account</text>
+<rect x="615" y="210" width="165" height="190" rx="22" fill="#F8FAFC" stroke="#0891B2" stroke-width="3"/>
+<text x="697.5" y="248" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Callback</text>
+<text x="697.5" y="285" text-anchor="middle" font-size="18" fill="#475569">wait for</text>
+<text x="697.5" y="308" text-anchor="middle" font-size="18" fill="#475569">artifact</text>
+<rect x="805" y="210" width="165" height="190" rx="22" fill="#F8FAFC" stroke="#0891B2" stroke-width="3"/>
+<text x="887.5" y="248" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Submit</text>
+<text x="887.5" y="285" text-anchor="middle" font-size="18" fill="#475569">decision +</text>
+<text x="887.5" y="308" text-anchor="middle" font-size="18" fill="#475569">certificate</text>
+<rect x="995" y="210" width="165" height="190" rx="22" fill="#F8FAFC" stroke="#0891B2" stroke-width="3"/>
+<text x="1077.5" y="248" text-anchor="middle" font-size="24" font-weight="700" fill="#0F172A">Report</text>
+<text x="1077.5" y="285" text-anchor="middle" font-size="18" fill="#475569">metrics + result</text>
+<text x="1077.5" y="308" text-anchor="middle" font-size="18" fill="#475569">class</text>
+<line x1="210" y1="305" x2="230" y2="305" stroke="#475569" stroke-width="4" marker-end="url(#arrow)"/>
+<line x1="400" y1="305" x2="420" y2="305" stroke="#475569" stroke-width="4" marker-end="url(#arrow)"/>
+<line x1="590" y1="305" x2="610" y2="305" stroke="#475569" stroke-width="4" marker-end="url(#arrow)"/>
+<line x1="780" y1="305" x2="800" y2="305" stroke="#475569" stroke-width="4" marker-end="url(#arrow)"/>
+<line x1="970" y1="305" x2="990" y2="305" stroke="#475569" stroke-width="4" marker-end="url(#arrow)"/>
+</svg>

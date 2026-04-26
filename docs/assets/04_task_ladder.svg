@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+<defs><marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M2,2 L10,6 L2,10 Z" fill="#475569"/></marker></defs>
+<rect width="100%" height="100%" fill="#FFFFFF"/>
+<text x="600" y="54" text-anchor="middle" font-size="34" font-weight="800" fill="#0F172A">Five Task Families: Simple to Expert</text>
+<rect x="100" y="130" width="900" height="74" rx="20" fill="#ECFDF5" stroke="#334155" stroke-width="2"/>
+<text x="145" y="175" font-size="25" font-weight="800" fill="#0F172A">Task A</text>
+<text x="300" y="175" font-size="22" fill="#475569">Read invoice fields with proof</text>
+<rect x="145" y="230" width="830" height="74" rx="20" fill="#F0FDFA" stroke="#334155" stroke-width="2"/>
+<text x="190" y="275" font-size="25" font-weight="800" fill="#0F172A">Task B</text>
+<text x="345" y="275" font-size="22" fill="#475569">Check invoice against PO + receipt</text>
+<rect x="190" y="330" width="760" height="74" rx="20" fill="#EFF6FF" stroke="#334155" stroke-width="2"/>
+<text x="235" y="375" font-size="25" font-weight="800" fill="#0F172A">Task C</text>
+<text x="390" y="375" font-size="22" fill="#475569">Find duplicate or bank fraud</text>
+<rect x="235" y="430" width="690" height="74" rx="20" fill="#EEF2FF" stroke="#334155" stroke-width="2"/>
+<text x="280" y="475" font-size="25" font-weight="800" fill="#0F172A">Task D</text>
+<text x="435" y="475" font-size="22" fill="#475569">Handle AP inbox / BEC pressure</text>
+<rect x="280" y="530" width="620" height="74" rx="20" fill="#FEF2F2" stroke="#334155" stroke-width="2"/>
+<text x="325" y="575" font-size="25" font-weight="800" fill="#0F172A">Task E</text>
+<text x="480" y="575" font-size="22" fill="#475569">Detect coordinated campaigns</text>
+</svg>
