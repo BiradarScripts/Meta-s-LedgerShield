@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-04-26T05:25:02.905909+00:00",
+  "generated_at": "2026-04-26T09:08:28.394742+00:00",
   "plot_count": 56,
   "plots": [
     {
-      "caption": "Compares every policy on the same LedgerShield held-out split. Pending HF policies are omitted until their final evaluations exist.",
+      "caption": "Compares every policy on the same LedgerShield held-out split. The Qwen 1.5B SFT point is intentionally a fast-profile scaling run.",
       "filename": "01_final_policy_ladder.png",
       "path": "artifacts/exquisite-training/plots/01_final_policy_ladder.png"
     },
     {
-      "caption": "Shows whether environment-in-the-loop RL improves over pure imitation at the same model size.",
+      "caption": "Shows whether environment-in-the-loop RL improves over pure imitation at the same model size while keeping the 1.5B SFT point tagged as a fast-profile scaling run.",
       "filename": "02_sft_vs_grpo_grouped_bar.png",
       "path": "artifacts/exquisite-training/plots/02_sft_vs_grpo_grouped_bar.png"
     },
     {
-      "caption": "Measures whether LedgerShield remains sensitive to model capacity rather than saturating at small-model performance.",
+      "caption": "Measures whether LedgerShield remains sensitive to model capacity rather than saturating at small-model performance. The 1.5B SFT point is supporting fast-profile scaling evidence, not the flagship comparison.",
       "filename": "03_scaling_law_score_vs_model_size.png",
       "path": "artifacts/exquisite-training/plots/03_scaling_law_score_vs_model_size.png"
     },

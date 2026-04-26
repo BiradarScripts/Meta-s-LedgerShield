@@ -166,7 +166,7 @@ def build_html(cards: list[dict[str, str]], matrix: list[dict[str, Any]], manife
     safety = pick_plots(manifest_plots, SAFETY_PLOTS)
     ablations = pick_plots(manifest_plots, ABLATION_PLOTS)
     job_columns = ["name", "hardware", "public_status", "public_note", "timeout", "hourly_cost_usd", "max_cost_usd"]
-    policy_columns = ["policy", "model", "method", "mean_score", "certificate_score", "control_satisfied", "unsafe_release", "parse_success", "status"]
+    policy_columns = ["policy", "model", "method", "run_profile", "mean_score", "certificate_score", "control_satisfied", "unsafe_release", "parse_success", "status"]
     launch_panel = (
         f'<div class="table-wrap">{table_html(jobs, job_columns)}</div>'
         if jobs
@@ -338,7 +338,7 @@ def build_html(cards: list[dict[str, str]], matrix: list[dict[str, Any]], manife
     <div class="subtitle">Environment-in-the-loop self-improvement for enterprise AP control agents: SFT warm start, self-play candidate generation, LedgerShield execution, deterministic falsifier reward, GRPO online RL, optional DPO distillation, and a 56-plot evidence pack.</div>
   </header>
   <section class="cards">{card_html}</section>
-  {section_html("Policy Matrix", "Compares baseline, SFT, GRPO, DPO, and teacher policies on the same held-out evaluation slice. Budget-cut runs are excluded from this live view.", f'<div class="table-wrap">{table_html(matrix, policy_columns)}</div>', panel_class='')}
+  {section_html("Policy Matrix", "Compares baseline, SFT, GRPO, DPO, and teacher policies on the same held-out evaluation slice. The 1.5B SFT row is explicitly tagged as a fast-profile scaling run rather than the flagship comparison.", f'<div class="table-wrap">{table_html(matrix, policy_columns)}</div>', panel_class='')}
   {section_html("Execution Footprint", "Summarizes the additive Hugging Face execution footprint and the artifact-complete outcome for each live-scope run.", launch_panel, panel_class='')}
   {section_html("Executive Plots", "Judge-facing summary plots for the main narrative: policy ladder, scaling law, safety frontier, teacher-gap closure, and pipeline structure.", plot_cards(executive, empty_message="Executive plots pending."))}
   {section_html("GRPO Training Dynamics", "Reward stability, completion behavior, parse robustness, unsafe-release suppression, and certificate/control trends over RL updates.", plot_cards(training, empty_message="GRPO dynamics plots pending HF history files."))}

@@ -51,9 +51,9 @@ POLICY_COLORS = {
 
 
 PLOT_CAPTIONS: dict[str, str] = {
-    "01_final_policy_ladder.png": "Compares every policy on the same LedgerShield held-out split. Pending HF policies are omitted until their final evaluations exist.",
-    "02_sft_vs_grpo_grouped_bar.png": "Shows whether environment-in-the-loop RL improves over pure imitation at the same model size.",
-    "03_scaling_law_score_vs_model_size.png": "Measures whether LedgerShield remains sensitive to model capacity rather than saturating at small-model performance.",
+    "01_final_policy_ladder.png": "Compares every policy on the same LedgerShield held-out split. The Qwen 1.5B SFT point is intentionally a fast-profile scaling run.",
+    "02_sft_vs_grpo_grouped_bar.png": "Shows whether environment-in-the-loop RL improves over pure imitation at the same model size while keeping the 1.5B SFT point tagged as a fast-profile scaling run.",
+    "03_scaling_law_score_vs_model_size.png": "Measures whether LedgerShield remains sensitive to model capacity rather than saturating at small-model performance. The 1.5B SFT point is supporting fast-profile scaling evidence, not the flagship comparison.",
     "04_score_safety_frontier_all_policies.png": "Plots mean environment score against unsafe-release rate. A good policy moves rightward in score without moving upward on unsafe release.",
     "05_teacher_gap_closure.png": "Measures what fraction of the gap between base Qwen and teacher policy is closed by SFT, GRPO, and DPO.",
     "06_exquisite_pipeline_diagram.png": "Shows the additive SFT -> self-play -> falsifier reward -> GRPO -> DPO evidence pipeline.",
@@ -120,7 +120,9 @@ def policy_label(row: dict[str, Any]) -> str:
     model = str(row.get("model") or "")
     policy = str(row.get("policy") or row.get("policy_key") or "")
     if model and model != "-" and model not in policy:
-        return f"{policy} {model}"
+        policy = f"{policy} {model}"
+    if str(row.get("policy_key") or "") == "sft_1_5b" and "fast-profile" not in policy:
+        return f"{policy} (fast-profile)"
     return policy
 
 

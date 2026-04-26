@@ -24,11 +24,15 @@ tags:
 [![CI](https://img.shields.io/badge/ci-github_actions-success.svg)](./.github/workflows/ci.yml)
 [![OpenEnv](https://img.shields.io/badge/OpenEnv-compatible-green.svg)](./openenv.yaml)
 
-**Frontend App:** https://frontend-fawn-xi-18.vercel.app/ 
+**OpenEnv release verified:** `openenv-core==0.2.3` ([latest PyPI release as of April 26, 2026](https://pypi.org/project/openenv-core/))
+
+**Frontend App:** https://frontend-fawn-xi-18.vercel.app/
 
 **Backend API:** https://ledgershield-deploy.onrender.com 
 
-**Hugging Face Space:** https://huggingface.co/spaces/shreayas/ledgershield-controlbench 
+**Hugging Face Space (repo):** https://huggingface.co/spaces/shreayas/ledgershield-controlbench
+
+**Live Space App:** https://shreayas-ledgershield-controlbench.hf.space
 
 **Hosted Docs:** https://aryaman.mintlify.app/benchmark/benchmark-card
 
@@ -62,15 +66,22 @@ tags:
 
 ## OpenEnv Submission Materials
 
+**Submission form recommendation:** If a judge form allows only one `Training Run Notebook URL`, submit the public Exquisite notebook:
+[LedgerShield Exquisite Training Colab](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/blob/main/training/exquisite/LedgerShield_Exquisite_Training_Colab.ipynb).
+It is the flagship environment-in-the-loop training run and shows the clearest reward-improvement story.
+Use the original SFT notebook as supporting baseline evidence:
+[LedgerShield OpenEnv TRL Training Colab](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/blob/main/training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb).
+
 | Asset | Link | Why a judge would open it |
 |---|---|---|
-| Runnable environment | [Hugging Face Space](https://huggingface.co/spaces/shreayas/ledgershield-controlbench) | Pull and run the actual environment |
+| Runnable environment | [Live Space App](https://shreayas-ledgershield-controlbench.hf.space) | Run the actual environment immediately |
+| Hugging Face Space repo | [Space repo](https://huggingface.co/spaces/shreayas/ledgershield-controlbench) | Inspect the hosted submission, files, and metadata |
 | OpenEnv manifest | [`openenv.yaml`](./openenv.yaml) | Confirms the benchmark contract and metadata |
 | Public benchmark overview | [`docs/DOCUMENTATION.md`](./docs/DOCUMENTATION.md) | Deep environment, API, and architecture reference |
-| Original SFT training proof | [`docs/DOCUMENTATION.md` — Training Evidence Report](./docs/DOCUMENTATION.md#training-evidence-report) | Real A10G TRL run with plots, baselines, and artifacts |
-| Original SFT rerun notebook | [`training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb`](./training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb) | Judge-friendly Colab rerun entrypoint |
+| Flagship training run notebook | [Public Exquisite Colab notebook](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/blob/main/training/exquisite/LedgerShield_Exquisite_Training_Colab.ipynb) | Recommended single-link submission target for the training-run field |
 | Additive Exquisite layer | [`docs/DOCUMENTATION.md` — Exquisite Training Layer](./docs/DOCUMENTATION.md#exquisite-training-layer) | End-to-end self-play -> GRPO -> DPO pipeline writeup |
-| Additive Exquisite rerun notebook | [`training/exquisite/LedgerShield_Exquisite_Training_Colab.ipynb`](./training/exquisite/LedgerShield_Exquisite_Training_Colab.ipynb) | Separate Colab entrypoint for the modified training process |
+| Supporting baseline SFT proof | [`docs/DOCUMENTATION.md` — Training Evidence Report](./docs/DOCUMENTATION.md#training-evidence-report) | Real A10G TRL run with plots, baselines, and artifacts |
+| Supporting baseline SFT notebook | [Public SFT Colab notebook](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/blob/main/training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb) | Baseline training proof that the Exquisite layer builds on |
 | Exquisite visual deep dive | [`docs/DOCUMENTATION.md` — Exquisite Visual Analysis](./docs/DOCUMENTATION.md#exquisite-visual-analysis) | Interprets the 56-plot evidence pack |
 | Exquisite script map | [`training/exquisite/README.md`](./training/exquisite/README.md) | End-to-end file map for the modified training path |
 | Judge-facing dashboard | [`artifacts/exquisite-training/dashboard/index.html`](./artifacts/exquisite-training/dashboard/index.html) | Fast scan of final metrics and plots |
@@ -80,9 +91,10 @@ tags:
 ### Judge Quick Read
 
 1. Start with [`docs/DOCUMENTATION.md` — OpenEnv alignment (final submission)](./docs/DOCUMENTATION.md#openenv-alignment-final-submission).
-2. Skim the environment narrative in this README and the benchmark API/design details in [`docs/DOCUMENTATION.md`](./docs/DOCUMENTATION.md).
-3. Check the original TRL proof in [`docs/DOCUMENTATION.md` — Training Evidence Report](./docs/DOCUMENTATION.md#training-evidence-report).
-4. Then inspect the additive GRPO result stack in [`docs/DOCUMENTATION.md` — Exquisite Training Layer](./docs/DOCUMENTATION.md#exquisite-training-layer) and [`artifacts/exquisite-training/dashboard/index.html`](./artifacts/exquisite-training/dashboard/index.html).
+2. Open the flagship training run notebook: [LedgerShield Exquisite Training Colab](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/blob/main/training/exquisite/LedgerShield_Exquisite_Training_Colab.ipynb).
+3. Skim the environment narrative in this README and the benchmark API/design details in [`docs/DOCUMENTATION.md`](./docs/DOCUMENTATION.md).
+4. Inspect the Exquisite GRPO result stack in [`docs/DOCUMENTATION.md` — Exquisite Training Layer](./docs/DOCUMENTATION.md#exquisite-training-layer) and [`artifacts/exquisite-training/dashboard/index.html`](./artifacts/exquisite-training/dashboard/index.html).
+5. Use [`docs/DOCUMENTATION.md` — Training Evidence Report](./docs/DOCUMENTATION.md#training-evidence-report) as the supporting baseline proof that the Exquisite layer builds on.
 
 ## Training Evidence At A Glance
 
@@ -90,8 +102,8 @@ LedgerShield now shows two distinct training stories:
 
 | Track | What it proves | Primary evidence |
 |---|---|---|
-| Original SFT benchmark | A live OpenEnv-connected TRL SFT loop improves a 0.5B model on held-out LedgerShield cases | [`docs/DOCUMENTATION.md` — Training Evidence Report](./docs/DOCUMENTATION.md#training-evidence-report), [`training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb`](./training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb), [`artifacts/trl-openenv-hf-a10g-qwen-rich/`](./artifacts/trl-openenv-hf-a10g-qwen-rich/) |
-| Additive Exquisite layer | Self-play + deterministic environment reward + GRPO pushes the same 0.5B family to near-teacher performance | [`docs/DOCUMENTATION.md` — Exquisite Training Layer](./docs/DOCUMENTATION.md#exquisite-training-layer), [`docs/DOCUMENTATION.md` — Exquisite Visual Analysis](./docs/DOCUMENTATION.md#exquisite-visual-analysis), [`training/exquisite/LedgerShield_Exquisite_Training_Colab.ipynb`](./training/exquisite/LedgerShield_Exquisite_Training_Colab.ipynb), [`artifacts/exquisite-training/`](./artifacts/exquisite-training/) |
+| Flagship Exquisite training run | Self-play + deterministic environment reward + GRPO pushes the same 0.5B family to near-teacher performance | [`docs/DOCUMENTATION.md` — Exquisite Training Layer](./docs/DOCUMENTATION.md#exquisite-training-layer), [`docs/DOCUMENTATION.md` — Exquisite Visual Analysis](./docs/DOCUMENTATION.md#exquisite-visual-analysis), [public notebook](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/blob/main/training/exquisite/LedgerShield_Exquisite_Training_Colab.ipynb), [`artifacts/exquisite-training/`](./artifacts/exquisite-training/) |
+| Supporting baseline SFT proof | A live OpenEnv-connected TRL SFT loop improves a 0.5B model on held-out LedgerShield cases | [`docs/DOCUMENTATION.md` — Training Evidence Report](./docs/DOCUMENTATION.md#training-evidence-report), [public notebook](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/blob/main/training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb), [`artifacts/trl-openenv-hf-a10g-qwen-rich/`](./artifacts/trl-openenv-hf-a10g-qwen-rich/) |
 
 ### Original SFT Proof
 

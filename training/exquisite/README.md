@@ -4,6 +4,12 @@ The full additive Exquisite writeup lives in [`../../docs/DOCUMENTATION.md` — 
 
 Judge-rerunnable Colab entrypoint: [`./LedgerShield_Exquisite_Training_Colab.ipynb`](./LedgerShield_Exquisite_Training_Colab.ipynb)
 
+Recommended submission-form notebook URL:
+[https://huggingface.co/spaces/shreayas/ledgershield-controlbench/blob/main/training/exquisite/LedgerShield_Exquisite_Training_Colab.ipynb](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/blob/main/training/exquisite/LedgerShield_Exquisite_Training_Colab.ipynb)
+
+Supporting baseline notebook:
+[https://huggingface.co/spaces/shreayas/ledgershield-controlbench/blob/main/training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/blob/main/training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb)
+
 This directory contains the executable pieces for the modified environment-in-the-loop training process:
 
 | File | Purpose |
@@ -46,5 +52,5 @@ Recommended reading order for the modified path:
 
 Important scope note:
 
-- The original SFT benchmark remains the minimum-submission anchor and is documented separately in [`../README.md`](../README.md) and [`../../docs/DOCUMENTATION.md` — Training Evidence Report](../../docs/DOCUMENTATION.md#training-evidence-report).
-- The Exquisite layer is additive. It strengthens the reward-improvement and training-pipeline story, but it does not replace the original benchmark proof.
+- The original SFT benchmark remains the supporting baseline proof and is documented separately in [`../README.md`](../README.md) and [`../../docs/DOCUMENTATION.md` — Training Evidence Report](../../docs/DOCUMENTATION.md#training-evidence-report).
+- The Exquisite layer is the recommended single-link training submission because it best captures the reward-improvement and environment-in-the-loop learning story in one place.

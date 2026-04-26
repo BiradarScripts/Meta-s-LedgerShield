@@ -12,6 +12,7 @@ try:  # pragma: no cover
     from .common import (
         EXQUISITE_ROOT,
         PENDING,
+        apply_policy_run_profile,
         excluded_run_names,
         fill_pending,
         failure_reason,
@@ -33,6 +34,7 @@ except ImportError:  # pragma: no cover
     from common import (  # type: ignore
         EXQUISITE_ROOT,
         PENDING,
+        apply_policy_run_profile,
         excluded_run_names,
         fill_pending,
         failure_reason,
@@ -65,6 +67,7 @@ MATRIX_COLUMNS = [
     "policy",
     "model",
     "method",
+    "run_profile",
     "mean_score",
     "mean_total_reward",
     "certificate_score",
@@ -91,7 +94,8 @@ def summary_to_row(
     summary: dict[str, Any],
     source: Path,
 ) -> dict[str, Any]:
-    return {
+    return apply_policy_run_profile(
+        {
         "policy_key": policy_key,
         "policy": policy,
         "model": model,
@@ -104,7 +108,8 @@ def summary_to_row(
         "parse_success": f"{safe_float(summary.get('parse_success_rate')):.4f}",
         "status": "completed",
         "source": rel_path(source),
-    }
+        }
+    )
 
 
 def row_from_run_dir(path: Path) -> tuple[dict[str, Any] | None, list[dict[str, Any]]]:
@@ -151,11 +156,11 @@ def merge_policy_rows(
     excluded_policy_keys: set[str] | None = None,
 ) -> list[dict[str, Any]]:
     excluded = excluded_policy_keys or set()
-    rows_by_key = {row["policy_key"]: fill_pending(row) for row in existing}
+    rows_by_key = {row["policy_key"]: fill_pending(apply_policy_run_profile(row)) for row in existing}
     for row in pending_policy_rows(excluded):
         rows_by_key.setdefault(row["policy_key"], fill_pending(row))
     for row in discovered:
-        rows_by_key[row["policy_key"]] = fill_pending(row)
+        rows_by_key[row["policy_key"]] = fill_pending(apply_policy_run_profile(row))
     order = [
         "random_baseline",
         "naive_baseline",
@@ -300,6 +305,7 @@ def main() -> None:
         "selfplay_candidate_count": len(selfplay_rows),
         "matrix_path": rel_path(args.output_dir / "final_policy_matrix.csv"),
         "excluded_runs": sorted(excluded_runs),
+        "fast_profile_scaling_note": "The SFT Qwen 1.5B row is a fast-profile scaling run included as supporting model-scaling evidence, not the flagship apples-to-apples comparison.",
         "note": note,
     }
     write_csv(args.output_dir / "final_policy_matrix.csv", matrix, MATRIX_COLUMNS)

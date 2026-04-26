@@ -90,7 +90,17 @@ if ! REPO_DIR="$(cd "$REPO_DIR" 2>/dev/null && pwd)"; then
   exit 1
 fi
 
+normalize_space_url() {
+  local url="${1%/}"
+  if [[ "$url" =~ ^https://huggingface\.co/spaces/([^/]+)/([^/]+)$ ]]; then
+    printf "https://%s-%s.hf.space" "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}"
+  else
+    printf "%s" "$url"
+  fi
+}
+
 PING_URL="${PING_URL%/}"
+PING_URL="$(normalize_space_url "$PING_URL")"
 PASS=0
 
 log()  { printf "[%s] %b\n" "$(date -u +%H:%M:%S)" "$*"; }

@@ -28,6 +28,18 @@ from server.data_loader import load_all  # noqa: E402
 EXQUISITE_ROOT = REPO_ROOT / "artifacts" / "exquisite-training"
 EXISTING_SFT_DIR = REPO_ROOT / "artifacts" / "trl-openenv-hf-a10g-qwen-rich"
 PENDING = "PENDING"
+POLICY_RUN_PROFILES = {
+    "random_baseline": "reference baseline",
+    "naive_baseline": "reference heuristic",
+    "base_model": "pretrain baseline",
+    "trained_model": "original SFT benchmark",
+    "grpo_0_5b": "flagship additive run",
+    "sft_1_5b": "fast-profile scaling run",
+    "grpo_1_5b": "pending scaling run",
+    "grpo_3b": "pending flagship scaling run",
+    "dpo_falsifier": "artifact-complete distillation",
+    "teacher_policy": "reference ceiling",
+}
 
 DEFAULT_REWARD_WEIGHTS = {
     "final_score": 0.45,
@@ -96,6 +108,13 @@ def rel_path(path: Path) -> str:
         return str(path.resolve().relative_to(REPO_ROOT))
     except ValueError:
         return str(path)
+
+
+def apply_policy_run_profile(row: dict[str, Any]) -> dict[str, Any]:
+    payload = dict(row)
+    policy_key = str(payload.get("policy_key") or "")
+    payload.setdefault("run_profile", POLICY_RUN_PROFILES.get(policy_key, ""))
+    return payload
 
 
 def read_json(path: Path, default: Any | None = None) -> Any:
@@ -263,20 +282,22 @@ def policy_rows_from_existing_metrics(metrics: dict[str, Any]) -> list[dict[str,
         if not summary:
             continue
         rows.append(
-            {
-                "policy_key": key,
-                "policy": policy,
-                "model": model,
-                "method": method,
-                "mean_score": f"{safe_float(summary.get('mean_score')):.4f}",
+            apply_policy_run_profile(
+                {
+                    "policy_key": key,
+                    "policy": policy,
+                    "model": model,
+                    "method": method,
+                    "mean_score": f"{safe_float(summary.get('mean_score')):.4f}",
                 "mean_total_reward": f"{safe_float(summary.get('mean_total_reward')):.4f}",
                 "certificate_score": f"{safe_float(summary.get('certificate_score_mean')):.4f}",
                 "control_satisfied": f"{safe_float(summary.get('control_satisfied_resolution_rate')):.4f}",
-                "unsafe_release": f"{safe_float(summary.get('unsafe_release_rate')):.4f}",
-                "parse_success": f"{safe_float(summary.get('parse_success_rate')):.4f}",
-                "status": "completed",
-                "source": rel_path(EXISTING_SFT_DIR / "training_metrics.json"),
-            }
+                    "unsafe_release": f"{safe_float(summary.get('unsafe_release_rate')):.4f}",
+                    "parse_success": f"{safe_float(summary.get('parse_success_rate')):.4f}",
+                    "status": "completed",
+                    "source": rel_path(EXISTING_SFT_DIR / "training_metrics.json"),
+                }
+            )
         )
     return rows
 
@@ -412,11 +433,11 @@ def pending_policy_rows(excluded_policy_keys: set[str] | None = None) -> list[di
         {"policy_key": "dpo_falsifier", "policy": "DPO-Falsifier", "model": "1.5B/3B", "method": "GRPO->DPO"},
     ]
     excluded = excluded_policy_keys or set()
-    return [row for row in rows if str(row.get("policy_key") or "") not in excluded]
+    return [apply_policy_run_profile(row) for row in rows if str(row.get("policy_key") or "") not in excluded]
 
 
 def fill_pending(row: dict[str, Any]) -> dict[str, Any]:
-    payload = dict(row)
+    payload = apply_policy_run_profile(row)
     for key in [
         "mean_score",
         "mean_total_reward",

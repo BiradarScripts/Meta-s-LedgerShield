@@ -48,6 +48,13 @@ def policy_label(row: dict[str, Any]) -> str:
     return policy
 
 
+def fast_profile_summary_line(summary: dict[str, Any]) -> str:
+    note = str(summary.get("fast_profile_scaling_note") or "").strip()
+    if not note:
+        return ""
+    return f"- Fast-profile scaling note: {note}\n"
+
+
 def markdown_table(rows: list[dict[str, Any]], columns: list[str]) -> str:
     header = "| " + " | ".join(columns) + " |"
     divider = "|" + "|".join(["---"] * len(columns)) + "|"
@@ -79,7 +86,7 @@ def render_report(args: argparse.Namespace) -> str:
         ("Dashboard", rel_path(args.dashboard_dir / "index.html")),
     ]
     launch_columns = ["name", "hardware", "public_status", "public_note", "timeout", "hourly_cost_usd", "max_cost_usd"]
-    policy_columns = ["policy", "model", "method", "mean_score", "certificate_score", "control_satisfied", "unsafe_release", "parse_success", "status"]
+    policy_columns = ["policy", "model", "method", "run_profile", "mean_score", "certificate_score", "control_satisfied", "unsafe_release", "parse_success", "status"]
     numeric_matrix = [row for row in matrix if maybe_float(row.get("mean_score")) is not None or row.get("status") == "PENDING"]
 
     text = f"""# LedgerShield Exquisite Training Report
@@ -92,6 +99,7 @@ LedgerShield now has two stacked training layers:
 
 - Existing SFT proof: live OpenEnv rollouts, Qwen 0.5B LoRA, A10G TRL run, held-out score improvement from `0.1283` to `0.4394`, and zero unsafe release.
 - Exquisite layer: self-play candidate generation, LedgerShield environment execution, deterministic falsifier reward, GRPO online RL, optional DPO preference distillation, scaling-law analysis, and a 56-plot visualization pack.
+{fast_profile_summary_line(summary)}
 
 The current best numeric policy is `{policy_label(best) if best else "PENDING"}` with mean score `{best.get("mean_score", "PENDING") if best else "PENDING"}`.
 

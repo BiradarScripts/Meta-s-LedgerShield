@@ -46,7 +46,7 @@
       "value": "12.0"
     }
   ],
-  "generated_at": "2026-04-26T05:25:04.601508+00:00",
+  "generated_at": "2026-04-26T09:08:34.653811+00:00",
   "jobs": [
     {
       "description": "Collect SFT-warm-start self-play candidates and falsifier preferences.",
@@ -99,17 +99,17 @@
   ],
   "manifest": [
     {
-      "caption": "Compares every policy on the same LedgerShield held-out split. Pending HF policies are omitted until their final evaluations exist.",
+      "caption": "Compares every policy on the same LedgerShield held-out split. The Qwen 1.5B SFT point is intentionally a fast-profile scaling run.",
       "filename": "01_final_policy_ladder.png",
       "path": "artifacts/exquisite-training/plots/01_final_policy_ladder.png"
     },
     {
-      "caption": "Shows whether environment-in-the-loop RL improves over pure imitation at the same model size.",
+      "caption": "Shows whether environment-in-the-loop RL improves over pure imitation at the same model size while keeping the 1.5B SFT point tagged as a fast-profile scaling run.",
       "filename": "02_sft_vs_grpo_grouped_bar.png",
       "path": "artifacts/exquisite-training/plots/02_sft_vs_grpo_grouped_bar.png"
     },
     {
-      "caption": "Measures whether LedgerShield remains sensitive to model capacity rather than saturating at small-model performance.",
+      "caption": "Measures whether LedgerShield remains sensitive to model capacity rather than saturating at small-model performance. The 1.5B SFT point is supporting fast-profile scaling evidence, not the flagship comparison.",
       "filename": "03_scaling_law_score_vs_model_size.png",
       "path": "artifacts/exquisite-training/plots/03_scaling_law_score_vs_model_size.png"
     },
@@ -390,6 +390,7 @@
       "parse_success": "1.0000",
       "policy": "Random",
       "policy_key": "random_baseline",
+      "run_profile": "reference baseline",
       "source": "artifacts/trl-openenv-hf-a10g-qwen-rich/training_metrics.json",
       "status": "completed",
       "unsafe_release": "0.0000"
@@ -404,6 +405,7 @@
       "parse_success": "1.0000",
       "policy": "Naive PAY",
       "policy_key": "naive_baseline",
+      "run_profile": "reference heuristic",
       "source": "artifacts/trl-openenv-hf-a10g-qwen-rich/training_metrics.json",
       "status": "completed",
       "unsafe_release": "0.0000"
@@ -418,6 +420,7 @@
       "parse_success": "1.0000",
       "policy": "Base Qwen",
       "policy_key": "base_model",
+      "run_profile": "pretrain baseline",
       "source": "artifacts/trl-openenv-hf-a10g-qwen-rich/training_metrics.json",
       "status": "completed",
       "unsafe_release": "0.0000"
@@ -432,6 +435,7 @@
       "parse_success": "1.0000",
       "policy": "SFT Qwen",
       "policy_key": "trained_model",
+      "run_profile": "original SFT benchmark",
       "source": "artifacts/trl-openenv-hf-a10g-qwen-rich/training_metrics.json",
       "status": "completed",
       "unsafe_release": "0.0000"
@@ -446,6 +450,7 @@
       "parse_success": "1.0000",
       "policy": "GRPO Qwen",
       "policy_key": "grpo_0_5b",
+      "run_profile": "flagship additive run",
       "source": "artifacts/exquisite-training/grpo-0.5b/final_policy_eval.json",
       "status": "completed",
       "unsafe_release": "0.0000"
@@ -460,6 +465,7 @@
       "parse_success": "1.0000",
       "policy": "SFT Qwen",
       "policy_key": "sft_1_5b",
+      "run_profile": "fast-profile scaling run",
       "source": "artifacts/exquisite-training/sft-1.5b/training_metrics.json",
       "status": "completed",
       "unsafe_release": "0.0000"
@@ -474,6 +480,7 @@
       "parse_success": "1.0000",
       "policy": "DPO-Falsifier",
       "policy_key": "dpo_falsifier",
+      "run_profile": "artifact-complete distillation",
       "source": "artifacts/exquisite-training/dpo-falsifier-distill/final_policy_eval.json",
       "status": "completed",
       "unsafe_release": "0.0000"
@@ -488,6 +495,7 @@
       "parse_success": "1.0000",
       "policy": "Teacher",
       "policy_key": "teacher_policy",
+      "run_profile": "reference ceiling",
       "source": "artifacts/trl-openenv-hf-a10g-qwen-rich/training_metrics.json",
       "status": "completed",
       "unsafe_release": "0.0000"
@@ -503,7 +511,8 @@
       "grpo-1.5b",
       "grpo-3b-flagship"
     ],
-    "generated_at": "2026-04-26T05:24:52.257527+00:00",
+    "fast_profile_scaling_note": "The SFT Qwen 1.5B row is a fast-profile scaling run included as supporting model-scaling evidence, not the flagship apples-to-apples comparison.",
+    "generated_at": "2026-04-26T09:08:05.126348+00:00",
     "matrix_path": "artifacts/exquisite-training/reports/final_policy_matrix.csv",
     "note": "Current Exquisite report scope covers the completed additive run set and preserves the original SFT benchmark unchanged.",
     "pending_policy_count": 0,

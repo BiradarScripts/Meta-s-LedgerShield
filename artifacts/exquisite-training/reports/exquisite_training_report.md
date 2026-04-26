@@ -1,6 +1,6 @@
 # LedgerShield Exquisite Training Report
 
-Generated at `2026-04-26T05:25:05.950355+00:00`.
+Generated at `2026-04-26T09:08:44.380759+00:00`.
 
 ## Summary
 
@@ -8,6 +8,8 @@ LedgerShield now has two stacked training layers:
 
 - Existing SFT proof: live OpenEnv rollouts, Qwen 0.5B LoRA, A10G TRL run, held-out score improvement from `0.1283` to `0.4394`, and zero unsafe release.
 - Exquisite layer: self-play candidate generation, LedgerShield environment execution, deterministic falsifier reward, GRPO online RL, optional DPO preference distillation, scaling-law analysis, and a 56-plot visualization pack.
+- Fast-profile scaling note: The SFT Qwen 1.5B row is a fast-profile scaling run included as supporting model-scaling evidence, not the flagship apples-to-apples comparison.
+
 
 The current best numeric policy is `Teacher` with mean score `0.6627`.
 
@@ -32,16 +34,16 @@ The current best numeric policy is `Teacher` with mean score `0.6627`.
 
 ## Policy Matrix
 
-| policy | model | method | mean_score | certificate_score | control_satisfied | unsafe_release | parse_success | status |
-|---|---|---|---|---|---|---|---|---|
-| Random | - | baseline | 0.1088 | 0.4461 | 0.0000 | 0.0000 | 1.0000 | completed |
-| Naive PAY | - | baseline | 0.0693 | 0.4794 | 0.2222 | 0.0000 | 1.0000 | completed |
-| Base Qwen | 0.5B | base | 0.1283 | 0.4044 | 0.0000 | 0.0000 | 1.0000 | completed |
-| SFT Qwen | 0.5B | SFT | 0.4394 | 0.8478 | 0.2222 | 0.0000 | 1.0000 | completed |
-| GRPO Qwen | 0.5B | SFT->GRPO | 0.6606 | 0.9653 | 0.6667 | 0.0000 | 1.0000 | completed |
-| SFT Qwen | 1.5B | SFT | 0.4798 | 0.7992 | 0.0000 | 0.0000 | 1.0000 | completed |
-| DPO-Falsifier | 1.5B/3B | GRPO->DPO | 0.4503 | 0.8408 | 0.2222 | 0.0000 | 1.0000 | completed |
-| Teacher | - | oracle-ish | 0.6627 | 0.9472 | 0.5556 | 0.0000 | 1.0000 | completed |
+| policy | model | method | run_profile | mean_score | certificate_score | control_satisfied | unsafe_release | parse_success | status |
+|---|---|---|---|---|---|---|---|---|---|
+| Random | - | baseline | reference baseline | 0.1088 | 0.4461 | 0.0000 | 0.0000 | 1.0000 | completed |
+| Naive PAY | - | baseline | reference heuristic | 0.0693 | 0.4794 | 0.2222 | 0.0000 | 1.0000 | completed |
+| Base Qwen | 0.5B | base | pretrain baseline | 0.1283 | 0.4044 | 0.0000 | 0.0000 | 1.0000 | completed |
+| SFT Qwen | 0.5B | SFT | original SFT benchmark | 0.4394 | 0.8478 | 0.2222 | 0.0000 | 1.0000 | completed |
+| GRPO Qwen | 0.5B | SFT->GRPO | flagship additive run | 0.6606 | 0.9653 | 0.6667 | 0.0000 | 1.0000 | completed |
+| SFT Qwen | 1.5B | SFT | fast-profile scaling run | 0.4798 | 0.7992 | 0.0000 | 0.0000 | 1.0000 | completed |
+| DPO-Falsifier | 1.5B/3B | GRPO->DPO | artifact-complete distillation | 0.4503 | 0.8408 | 0.2222 | 0.0000 | 1.0000 | completed |
+| Teacher | - | oracle-ish | reference ceiling | 0.6627 | 0.9472 | 0.5556 | 0.0000 | 1.0000 | completed |
 
 ## Execution Footprint
 
