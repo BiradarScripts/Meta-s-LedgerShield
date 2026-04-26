@@ -4,8 +4,30 @@
 
 <img width="1190" height="826" alt="image" src="https://github.com/user-attachments/assets/3959e362-e7c7-46d5-a89d-8abd4fbee22d" />
 
+**Important Links:**
+- **Frontend App:** [https://frontend-fawn-xi-18.vercel.app/agent](https://frontend-fawn-xi-18.vercel.app/agent)
+- **Backend API:** [https://ledgershield-deploy.onrender.com](https://ledgershield-deploy.onrender.com)
+- **Hugging Face Space:** [https://huggingface.co/spaces/shreayas/ledgershield-controlbench](https://huggingface.co/spaces/shreayas/ledgershield-controlbench)
+- **Hosted Docs:** [https://aryaman.mintlify.app/benchmark/benchmark-card](https://aryaman.mintlify.app/benchmark/benchmark-card)
+- **Pitch Deck (PPT):** [https://canva.link/lsxxrdfbk2pxl8h](https://canva.link/lsxxrdfbk2pxl8h)
 
-## 1. The simple idea
+---
+
+## 1. The Problem: A $2.9 Billion Capability Gap
+
+In 2019, a finance employee wired **$4.2 million** to a fraudster who had impersonated their CEO. The attacker had watched the company for six months — learning vendor patterns, bank-change schedules, and approval windows. This wasn't a suspicious invoice; it was a **long-con operation** that bypassed every checklist.
+
+FBI IC3 reports **$2.9B+ in BEC losses** across 21,489 complaints in 2023 alone. Every victim had fraud tools. Every tool failed.
+
+Most benchmarks ask: *"Can an AI classify a suspicious invoice?"*
+
+LedgerShield asks: *"Can an AI stay safe, calibrated, auditable, and trustworthy inside a live institution over an entire quarter — against adversaries who learn from its defenses?"*
+
+**The capability gap:** No existing benchmark evaluates whether an AI agent maintains operational trust, produces auditable proof for every decision, resists patient adversaries, and deserves to stay deployed. LedgerShield fills this gap.
+
+---
+
+## 2. The simple idea
 
 Imagine a company receives an invoice for payment. A normal AI benchmark might ask the model to label it as **safe** or **fraudulent**.
 
@@ -25,7 +47,7 @@ For a non-technical reader, think of it as a flight simulator for AI finance age
 
 ---
 
-## 2. Why this is different from a normal fraud benchmark
+## 3. Why this is different from a normal fraud benchmark
 
 Traditional fraud benchmarks usually compress the problem into one label:
 
@@ -48,19 +70,51 @@ That is the core design choice behind LedgerShield.
 
 The most important novelty is that LedgerShield does **not** treat finance control as a static classification task. It turns it into a formal sequential control game: the agent must investigate hidden risk, choose useful tools, trigger controls, wait for evidence, resist pressure, prove its decision, and preserve institutional value over time.
 
-
 <img width="1280" height="791" alt="image" src="https://github.com/user-attachments/assets/c7c7b82a-b112-4a13-9383-cfe12024083a" />
-
 
 ---
 
-## 3. What the agent actually does
+## 4. OpenEnv Theme Alignment
+
+LedgerShield targets **two** OpenEnv themes simultaneously:
+
+| Theme | How LedgerShield Implements It |
+|---|---|
+| **Theme #2 — (Super) Long-Horizon Planning & Instruction Following** | ControlBench runs 100-case AP-quarter sequences with persistent institutional memory. The agent must decompose goals, track state over extended trajectories beyond context memory limits, and recover from early calibration mistakes. Sleeper vendors test vigilance over 50+ cases. Authority degradation forces structured planning under evolving constraints. |
+| **Theme #3.1 — World Modeling: Professional Tasks** | The environment is a partially observable enterprise AP world with 14 real investigation tools, async delayed artifacts (callbacks arrive 1–2 steps later), SOX compliance controls, vendor trust dynamics, and attacker belief adaptation. No shortcuts — the agent must do real investigative work, maintain consistent internal state, and orchestrate multi-step workflows. |
+
+---
+
+## 5. LedgerShield is a POMDP
+
+LedgerShield is formalized as a **Partially Observable Markov Decision Process (POMDP)** because the agent never sees the full truth:
+
+- **Hidden state:** The latent fraud hypothesis (safe vs. bank_fraud vs. vendor_takeover vs. ...), hidden risk signals, attacker beliefs, and sleeper-vendor activation status are all invisible to the agent.
+- **Observations:** The agent sees documents, case metadata, SPRT posteriors, VoI-ranked tool recommendations, and revealed artifacts — but must *investigate* to uncover hidden signals.
+- **Actions:** 14 investigation tools + 9 interventions + `submit_decision` (each with budget cost).
+- **Transitions:** Deterministic tool results, async intervention events (delayed artifacts), pressure event injection, and attacker adaptation.
+- **Persistence:** Institutional memory carries state across episodes in ControlBench sequences — unlike standard POMDPs that reset.
+
+The agent operates under **budget constraints** (15.0 units), **step limits** (20 steps), and **queue pressure** (finite review/callback capacity). It must decide *what* to investigate, *when* to stop, and *how* to justify its decision — all under partial information.
+
+### Decision Submission Triggers
+
+The agent triggers `submit_decision` under four conditions:
+
+| # | Trigger | Mechanism |
+|---|---|---|
+| 1 | **SPRT Optimal Stopping** | When log-likelihood ratio crosses Wald's boundary, the system flags `optimal_stopping_reached: true` — mathematically sufficient evidence gathered |
+| 2 | **Budget Exhaustion** | When `budget_remaining` < cost of cheapest available tool, agent must submit with current evidence |
+| 3 | **Step Limit** | Hard cap of `max_steps` — forced submission before truncation |
+| 4 | **Smoking Gun** | Agent finds overwhelming early evidence (e.g., bank mismatch + spoofed domain) and unilaterally submits to save budget |
+
+---
+
+## 6. What the agent actually does
 
 The agent starts with a case: maybe an invoice, maybe an email thread, maybe a vendor update, maybe a suspected duplicate payment. It can use investigation tools and control actions.
 
-
 <img width="1280" height="492" alt="image" src="https://github.com/user-attachments/assets/5f4e2bc1-7ce4-4a03-a4c9-37be0817c9ef" />
-
 
 A typical episode looks like this:
 
@@ -76,13 +130,11 @@ The important point: **the agent is evaluated on behavior, not just wording.** A
 
 ---
 
-## 4. The five task families
+## 7. The five task families
 
 LedgerShield includes five main task families. They move from simple extraction to expert-level campaign reasoning.
 
-
 <img width="1280" height="1188" alt="image" src="https://github.com/user-attachments/assets/5d7b6db3-8e72-42ae-a3d4-f65526f4a5a4" />
-
 
 | Task | Plain-English meaning | What it tests |
 |---|---|---|
@@ -106,13 +158,11 @@ The key design is that safe cases exist too. A benchmark that escalates everythi
 
 ---
 
-## 5. The nine evaluation tracks
+## 8. The nine evaluation tracks
 
 LedgerShield is not only a small set of public examples. It evaluates agents across multiple tracks so that success cannot come from memorizing case surfaces.
 
 <img width="1280" height="893" alt="image" src="https://github.com/user-attachments/assets/1613a754-0d1d-4886-bcf8-12c812cf969e" />
-
-
 
 | Track | What it measures | Why it matters |
 |---|---|---|
@@ -130,14 +180,13 @@ This track structure makes the benchmark much harder to game. A system must be g
 
 ---
 
-## 6. The metrics are designed to expose danger
+## 9. The metrics are designed to expose danger
 
 A single average score can hide the worst failure in a finance system: paying money when the payment should have been blocked.
 
 LedgerShield reports safety-critical outcomes separately.
 
 <img width="1280" height="709" alt="image" src="https://github.com/user-attachments/assets/5d85aed3-d476-49d7-8674-0558413edb02" />
-
 
 Important metrics include:
 
@@ -157,7 +206,7 @@ This is one of the strongest parts of the benchmark: **it refuses to hide safety
 
 ---
 
-## 7. ControlBench: the long-horizon layer
+## 10. ControlBench: the long-horizon layer
 
 The ControlBench extension turns LedgerShield from a case benchmark into an institutional-control benchmark.
 
@@ -165,9 +214,7 @@ A company does not process one invoice and disappear. It processes thousands of 
 
 ControlBench models that long-horizon pressure.
 
-
 <img width="1280" height="596" alt="image" src="https://github.com/user-attachments/assets/bcb58973-9d69-4964-9177-e35f208ccb6d" />
-
 
 The environment keeps institutional memory across episodes:
 
@@ -189,7 +236,7 @@ This lets LedgerShield ask a much more realistic question:
 
 ---
 
-## 8. Blind mode prevents shortcut learning
+## 11. Blind mode prevents shortcut learning
 
 The public benchmark runs in **blind mode by default**.
 
@@ -212,15 +259,13 @@ In simple terms:
 
 ---
 
-## 9. Decision Certificates: proof before payment
+## 12. Decision Certificates: proof before payment
 
 In LedgerShield, a decision can include a **Decision Certificate Graph**.
 
 This is a structured proof object. It connects evidence to claims, claims to policy checks, and policy checks to the final payment decision.
 
-
 <img width="1280" height="435" alt="image" src="https://github.com/user-attachments/assets/a02edfaf-85fd-4a81-8fbe-44b66c80a0e4" />
-
 
 The verifier checks whether the certificate has:
 
@@ -240,7 +285,7 @@ The message is simple:
 
 ---
 
-## 10. TrustGraph and adversarial falsification
+## 13. TrustGraph and adversarial falsification
 
 LedgerShield includes two additional safety checks that make the final decision harder to fake.
 
@@ -279,12 +324,26 @@ This matters because the final answer is not trusted blindly. It is stress-teste
 
 ---
 
-## 11. The runtime architecture
+## 14. Six Layers of Guardrails
+
+LedgerShield enforces **6 layers** of guardrails to prevent gaming:
+
+| Layer | Mechanism |
+|---|---|
+| **Task-specific validation** | Field validation, evidence grounding, and signal normalization across different task families. |
+| **Authority gate** | Calibration-gated authority restricts decisions when the agent is poorly calibrated. |
+| **Control boundary** | Phase-based enforcement — required investigation steps must complete before submission. |
+| **DCG falsifier** | Adversarial falsifier attacks every decision certificate for unsupported/unsafe claims. |
+| **SOX compliance** | 8 SOX controls with cumulative penalty caps. |
+| **Degenerate submission penalty** | −0.15 to −0.25 for minimal-effort submissions (<2 reason codes, <3 evidence entries). |
+
+---
+
+## 15. The runtime architecture
 
 At a high level, LedgerShield has an agent, an API, an environment loop, tools, hidden world state, grading, memory, and reporting.
 
 <img width="1280" height="589" alt="image" src="https://github.com/user-attachments/assets/be76c6e5-a7e6-4e15-b85f-0cd3ecae46aa" />
-
 
 The main layers are:
 
@@ -295,21 +354,20 @@ The main layers are:
 | **World state** | Separates hidden truth from public observation. |
 | **Tools layer** | Implements OCR, policy lookup, ledger search, email inspection, bank comparison, and interventions. |
 | **Grader** | Scores final decisions, evidence quality, trajectory quality, calibration, interventions, and outcomes. |
-| **Outcome simulator** | Converts decisions into consequences such as fraud prevented, unsafe release, or false-positive delay. |
+| **Outcome simulator** | Converts decisions into business outcomes. |
 | **Institutional memory** | Tracks AP-week state, capacity, vendor trust, loss surface, authority, and sleeper vendors. |
 | **Decision certificate verifier** | Checks proof graphs. |
 | **Decision falsifier** | Runs deterministic adversarial review on terminal decisions. |
-| **TrustGraph projection** | Builds a graph-ready audit object for reports and dashboards. |
+| **TrustGraph projection** | Builds graph-ready audit objects for reports and dashboards. |
 | **Benchmark reports** | Produce leaderboard, ControlBench summaries, human-baseline summaries, and visualization payloads. |
 
 ---
 
-## 12. The API surface
+## 16. The API surface
 
 LedgerShield exposes an OpenEnv-compatible HTTP API. The agent interacts with the environment through reset and step calls.
 
 <img width="1280" height="573" alt="image" src="https://github.com/user-attachments/assets/91005dfe-4086-42c2-aa29-e36ea690e113" />
-
 
 Important endpoints:
 
@@ -343,11 +401,9 @@ The basic response envelope is intentionally standard:
 }
 ```
 
-For non-technical readers, this simply means: after every action, the environment tells the agent what it can see now, how the action scored, and whether the case is over.
-
 ---
 
-## 13. Actions the agent can take
+## 17. Actions the agent can take
 
 The action set has three groups.
 
@@ -387,7 +443,7 @@ The final action is `submit_decision`. It includes the final decision plus suppo
 
 ---
 
-## 14. How scoring works, without the math headache
+## 18. How scoring works, without the math headache
 
 LedgerShield’s scoring is not “one point for saying fraud.” It asks whether the agent behaved like a responsible control function.
 
@@ -421,7 +477,7 @@ This makes the benchmark closer to a real audit environment: a decision without 
 
 ---
 
-## 15. The novelty layer: ASHTG and the mathematical spine, explained simply
+## 19. The novelty layer: ASHTG and the mathematical spine, explained simply
 
 LedgerShield is built on a theoretical framework called **Adversarial Sequential Hypothesis Testing Game**, or **ASHTG**.
 
@@ -429,9 +485,7 @@ The name sounds heavy, but the intuition is simple:
 
 > The agent is investigating a hidden truth. Every tool gives partial evidence. The agent must decide when it has enough evidence to safely stop, while an adversary tries to mislead it.
 
-
 <img width="1280" height="838" alt="image" src="https://github.com/user-attachments/assets/ad5b4cc5-2330-4ad9-a37f-b0b56bb34671" />
-
 
 Here is the non-technical version of the novelty:
 
@@ -446,63 +500,9 @@ Here is the non-technical version of the novelty:
 | **Decision certificates** | Final decisions can be checked as proof graphs. | Turns “because I said so” into auditable support. |
 | **ControlBench loss surface** | Long-term damage is tracked across cases. | Makes deployability more important than one-case accuracy. |
 
-### 15.1 SPRT: when should the agent stop?
-
-In a real AP team, stopping too early is dangerous, but using every possible tool is also wasteful. The SPRT idea says: keep collecting evidence until the evidence crosses a defensible boundary.
-
-![SPRT Decision Boundaries](./assets/13_sprt_boundaries.svg)
-
-Plain-English takeaway: LedgerShield rewards agents that investigate enough to be defensible, not agents that either guess immediately or burn the whole budget.
-
-### 15.2 Value of Information: what should the agent check next?
-
-Every action has a cost. OCR, ledger search, bank comparison, vendor callback, and security routing should not be used randomly. Value of Information asks: “Which action is most likely to change the decision enough to justify its cost?”
-
-![Value of Information Tool Selection](./assets/14_voi_tool_selection.svg)
-
-Plain-English takeaway: the benchmark tests whether the agent can spend investigation budget like a real operator.
-
-### 15.3 Causal counterfactuals: did the agent find the real reason?
-
-A model can be accidentally right for the wrong reason. For example, it might flag an invoice because the email sounds urgent, while the actual control failure is a bank-account mismatch. LedgerShield’s causal layer rewards the agent for uncovering the mechanism that actually explains the risk.
-
-
-<img width="1600" height="923" alt="image" src="https://github.com/user-attachments/assets/08e1c1e3-799c-43f3-9800-747f877b3cfa" />
-
-
-Plain-English takeaway: LedgerShield cares whether the agent found the control failure, not just whether it used scary words.
-
-### 15.4 Proper scoring: honest uncertainty matters
-
-In finance, a model that is 99% confident and wrong is much more dangerous than a model that says, “I am uncertain; route this for review.” Proper scoring rewards calibrated probability estimates and punishes overconfident wrong decisions.
-
-<img width="1600" height="1147" alt="image" src="https://github.com/user-attachments/assets/a42e1f2f-2f4d-405f-a830-664d4bfd01f0" />
-
-
-Plain-English takeaway: LedgerShield does not only ask “what did you decide?” It also asks “were you honest about uncertainty?”
-
-### 15.5 Security-game and watchdog control
-
-LedgerShield can model an analyst-style agent and a watchdog/control layer. The attacker tries to exploit weaknesses. The analyst investigates. The watchdog can warn, veto, escalate, or approve.
-
-<img width="1600" height="1044" alt="image" src="https://github.com/user-attachments/assets/a73bc2e4-556e-44ca-89e1-f2a2d45a1868" />
-
-
-Plain-English takeaway: the benchmark is closer to enterprise governance than a simple chatbot task.
-
-### 15.6 Loss surface and authority gate
-
-ControlBench does not only measure whether the agent got one case right. It asks whether the agent should be trusted with authority over time. Unsafe releases, false positives, operational burn, calibration debt, and catastrophic events all affect deployment authority.
-
-![Loss Surface and Authority Gate](./assets/18_loss_surface_authority.svg)
-
-Plain-English takeaway: LedgerShield can say, “This agent may be useful as an advisor, but it should not have full payment authority yet.”
-
-Non-technical summary: LedgerShield is not a random collection of invoice examples. It is a structured decision environment where investigation, uncertainty, adversarial pressure, proof, oversight, and long-term institutional consequences are all part of the task.
-
 ---
 
-## 16. Case generation and generalization
+## 20. Case generation and generalization
 
 The curated 21 cases are only the public face of the benchmark.
 
@@ -515,22 +515,11 @@ LedgerShield can also generate:
 - sleeper-vendor sequences
 - certificate-required clones
 
-Each case can carry hidden mechanism metadata such as:
-
-- attack family
-- compromise channel
-- pressure profile
-- control weakness
-- vendor history state
-- bank adjustment state
-- campaign linkage
-- portfolio context
-
-This means two cases can look similar but require different decisions, or look different while sharing the same hidden mechanism. That is exactly the kind of generalization real AP systems need.
+Each case can carry hidden mechanism metadata such as attack family, compromise channel, pressure profile, control weakness, vendor history state, bank adjustment state, campaign linkage, and portfolio context. This means two cases can look similar but require different decisions, or look different while sharing the same hidden mechanism.
 
 ---
 
-## 17. Realism modules
+## 21. Realism modules
 
 LedgerShield adds realism modules so that cases feel closer to enterprise payment work.
 
@@ -542,11 +531,97 @@ LedgerShield adds realism modules so that cases feel closer to enterprise paymen
 | Dual-agent mode | Analyst/watchdog separation where one agent can warn, veto, escalate, or approve another agent’s behavior. |
 | Attack library | A set of adversarial attack types across identity, document, process, and persistent-threat patterns. |
 
-This is important because a payment-control benchmark should not only test text understanding. It should test business process behavior.
+---
+
+## 22. Two Distinct Training Pathways and Artifact Maps
+
+LedgerShield provides two entirely separate training tracks: the original supervised fine-tuning (SFT) run and the advanced environment-in-the-loop "Exquisite" layer.
+
+### Pathway 1: Initial SFT Training Only
+This pathway covers the original SFT benchmark without the separate Exquisite layer.
+
+**Reading Order:**
+`README.md` -> `docs/training-report.md` -> `training/ledgershield_trl_training.py` -> `artifacts/trl-openenv-hf-a10g-qwen-rich/training_metrics.json` -> `artifacts/trl-openenv-hf-a10g-qwen-rich/plots/`
+
+**Top-level docs**
+- Main training report: [`docs/training-report.md`](./training-report.md)
+- Docs index that links to the training report: [`docs/DOCUMENTATION.md`](./DOCUMENTATION.md)
+- README entry points: [`README.md`](../README.md)
+
+**Training code**
+- Main SFT runner: [`training/ledgershield_trl_training.py`](../training/ledgershield_trl_training.py)
+- HF launcher for the original SFT run: [`training/launch_hf_a10g_qwen_job.py`](../training/launch_hf_a10g_qwen_job.py)
+- Training folder README: [`training/README.md`](../training/README.md)
+- Training dependencies: [`training/requirements-training.txt`](../training/requirements-training.txt)
+
+**Notebook docs / rerun paths**
+- Main Colab notebook: [`training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb`](../training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb)
+- Alternate SFT notebook: [`training/LedgerShield_v2_TRL_SFT_Training.ipynb`](../training/LedgerShield_v2_TRL_SFT_Training.ipynb)
+
+**Original SFT artifact folder** (`artifacts/trl-openenv-hf-a10g-qwen-rich`)
+- Live trajectory data: `openenv_trajectories.json`
+- SFT examples: `openenv_sft_examples.jsonl`
+- Full metrics: `training_metrics.json`
+- Loss history CSV & JSON: `loss_history.csv` / `loss_history.json`
+- Reward checkpoint history: `reward_eval_history.csv`
+- HF job log: `hf_job_api.log`
+- Analysis summary: `analysis_summary.md`
+- Dashboard: `showcase_dashboard.html`
+- Final LoRA adapter: `final_model`
+- Original SFT plots: `plots/`
+
+### Pathway 2: Modified / Additive Training Process (Exquisite Layer)
+This is the separate Exquisite layer used to train environmental reward and reasoning on top of the base models.
+
+> **Current additive result:** `GRPO Qwen 0.5B` reaches `0.6606` mean score, `0.9653` certificate score, `0.6667` control-satisfied resolution, `0.0000` unsafe release, and `1.0000` parse success against a `0.6627` teacher reference.
+
+**Reading Order:**
+`README.md` -> `docs/exquisite-training-layer.md` -> `training/exquisite/launch_exquisite_jobs.py` -> `collect_selfplay_rollouts.py` -> `grpo_env_reward_training.py` -> `artifacts/exquisite-training/reports/` -> `dashboard/` -> `plots/`
+
+*(Note: Unlike the original SFT path, there is no separate dedicated Colab notebook yet for the modified Exquisite process. The modified flow is documented through the Python package, the docs, and the generated artifact stack.)*
+
+**Top-level docs**
+- Main Exquisite layer doc: [`docs/exquisite-training-layer.md`](./exquisite-training-layer.md)
+- Deep results and visual analysis: [`docs/exquisite-visual-analysis.md`](./exquisite-visual-analysis.md)
+
+**Training code**
+- Shared helpers and reward/config logic: [`training/exquisite/common.py`](../training/exquisite/common.py)
+- Self-play rollout collector: [`training/exquisite/collect_selfplay_rollouts.py`](../training/exquisite/collect_selfplay_rollouts.py)
+- GRPO training runner: [`training/exquisite/grpo_env_reward_training.py`](../training/exquisite/grpo_env_reward_training.py)
+- DPO / falsifier distillation runner: [`training/exquisite/dpo_falsifier_distill.py`](../training/exquisite/dpo_falsifier_distill.py)
+- Evaluation / policy matrix builder: [`training/exquisite/evaluate_exquisite_policy.py`](../training/exquisite/evaluate_exquisite_policy.py)
+- Plot generator: [`training/exquisite/plot_exquisite_training_results.py`](../training/exquisite/plot_exquisite_training_results.py)
+- Dashboard builder: [`training/exquisite/build_exquisite_dashboard.py`](../training/exquisite/build_exquisite_dashboard.py)
+- Report renderer: [`training/exquisite/render_exquisite_report.py`](../training/exquisite/render_exquisite_report.py)
+
+**HF launch / monitoring code**
+- HF jobs launcher: [`training/exquisite/launch_exquisite_jobs.py`](../training/exquisite/launch_exquisite_jobs.py)
+- HF job monitor / artifact refresher: [`training/exquisite/monitor_exquisite_jobs.py`](../training/exquisite/monitor_exquisite_jobs.py)
+
+**Modified training artifact root** (`artifacts/exquisite-training`)
+- **Self-play run** (`selfplay-0.5b`): `selfplay_summary.json`, `selfplay_candidates.jsonl`/`.csv`, `falsifier_preferences.jsonl`
+- **GRPO run** (`grpo-0.5b`): `config.json`, `final_policy_eval.json`, `grpo_reward_history.csv`, `grpo_step_metrics.csv`, `grpo_training_metrics.json`, `per_case_results.jsonl`, `final_model`
+- **1.5B SFT run** (`sft-1.5b`): `openenv_trajectories.json`, `openenv_sft_examples.jsonl`, `training_metrics.json`, `loss_history.csv`/`.json`
+- **DPO run** (`dpo-falsifier-distill`): `config.json`, `dpo_pairs.jsonl`, `dpo_step_metrics.csv`, `dpo_training_metrics.json`, `final_policy_eval.json`, `per_case_results.jsonl`
+
+**Modified training report outputs** (`artifacts/exquisite-training/reports/`)
+- Final policy matrix: `final_policy_matrix.csv` / `.json`
+- Exquisite summary JSON: `exquisite_training_summary.json`
+- Generated report: `exquisite_training_report.md`
+- Failure taxonomy: `failure_taxonomy.json`
+- Combined results: `per_case_results.jsonl`, `per_task_results.csv`
+- Visualization manifest: `visualization_manifest.json`
+- Artifact inventory: `artifact_inventory.md`
+- HF launch ledger: `hf_exquisite_launches.json`
+
+**Modified training visuals and dashboard**
+- Full Exquisite plot pack: `artifacts/exquisite-training/plots`
+- HTML dashboard: `artifacts/exquisite-training/dashboard/index.html`
+- Dashboard JSON: `artifacts/exquisite-training/dashboard/dashboard_data.json`
 
 ---
 
-## 18. Development and code map
+## 23. Development and code map
 
 For builders, the main code landmarks are:
 
@@ -580,7 +655,7 @@ bash validate-submission.sh
 
 ---
 
-## 19. Deployment modes
+## 24. Deployment modes
 
 LedgerShield can run in multiple modes:
 
@@ -591,33 +666,29 @@ LedgerShield can run in multiple modes:
 | Hugging Face Space | Public OpenEnv-compatible hosted demo. |
 | CI smoke tests | Health checks and endpoint validation. |
 
-Operational checks include:
+---
 
-- `GET /health` returns `{"status": "ok"}`
-- `/reset` can load a known case such as `CASE-D-001`
-- `/step` can execute tools and return updated observations
-- `/benchmark-report` or `/controlbench-summary` exposes report artifacts
-- `/certify-summary` exposes certification-style output
-- `/controlbench-visualization` returns graph-ready dashboard data
+## 25. Live Model Comparison
 
-Important runtime flags include:
+The environment reliably detects capability differences and demonstrates a clean monotonic ordering across model tiers:
 
-| Variable | Meaning |
-|---|---|
-| `LEDGERSHIELD_TRACK_MODE=blind` | Default benchmark mode. |
-| `LEDGERSHIELD_TRACK_MODE=instrumented` | Debug mode with extra diagnostics. |
-| `LEDGERSHIELD_INCLUDE_CONTROLBENCH=true` | Load generated ControlBench sequence cases. |
-| `LEDGERSHIELD_CONTROLBENCH_SLEEPER_WARMUPS` | Configure sleeper-vendor warmup behavior. |
-| `LEDGERSHIELD_HUMAN_BASELINE_PATH` | Optional human-baseline artifact path. |
+| Model | Tier | Capability | Average Score | Success Rate |
+|---|---|---:|---:|---:|
+| `gpt-3.5-turbo` | standard | 3.2 | 0.6965 | 38.1% |
+| `gpt-4o` | strong | 4.6 | 0.8947 | 90.5% |
+| `gpt-5.4` | elite | 5.4 | 0.9177 | 95.2% |
+
+- **Monotonic ordering verified:** Benchmark strictly ranks models by capability.
+- **Frontier gap** (gpt-5.4 vs gpt-4o): +0.023 avg score, +4.8% success rate.
+- **Generalization gap:** deterministic baseline public mean 0.8749 → holdout mean 0.7063 (deliberate — tests real generalization).
 
 ---
 
-## 20. The three-minute demo story
+## 26. The three-minute demo story
 
 The recommended live demo case is `CASE-D-001`.
 
 <img width="1280" height="423" alt="image" src="https://github.com/user-attachments/assets/24ac9229-2580-43f2-9b52-f4285ce9bb09" />
-
 
 Suggested flow:
 
@@ -641,29 +712,25 @@ Suggested flow:
 
 ---
 
-## 21. What judges should remember
+## 27. What judges should remember
 
 LedgerShield ControlBench is strong because it combines four things that are rarely tested together:
 
 ### 1. Real workflow pressure
-
 Agents operate inside accounts-payable workflows with budget limits, time limits, policies, documents, emails, vendor records, bank records, delayed artifacts, and adversarial pressure.
 
 ### 2. Transparent safety reporting
-
 The benchmark reports unsafe releases, policy-incomplete decisions, certificate failures, loss surface, and authority level instead of hiding everything inside one score.
 
 ### 3. Long-horizon institutional behavior
-
 ControlBench tests whether the agent preserves value across a sequence, not just a single example. Memory can help, but it can also create overtrust. Sleeper-vendor cases make that visible.
 
 ### 4. Proof-carrying decisions
-
 Decision Certificates and TrustGraph outputs make the agent’s reasoning auditable. This is critical for enterprise deployment because payment decisions need evidence, not just confidence.
 
 ---
 
-## 22. Final takeaway
+## 28. Final takeaway
 
 LedgerShield ControlBench is not just a fraud-detection dataset.
 
@@ -679,13 +746,9 @@ And that is why the benchmark is useful for evaluating whether AI agents are rea
 
 ## Appendix A — Visual summary
 
-
 <img width="1280" height="1233" alt="image" src="https://github.com/user-attachments/assets/1ace1afc-a341-426e-ab3c-3e4948d178f2" />
 
-
 <img width="1280" height="870" alt="image" src="https://github.com/user-attachments/assets/1171759b-85bc-44d6-9664-7e44dc239a96" />
-
-
 
 <img width="1280" height="1066" alt="image" src="https://github.com/user-attachments/assets/dcf8fc31-8bd1-44b0-ba40-0b04418a6974" />
 
