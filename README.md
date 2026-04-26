@@ -17,7 +17,27 @@ tags:
 
 # LedgerShield ControlBench 🛡️
 
+## The Problem: A $2.9 Billion Capability Gap
+
+In 2019, a finance employee wired **$4.2 million** to a fraudster who had impersonated their CEO. The attacker had watched the company for six months — learning vendor patterns, bank-change schedules, and approval windows. This wasn't a suspicious invoice; it was a **long-con operation** that bypassed every checklist.
+
+FBI IC3 reports **$2.9B+ in BEC losses** across 21,489 complaints in 2023 alone. Every victim had fraud tools. Every tool failed. Why?
+
+> Most benchmarks ask: *"Can an AI classify a suspicious invoice?"*
+>
+> LedgerShield asks: *"Can an AI stay safe, calibrated, auditable, and trustworthy inside a live institution over an entire quarter — against adversaries who learn from its defenses?"*
+
+**The capability gap:** No existing benchmark evaluates whether an AI agent maintains operational trust, produces auditable proof for every decision, resists patient adversaries, and deserves to stay deployed. LedgerShield fills this gap.
+
+**Does this domain matter for LLM training?** Yes — enterprise AP fraud prevention is underexplored in RL/LLM training. Current models cannot maintain calibrated confidence, resist social engineering pressure, or build structured causal reasoning over long horizons. A researcher could write papers on calibration-gated authority, VoI-driven investigation, and long-con vigilance — all trained via LedgerShield.
+
+---
+
+## What LedgerShield Is
+
 **LedgerShield is a deployment-grade trust-and-governance benchmark for autonomous enterprise AI agents. Unlike standard RL environments that test isolated task classification, LedgerShield measures whether an AI agent deserves operational authority. It challenges agents to investigate Accounts Payable (AP) fraud, enforce SOX compliance, and maintain calibrated trust against patient adversaries over extended enterprise workflows.**
+
+> **LedgerShield is a deployment-grade trust-and-governance benchmark for autonomous enterprise AI agents — the first RL environment that measures not just whether an AI can solve a task, but whether it *deserves operational authority*.**
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
@@ -38,11 +58,9 @@ tags:
 
 **Pitch Deck (PPT):** https://canva.link/lsxxrdfbk2pxl8h
 
-**Web App Demo Video** https://www.youtube.com/watch?v=S_-hQv0hdws&feature=youtu.be
+**Web App Demo Video:** https://www.youtube.com/watch?v=S_-hQv0hdws&feature=youtu.be
 
-**For more details, see:**
-
-[`docs/DOCUMENTATION.md`](./docs/DOCUMENTATION.md)
+**Primary documentation:** [`docs/DOCUMENTATION.md`](./docs/DOCUMENTATION.md)
 
 **Training Evidence Report:** [`docs/DOCUMENTATION.md` — Training Evidence Report](./docs/DOCUMENTATION.md#training-evidence-report)
 
@@ -52,15 +70,13 @@ tags:
 
 **Exquisite dashboard:** [`artifacts/exquisite-training/dashboard/index.html`](./artifacts/exquisite-training/dashboard/index.html)
 
-**HF mini-blog (final submission):** [`docs/HF_MINIBLOG_FINAL.md`](./docs/HF_MINIBLOG_FINAL.md) — duplicate narrative also in [`docs/DOCUMENTATION.md` — Public narrative (final submission)](./docs/DOCUMENTATION.md#public-narrative-final-submission).
+**HF mini-blog (final submission):** [`docs/HF_MINIBLOG_FINAL.md`](./docs/HF_MINIBLOG_FINAL.md) — duplicate narrative also in [`docs/DOCUMENTATION.md` — Public narrative (final submission)](./docs/DOCUMENTATION.md#public-narrative-final-submission)
 
 **OpenEnv alignment (final submission):** [`docs/DOCUMENTATION.md` — OpenEnv alignment (final submission)](./docs/DOCUMENTATION.md#openenv-alignment-final-submission)
 
 > **Additive training note:** The original OpenEnv SFT benchmark remains unchanged under [`training/ledgershield_trl_training.py`](./training/ledgershield_trl_training.py), [`docs/DOCUMENTATION.md` — Training Evidence Report](./docs/DOCUMENTATION.md#training-evidence-report), and [`artifacts/trl-openenv-hf-a10g-qwen-rich/`](./artifacts/trl-openenv-hf-a10g-qwen-rich/). The new environment-in-the-loop work lives separately under [`training/exquisite/`](./training/exquisite/), [`artifacts/exquisite-training/`](./artifacts/exquisite-training/), [`docs/DOCUMENTATION.md` — Exquisite Training Layer](./docs/DOCUMENTATION.md#exquisite-training-layer), and [`docs/DOCUMENTATION.md` — Exquisite Visual Analysis](./docs/DOCUMENTATION.md#exquisite-visual-analysis).
 >
 > **Current additive result:** `GRPO Qwen 0.5B` reaches `0.6606` mean score, `0.9653` certificate score, `0.6667` control-satisfied resolution, `0.0000` unsafe release, and `1.0000` parse success against a `0.6627` teacher reference.
-
-> **LedgerShield is a deployment-grade trust-and-governance benchmark for autonomous enterprise AI agents — the first RL environment that measures not just whether an AI can solve a task, but whether it *deserves operational authority*.**
 
 ---
 
@@ -178,22 +194,6 @@ The practical takeaway from the current artifact stack is that **reward-driven G
 ### Safety takeaway
 
 Across the reported evaluation tables, the learned policies maintain **`0.0000` unsafe release** on the included eval slices, while the best additive policy reaches near-teacher performance.
-
-## The Problem: A $2.9 Billion Capability Gap
-
-In 2019, a finance employee wired **$4.2 million** to a fraudster who had impersonated their CEO. The attacker had watched the company for six months — learning vendor patterns, bank-change schedules, and approval windows. This wasn't a suspicious invoice; it was a **long-con operation** that bypassed every checklist.
-
-FBI IC3 reports **$2.9B+ in BEC losses** across 21,489 complaints in 2023 alone. Every victim had fraud tools. Every tool failed. Why?
-
-> Most benchmarks ask: *"Can an AI classify a suspicious invoice?"*
->
-> LedgerShield asks: *"Can an AI stay safe, calibrated, auditable, and trustworthy inside a live institution over an entire quarter — against adversaries who learn from its defenses?"*
-
-**The capability gap:** No existing benchmark evaluates whether an AI agent maintains operational trust, produces auditable proof for every decision, resists patient adversaries, and deserves to stay deployed. LedgerShield fills this gap.
-
-**Does this domain matter for LLM training?** Yes — enterprise AP fraud prevention is underexplored in RL/LLM training. Current models cannot maintain calibrated confidence, resist social engineering pressure, or build structured causal reasoning over long horizons. A researcher could write papers on calibration-gated authority, VoI-driven investigation, and long-con vigilance — all trained via LedgerShield.
-
----
 
 ## Theme Alignment
 
@@ -433,22 +433,6 @@ LedgerShield enforces **6 layers** of guardrails to prevent gaming:
 
 ---
 
-## Live Model Comparison
-
-<!-- sync:readme-live-comparison:start -->
-Generated on **April 10, 2026 (IST)** from `live_model_comparison.json`.
-
-| Model | Tier | Capability | Average Score | Success Rate |
-|---|---|---:|---:|---:|
-| `gpt-3.5-turbo` | standard | 3.2 | 0.6965 | 38.1% |
-| `gpt-4o` | strong | 4.6 | 0.8947 | 90.5% |
-| `gpt-5.4` | elite | 5.4 | 0.9177 | 95.2% |
-
-- **Monotonic ordering verified: TRUE** — benchmark reliably detects capability differences.
-- **Frontier gap** (gpt-5.4 vs gpt-4o): +0.023 avg score, +4.8% success rate.
-- **Generalization gap:** deterministic baseline public mean 0.8749 → holdout mean 0.7063 (deliberate — tests real generalization).
-<!-- sync:readme-live-comparison:end -->
-
 <!-- sync:readme-benchmark-summary:start -->
 | Agent | Public mean | Holdout mean | Holdout consistent pass rate | ControlBench loss score | Deployability | Certificate-required mean |
 |---|---:|---:|---:|---:|---|---:|
@@ -602,7 +586,7 @@ Meta-s-LedgerShield/
 ├── docs/                          # Documentation hub
 ├── inference.py                   # Submission-safe agent
 ├── benchmark_report.py            # Full evaluation suite
-├── compare_models_live.py         # Live model comparison
+
 ├── openenv.yaml                   # OpenEnv specification
 ├── Dockerfile                     # Docker deployment
 └── validate-submission.sh         # 4-gate pre-submission validator
@@ -624,17 +608,6 @@ For the full file-by-file map, see [`docs/DOCUMENTATION.md`](./docs/DOCUMENTATIO
 Runtime flags: `LEDGERSHIELD_TRACK_MODE=blind|instrumented`, `LEDGERSHIELD_INCLUDE_CONTROLBENCH=true`, `LEDGERSHIELD_CONTROLBENCH_SLEEPER_WARMUPS`.
 
 ---
-
-## Three-Minute Demo Flow
-
-Recommended case: `CASE-D-001`
-
-1. **Open:** "LedgerShield evaluates whether an agent can operate a defensible AP control regime under partial observability, delayed artifacts, and portfolio pressure."
-2. **Run:** Reset in blind mode → inspect email thread → compare bank account → request callback → submit decision.
-3. **Delayed evidence:** Callback artifact changes what the agent can justify — timing and control selection matter.
-4. **Metrics:** Highlight `control_satisfied_resolution`, `institutional_utility`, `unsafe_release_rate`, `result_class`.
-5. **Portfolio:** Show ControlBench summary — AP-week state, review/callback capacity, sequence-level utility.
-6. **Close:** "The agent must generalize across latent fraud mechanisms, manage enterprise controls over time, and satisfy policy gates against hidden backend state in blind mode."
 
 ---
 
