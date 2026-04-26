@@ -81,7 +81,7 @@ If you are new here, read the root [`README.md`](../README.md) first, then follo
 | [`DOCUMENTATION.md` — Training Evidence Report](./DOCUMENTATION.md#training-evidence-report) | readers focused on training evidence | real OpenEnv-connected TRL training evidence, plots, reward checkpoints, and grading alignment |
 | [Exquisite Training Layer](#exquisite-training-layer) | readers focused on training | additive self-play -> GRPO -> DPO pipeline, completed policy matrix, and reproduction commands |
 | [OpenEnv alignment](#openenv-alignment-final-submission) | readers focused on benchmark metadata | direct mapping from OpenEnv requirements to repository evidence |
-| [Exquisite Visual Analysis](#exquisite-visual-analysis) | readers focused on results interpretation | deep interpretation of the additive reward curves, policy ladders, safety frontiers, and ablations |
+| [Exquisite Visual Analysis](#exquisite-visual-analysis) | readers focused on results interpretation | deep interpretation of the additive reward curves, policy ladders, safety frontiers, and ablation-status caveats |
 | [`tasks.md`](#tasks) | agent builders and benchmark users | task families A–E, case catalog, output contracts by task, scoring weights, and penalties |
 | [`api-reference.md`](#api-reference) | integrators and agent builders | REST endpoints (`/reset`, `/step`, `/state`, `/leaderboard`, `/benchmark-report`, `/controlbench-summary`, `/human-baseline-summary`, `/institutional-memory`, `/institutional-reset`), request/response envelopes, action taxonomy, reward model |
 | [`architecture.md`](#architecture) | researchers and maintainers | system layers, hidden-state mechanics, reward design, grading pipeline, case generation, realism modules |
@@ -3635,7 +3635,9 @@ This is still worth showing, but it should be framed honestly.
 
 ### 12. DPO Readout
 
-![DPO after GRPO ablation](../artifacts/exquisite-training/plots/56_dpo_after_grpo_ablation.png)
+The dedicated DPO-after-GRPO ablation slot in the Exquisite plot pack is still pending its dedicated HF rerun, so the comparison here should be read from the completed policy matrix rather than from plots 47-56.
+
+![Final policy ladder](../artifacts/exquisite-training/plots/01_final_policy_ladder.png)
 
 The DPO run is artifact-complete; it does not exceed GRPO on the primary metrics shown here.
 

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-26T09:08:28.394742+00:00",
+  "generated_at": "2026-04-26T13:04:44.302491+00:00",
   "plot_count": 56,
   "plots": [
     {
@@ -233,52 +233,52 @@
       "path": "artifacts/exquisite-training/plots/46_auditability_vs_score.png"
     },
     {
-      "caption": "47 Reward Ablation Score",
+      "caption": "Status board for the planned ablation suite. Numeric bars appear automatically once the dedicated HF reruns report values.",
       "filename": "47_reward_ablation_score.png",
       "path": "artifacts/exquisite-training/plots/47_reward_ablation_score.png"
     },
     {
-      "caption": "48 Without Certificate Bonus",
+      "caption": "Status board for the planned certificate-bonus ablation. Numeric metrics appear once the dedicated HF rerun reports values.",
       "filename": "48_without_certificate_bonus.png",
       "path": "artifacts/exquisite-training/plots/48_without_certificate_bonus.png"
     },
     {
-      "caption": "49 Without Unsafe Penalty",
+      "caption": "Status board for the planned unsafe-penalty ablation. Numeric metrics appear once the dedicated HF rerun reports values.",
       "filename": "49_without_unsafe_penalty.png",
       "path": "artifacts/exquisite-training/plots/49_without_unsafe_penalty.png"
     },
     {
-      "caption": "50 Without Parse Bonus",
+      "caption": "Status board for the planned parse-bonus ablation. Numeric metrics appear once the dedicated HF rerun reports values.",
       "filename": "50_without_parse_bonus.png",
       "path": "artifacts/exquisite-training/plots/50_without_parse_bonus.png"
     },
     {
-      "caption": "51 Num Generations Ablation",
+      "caption": "Status board for the planned num_generations sweep. Numeric metrics appear once the dedicated HF rerun reports values.",
       "filename": "51_num_generations_ablation.png",
       "path": "artifacts/exquisite-training/plots/51_num_generations_ablation.png"
     },
     {
-      "caption": "52 Model Size Ablation",
+      "caption": "Status board for the planned model-size comparison. Numeric metrics appear once the dedicated HF rerun reports values.",
       "filename": "52_model_size_ablation.png",
       "path": "artifacts/exquisite-training/plots/52_model_size_ablation.png"
     },
     {
-      "caption": "53 Sft Checkpoint Vs Base Start",
+      "caption": "Status board for the planned warm-start comparison. Numeric metrics appear once the dedicated HF rerun reports values.",
       "filename": "53_sft_checkpoint_vs_base_start.png",
       "path": "artifacts/exquisite-training/plots/53_sft_checkpoint_vs_base_start.png"
     },
     {
-      "caption": "54 Grpo Steps Ablation",
+      "caption": "Status board for the planned GRPO step-count sweep. Numeric metrics appear once the dedicated HF rerun reports values.",
       "filename": "54_grpo_steps_ablation.png",
       "path": "artifacts/exquisite-training/plots/54_grpo_steps_ablation.png"
     },
     {
-      "caption": "55 Temperature Ablation",
+      "caption": "Status board for the planned temperature sweep. Numeric metrics appear once the dedicated HF rerun reports values.",
       "filename": "55_temperature_ablation.png",
       "path": "artifacts/exquisite-training/plots/55_temperature_ablation.png"
     },
     {
-      "caption": "56 Dpo After Grpo Ablation",
+      "caption": "Status board for the planned DPO-after-GRPO rerun. Numeric metrics appear once the dedicated HF rerun reports values.",
       "filename": "56_dpo_after_grpo_ablation.png",
       "path": "artifacts/exquisite-training/plots/56_dpo_after_grpo_ablation.png"
     }

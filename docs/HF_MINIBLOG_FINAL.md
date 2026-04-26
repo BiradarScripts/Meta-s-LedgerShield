@@ -33,7 +33,7 @@ If a judge reads only this section, here is everything that matters:
   - **GRPO Qwen 0.5B → 0.6606**, close to the **0.6627** teacher-replay reference
   - **Unsafe release rate across learned policies: 0.0000**
   - Certificate score: **0.4044 → 0.9653**, control-satisfied resolution: **0.0000 → 0.6667**
-- **Evidence we trained.** Real loss + reward + safety curves committed under [`artifacts/exquisite-training/plots/`](../artifacts/exquisite-training/plots/) and [`artifacts/trl-openenv-hf-a10g-qwen-rich/plots/`](../artifacts/trl-openenv-hf-a10g-qwen-rich/plots/), including same-axes baseline-vs-trained comparisons (plot 02), score-safety frontier (plot 04), teacher-gap closure (plot 05), and ten ablations (plots 47–56) covering reward shaping, certificate bonus, unsafe penalty, parse bonus, num_generations, model size, SFT-vs-base start, GRPO step count, temperature, and DPO-after-GRPO.
+- **Evidence we trained.** Real loss + reward + safety curves are committed under [`artifacts/exquisite-training/plots/`](../artifacts/exquisite-training/plots/) and [`artifacts/trl-openenv-hf-a10g-qwen-rich/plots/`](../artifacts/trl-openenv-hf-a10g-qwen-rich/plots/), including same-axes baseline-vs-trained comparisons (plot 02), score-safety frontier (plot 04), and teacher-gap closure (plot 05). The ablation harness for plots 47-56 is also committed, but those entries are currently pending-status cards because the dedicated HF ablation runs have not yet reported numeric results.
 - **Why the lift is meaningful.** The improvement is **behavioral**, not just numerical: the GRPO-trained policy completes the missing controls, grounds the decision in evidence, and produces an auditable Decision Certificate the falsifier cannot break. Same case, same prompt — see the `CASE-E-002::variant-0` before/after later in this post.
 - **Run it in 30 seconds.**
   ```bash
@@ -1014,63 +1014,23 @@ So yes, the preference-learning path is real and useful — but in this run it s
 
 ---
 
-## Ablations: it isn't one lucky run
+## Ablations: the harness is in place, the dedicated runs are still pending
 
-A single trained checkpoint is suggestive; ablations are what make a result believable. The repo ships ten committed ablation plots covering reward shaping, training-stage choices, and post-GRPO distillation. Each plot is a small experiment that perturbs **one** thing and re-runs the same evaluation slice, so the bar heights are directly comparable.
+Ablations are the strongest way to show *which* part of a training stack is doing the work, so we built the reporting pipeline for them and committed the output slots for plots 47-56. But in the current repo state, those plots are not populated with numeric results yet.
 
-### Reward-shaping ablations
+The reason those images are still status views is simple: [`artifacts/exquisite-training/reports/ablation_results.json`](../artifacts/exquisite-training/reports/ablation_results.json) is currently marked `pending_hf_runs`, so the plotting script emits pending-status cards instead of numeric bars or curves. That means the honest claim today is:
 
-These probe the reward composition itself: does each shaping term actually pull its weight?
+- the ablation **pipeline** exists,
+- the planned ablation **categories** are defined,
+- but the dedicated Hugging Face ablation jobs have not yet uploaded the numeric results needed to turn plots 47-56 into evidence-bearing charts.
 
-![Reward ablation: composite score](../artifacts/exquisite-training/plots/47_reward_ablation_score.png)
+The planned ablation suite still covers the right questions:
 
-*Reward-ablation summary. X-axis: reward configuration (full reward vs. each shaping term removed). Y-axis: mean composite score on the shared evaluation slice. **This shows the full composed reward is not redundant**: removing individual shaping terms reduces score, which is the property a coherent reward function should have.*
+- reward shaping: certificate bonus, unsafe penalty, parse bonus
+- training-stage choices: `num_generations`, model size, SFT-vs-base warm start, GRPO step count, temperature
+- post-GRPO follow-up: DPO-after-GRPO
 
-![Without certificate bonus](../artifacts/exquisite-training/plots/48_without_certificate_bonus.png)
-
-*"Without certificate bonus" ablation. **This shows that removing the certificate-quality term measurably hurts certificate score and policy auditability** — the model still produces decisions, but they stop being defensible proof objects, which is exactly the failure mode the bonus is meant to prevent.*
-
-![Without unsafe penalty](../artifacts/exquisite-training/plots/49_without_unsafe_penalty.png)
-
-*"Without unsafe penalty" ablation. **This shows what happens when the safety term is removed**: unsafe-release rate is no longer pinned at 0, confirming that the headline "0.0 unsafe release" result is caused by the reward design, not a happy accident.*
-
-![Without parse bonus](../artifacts/exquisite-training/plots/50_without_parse_bonus.png)
-
-*"Without parse bonus" ablation. **This shows the parse-success bonus is what stabilizes structured-JSON output** during early GRPO; removing it raises the rate of `partial_json_recovery`-style failure modes that would otherwise get partial credit and confuse the gradient.*
-
-### Training-stage ablations
-
-These probe the *choices around the training run*: how big should the model be, where do you start GRPO from, and how many steps and how much exploration do you actually need?
-
-![num_generations ablation](../artifacts/exquisite-training/plots/51_num_generations_ablation.png)
-
-*Number-of-generations ablation. X-axis: GRPO `num_generations` per prompt. Y-axis: mean composite score. **This shows the relative-reward objective needs enough samples per prompt to find a margin**: too few generations and the comparison is noisy; the chosen setting sits in the regime where GRPO actually has signal.*
-
-![Model size ablation](../artifacts/exquisite-training/plots/52_model_size_ablation.png)
-
-*Model-size ablation. X-axis: model size (Qwen 0.5B vs. 1.5B). Y-axis: mean composite score. **This shows the lift in this run came from environment-driven training, not from raw scale**: 0.5B + GRPO clears 1.5B + SFT on the same evaluation slice, which is one of the more useful diagnostics for deciding whether to spend more compute on bigger weights vs. smarter feedback.*
-
-![SFT checkpoint vs base start](../artifacts/exquisite-training/plots/53_sft_checkpoint_vs_base_start.png)
-
-*SFT-vs-base GRPO start ablation. X-axis: GRPO starting checkpoint (base model vs. SFT model). Y-axis: post-GRPO mean composite score. **This shows starting GRPO from the SFT checkpoint matters**: GRPO on top of a base model under-explores the right action space, while GRPO on top of SFT converts demonstration coverage into reward gain.*
-
-![GRPO steps ablation](../artifacts/exquisite-training/plots/54_grpo_steps_ablation.png)
-
-*GRPO-steps ablation. X-axis: number of GRPO optimizer steps. Y-axis: mean composite score. **This shows the run was trained long enough to matter** (the curve plateaus rather than still climbing rapidly), which is the property the rubric is asking for when it says "train long enough that the curves mean something."*
-
-![Temperature ablation](../artifacts/exquisite-training/plots/55_temperature_ablation.png)
-
-*Sampling-temperature ablation. X-axis: GRPO sampling temperature. Y-axis: mean composite score. **This shows the chosen exploration-vs-exploitation regime**: too cold and candidates collapse to one mode (no GRPO signal), too hot and the policy spends sample budget on syntactic noise; the chosen setting is the one that maximizes useful margin.*
-
-### Post-GRPO distillation ablation: why GRPO beat DPO
-
-The blog above mentioned that DPO-from-falsifier-preferences scored 0.4503, below GRPO's 0.6606 on the same slice. The DPO-after-GRPO ablation gives the more direct picture of *why*.
-
-![DPO after GRPO ablation](../artifacts/exquisite-training/plots/56_dpo_after_grpo_ablation.png)
-
-*DPO-after-GRPO ablation. X-axis: post-training stage (GRPO checkpoint vs. GRPO + DPO). Y-axis: mean composite score and certificate score on the shared evaluation slice. **This shows DPO from falsifier preferences as a follow-up to GRPO does not further improve the LedgerShield composite score in this stack**: GRPO already pushes the policy onto the score-safety frontier, and the additional preference distillation is at best neutral here. The honest takeaway is that for this environment, environment-in-the-loop reward (GRPO) is the dominant lift, and falsifier-preference DPO is most useful as a **separate** distillation path from candidates, not a finishing pass on top of GRPO.*
-
-The reason this matters for the rubric: the rubric explicitly asks for "anything that proves the agent learned something." Ablations are the strongest version of that claim, because they isolate *which* part of the pipeline is doing the work.
+Once those HF runs report numbers, the same plotting pipeline will replace the placeholders with real charts on the shared evaluation slice. Until then, the strongest committed training evidence in this repo remains the live SFT / GRPO / DPO runs, their loss and reward curves, the final policy matrix, and the per-case behavioral artifacts discussed elsewhere in this post.
 
 ---
 
