@@ -1,0 +1,19 @@
+services:
+  - name: ledgershield-api
+    dockerfile: Dockerfile
+    dockercontext: .
+    region: Oregon
+    plan: Free
+    envVars:
+      - key: PYTHONDONTWRITEBYTECODE
+        value: "1"
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: PORT
+        value: "8000"
+    healthCheck:
+      path: /health
+      interval: 30
+      timeout: 10
+      retries: 3
+      startupTimeout: 120
