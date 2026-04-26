@@ -255,6 +255,16 @@ Unlike standard RL environments that reset between episodes, LedgerShield's `Ins
 
 Instead of a single scalar reward, the institutional loss surface tracks **10 dimensions**: fraud loss ratio (36%), catastrophic events (10%), calibration debt (10%), false positive ratio (12%), operational delay (11%), review burn (10%), vigilance loss (8%), supplier friction (8%), authority restriction (5%), and compliance breach (5%). This models the trade-offs an enterprise actually optimizes.
 
+### 9. Realism Modules
+
+| Module | What it adds |
+|---|---|
+| Currency engine | FX conversion, IBAN/SWIFT validation, currency mismatch detection, aging reports |
+| Compliance engine | SOX-style controls, segregation of duties, bank-change checks, audit trails |
+| Curriculum module | Difficulty adaptation and tiered task access |
+| Dual-agent mode | Analyst/watchdog separation with warn, veto, escalate, or approve actions |
+| Attack library | 16 adversarial attack types across identity, document, process, and APT patterns |
+
 ---
 
 ## 14 Investigation Tools
@@ -330,6 +340,20 @@ LedgerShield enforces **6 layers** of guardrails to prevent gaming:
 
 ---
 
+## Key Safety Metrics
+
+| Metric | What it measures |
+|---|---|
+| `control_satisfied_resolution` | Did the agent complete required controls before deciding? |
+| `institutional_utility` | Did the agent preserve business throughput while staying safe? |
+| `unsafe_release_rate` | How often fraudulent payments were incorrectly approved |
+| `certificate_validity_rate` | How often the agent's proof object survived verification |
+| `sleeper_detection_rate` | Whether the agent caught trusted vendors that later became risky |
+| `authority_level` | Current deployment authority: full, restricted, review-only, or locked |
+| `result_class` | Explicit label: valid success, policy incomplete, unsafe release, etc. |
+
+---
+
 ## Why LedgerShield Deserves Full Marks
 
 | Criterion | Evidence |
@@ -364,6 +388,37 @@ Generated on **April 10, 2026 (IST)** from `live_model_comparison.json`.
 |---|---:|---:|---:|---:|---|---:|
 | ledgershield/deterministic-baseline (deterministic-policy) | 0.8749 | 0.7063 | 0.1667 | 0.5731 | advisory | 0.5500 |
 <!-- sync:readme-benchmark-summary:end -->
+
+---
+
+## Runtime Architecture
+
+| Layer | What it does |
+|---|---|
+| **FastAPI / OpenEnv API** | Exposes `/reset`, `/step`, `/state`, reports, certification, and visualization endpoints |
+| **Environment loop** | Episode lifecycle, action validation, tool dispatch, budget, rewards, termination |
+| **World state** | Hidden/public state separation, artifacts, pressure events |
+| **Tools layer** | OCR, policy lookup, ledger search, email inspection, bank comparison, interventions |
+| **Grader** | Multi-dimensional scoring: evidence, trajectory, calibration, interventions, outcomes |
+| **Institutional memory** | AP-week state, capacity, vendor trust, loss surface, authority, sleeper vendors |
+| **DCG verifier + falsifier** | Proof graph verification and adversarial decision review |
+| **TrustGraph** | Serializable graph-ready audit objects for reports and dashboards |
+
+## API Surface
+
+Key OpenEnv-compatible HTTP endpoints:
+
+| Endpoint | Purpose |
+|---|---|
+| `POST /reset` | Start a new episode or load a specific case |
+| `POST /step` | Execute one investigation, intervention, or final-decision action |
+| `GET /state` | Return current public environment state |
+| `GET /health` | Health check for local, Docker, HF Space, and CI |
+| `GET /benchmark-report` | Return latest benchmark report artifact |
+| `GET /institutional-memory` | Return AP-week memory, capacity, loss surface, authority |
+| `GET /controlbench-summary` | Return ControlBench institutional sequence summary |
+| `POST /certify` | Package workflow into certification report |
+| `GET /controlbench-visualization` | Graph-ready data for dashboards or notebooks |
 
 ---
 
@@ -425,6 +480,38 @@ See [`docs/training-report.md`](./docs/training-report.md) for full training evi
 
 ---
 
+## Two Training Pathways — Full Artifact Maps
+
+LedgerShield provides two entirely separate training tracks.
+
+### Pathway 1: Original SFT Training
+
+**Reading order:** `README` → `docs/training-report.md` → `training/ledgershield_trl_training.py` → `artifacts/.../training_metrics.json` → `plots/`
+
+| Category | Files |
+|---|---|
+| **Docs** | [`docs/training-report.md`](./docs/training-report.md), [`docs/DOCUMENTATION.md`](./docs/DOCUMENTATION.md) |
+| **Training code** | [`training/ledgershield_trl_training.py`](./training/ledgershield_trl_training.py), [`training/launch_hf_a10g_qwen_job.py`](./training/launch_hf_a10g_qwen_job.py), [`training/requirements-training.txt`](./training/requirements-training.txt) |
+| **Notebooks** | [`training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb`](./training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb), [`training/LedgerShield_v2_TRL_SFT_Training.ipynb`](./training/LedgerShield_v2_TRL_SFT_Training.ipynb) |
+| **Artifacts** | [`artifacts/trl-openenv-hf-a10g-qwen-rich/`](./artifacts/trl-openenv-hf-a10g-qwen-rich/) — `training_metrics.json`, `loss_history.csv`/`.json`, `openenv_trajectories.json`, `openenv_sft_examples.jsonl`, `reward_eval_history.csv`, `hf_job_api.log`, `analysis_summary.md`, `showcase_dashboard.html`, `final_model/`, `plots/` |
+
+### Pathway 2: Exquisite Layer (Environment-in-the-Loop)
+
+**Reading order:** `README` → `docs/exquisite-training-layer.md` → `launch_exquisite_jobs.py` → `collect_selfplay_rollouts.py` → `grpo_env_reward_training.py` → `reports/` → `dashboard/` → `plots/`
+
+| Category | Files |
+|---|---|
+| **Docs** | [`docs/exquisite-training-layer.md`](./docs/exquisite-training-layer.md), [`docs/exquisite-visual-analysis.md`](./docs/exquisite-visual-analysis.md) |
+| **Training code** | [`training/exquisite/common.py`](./training/exquisite/common.py), [`collect_selfplay_rollouts.py`](./training/exquisite/collect_selfplay_rollouts.py), [`grpo_env_reward_training.py`](./training/exquisite/grpo_env_reward_training.py), [`dpo_falsifier_distill.py`](./training/exquisite/dpo_falsifier_distill.py), [`evaluate_exquisite_policy.py`](./training/exquisite/evaluate_exquisite_policy.py) |
+| **Viz/report code** | [`plot_exquisite_training_results.py`](./training/exquisite/plot_exquisite_training_results.py), [`build_exquisite_dashboard.py`](./training/exquisite/build_exquisite_dashboard.py), [`render_exquisite_report.py`](./training/exquisite/render_exquisite_report.py) |
+| **HF launch** | [`launch_exquisite_jobs.py`](./training/exquisite/launch_exquisite_jobs.py), [`monitor_exquisite_jobs.py`](./training/exquisite/monitor_exquisite_jobs.py) |
+| **Artifact runs** | `selfplay-0.5b/` (summary, candidates, preferences), `grpo-0.5b/` (config, eval, reward history, step metrics, per-case results, final_model), `sft-1.5b/` (trajectories, SFT examples, metrics, loss history), `dpo-falsifier-distill/` (config, pairs, step metrics, eval, per-case results) |
+| **Reports** | `reports/` — `final_policy_matrix.csv`/`.json`, `exquisite_training_summary.json`, `exquisite_training_report.md`, `failure_taxonomy.json`, `per_case_results.jsonl`, `per_task_results.csv`, `artifact_inventory.md`, `hf_exquisite_launches.json` |
+| **Dashboard** | [`dashboard/index.html`](./artifacts/exquisite-training/dashboard/index.html), `dashboard_data.json` |
+| **Plots** | [`artifacts/exquisite-training/plots/`](./artifacts/exquisite-training/plots/) — 56-plot evidence pack |
+
+---
+
 ## Repository Structure
 
 ```text
@@ -456,6 +543,32 @@ Meta-s-LedgerShield/
 ```
 
 For the full file-by-file map, see [`docs/DOCUMENTATION.md`](./docs/DOCUMENTATION.md).
+
+---
+
+## Deployment Modes
+
+| Mode | Use case |
+|---|---|
+| Local Python server | Development and debugging |
+| Docker | Reproducible fresh-machine execution |
+| Hugging Face Space | Public OpenEnv-compatible hosted demo |
+| CI smoke tests | Health checks and endpoint validation |
+
+Runtime flags: `LEDGERSHIELD_TRACK_MODE=blind|instrumented`, `LEDGERSHIELD_INCLUDE_CONTROLBENCH=true`, `LEDGERSHIELD_CONTROLBENCH_SLEEPER_WARMUPS`.
+
+---
+
+## Three-Minute Demo Flow
+
+Recommended case: `CASE-D-001`
+
+1. **Open:** "LedgerShield evaluates whether an agent can operate a defensible AP control regime under partial observability, delayed artifacts, and portfolio pressure."
+2. **Run:** Reset in blind mode → inspect email thread → compare bank account → request callback → submit decision.
+3. **Delayed evidence:** Callback artifact changes what the agent can justify — timing and control selection matter.
+4. **Metrics:** Highlight `control_satisfied_resolution`, `institutional_utility`, `unsafe_release_rate`, `result_class`.
+5. **Portfolio:** Show ControlBench summary — AP-week state, review/callback capacity, sequence-level utility.
+6. **Close:** "The agent must generalize across latent fraud mechanisms, manage enterprise controls over time, and satisfy policy gates against hidden backend state in blind mode."
 
 ---
 
