@@ -71,8 +71,8 @@ def render_report(args: argparse.Namespace) -> str:
     planned_cost = sum(safe_float(row.get("max_cost_usd")) for row in jobs)
 
     key_paths = [
-        ("Exquisite docs", "docs/exquisite-training-layer.md"),
-        ("Visual analysis docs", "docs/exquisite-visual-analysis.md"),
+        ("Exquisite docs", "docs/DOCUMENTATION.md#exquisite-training-layer"),
+        ("Visual analysis docs", "docs/DOCUMENTATION.md#exquisite-visual-analysis"),
         ("Training package", "training/exquisite/"),
         ("Policy matrix", rel_path(args.report_dir / "final_policy_matrix.csv")),
         ("Visualization manifest", rel_path(args.report_dir / "visualization_manifest.json")),

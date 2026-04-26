@@ -10,7 +10,7 @@
 - **Hugging Face Space:** [https://huggingface.co/spaces/shreayas/ledgershield-controlbench](https://huggingface.co/spaces/shreayas/ledgershield-controlbench)
 - **Hosted Docs:** [https://aryaman.mintlify.app/benchmark/benchmark-card](https://aryaman.mintlify.app/benchmark/benchmark-card)
 - **Pitch Deck (PPT):** [https://canva.link/lsxxrdfbk2pxl8h](https://canva.link/lsxxrdfbk2pxl8h)
-- **Hackathon Alignment:** [`docs/openenv-hackathon-alignment.md`](./openenv-hackathon-alignment.md)
+- **OpenEnv alignment (final submission):** [`DOCUMENTATION.md` — OpenEnv alignment (final submission)](./DOCUMENTATION.md#openenv-alignment-final-submission)
 
 ### OpenEnv Submission Materials
 
@@ -19,15 +19,15 @@
 | Runnable environment | [Hugging Face Space](https://huggingface.co/spaces/shreayas/ledgershield-controlbench) | Pull and run the actual environment |
 | OpenEnv manifest | [`openenv.yaml`](../openenv.yaml) | Confirms the benchmark contract and metadata |
 | Public benchmark overview | [`docs/DOCUMENTATION.md`](./DOCUMENTATION.md) | Deep environment, API, and architecture reference |
-| Original SFT training proof | [`docs/training-report.md`](./training-report.md) | Real A10G TRL run with plots, baselines, and artifacts |
+| Original SFT training proof | [`DOCUMENTATION.md` — Training Evidence Report](./DOCUMENTATION.md#training-evidence-report) | Real A10G TRL run with plots, baselines, and artifacts |
 | Original SFT rerun notebook | [`training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb`](../training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb) | Judge-friendly Colab rerun entrypoint |
-| Additive Exquisite layer | [`docs/exquisite-training-layer.md`](./exquisite-training-layer.md) | End-to-end self-play -> GRPO -> DPO pipeline writeup |
-| Exquisite visual deep dive | [`docs/exquisite-visual-analysis.md`](./exquisite-visual-analysis.md) | Interprets the 56-plot evidence pack |
+| Additive Exquisite layer | [`DOCUMENTATION.md` — Exquisite Training Layer](./DOCUMENTATION.md#exquisite-training-layer) | End-to-end self-play -> GRPO -> DPO pipeline writeup |
+| Exquisite visual deep dive | [`DOCUMENTATION.md` — Exquisite Visual Analysis](./DOCUMENTATION.md#exquisite-visual-analysis) | Interprets the 56-plot evidence pack |
 | Judge-facing dashboard | [`artifacts/exquisite-training/dashboard/index.html`](../artifacts/exquisite-training/dashboard/index.html) | Fast scan of final metrics and plots |
 | Pitch / presentation | [Pitch Deck (Canva)](https://canva.link/lsxxrdfbk2pxl8h) | Storytelling asset for a sub-2-minute review |
-| Hackathon alignment audit | [`docs/openenv-hackathon-alignment.md`](./openenv-hackathon-alignment.md) | Maps the repo directly to the OpenEnv judging rubric |
+| OpenEnv alignment (final submission) | [`DOCUMENTATION.md` — OpenEnv alignment (final submission)](./DOCUMENTATION.md#openenv-alignment-final-submission) | Maps the repo directly to the OpenEnv judging rubric |
 
-**Judge Quick Read:** Start with [`openenv-hackathon-alignment.md`](./openenv-hackathon-alignment.md) → skim this blog → check [`training-report.md`](./training-report.md) → inspect the Exquisite stack in [`exquisite-training-layer.md`](./exquisite-training-layer.md) and the [dashboard](../artifacts/exquisite-training/dashboard/index.html).
+**Judge Quick Read:** Start with [`DOCUMENTATION.md` — OpenEnv alignment (final submission)](./DOCUMENTATION.md#openenv-alignment-final-submission) → skim this blog → check [`DOCUMENTATION.md` — Training Evidence Report](./DOCUMENTATION.md#training-evidence-report) → inspect the Exquisite stack in [`DOCUMENTATION.md` — Exquisite Training Layer](./DOCUMENTATION.md#exquisite-training-layer) and the [dashboard](../artifacts/exquisite-training/dashboard/index.html).
 
 ---
 
@@ -639,8 +639,8 @@ LedgerShield shows two distinct training stories:
 
 | Track | What it proves | Primary evidence |
 |---|---|---|
-| Original SFT benchmark | A live OpenEnv-connected TRL SFT loop improves a 0.5B model on held-out LedgerShield cases | [`docs/training-report.md`](./training-report.md), [`training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb`](../training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb), [`artifacts/trl-openenv-hf-a10g-qwen-rich/`](../artifacts/trl-openenv-hf-a10g-qwen-rich/) |
-| Additive Exquisite layer | Self-play + deterministic environment reward + GRPO pushes the same 0.5B family to near-teacher performance | [`docs/exquisite-training-layer.md`](./exquisite-training-layer.md), [`docs/exquisite-visual-analysis.md`](./exquisite-visual-analysis.md), [`artifacts/exquisite-training/`](../artifacts/exquisite-training/) |
+| Original SFT benchmark | A live OpenEnv-connected TRL SFT loop improves a 0.5B model on held-out LedgerShield cases | [`DOCUMENTATION.md` — Training Evidence Report](./DOCUMENTATION.md#training-evidence-report), [`training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb`](../training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb), [`artifacts/trl-openenv-hf-a10g-qwen-rich/`](../artifacts/trl-openenv-hf-a10g-qwen-rich/) |
+| Additive Exquisite layer | Self-play + deterministic environment reward + GRPO pushes the same 0.5B family to near-teacher performance | [`DOCUMENTATION.md` — Exquisite Training Layer](./DOCUMENTATION.md#exquisite-training-layer), [`DOCUMENTATION.md` — Exquisite Visual Analysis](./DOCUMENTATION.md#exquisite-visual-analysis), [`artifacts/exquisite-training/`](../artifacts/exquisite-training/) |
 
 ## 23. Two Distinct Training Pathways and Artifact Maps
 
@@ -650,10 +650,10 @@ LedgerShield provides two entirely separate training tracks: the original superv
 This pathway covers the original SFT benchmark without the separate Exquisite layer.
 
 **Reading Order:**
-`README.md` -> `docs/training-report.md` -> `training/ledgershield_trl_training.py` -> `artifacts/trl-openenv-hf-a10g-qwen-rich/training_metrics.json` -> `artifacts/trl-openenv-hf-a10g-qwen-rich/plots/`
+`README.md` -> `docs/DOCUMENTATION.md` (Training Evidence Report) -> `training/ledgershield_trl_training.py` -> `artifacts/trl-openenv-hf-a10g-qwen-rich/training_metrics.json` -> `artifacts/trl-openenv-hf-a10g-qwen-rich/plots/`
 
 **Top-level docs**
-- Main training report: [`docs/training-report.md`](./training-report.md)
+- Main training report: [`DOCUMENTATION.md` — Training Evidence Report](./DOCUMENTATION.md#training-evidence-report)
 - Docs index that links to the training report: [`docs/DOCUMENTATION.md`](./DOCUMENTATION.md)
 - README entry points: [`README.md`](../README.md)
 
@@ -685,13 +685,13 @@ This is the separate Exquisite layer used to train environmental reward and reas
 > **Current additive result:** `GRPO Qwen 0.5B` reaches `0.6606` mean score, `0.9653` certificate score, `0.6667` control-satisfied resolution, `0.0000` unsafe release, and `1.0000` parse success against a `0.6627` teacher reference.
 
 **Reading Order:**
-`README.md` -> `docs/exquisite-training-layer.md` -> `training/exquisite/launch_exquisite_jobs.py` -> `collect_selfplay_rollouts.py` -> `grpo_env_reward_training.py` -> `artifacts/exquisite-training/reports/` -> `dashboard/` -> `plots/`
+`README.md` -> `docs/DOCUMENTATION.md` (Exquisite Training Layer) -> `training/exquisite/launch_exquisite_jobs.py` -> `collect_selfplay_rollouts.py` -> `grpo_env_reward_training.py` -> `artifacts/exquisite-training/reports/` -> `dashboard/` -> `plots/`
 
 *(Note: Unlike the original SFT path, there is no separate dedicated Colab notebook yet for the modified Exquisite process. The modified flow is documented through the Python package, the docs, and the generated artifact stack.)*
 
 **Top-level docs**
-- Main Exquisite layer doc: [`docs/exquisite-training-layer.md`](./exquisite-training-layer.md)
-- Deep results and visual analysis: [`docs/exquisite-visual-analysis.md`](./exquisite-visual-analysis.md)
+- Main Exquisite layer doc: [`DOCUMENTATION.md` — Exquisite Training Layer](./DOCUMENTATION.md#exquisite-training-layer)
+- Deep results and visual analysis: [`DOCUMENTATION.md` — Exquisite Visual Analysis](./DOCUMENTATION.md#exquisite-visual-analysis)
 
 **Training code**
 - Shared helpers and reward/config logic: [`training/exquisite/common.py`](../training/exquisite/common.py)

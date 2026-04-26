@@ -11,6 +11,7 @@ interface LanyardWithControlsProps {
 
 const ATTENDEE_NAME = "Team Ecommerce Downfall";
 const HACKATHON_LABEL = "Meta Scalar Hackathon";
+const FOOTER_TAGLINE = `${HACKATHON_LABEL} · OpenEnv 2026`;
 const CARD_VARIANT: CardVariant = "dark";
 
 export default function LanyardWithControls({
@@ -46,7 +47,7 @@ export default function LanyardWithControls({
       <div className="border-t border-white/10 bg-black/70 px-6 py-4 backdrop-blur-sm">
         <div className="mx-auto flex w-full max-w-4xl items-center justify-center">
           <p className="font-mono text-sm uppercase tracking-[0.22em] text-zinc-300">
-            Made for OpenEnv Hackathon 2026
+            Made for {FOOTER_TAGLINE}
           </p>
         </div>
       </div>

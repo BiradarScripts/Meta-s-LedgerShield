@@ -1,6 +1,6 @@
 # LedgerShield Exquisite Training Scripts
 
-The full additive Exquisite writeup lives in [`../../docs/exquisite-training-layer.md`](../../docs/exquisite-training-layer.md), and the judge-facing visual interpretation lives in [`../../docs/exquisite-visual-analysis.md`](../../docs/exquisite-visual-analysis.md).
+The full additive Exquisite writeup lives in [`../../docs/DOCUMENTATION.md` — Exquisite Training Layer](../../docs/DOCUMENTATION.md#exquisite-training-layer), and the judge-facing visual interpretation lives in [`../../docs/DOCUMENTATION.md` — Exquisite Visual Analysis](../../docs/DOCUMENTATION.md#exquisite-visual-analysis).
 
 Judge-rerunnable Colab entrypoint: [`./LedgerShield_Exquisite_Training_Colab.ipynb`](./LedgerShield_Exquisite_Training_Colab.ipynb)
 
@@ -36,8 +36,8 @@ Key output folders:
 
 Recommended reading order for the modified path:
 
-1. [`../../docs/exquisite-training-layer.md`](../../docs/exquisite-training-layer.md)
-2. [`../../docs/exquisite-visual-analysis.md`](../../docs/exquisite-visual-analysis.md)
+1. [`../../docs/DOCUMENTATION.md` — Exquisite Training Layer](../../docs/DOCUMENTATION.md#exquisite-training-layer)
+2. [`../../docs/DOCUMENTATION.md` — Exquisite Visual Analysis](../../docs/DOCUMENTATION.md#exquisite-visual-analysis)
 3. [`./launch_exquisite_jobs.py`](./launch_exquisite_jobs.py)
 4. [`./collect_selfplay_rollouts.py`](./collect_selfplay_rollouts.py)
 5. [`./grpo_env_reward_training.py`](./grpo_env_reward_training.py)
@@ -46,5 +46,5 @@ Recommended reading order for the modified path:
 
 Important scope note:
 
-- The original SFT benchmark remains the minimum-submission anchor and is documented separately in [`../README.md`](../README.md) and [`../../docs/training-report.md`](../../docs/training-report.md).
+- The original SFT benchmark remains the minimum-submission anchor and is documented separately in [`../README.md`](../README.md) and [`../../docs/DOCUMENTATION.md` — Training Evidence Report](../../docs/DOCUMENTATION.md#training-evidence-report).
 - The Exquisite layer is additive. It strengthens the reward-improvement and training-pipeline story, but it does not replace the original benchmark proof.

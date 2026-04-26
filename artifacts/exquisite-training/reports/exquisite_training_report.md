@@ -54,8 +54,8 @@ The current best numeric policy is `Teacher` with mean score `0.6627`.
 
 ## Key Artifacts
 
-- `Exquisite docs`: `docs/exquisite-training-layer.md`
-- `Visual analysis docs`: `docs/exquisite-visual-analysis.md`
+- `Exquisite docs`: `docs/DOCUMENTATION.md` (section *Exquisite Training Layer*)
+- `Visual analysis docs`: `docs/DOCUMENTATION.md` (section *Exquisite Visual Analysis*)
 - `Training package`: `training/exquisite/`
 - `Policy matrix`: `artifacts/exquisite-training/reports/final_policy_matrix.csv`
 - `Visualization manifest`: `artifacts/exquisite-training/reports/visualization_manifest.json`

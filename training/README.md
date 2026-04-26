@@ -1,6 +1,6 @@
 # LedgerShield Training Scripts
 
-The full training writeup now lives in [`../docs/training-report.md`](../docs/training-report.md).
+The full training writeup now lives in [`../docs/DOCUMENTATION.md` — Training Evidence Report](../docs/DOCUMENTATION.md#training-evidence-report).
 
 This directory contains the executable pieces referenced by that report:
 
