@@ -1,6 +1,6 @@
-# LedgerShield ControlBench — Final submission documentation
+# LedgerShield ControlBench — Technical Documentation
 
-**Final submission** reference for judges and technical reviewers: benchmark definition, environment and API, architecture, training evidence (OpenEnv TRL SFT and additive Exquisite layer), and submission contract. The repository [`README.md`](../README.md) is the entry point; this file is the consolidated technical and evidence package.
+This document is the main technical reference for LedgerShield ControlBench. It covers benchmark definition, environment and API behavior, architecture, training evidence, and implementation details. The repository [`README.md`](../README.md) is the project entry point; this file goes deeper into benchmark design, task contracts, APIs, development workflow, deployment, and training artifacts.
 
 ---
 
@@ -16,35 +16,35 @@
 - [Development](#development)
 - [Deployment](#deployment)
 - [Demo Script](#demo-script)
-- [Reviewer overview (final submission)](#reviewer-overview-final-submission)
-- [Public narrative (final submission)](#public-narrative-final-submission)
+- [Project overview](#reviewer-overview-final-submission)
+- [Public narrative](#public-narrative-final-submission)
 - [Training Evidence Report](#training-evidence-report)
 - [Exquisite Training Layer](#exquisite-training-layer)
-- [OpenEnv alignment (final submission)](#openenv-alignment-final-submission)
+- [OpenEnv alignment](#openenv-alignment-final-submission)
 - [Exquisite Visual Analysis](#exquisite-visual-analysis)
-- [Submission contract (final submission)](#submission-contract-final-submission)
+- [Benchmark contract](#submission-contract-final-submission)
 
 ---
 
 ## Documentation Hub
 
-This file is the **final submission** technical documentation for LedgerShield ControlBench (not a working draft). The root [`README.md`](../README.md) is the project overview, quick-start guide, and entry point; the sections below go deeper into benchmark design, task contracts, APIs, architecture, development workflow, deployment, ControlBench institutional-control evaluation, proof-gated certificates, TrustGraph projection, and deterministic decision falsification.
+This file is the main technical documentation for LedgerShield ControlBench. The root [`README.md`](../README.md) is the project overview, quick-start guide, and entry point; the sections below go deeper into benchmark design, task contracts, APIs, architecture, development workflow, deployment, ControlBench institutional-control evaluation, proof-gated certificates, TrustGraph projection, and deterministic decision falsification.
 
 ---
 
 ### Where to Start
 
-**If you are new here**, read the root [`README.md`](../README.md) first, then follow the reading path below that matches your role.
+If you are new here, read the root [`README.md`](../README.md) first, then follow the reading path below that best matches what you want to do.
 
 ---
 
 ### Reading Paths
 
-#### Evaluating the benchmark (reviewer, researcher)
+#### Understanding the benchmark
 
 1. [`README.md`](../README.md) — project overview and links to runnable assets
-2. [Reviewer overview (final submission)](#reviewer-overview-final-submission) — scope and where evidence lives in this document
-3. [OpenEnv alignment (final submission)](#openenv-alignment-final-submission) — criteria mapped to repository evidence
+2. [Project overview](#reviewer-overview-final-submission) — scope and where evidence lives in this document
+3. [OpenEnv alignment](#openenv-alignment-final-submission) — benchmark requirements mapped to repository evidence
 4. [Training Evidence Report](#training-evidence-report) — OpenEnv TRL SFT run (A10G), baselines, plots
 5. [Exquisite Training Layer](#exquisite-training-layer) — additive self-play and GRPO/DPO pipeline
 6. [Exquisite Visual Analysis](#exquisite-visual-analysis) — interpretation of the Exquisite plot pack
@@ -78,10 +78,10 @@ This file is the **final submission** technical documentation for LedgerShield C
 | File | Best for | Contents |
 |---|---|---|
 | [`index.md`](#documentation-index) | first-time readers | motivation, benchmark scope, core concepts, quick start, and evaluation framing |
-| [`DOCUMENTATION.md` — Training Evidence Report](./DOCUMENTATION.md#training-evidence-report) | judges and reviewers | real OpenEnv-connected TRL training evidence, plots, reward checkpoints, and grading alignment |
-| [Exquisite Training Layer](#exquisite-training-layer) | judges and reviewers | additive self-play -> GRPO -> DPO pipeline, completed policy matrix, and reproduction commands |
-| [OpenEnv alignment (final submission)](#openenv-alignment-final-submission) | judges and reviewers | direct mapping from OpenEnv rubric requirements to repo evidence |
-| [Exquisite Visual Analysis](#exquisite-visual-analysis) | judges and reviewers | deep interpretation of the additive reward curves, policy ladders, safety frontiers, and ablations |
+| [`DOCUMENTATION.md` — Training Evidence Report](./DOCUMENTATION.md#training-evidence-report) | readers focused on training evidence | real OpenEnv-connected TRL training evidence, plots, reward checkpoints, and grading alignment |
+| [Exquisite Training Layer](#exquisite-training-layer) | readers focused on training | additive self-play -> GRPO -> DPO pipeline, completed policy matrix, and reproduction commands |
+| [OpenEnv alignment](#openenv-alignment-final-submission) | readers focused on benchmark metadata | direct mapping from OpenEnv requirements to repository evidence |
+| [Exquisite Visual Analysis](#exquisite-visual-analysis) | readers focused on results interpretation | deep interpretation of the additive reward curves, policy ladders, safety frontiers, and ablations |
 | [`tasks.md`](#tasks) | agent builders and benchmark users | task families A–E, case catalog, output contracts by task, scoring weights, and penalties |
 | [`api-reference.md`](#api-reference) | integrators and agent builders | REST endpoints (`/reset`, `/step`, `/state`, `/leaderboard`, `/benchmark-report`, `/controlbench-summary`, `/human-baseline-summary`, `/institutional-memory`, `/institutional-reset`), request/response envelopes, action taxonomy, reward model |
 | [`architecture.md`](#architecture) | researchers and maintainers | system layers, hidden-state mechanics, reward design, grading pipeline, case generation, realism modules |
@@ -124,7 +124,7 @@ This file is the **final submission** technical documentation for LedgerShield C
 | [`../server/compliance_engine.py`](../server/compliance_engine.py) | SOX-style control evaluation |
 | [`../server/curriculum.py`](../server/curriculum.py) | dynamic difficulty adaptation |
 | [`../server/dual_agent_mode.py`](../server/dual_agent_mode.py) | watchdog-mode novelty module |
-| [`../inference.py`](../inference.py) | submission-safe agent with `ModelCapabilityProfile` tiers |
+| [`../inference.py`](../inference.py) | inference agent with `ModelCapabilityProfile` tiers |
 | [`../task_c_guardrails.py`](../task_c_guardrails.py) | Task C composite signal detection and PAY evidence |
 | [`../task_d_guardrails.py`](../task_d_guardrails.py) | Task D composite signal detection and PAY evidence |
 | [`../benchmark_report.py`](../benchmark_report.py) | benchmark report, ControlBench sequence report, sleeper/blind/generated-holdout summaries, certificate-required report, human-baseline summary, two-agent demo, and leaderboard generation |
@@ -155,7 +155,7 @@ Quick navigation to all documentation, organized by category.
 |-----|---------|
 | [`README.md`](../README.md) | Project overview, quick start, links to evidence |
 | [Benchmark Card](#benchmark-card) | One-page benchmark summary |
-| [Submission contract (final submission)](#submission-contract-final-submission) | Problem, environment, tasks, metrics, and evaluation framing |
+| [Benchmark contract](#submission-contract-final-submission) | Problem, environment, tasks, metrics, and evaluation framing |
 | [Demo Script](#demo-script) | Short walkthrough (e.g. CASE-D-001) |
 
 **LedgerShield ControlBench** adds long-horizon ControlBench sequences, generated holdouts, sleeper-vigilance, blind-control, certificate-required, and human-baseline tracks; institutional loss surface; calibration-gated authority; control-boundary enforcement; and reporting via `/controlbench-summary` and `/human-baseline-summary`.
@@ -182,7 +182,7 @@ Quick navigation to all documentation, organized by category.
 | [Training Evidence Report](#training-evidence-report) | OpenEnv-connected TRL SFT on LedgerShield (A10G run, baselines, plots) |
 | [Exquisite Training Layer](#exquisite-training-layer) | Additive self-play → GRPO / DPO pipeline and policy matrix |
 | [Exquisite Visual Analysis](#exquisite-visual-analysis) | Interpretation of the Exquisite plot pack |
-| [OpenEnv alignment (final submission)](#openenv-alignment-final-submission) | Rubric and minimum requirements mapped to repository evidence |
+| [OpenEnv alignment](#openenv-alignment-final-submission) | OpenEnv requirements and metadata mapped to repository evidence |
 
 ---
 

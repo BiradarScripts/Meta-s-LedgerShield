@@ -1,6 +1,6 @@
 # LedgerShield ControlBench: What It Really Takes to Trust an AI Agent With Real Money
 
-**Subtitle:** Most benchmarks ask, “Can the model spot the fraud?” We ask a harder and more useful question: **Can an AI agent run a defensible enterprise payment-control process under uncertainty, pressure, and audit requirements?**
+**Subtitle:** Most benchmarks ask, “Can the model spot the fraud?” LedgerShield asks a harder and more useful question: **Can an AI agent run a defensible enterprise payment-control process under uncertainty, pressure, and audit requirements?**
 
 <img width="1190" height="826" alt="image" src="https://github.com/user-attachments/assets/3959e362-e7c7-46d5-a89d-8abd4fbee22d" />
 
@@ -19,17 +19,6 @@ If you only remember one thing from this post, let it be this:
 
 ---
 
-## Judge takeaway in 30 seconds
-
-If you only scan one section before opening the repo, this is the summary:
-
-- **Environment innovation:** LedgerShield is a long-horizon enterprise AP control environment with partial observability, delayed artifacts, institutional memory, authority gating, proof-carrying decisions, and adversarial falsification.
-- **Storytelling:** The benchmark starts from a real enterprise risk problem — not “can the model classify fraud?” but “can the agent operate a defensible payment-control workflow safely over time?”
-- **Observable improvement:** The training stack shows clear gains from Base → SFT → GRPO, including reward curves, policy ladders, stronger certificate quality, and better control completion.
-- **Reward and pipeline coherence:** The reward is tied to investigation quality, safe control completion, and auditable outcomes, while the training pipeline moves from live rollouts to self-play to environment-in-the-loop GRPO.
-
----
-
 ## Important links
 
 - **Frontend App:** [https://frontend-fawn-xi-18.vercel.app/agent](https://frontend-fawn-xi-18.vercel.app/agent)
@@ -37,34 +26,35 @@ If you only scan one section before opening the repo, this is the summary:
 - **Hugging Face Space:** [https://huggingface.co/spaces/shreayas/ledgershield-controlbench](https://huggingface.co/spaces/shreayas/ledgershield-controlbench)
 - **Hosted Docs:** [https://aryaman.mintlify.app/benchmark/benchmark-card](https://aryaman.mintlify.app/benchmark/benchmark-card)
 - **Pitch Deck (PPT):** [https://canva.link/lsxxrdfbk2pxl8h](https://canva.link/lsxxrdfbk2pxl8h)
-- **OpenEnv alignment:** [`DOCUMENTATION.md` — OpenEnv alignment (final submission)](./DOCUMENTATION.md#openenv-alignment-final-submission)
+- **Documentation hub:** [`DOCUMENTATION.md`](./DOCUMENTATION.md)
+- **OpenEnv alignment:** [`DOCUMENTATION.md` — OpenEnv alignment](./DOCUMENTATION.md#openenv-alignment-final-submission)
 
 ---
 
-## If you are reviewing this quickly
+## Start here
 
-If you're a judge, reviewer, or just trying to orient yourself fast, here’s the best reading path:
+If you are opening the project for the first time, this is the simplest reading path:
 
 1. skim this mini-blog for the story,
-2. open [`DOCUMENTATION.md`](./DOCUMENTATION.md) for the technical depth,
+2. open [`DOCUMENTATION.md`](./DOCUMENTATION.md) for the technical details,
 3. inspect the original SFT evidence in [`DOCUMENTATION.md` — Training Evidence Report](./DOCUMENTATION.md#training-evidence-report),
 4. then check the additive training stack in [`DOCUMENTATION.md` — Exquisite Training Layer](./DOCUMENTATION.md#exquisite-training-layer),
 5. and finally open the dashboard at [`artifacts/exquisite-training/dashboard/index.html`](../artifacts/exquisite-training/dashboard/index.html).
 
-If you want the full submission asset map, here it is:
+For a quick project map:
 
-| Asset | Link | Why you might open it |
+| Resource | Link | Purpose |
 |---|---|---|
-| Runnable environment | [Hugging Face Space](https://huggingface.co/spaces/shreayas/ledgershield-controlbench) | Run the actual benchmark |
-| OpenEnv manifest | [`openenv.yaml`](../openenv.yaml) | See the benchmark contract |
-| Main docs | [`docs/DOCUMENTATION.md`](./DOCUMENTATION.md) | Deep environment, API, and architecture reference |
+| Runnable environment | [Hugging Face Space](https://huggingface.co/spaces/shreayas/ledgershield-controlbench) | Run the benchmark |
+| OpenEnv manifest | [`openenv.yaml`](../openenv.yaml) | Review the benchmark contract |
+| Main docs | [`docs/DOCUMENTATION.md`](./DOCUMENTATION.md) | Read the environment, API, and architecture reference |
 | Original SFT proof | [`DOCUMENTATION.md` — Training Evidence Report](./DOCUMENTATION.md#training-evidence-report) | Review the initial live OpenEnv-connected training evidence |
-| Original SFT Colab | [`training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb`](../training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb) | Rerun path for judges |
-| Exquisite training layer | [`DOCUMENTATION.md` — Exquisite Training Layer](./DOCUMENTATION.md#exquisite-training-layer) | End-to-end self-play -> GRPO -> DPO writeup |
+| Original SFT Colab | [`training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb`](../training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb) | Revisit the baseline training path |
+| Exquisite training layer | [`DOCUMENTATION.md` — Exquisite Training Layer](./DOCUMENTATION.md#exquisite-training-layer) | Read the self-play -> GRPO -> DPO writeup |
 | Exquisite visual analysis | [`DOCUMENTATION.md` — Exquisite Visual Analysis](./DOCUMENTATION.md#exquisite-visual-analysis) | Interpret the result stack visually |
-| Exquisite dashboard | [`artifacts/exquisite-training/dashboard/index.html`](../artifacts/exquisite-training/dashboard/index.html) | Fast visual scan of final metrics and plots |
-| Pitch deck | [Pitch Deck (Canva)](https://canva.link/lsxxrdfbk2pxl8h) | Fast story version |
-| OpenEnv alignment | [`DOCUMENTATION.md` — OpenEnv alignment](./DOCUMENTATION.md#openenv-alignment-final-submission) | Submission-to-rubric mapping |
+| Exquisite dashboard | [`artifacts/exquisite-training/dashboard/index.html`](../artifacts/exquisite-training/dashboard/index.html) | Browse final metrics and plots |
+| Pitch deck | [Pitch Deck (Canva)](https://canva.link/lsxxrdfbk2pxl8h) | View the presentation overview |
+| OpenEnv alignment | [`DOCUMENTATION.md` — OpenEnv alignment](./DOCUMENTATION.md#openenv-alignment-final-submission) | See how the project maps to the OpenEnv contract |
 
 ---
 
@@ -965,17 +955,6 @@ That stronger trajectory is recorded in the GRPO evaluation artifacts as a `vali
 
 The practical lesson is simple: the better-trained policy does not just “predict fraud better.” It completes the missing controls, grounds the decision in stronger evidence, and produces an auditable resolution that the environment can reward.
 
-### Why this improves the judging score
-
-This same-case example helps in two ways that matter directly to judges:
-
-- **Concrete behavioral evidence:** it shows a real before/after change in agent behavior on the same case, not just a higher aggregate score or smoother curve.
-- **Reward clarity:** it makes it easier to see how the reward favors better investigation, control completion, and auditable decisions over shallow or unsupported outputs.
-
-That makes the improvement story easier to trust, easier to follow, and easier to connect back to the benchmark’s reward design.
-
----
-
 ## For builders: where the code lives
 
 If you want to go from story to code, these are the files worth opening first:
@@ -999,7 +978,7 @@ If you want to go from story to code, these are the files worth opening first:
 | `benchmark_report.py` | Benchmark reports and summaries |
 | `training/exquisite/` | Self-play, GRPO, DPO training layer |
 
-The practical dev flow is:
+The practical development flow is:
 
 ```bash
 pip install -e . && pip install -r requirements.txt
@@ -1047,9 +1026,9 @@ Useful runtime flags include:
 
 ---
 
-## What we hope judges remember
+## What we hope people remember
 
-If a judge closes the tab and remembers only a few things, we’d want them to be these:
+If someone closes the tab and remembers only a few things, we’d want them to be these:
 
 ### 1. This is real workflow pressure
 The agent works through AP cases with policies, documents, vendor records, bank changes, delay, budget, and pressure.
