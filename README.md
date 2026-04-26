@@ -34,6 +34,8 @@ tags:
 
 **Pitch Deck (PPT):** https://canva.link/lsxxrdfbk2pxl8h
 
+**Web App Demo Video** https://www.youtube.com/watch?v=S_-hQv0hdws&feature=youtu.be
+
 **For more details, see:**
 
 [`docs/DOCUMENTATION.md`](./docs/DOCUMENTATION.md)
