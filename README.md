@@ -31,6 +31,8 @@ tags:
 
 **Web App Demo Video:** https://www.youtube.com/watch?v=S_-hQv0hdws&feature=youtu.be
 
+**Pitch Video:** https://youtu.be/-Yv1LeFBvrQ
+
 **Primary documentation:** [`docs/DOCUMENTATION.md`](./docs/DOCUMENTATION.md)
 
 **HF mini-blog:** [`docs/HF_MINIBLOG_FINAL.md`](./docs/HF_MINIBLOG_FINAL.md)
