@@ -21,34 +21,65 @@ If you only remember one thing from this post, let it be this:
 
 ## Important Links
 
-**Frontend App:** https://frontend-fawn-xi-18.vercel.app/
+### Core Platform
+- **[Frontend App](https://frontend-fawn-xi-18.vercel.app/)**
+- **[Backend API](https://ledgershield-deploy.onrender.com)**
+- **[Environment / Hugging Face Space](https://huggingface.co/spaces/shreayas/ledgershield-controlbench)**
+- **[Live Space App](https://shreayas-ledgershield-controlbench.hf.space)**
 
-**Backend API:** https://ledgershield-deploy.onrender.com
+### Product & Presentation
+- **[Hosted Docs](https://aryaman.mintlify.app/benchmark/benchmark-card)**
+- **[Pitch Deck (PPT)](https://canva.link/lsxxrdfbk2pxl8h)**
+- **[Web App Demo Video](https://www.youtube.com/watch?v=S_-hQv0hdws&feature=youtu.be)**
+- **[Pitch Video](https://youtu.be/-Yv1LeFBvrQ)**
 
-**Environment / Hugging Face Space:** https://huggingface.co/spaces/shreayas/ledgershield-controlbench
+### Documentation
+- **Primary Documentation:** [`docs/DOCUMENTATION.md`](./docs/DOCUMENTATION.md)
+- **HF Mini-Blog:** [`docs/HF_MINIBLOG_FINAL.md`](./docs/HF_MINIBLOG_FINAL.md)
+- **Benchmark Specification:** [`openenv.yaml`](./openenv.yaml)
 
-**Live Space App:** https://shreayas-ledgershield-controlbench.hf.space
+### Training Notebooks
+- **[Original SFT Training Notebook](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/blob/main/training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb)**  
+  *Initial supervised fine-tuning pipeline built on LedgerShield’s OpenEnv environment.*
 
-**Hosted Docs:** https://aryaman.mintlify.app/benchmark/benchmark-card
+- **[Exquisite Training Notebook](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/blob/main/training/exquisite/LedgerShield_Exquisite_Training_Colab.ipynb)**  
+  *Advanced self-improving Exquisite training system with GRPO, DPO, falsifier rewards, and scaling analysis.*
 
-**Pitch Deck (PPT):** https://canva.link/lsxxrdfbk2pxl8h
+---
 
-**Web App Demo Video:** https://www.youtube.com/watch?v=S_-hQv0hdws&feature=youtu.be
+## Original SFT Training Artifacts
 
-**Pitch Video:** https://youtu.be/-Yv1LeFBvrQ
+### Logs
+- **[Training Logs Root](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/tree/main/artifacts/trl-openenv-hf-a10g-qwen-rich)**
+- **[Loss History](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/resolve/main/artifacts/trl-openenv-hf-a10g-qwen-rich/loss_history.csv)**
+- **[Reward Evaluation History](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/resolve/main/artifacts/trl-openenv-hf-a10g-qwen-rich/reward_eval_history.csv)**
+- **[HF Job Logs](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/resolve/main/artifacts/trl-openenv-hf-a10g-qwen-rich/hf_job_api.log)**
 
-**Primary Documentation:** [`docs/DOCUMENTATION.md`](./DOCUMENTATION.md)
+### Visualizations
+- **[All SFT Plots](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/tree/main/artifacts/trl-openenv-hf-a10g-qwen-rich/plots)**
+- **[Reward Improvement Ladder](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/resolve/main/artifacts/trl-openenv-hf-a10g-qwen-rich/plots/reward_improvement_ladder.png)**
 
-**HF Mini-Blog:** [`docs/HF_MINIBLOG_FINAL.md`](./HF_MINIBLOG_FINAL.md)
+---
 
-**Benchmark Specification:** [`openenv.yaml`](../openenv.yaml)
+## Exquisite Training Artifacts
 
-**Original SFT Training Notebook:** https://huggingface.co/spaces/shreayas/ledgershield-controlbench/blob/main/training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb  
-Shows the initial supervised fine-tuning pipeline built on the OpenEnv environment.
+### Reports
+- **[Artifact Inventory / Master Index](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/resolve/main/artifacts/exquisite-training/reports/artifact_inventory.md)**
+- **[Reports Directory](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/tree/main/artifacts/exquisite-training/reports)**
+- **[Master Exquisite Training Report](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/resolve/main/artifacts/exquisite-training/reports/exquisite_training_report.md)**
+- **[Final Policy Matrix](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/resolve/main/artifacts/exquisite-training/reports/final_policy_matrix.csv)**
 
-**Exquisite Training Notebook:** https://huggingface.co/spaces/shreayas/ledgershield-controlbench/blob/main/training/exquisite/LedgerShield_Exquisite_Training_Colab.ipynb  
-Shows the advanced self-improving Exquisite training system and how LedgerShield maps directly to the OpenEnv contract.
+### Run-Specific Logs
+- **[Self-Play Summary (0.5B)](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/resolve/main/artifacts/exquisite-training/selfplay-0.5b/selfplay_summary.json)**
+- **[GRPO Reward History (0.5B)](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/resolve/main/artifacts/exquisite-training/grpo-0.5b/grpo_reward_history.csv)**
+- **[GRPO Step Metrics (0.5B)](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/resolve/main/artifacts/exquisite-training/grpo-0.5b/grpo_step_metrics.csv)**
+- **[SFT 1.5B Loss History](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/resolve/main/artifacts/exquisite-training/sft-1.5b/loss_history.csv)**
+- **[DPO Falsifier Distillation Metrics](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/resolve/main/artifacts/exquisite-training/dpo-falsifier-distill/dpo_step_metrics.csv)**
 
+### Visualizations
+- **[All Exquisite Plots](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/tree/main/artifacts/exquisite-training/plots)**
+- **[Final Policy Ladder](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/resolve/main/artifacts/exquisite-training/plots/01_final_policy_ladder.png)**
+- **[GRPO Reward Curve](https://huggingface.co/spaces/shreayas/ledgershield-controlbench/resolve/main/artifacts/exquisite-training/plots/08_grpo_reward_curve_smoothed.png)**
 ---
 
 ## Why we built this
