@@ -24,7 +24,7 @@ tags:
 [![CI](https://img.shields.io/badge/ci-github_actions-success.svg)](./.github/workflows/ci.yml)
 [![OpenEnv](https://img.shields.io/badge/OpenEnv-compatible-green.svg)](./openenv.yaml)
 
-**Frontend App:** https://frontend-fawn-xi-18.vercel.app/agent 
+**Frontend App:** https://frontend-fawn-xi-18.vercel.app/ 
 
 **Backend API:** https://ledgershield-deploy.onrender.com 
 
