@@ -51,33 +51,6 @@ Shows the advanced self-improving Exquisite training system and how LedgerShield
 
 ---
 
-## Start here
-
-If you are opening the project for the first time, this is the simplest reading path:
-
-1. skim this mini-blog for the story,
-2. open [`DOCUMENTATION.md`](./DOCUMENTATION.md) for the technical details,
-3. inspect the original SFT evidence in [`DOCUMENTATION.md` — Training Evidence Report](./DOCUMENTATION.md#training-evidence-report),
-4. then check the additive training stack in [`DOCUMENTATION.md` — Exquisite Training Layer](./DOCUMENTATION.md#exquisite-training-layer),
-5. and finally open the dashboard at [`artifacts/exquisite-training/dashboard/index.html`](../artifacts/exquisite-training/dashboard/index.html).
-
-For a quick project map:
-
-| Resource | Link | Purpose |
-|---|---|---|
-| Runnable environment | [Hugging Face Space](https://huggingface.co/spaces/shreayas/ledgershield-controlbench) | Run the benchmark |
-| OpenEnv manifest | [`openenv.yaml`](../openenv.yaml) | Review the benchmark contract |
-| Main docs | [`docs/DOCUMENTATION.md`](./DOCUMENTATION.md) | Read the environment, API, and architecture reference |
-| Original SFT proof | [`DOCUMENTATION.md` — Training Evidence Report](./DOCUMENTATION.md#training-evidence-report) | Review the initial live OpenEnv-connected training evidence |
-| Original SFT Colab | [`training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb`](../training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb) | Revisit the baseline training path |
-| Exquisite training layer | [`DOCUMENTATION.md` — Exquisite Training Layer](./DOCUMENTATION.md#exquisite-training-layer) | Read the self-play -> GRPO -> DPO writeup |
-| Exquisite visual analysis | [`DOCUMENTATION.md` — Exquisite Visual Analysis](./DOCUMENTATION.md#exquisite-visual-analysis) | Interpret the result stack visually |
-| Exquisite dashboard | [`artifacts/exquisite-training/dashboard/index.html`](../artifacts/exquisite-training/dashboard/index.html) | Browse final metrics and plots |
-| Pitch deck | [Pitch Deck (Canva)](https://canva.link/lsxxrdfbk2pxl8h) | View the presentation overview |
-| OpenEnv alignment | [`DOCUMENTATION.md` — OpenEnv alignment](./DOCUMENTATION.md#openenv-alignment-final-submission) | See how the project maps to the OpenEnv contract |
-
----
-
 ## Why we built this
 
 The motivating problem is simple and painful.
@@ -167,6 +140,8 @@ Traditional fraud benchmarks flatten the problem into a final answer.
 
 LedgerShield does not.
 
+Existing fraud datasets are important, but they usually answer a narrower question. Transaction-level benchmarks such as IEEE-CIS Fraud Detection and the Kaggle credit-card fraud dataset test static binary classification on pre-labeled rows. FEVER-style verification benchmarks test claim-evidence alignment, but in text rather than payment operations. Agent-workflow benchmarks test tool use and procedural compliance more directly, but they are rarely tied to AP controls, delayed evidence, institutional memory, and authority gating. LedgerShield is meant to sit in that gap: it keeps the fraud-detection problem, but evaluates the full investigation workflow around it.
+
 Here’s the difference in plain English:
 
 | Typical fraud benchmark | LedgerShield ControlBench |
@@ -243,6 +218,8 @@ It starts with a case. That case may include an invoice, an email thread, a vend
 The agent then has to do the work.
 
 <img width="1280" height="492" alt="image" src="https://github.com/user-attachments/assets/5f4e2bc1-7ce4-4a03-a4c9-37be0817c9ef" />
+
+*Episode flow diagram. The important point is the loop: observation leads to investigation tools, tools reveal evidence or delayed artifacts, controls change the state, and the final decision is graded together with the proof trail.*
 
 A typical workflow looks like this:
 
@@ -323,6 +300,8 @@ We organized the benchmark into five task families that move from easy to hard.
 
 <img width="1280" height="1188" alt="image" src="https://github.com/user-attachments/assets/5d7b6db3-8e72-42ae-a3d4-f65526f4a5a4" />
 
+*Task-family map. The tasks move from extraction and matching to adversarial inbox triage and campaign-level fraud, so later tasks require cross-document and cross-case reasoning rather than only field extraction.*
+
 | Task | Plain-English meaning | What it tests |
 |---|---|---|
 | **Task A — Proof-Carrying Extraction** | Read an invoice and extract important fields. | Can the agent quote evidence for what it extracted? |
@@ -341,6 +320,19 @@ The curated base benchmark contains **21 cases**:
 | D | `CASE-D-001` to `CASE-D-006` |
 | E | `CASE-E-001` to `CASE-E-002` |
 
+The larger **320+ coverage** number is not a claim that we hand-authored 320 public cases. It is the aggregate evaluation surface built around those 21 curated seeds:
+
+| Coverage source | Count / scale | What it adds |
+|---|---:|---|
+| Curated public cases | 21 | Human-designed Task A-E benchmark cases |
+| Challenge variants | 24 by default | Attack-library variants over hard cases |
+| Generated holdout | 36 in the default report protocol | 3 holdout seeds x 12 hard cases x 1 variant per case |
+| ControlBench standard sequence | 100 | Long-horizon AP-quarter sequence with memory and sleeper-vendor state |
+| Independent FraudGen ecosystem | 100 | Separately generated procedural fraud ecosystem |
+| Certificate, contrastive, and portfolio views | 40+ derived checks | Certificate-required clones, benign twins, and sequence-level track evaluations |
+
+That decomposition is important because it keeps the claim honest: the public front door is compact and inspectable, while the evaluation surface is much larger because the environment can generate hidden variants and long-horizon sequences.
+
 One thing we care about a lot here is balance.
 
 Some cases are risky. Some are benign. Some require escalation. Some require restraint.
@@ -356,6 +348,8 @@ We also didn’t want the public benchmark to collapse into “memorize the visi
 So LedgerShield evaluates across nine tracks:
 
 <img width="1280" height="893" alt="image" src="https://github.com/user-attachments/assets/1613a754-0d1d-4886-bcf8-12c812cf969e" />
+
+*Evaluation-track map. Each track stresses a different failure mode: public-case correctness, portfolio persistence, generated holdout generalization, blind operation, certificate validity, and long-horizon ControlBench behavior.*
 
 | Track | What it measures |
 |---|---|
@@ -384,6 +378,8 @@ We really didn’t want that.
 In finance control, the wrong kind of mistake matters a lot more than the mean score alone. So LedgerShield reports safety-critical metrics explicitly.
 
 <img width="1280" height="709" alt="image" src="https://github.com/user-attachments/assets/5d85aed3-d476-49d7-8674-0558413edb02" />
+
+*Metrics dashboard concept. The environment reports both score and safety diagnostics, so a high average cannot hide unsafe release, failed controls, invalid certificates, or institutional loss.*
 
 Important metrics include:
 
@@ -414,6 +410,8 @@ Real AP teams do not process one invoice and disappear. They operate over queues
 ControlBench models that reality.
 
 <img width="1280" height="596" alt="image" src="https://github.com/user-attachments/assets/bcb58973-9d69-4964-9177-e35f208ccb6d" />
+
+*ControlBench state diagram. The long-horizon layer carries queue pressure, capacity, vendor trust, authority state, loss surface, and sleeper-vendor memory across cases instead of resetting cleanly after every invoice.*
 
 The environment keeps institutional memory across episodes, including:
 
@@ -464,6 +462,8 @@ One of the ideas we cared about most was this:
 That’s where **Decision Certificate Graphs** come in.
 
 <img width="1280" height="435" alt="image" src="https://github.com/user-attachments/assets/a02edfaf-85fd-4a81-8fbe-44b66c80a0e4" />
+
+*Decision Certificate Graph structure. A valid certificate connects evidence, hypotheses, controls, interventions, counterfactuals, and the final decision; unsupported or contradictory links can be flagged by the verifier or falsifier.*
 
 A decision certificate is a structured proof object that links:
 
@@ -544,6 +544,8 @@ At runtime, the system is doing quite a lot.
 
 <img width="1280" height="589" alt="image" src="https://github.com/user-attachments/assets/be76c6e5-a7e6-4e15-b85f-0cd3ecae46aa" />
 
+*Runtime architecture diagram. FastAPI exposes the OpenEnv loop, while the environment coordinates world state, tools, grading, certificates, falsification, TrustGraph projection, and benchmark reporting.*
+
 The main layers look like this:
 
 | Layer | Role |
@@ -569,6 +571,8 @@ If you like thinking in systems, this is really the heart of the repo: environme
 The environment is exposed as an OpenEnv-compatible HTTP API.
 
 <img width="1280" height="573" alt="image" src="https://github.com/user-attachments/assets/91005dfe-4086-42c2-aa29-e36ea690e113" />
+
+*API surface diagram. The core interaction is `/reset` and `/step`; report, certification, memory, and ControlBench endpoints make the same environment inspectable for judges and dashboards.*
 
 Important endpoints include:
 
@@ -606,7 +610,7 @@ The standard response envelope is simple and familiar:
 
 ## The mathematical spine: ASHTG
 
-We also wanted the benchmark to have a strong theoretical backbone, not just a cool story.
+We also wanted the benchmark to have a theoretical backbone, not just a cool story.
 
 That is where **ASHTG** comes in: the **Adversarial Sequential Hypothesis Testing Game** framing.
 
@@ -617,19 +621,23 @@ In simple terms, the idea is this:
 - it has to decide when it knows enough to stop,
 - and the reward should reflect not just the final label, but how well the investigation was conducted.
 
-The five pillars are:
+The honest version is that ASHTG is a design lens plus a set of executable approximations. It is not a full research-grade implementation of every mathematical tradition below. The current code implements a simplified SPRT-style belief update, a template-based causal graph and rule-based counterfactual checks, a static-utility VoI ranker, proper-scoring-inspired calibration pressure, and an approximate dual-agent watchdog.
+
+The five inspirations are:
 
 | Pillar | Theory | What it contributes |
 |---|---|---|
-| Sequential Investigation | Wald’s SPRT | When to stop investigating |
-| Causal Grading | Pearl’s SCM | Whether the model identified the real mechanism |
-| Value of Information | Howard’s VoI | Which tools are worth their cost |
-| Strategy-proof Scoring | Gneiting-Raftery | Why truthful uncertainty should win |
-| Watchdog Audit | Stackelberg security-game ideas | Why oversight matters for deployability |
+| Sequential Investigation | Wald’s SPRT | `server/sprt_engine.py` maintains posterior odds with hand-coded likelihood tables and stopping thresholds |
+| Causal Grading | Pearl’s SCM | `server/causal_model.py` stores causal templates, d-separation-style structure, and rule-based counterfactual checks |
+| Value of Information | Howard’s VoI | `server/voi_engine.py` ranks tools by expected utility improvement minus cost |
+| Strategy-aware Scoring | Gneiting-Raftery-style proper scoring ideas | Calibration and probability quality are rewarded rather than only final labels |
+| Watchdog Audit | Stackelberg security-game ideas | `server/dual_agent_mode.py` approximates analyst/watchdog separation with a brute-force audit-policy search |
 
 <img width="1280" height="838" alt="image" src="https://github.com/user-attachments/assets/ad5b4cc5-2330-4ad9-a37f-b0b56bb34671" />
 
-What we like about this framing is that it makes the benchmark behave more like an investigation game and less like a static rubric.
+*ASHTG design map. This is a map of implementation inspirations, not a claim that the repo contains a complete formal solver for every theory shown; the executable pieces are the SPRT, VoI, causal-template, scoring, reward-machine, and watchdog modules.*
+
+What we like about this framing is that it makes the benchmark behave more like an investigation game and less like a static rubric, while staying clear about what is implemented today.
 
 The reward is not binary. It combines terminal score, shaping, milestones, information gain, and certificate quality:
 
@@ -640,6 +648,8 @@ R(terminal) = rubric_score + SPRT_stopping_bonus + VoI_gain_bonus
 ```
 
 The practical effect is that the environment rewards real progress, not just lucky endings.
+
+VoI is concrete in the runtime rather than decorative math. At each step, the server can compute a tool ranking as `expected post-tool decision utility - current decision utility - tool cost`; that ranking appears in the public state as `tool_rankings`. In the training reward, the VoI term is best understood as a small bonus for choosing investigations that improve expected decision quality relative to their cost, not as a learned information-theory module.
 
 ---
 
@@ -749,22 +759,29 @@ That is the foundation.
 
 The first training pathway is the original SFT loop.
 
-A stronger **Teacher** policy interacts with the environment. Those trajectories are recorded as JSONL training data, and a smaller model then learns by imitating those demonstrations.
+A deterministic **Teacher** control policy interacts with the environment. Those trajectories are recorded as JSONL training data, and a smaller model then learns by imitating those demonstrations.
 
 This stage is backed by the original SFT artifact stack.
 
 ![Original SFT reward improvement ladder](../artifacts/trl-openenv-hf-a10g-qwen-rich/plots/reward_improvement_ladder.png)
 
-*This plot shows the original supervised fine-tuning win clearly: the trained 0.5B policy separates from the base model and simple baselines on held-out LedgerShield cases.*
+*Reward improvement ladder. X-axis: policy family. Y-axis: mean LedgerShield composite score on the same 9-case evaluation slice, where 0 is poor workflow performance and 1 is near-complete control satisfaction. The SFT Qwen 0.5B policy scores 0.4394 mean versus 0.1283 for the base Qwen 0.5B model, a +0.3111 absolute lift.*
+
+![Original SFT training loss](../artifacts/trl-openenv-hf-a10g-qwen-rich/plots/training_loss_smoothed.png)
+
+*SFT loss curve. X-axis: TRL optimizer step. Y-axis: language-model training loss. The run finishes at 0.0885 loss on the A10G TRL SFT job, which is useful sanity evidence that the supervised stage actually trained rather than only producing an after-the-fact evaluation table.*
 
 The key reported numbers are:
 
 - **45 live rollouts** collected through the OpenEnv loop,
+- **36 train cases** and **9 eval cases** in the SFT split,
 - **Base Qwen 0.5B** mean score: **0.1283**
 - **SFT Qwen 0.5B** mean score: **0.4394**
 - score lift: **+0.3111**
 
-That improvement is real, and it matters.
+That improvement is real, and it matters, but the scale is intentionally modest. Forty-five rollouts is not a massive statistical study; each rollout is a multi-step AP-control workflow with tool use, controls, certificates, and terminal grading. So the right claim is not “large-scale generalization is solved.” The claim is narrower: the live environment produces a learnable signal, and a small 0.5B model measurably changes behavior after seeing those traces.
+
+The training code uses **Hugging Face TRL** directly: `SFTTrainer` for the original SFT path, `GRPOTrainer` for the environment-reward run, and `DPOTrainer` for the falsifier-preference distillation path. The committed training requirements pin `trl>=0.11,<1`; this run did **not** use Unsloth, although the same data format could be adapted to an Unsloth SFT path later.
 
 But it is still imitation.
 
@@ -808,7 +825,7 @@ This stage produces artifacts like:
 
 ![Self-play candidate reward distribution](../artifacts/exquisite-training/plots/17_selfplay_candidate_reward_distribution.png)
 
-*This self-play distribution is useful because it shows that candidate quality is meaningfully spread out, which is exactly what makes preference building and relative-reward training informative.*
+*Self-play candidate reward distribution. X-axis: environment reward assigned to a sampled candidate plan. Y-axis: number of candidates in that reward bucket. The spread matters because relative-reward training only has useful pressure when the same model produces both weak and strong plans.*
 
 Conceptually, this stage does something important: it expands the training distribution.
 
@@ -839,7 +856,11 @@ That is the move from **imitation** to **environment-driven improvement**.
 
 ![Exquisite GRPO reward curve](../artifacts/exquisite-training/plots/08_grpo_reward_curve_smoothed.png)
 
-*The smoothed GRPO reward curve makes the learning signal visible over time, showing that the policy is improving inside the environment rather than just being evaluated after the fact.*
+*GRPO reward curve. X-axis: reward event during GRPO training. Y-axis: LedgerShield environment reward, smoothed with a 10-event moving average. This plot shows the reward signal the policy sees during environment-in-the-loop training, not a manually scored after-the-fact chart.*
+
+![Exquisite GRPO loss curve](../artifacts/exquisite-training/plots/49_grpo_loss_curve.svg)
+
+*GRPO loss curve. X-axis: GRPO optimizer step. Y-axis: TRL GRPO loss, with the pale line showing raw loss and the dark line showing a 10-step moving average. The loss is noisy, as expected for relative policy optimization on sampled completions, so we interpret it together with reward, KL, parse success, certificate score, and unsafe-release metrics rather than alone.*
 
 And this is where the biggest jump happens:
 
@@ -853,6 +874,8 @@ It also improves:
 - **control satisfied** from **0.2222** to **0.6667**
 
 That is the clearest signal in the training stack: the environment reward is teaching something the imitation layer alone did not fully capture.
+
+The teacher is a reference ceiling for this artifact stack, not an absolute ground-truth oracle. In the training code, `teacher_policy` replays the collected deterministic control-agent trajectories through the same `reset()` / `step()` environment path, so it is a sanity anchor for the demonstrations rather than an independent human benchmark. It still has measurable limits: its mean score is 0.6627, control satisfaction is 0.5556, and certificate score is 0.9472 on the same 9-case evaluation slice. That is why the more meaningful result is not “GRPO beats an expert,” but “GRPO closes nearly all of this particular teacher-replay gap while preserving zero unsafe release on that included eval slice.”
 
 ---
 
@@ -924,17 +947,19 @@ Here is the most useful summary table from the current artifact stack:
 
 ![Final policy ladder](../artifacts/exquisite-training/plots/01_final_policy_ladder.png)
 
-*The final policy ladder is the clearest single result in the artifact stack: GRPO on Qwen 0.5B closes almost the entire gap to the teacher while preserving the benchmark’s safety profile.*
+*Final policy ladder. X-axis: evaluated policy. Y-axis: mean LedgerShield composite score on the shared additive evaluation slice. GRPO on Qwen 0.5B reaches 0.6606 mean score, close to the teacher row at 0.6627, while the same table reports 0.0000 unsafe release for the included learned-policy evaluations.*
 
 The headline conclusion is not “RL always beats SFT.”
 
 It is narrower and more useful:
 
-> In LedgerShield, **environment-in-the-loop GRPO** is what moves a small model from basic imitation toward near-teacher enterprise control behavior.
+> In this LedgerShield run, **environment-in-the-loop GRPO** is what moves a small model from basic imitation toward near-teacher-replay enterprise control behavior.
 
-Another important detail: across the reported evaluation tables, the headline learned policies maintain **0.0000 unsafe release** on the included eval slices.
+Another important detail: across the reported policy matrix and the 9-case additive evaluation slice, the headline learned policies maintain **0.0000 unsafe release**.
 
 That combination — better score, better control completion, and maintained safety — is exactly the kind of behavior we hoped this environment would surface.
+
+There is one baseline caveat worth saying out loud. The deterministic baseline in `openenv.yaml` reports **0.8749** on public cases and **0.7063** on holdout, which is higher than the learned policy numbers above. That is not an apples-to-apples learned-agent comparison: the deterministic policy is a hand-built benchmark policy evaluated through the report harness, while the learned Qwen policies are judged on the additive held-out model-evaluation slice. The important warning is actually the generalization gap: the deterministic policy drops from public to holdout and has only **0.1667 pass^k-consistent** holdout performance, with an advisory ControlBench deployability rating. We include it as a useful rule-based reference, not as evidence that small-model GRPO already dominates a tuned deterministic controller.
 
 ## Before vs. after behavior: what improved in practice
 
@@ -1148,17 +1173,3 @@ And that is why we think it is useful — not only as a benchmark, but as a trai
 <img width="1280" height="870" alt="image" src="https://github.com/user-attachments/assets/1171759b-85bc-44d6-9664-7e44dc239a96" />
 
 <img width="1280" height="1066" alt="image" src="https://github.com/user-attachments/assets/dcf8fc31-8bd1-44b0-ba40-0b04418a6974" />
-
----
-
-## Appendix B — Quick publishing checklist
-
-Before publishing this as the Hugging Face mini-blog:
-
-- [ ] Upload this file as `docs/HF_MINIBLOG_FINAL.md`
-- [ ] Upload the `docs/assets/` images if you switch from GitHub-hosted image URLs to repo-relative assets
-- [ ] Confirm the HF Space link is live
-- [ ] Confirm the GitHub repository link is correct
-- [ ] Confirm `/health`, `/reset`, and `/step` work on the hosted environment
-- [ ] Confirm `/controlbench-summary` and `/certify-summary` return useful demo output
-- [ ] Keep the article reader-facing and story-first
