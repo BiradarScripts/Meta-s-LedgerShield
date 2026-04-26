@@ -101,7 +101,7 @@ The agent triggers `submit_decision` under four conditions:
 |---|---|---|
 | 1 | **SPRT Optimal Stopping** | When log-likelihood ratio crosses Wald's boundary (A = log((1−β)/α) ≈ 2.89), the system flags `optimal_stopping_reached: true` — mathematically sufficient evidence gathered |
 | 2 | **Budget Exhaustion** | When `budget_remaining` < cost of cheapest available tool, agent must submit with current evidence |
-| 3 | **Step Limit** | Hard cap of `max_steps` (typically 20) — forced submission before truncation |
+| 3 | **Step Limit** | Hard cap of `max_steps` — forced submission before truncation |
 | 4 | **Smoking Gun** | Agent finds overwhelming early evidence (e.g., bank mismatch + spoofed domain) and unilaterally submits to save budget |
 
 ---
