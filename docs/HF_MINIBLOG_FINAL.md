@@ -19,12 +19,13 @@ If you only remember one thing from this post, let it be this:
 
 ---
 
-## Important links
+## Important Links
+
 **Frontend App:** https://frontend-fawn-xi-18.vercel.app/
 
 **Backend API:** https://ledgershield-deploy.onrender.com
 
-**Hugging Face Space (repo):** https://huggingface.co/spaces/shreayas/ledgershield-controlbench
+**Environment / Hugging Face Space:** https://huggingface.co/spaces/shreayas/ledgershield-controlbench
 
 **Live Space App:** https://shreayas-ledgershield-controlbench.hf.space
 
@@ -36,11 +37,17 @@ If you only remember one thing from this post, let it be this:
 
 **Pitch Video:** https://youtu.be/-Yv1LeFBvrQ
 
-**Primary documentation:** [`docs/DOCUMENTATION.md`](./docs/DOCUMENTATION.md)
+**Primary Documentation:** [`docs/DOCUMENTATION.md`](./docs/DOCUMENTATION.md)
 
-**HF mini-blog:** [`docs/HF_MINIBLOG_FINAL.md`](./docs/HF_MINIBLOG_FINAL.md)
+**HF Mini-Blog:** [`docs/HF_MINIBLOG_FINAL.md`](./docs/HF_MINIBLOG_FINAL.md)
 
-**Benchmark specification:** [`openenv.yaml`](./openenv.yaml)
+**Benchmark Specification:** [`openenv.yaml`](./openenv.yaml)
+
+**Original SFT Training Notebook:** https://huggingface.co/spaces/shreayas/ledgershield-controlbench/blob/main/training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb  
+Shows the initial supervised fine-tuning pipeline built on the OpenEnv environment.
+
+**Exquisite Training Notebook:** https://huggingface.co/spaces/shreayas/ledgershield-controlbench/blob/main/training/exquisite/LedgerShield_Exquisite_Training_Colab.ipynb  
+Shows the advanced self-improving Exquisite training system and how LedgerShield maps directly to the OpenEnv contract.
 
 ---
 
