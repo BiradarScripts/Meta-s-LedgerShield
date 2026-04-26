@@ -197,6 +197,38 @@ def test_reset_endpoint():
     assert "benchmark_split" not in data["observation"]["case_metadata"]
 
 
+def test_reset_custom_case_clone():
+    response = client.post(
+        "/reset",
+        json={
+            "custom_case": {
+                "template_case_id": "CASE-A-001",
+                "case_id": "CUSTOM-TEST01",
+                "instruction": "User-defined goal: extract fields with extra scrutiny.",
+            },
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["observation"]["case_id"] == "CUSTOM-TEST01"
+    assert "User-defined goal" in data["observation"]["instruction"]
+    assert data["observation"]["task_type"] == "task_a"
+
+
+def test_reset_custom_case_validation():
+    response = client.post(
+        "/reset",
+        json={
+            "custom_case": {
+                "template_case_id": "CASE-A-001",
+                "case_id": "NOT-VALID",
+                "instruction": "x",
+            },
+        },
+    )
+    assert response.status_code == 400
+
+
 def test_state_endpoint():
     client.post("/reset", json={"case_id": "CASE-D-001"})
 

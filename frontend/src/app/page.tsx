@@ -34,7 +34,7 @@ function FeatureCardBackdrop() {
       aria-hidden
     >
       <div
-        className="absolute inset-0 opacity-[0.45]"
+        className="landing-wind-dots absolute inset-0 opacity-[0.45]"
         style={{
           backgroundImage:
             "radial-gradient(circle at center, rgba(255,255,255,0.11) 0.55px, transparent 0.6px)",
@@ -281,7 +281,7 @@ export default function LandingPage() {
       <main className="relative">
         <section className="relative min-h-[calc(100vh-4rem)] px-6 pt-20 lg:pt-24">
           <div className="relative mx-auto grid w-full max-w-[1600px] items-start gap-8 lg:grid-cols-2">
-            <div className="max-w-2xl space-y-7 pt-8">
+            <div className="landing-wind-hero max-w-2xl space-y-7 pt-8">
               <motion.p
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -343,17 +343,19 @@ export default function LandingPage() {
               transition={{ delay: 0.12, duration: 0.45 }}
               className="relative mx-auto w-full max-w-2xl pt-4 lg:pt-0"
             >
-              <LanyardWithControls
-                position={[0, 0, 16]}
-                containerClassName="lg:absolute lg:top-0 lg:right-0 lg:w-full relative w-full h-[76vh] lg:h-[80vh] bg-radial from-transparent to-transparent select-none"
-              />
+              <div className="landing-wind-lanyard h-full w-full">
+                <LanyardWithControls
+                  position={[0, 0, 16]}
+                  containerClassName="lg:absolute lg:top-0 lg:right-0 lg:w-full relative w-full h-[76vh] lg:h-[80vh] bg-radial from-transparent to-transparent select-none"
+                />
+              </div>
             </motion.div>
           </div>
         </section>
 
         <section className="relative border-t border-white/15 px-6 pb-24 pt-16">
           <div className="mx-auto w-full max-w-[1600px]">
-            <div className="mb-10 max-w-3xl">
+            <div className="landing-wind-hero mb-10 max-w-3xl">
               <p className="mb-3 font-mono text-xs uppercase tracking-[0.24em] text-zinc-400">
                 Why LedgerShield is different
               </p>
@@ -368,42 +370,49 @@ export default function LandingPage() {
                 return (
                   <motion.article
                     key={card.title}
-                    initial={{ opacity: 0, y: 18 }}
-                    whileInView={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
                     viewport={{ once: true, margin: "-80px" }}
                     transition={{ delay: index * 0.05, duration: 0.35 }}
                     className={`group relative flex overflow-hidden rounded-2xl border border-white/20 bg-black p-7 text-left transition-colors hover:border-white/40 ${card.className}`}
                   >
                     <FeatureCardBackdrop />
-                    <Icon
-                      className="pointer-events-none absolute right-5 top-14 z-[1] text-white/[0.09] transition-colors group-hover:text-white/[0.14]"
-                      size={72}
-                      weight="thin"
-                      aria-hidden
-                    />
-                    <div className="relative z-[1] flex w-full min-w-0 flex-col">
-                      <p className="font-mono text-xs uppercase tracking-[0.22em] text-zinc-400">
-                        {card.eyebrow}
-                      </p>
-                      <div className="mt-4 min-w-0 pr-16">
-                        <h3 className="max-w-xl text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-                          {card.title}
-                        </h3>
-                        <p className="mt-3 max-w-xl text-base leading-relaxed text-zinc-300">
-                          {card.copy}
+                    <div
+                      className={`relative z-[1] flex min-h-0 w-full min-w-0 flex-1 flex-col ${
+                        index % 2 === 0 ? "landing-wind-card" : "landing-wind-card-alt"
+                      }`}
+                      style={{ animationDelay: `${index * 0.32}s` }}
+                    >
+                      <Icon
+                        className="pointer-events-none absolute right-5 top-14 z-[1] text-white/[0.09] transition-colors group-hover:text-white/[0.14]"
+                        size={72}
+                        weight="thin"
+                        aria-hidden
+                      />
+                      <div className="relative z-[1] flex w-full min-w-0 flex-col">
+                        <p className="font-mono text-xs uppercase tracking-[0.22em] text-zinc-400">
+                          {card.eyebrow}
                         </p>
-                        <ul className="mt-4 flex flex-wrap gap-1.5">
-                          {card.tags.map((tag) => (
-                            <li
-                              key={tag}
-                              className="rounded border border-white/15 bg-zinc-950 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-zinc-400"
-                            >
-                              {tag}
-                            </li>
-                          ))}
-                        </ul>
+                        <div className="mt-4 min-w-0 pr-16">
+                          <h3 className="max-w-xl text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+                            {card.title}
+                          </h3>
+                          <p className="mt-3 max-w-xl text-base leading-relaxed text-zinc-300">
+                            {card.copy}
+                          </p>
+                          <ul className="mt-4 flex flex-wrap gap-1.5">
+                            {card.tags.map((tag) => (
+                              <li
+                                key={tag}
+                                className="rounded border border-white/15 bg-zinc-950 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-zinc-400"
+                              >
+                                {tag}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        <FeatureCardFigure variant={card.figure} />
                       </div>
-                      <FeatureCardFigure variant={card.figure} />
                     </div>
                   </motion.article>
                 );

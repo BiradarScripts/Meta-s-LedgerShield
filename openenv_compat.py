@@ -78,9 +78,17 @@ except (ImportError, ModuleNotFoundError):  # pragma: no cover - local fallback
         def sync(self):
             return self
 
-        def reset(self, seed: int | None = None, case_id: str | None = None, track: str | None = None):
+        def reset(
+            self,
+            seed: int | None = None,
+            case_id: str | None = None,
+            track: str | None = None,
+            custom_case: dict[str, Any] | None = None,
+        ):
             client = self._ensure_client()
-            payload = {"seed": seed, "case_id": case_id, "track": track}
+            payload: dict[str, Any] = {"seed": seed, "case_id": case_id, "track": track}
+            if custom_case is not None:
+                payload["custom_case"] = custom_case
             response = client.post("/reset", json=payload)
             response.raise_for_status()
             return self._parse_result(response.json())
@@ -124,7 +132,7 @@ except (ImportError, ModuleNotFoundError):  # pragma: no cover - local fallback
         # Import FastAPI and Pydantic lazily so the module can be imported in
         # lightweight environments where the web stack isn't installed.
         try:
-            from fastapi import FastAPI
+            from fastapi import FastAPI, HTTPException
             from fastapi.middleware.cors import CORSMiddleware
         except Exception as exc:  # pragma: no cover - defensive
             raise RuntimeError("fastapi and pydantic are required to create the server app") from exc
@@ -155,7 +163,16 @@ except (ImportError, ModuleNotFoundError):  # pragma: no cover - local fallback
             seed = request.get("seed") if request else None
             case_id = request.get("case_id") if request else None
             track = request.get("track") if request else None
-            obs = env.reset(seed=seed, case_id=case_id, track=track)
+            custom_case = request.get("custom_case") if request else None
+            try:
+                obs = env.reset(
+                    seed=seed,
+                    case_id=case_id,
+                    track=track,
+                    custom_case=custom_case,
+                )
+            except ValueError as exc:
+                raise HTTPException(status_code=400, detail=str(exc)) from exc
 
             if hasattr(env, "result_payload"):
                 return env.result_payload(obs)

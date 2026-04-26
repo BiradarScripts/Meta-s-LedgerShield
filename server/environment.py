@@ -32,6 +32,7 @@ import math
 from dataclasses import asdict
 import os
 import random
+import re
 import uuid
 from typing import Any
 
@@ -174,6 +175,8 @@ MILESTONE_REWARDS: dict[str, float] = {
 
 # ── Degenerate evidence cap (Phase 4.5) ──────────────────────────────────────
 DEGENERATE_EVIDENCE_CAP = 0.25
+
+_CUSTOM_CASE_ID_RE = re.compile(r"^CUSTOM-[A-Z0-9]{2,16}$")
 
 # ── Formalized score constants ───────────────────────────────────────────────
 INTERVENTION_BASE_SCORE = 0.15  # Tightened from 0.35 (Phase 2.3)
@@ -325,6 +328,91 @@ class LedgerShieldEnvironment(Environment):
         return self.institutional_memory()
 
     # ── Internal helpers ─────────────────────────────────────────────────
+
+    def _normalize_custom_case_payload(
+        self,
+        raw: Any,
+    ) -> dict[str, Any]:
+        """Validate API ``custom_case`` and return normalized fields for cloning.
+
+        Clones an existing benchmark case (template) and assigns a new ``case_id``
+        plus instruction text. Document graphs and gold stay identical to the template.
+        """
+        if not isinstance(raw, dict):
+            raise ValueError("custom_case must be a JSON object")
+        template_id = raw.get("template_case_id")
+        if template_id is None:
+            template_id = raw.get("templateCaseId")
+        if not isinstance(template_id, str) or not template_id.strip():
+            raise ValueError("custom_case.template_case_id is required")
+        template_id = template_id.strip()
+        cases_by_id = self.db.get("cases_by_id") or {}
+        if template_id not in cases_by_id:
+            raise ValueError(f"unknown custom_case.template_case_id: {template_id}")
+
+        case_id = raw.get("case_id")
+        if case_id is None:
+            case_id = raw.get("caseId")
+        if not isinstance(case_id, str) or not case_id.strip():
+            raise ValueError("custom_case.case_id is required")
+        case_id_norm = case_id.strip().upper()
+        if not _CUSTOM_CASE_ID_RE.match(case_id_norm):
+            raise ValueError(
+                "custom_case.case_id must match CUSTOM- plus 2-16 uppercase letters/digits "
+                "(example: CUSTOM-DEMO01)"
+            )
+
+        instruction = raw.get("instruction")
+        if not isinstance(instruction, str) or not instruction.strip():
+            raise ValueError("custom_case.instruction is required (non-empty string)")
+        instruction = instruction.strip()
+        if "\n" in instruction or "\r" in instruction:
+            raise ValueError("custom_case.instruction must be a single line (no newlines)")
+        if len(instruction) > 800:
+            raise ValueError("custom_case.instruction must be at most 800 characters")
+
+        out: dict[str, Any] = {
+            "template_case_id": template_id,
+            "case_id": case_id_norm,
+            "instruction": instruction,
+        }
+
+        if raw.get("max_steps") is not None or raw.get("maxSteps") is not None:
+            ms = raw.get("max_steps", raw.get("maxSteps"))
+            if isinstance(ms, bool):
+                raise ValueError("custom_case.max_steps must be an integer")
+            if isinstance(ms, int):
+                ms_val = ms
+            elif isinstance(ms, float) and ms.is_integer():
+                ms_val = int(ms)
+            else:
+                raise ValueError("custom_case.max_steps must be an integer")
+            if ms_val < 4 or ms_val > 50:
+                raise ValueError("custom_case.max_steps must be between 4 and 50")
+            out["max_steps"] = ms_val
+
+        if raw.get("budget_total") is not None or raw.get("budgetTotal") is not None:
+            bt = raw.get("budget_total", raw.get("budgetTotal"))
+            if isinstance(bt, (int, float)):
+                btf = float(bt)
+            else:
+                raise ValueError("custom_case.budget_total must be a number")
+            if btf < 1.0 or btf > 50.0:
+                raise ValueError("custom_case.budget_total must be between 1 and 50")
+            out["budget_total"] = round(btf, 4)
+
+        return out
+
+    def _case_from_custom_spec(self, spec: dict[str, Any]) -> dict[str, Any]:
+        template = self.db["cases_by_id"][spec["template_case_id"]]
+        case = deepcopy(template)
+        case["case_id"] = spec["case_id"]
+        case["instruction"] = spec["instruction"]
+        if "max_steps" in spec:
+            case["max_steps"] = spec["max_steps"]
+        if "budget_total" in spec:
+            case["budget_total"] = spec["budget_total"]
+        return case
 
     def _select_case(
         self,
@@ -607,17 +695,25 @@ class LedgerShieldEnvironment(Environment):
         seed: int | None = None,
         case_id: str | None = None,
         track: str | None = None,
+        custom_case: dict[str, Any] | None = None,
     ) -> LedgerShieldObservation:
         """Reset the environment and load a new case.
 
         Args:
             seed: Optional seed for case selection.
             case_id: Optional specific case to load.
+            custom_case: Optional dict to clone a template case under a new ``CUSTOM-…``
+                id and instruction (validated); when set, ``case_id`` / ``seed`` selection
+                for loading is ignored.
 
         Returns:
             Initial observation for the new episode.
         """
-        self.current_case = self._select_case(seed=seed, case_id=case_id, track=track)
+        if custom_case is not None:
+            spec = self._normalize_custom_case_payload(custom_case)
+            self.current_case = self._case_from_custom_spec(spec)
+        else:
+            self.current_case = self._select_case(seed=seed, case_id=case_id, track=track)
         self._benchmark_track = normalize_track(track or self.current_case.get("primary_track"))
         self._hidden_world = build_hidden_world(self.current_case)
         institutional_context = institutional_context_for_case(

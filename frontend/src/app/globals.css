@@ -127,3 +127,115 @@ body {
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
 }
+
+/* Landing: very subtle “wind” motion (hero, cards, lanyard) */
+@keyframes landing-wind-hero {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  22% {
+    transform: translate3d(2px, -3px, 0);
+  }
+  48% {
+    transform: translate3d(-2px, -5px, 0);
+  }
+  72% {
+    transform: translate3d(3px, -2px, 0);
+  }
+}
+
+@keyframes landing-wind-lanyard {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  18% {
+    transform: translate3d(3px, -4px, 0) rotate(0.4deg);
+  }
+  40% {
+    transform: translate3d(-3px, -6px, 0) rotate(-0.35deg);
+  }
+  62% {
+    transform: translate3d(4px, -3px, 0) rotate(0.25deg);
+  }
+  84% {
+    transform: translate3d(-2px, -5px, 0) rotate(-0.2deg);
+  }
+}
+
+@keyframes landing-wind-card {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate3d(2px, -3px, 0) rotate(0.3deg);
+  }
+  50% {
+    transform: translate3d(-2px, -4px, 0) rotate(-0.28deg);
+  }
+  75% {
+    transform: translate3d(3px, -2px, 0) rotate(0.18deg);
+  }
+}
+
+@keyframes landing-wind-card-alt {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate3d(-2px, -3px, 0) rotate(-0.3deg);
+  }
+  50% {
+    transform: translate3d(3px, -4px, 0) rotate(0.26deg);
+  }
+  75% {
+    transform: translate3d(-3px, -2px, 0) rotate(-0.15deg);
+  }
+}
+
+@keyframes landing-wind-dots {
+  0%,
+  100% {
+    background-position: 0 0;
+  }
+  50% {
+    background-position: 7px 5px;
+  }
+}
+
+.landing-wind-hero {
+  animation: landing-wind-hero 16s ease-in-out infinite;
+  will-change: transform;
+}
+
+.landing-wind-lanyard {
+  animation: landing-wind-lanyard 13s ease-in-out infinite;
+  will-change: transform;
+}
+
+.landing-wind-card {
+  animation: landing-wind-card 12s ease-in-out infinite;
+  will-change: transform;
+}
+
+.landing-wind-card-alt {
+  animation: landing-wind-card-alt 12.5s ease-in-out infinite;
+  will-change: transform;
+}
+
+.landing-wind-dots {
+  animation: landing-wind-dots 20s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-wind-hero,
+  .landing-wind-lanyard,
+  .landing-wind-card,
+  .landing-wind-card-alt,
+  .landing-wind-dots {
+    animation: none !important;
+  }
+}

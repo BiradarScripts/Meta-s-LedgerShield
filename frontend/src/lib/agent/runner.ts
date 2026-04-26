@@ -80,6 +80,18 @@ function asNumber(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
+/** Confidence from tool JSON: finite number or numeric string; clamped to [0,1]. */
+function parseToolConfidence(raw: unknown): number | undefined {
+  if (typeof raw === "number" && Number.isFinite(raw)) {
+    return Math.min(1, Math.max(0, raw));
+  }
+  if (typeof raw === "string" && raw.trim() !== "") {
+    const n = Number(raw);
+    if (Number.isFinite(n)) return Math.min(1, Math.max(0, n));
+  }
+  return undefined;
+}
+
 function summarizeObservation(obs: Obs): string {
   const docs = asArray(obs.visible_documents)
     .map((d) => {
@@ -142,7 +154,10 @@ export async function* runAgent(
   const baseURL = (config.baseUrl || DEFAULT_BASE_URL).replace(/\/+$/, "");
   const maxIterations = config.maxIterations ?? 16;
 
-  yield { type: "status", content: `Resetting environment with ${config.caseId}` };
+  yield {
+    type: "status",
+    content: `Resetting environment with ${config.caseId}`,
+  };
 
   let resetResult: StepResponse;
   try {
@@ -251,10 +266,7 @@ export async function* runAgent(
       const thought =
         typeof rawArgs.thought === "string" ? rawArgs.thought.trim() : "";
       const confidenceRaw = rawArgs.confidence;
-      const confidence =
-        typeof confidenceRaw === "number" && Number.isFinite(confidenceRaw)
-          ? Math.min(1, Math.max(0, confidenceRaw))
-          : undefined;
+      const confidence = parseToolConfidence(confidenceRaw);
       const args: Record<string, unknown> = { ...rawArgs };
       delete args.thought;
       delete args.confidence;
@@ -286,14 +298,16 @@ export async function* runAgent(
         confidence,
       };
 
+      const submitPayload =
+        name === "submit_decision"
+          ? buildSubmitPayload(args, lastObservation, confidence)
+          : null;
+
       let stepResponse: StepResponse;
       try {
         const action_type =
           name === "submit_decision" ? "submit_decision" : name;
-        const payload =
-          name === "submit_decision"
-            ? buildSubmitPayload(args, lastObservation)
-            : args;
+        const payload = submitPayload ?? args;
         stepResponse = await envStep({ action_type, payload });
       } catch (err) {
         const errMsg = (err as Error).message;
@@ -349,17 +363,21 @@ export async function* runAgent(
         }).slice(0, 6000),
       });
 
-      if (name === "submit_decision") {
+      if (name === "submit_decision" && submitPayload) {
         submitted = true;
         yield {
           type: "decision",
-          decision: String(args.decision || ""),
-          confidence: Number(args.confidence ?? 0),
-          reason_codes: Array.isArray(args.reason_codes)
-            ? (args.reason_codes as string[])
+          decision: String(submitPayload.decision || ""),
+          confidence: Number(submitPayload.confidence),
+          reason_codes: Array.isArray(submitPayload.reason_codes)
+            ? (submitPayload.reason_codes as string[])
             : [],
-          policy_checks: (args.policy_checks as Record<string, string>) || {},
-          notes: typeof args.notes === "string" ? args.notes : undefined,
+          policy_checks:
+            (submitPayload.policy_checks as Record<string, string>) || {},
+          notes:
+            typeof submitPayload.notes === "string"
+              ? submitPayload.notes
+              : undefined,
         };
         break;
       }
@@ -441,9 +459,14 @@ export async function* runAgent(
 function buildSubmitPayload(
   args: Record<string, unknown>,
   observation: Record<string, unknown>,
+  toolConfidence?: number,
 ): Record<string, unknown> {
   const decision = String(args.decision || "NEEDS_REVIEW");
-  const confidence = Number(args.confidence ?? 0.5);
+  const rawConf =
+    typeof toolConfidence === "number" && Number.isFinite(toolConfidence)
+      ? toolConfidence
+      : Number(args.confidence ?? 0.5);
+  const confidence = Math.min(1, Math.max(0, Number.isFinite(rawConf) ? rawConf : 0.5));
   const reason_codes = Array.isArray(args.reason_codes)
     ? (args.reason_codes as string[])
     : [];

@@ -5,10 +5,8 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Gear,
-  Key,
   Play,
   ArrowLeft,
-  Robot,
   Cpu,
   Circle,
   Stop,
@@ -37,10 +35,7 @@ import {
 const DOCS_URL = "https://aryaman.mintlify.app/benchmark/benchmark-card";
 const DEFAULT_API_URL = "https://api.openai.com/v1";
 
-type AgentMode = "demo" | "custom";
-
 interface AgentConfig {
-  mode: AgentMode;
   model: string;
   apiUrl: string;
   apiKey: string;
@@ -132,7 +127,6 @@ export default function AgentTestPage() {
   const router = useRouter();
 
   const [config, setConfig] = useState<AgentConfig>({
-    mode: "demo",
     model: "gpt-4o-mini",
     apiUrl: DEFAULT_API_URL,
     apiKey: "",
@@ -162,6 +156,7 @@ export default function AgentTestPage() {
   );
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [stepMath, setStepMath] = useState<StepMath | null>(null);
+  const [activeRunCaseId, setActiveRunCaseId] = useState<string | null>(null);
 
   const abortRef = useRef<AbortController | null>(null);
   const healthAbortRef = useRef<AbortController | null>(null);
@@ -172,7 +167,6 @@ export default function AgentTestPage() {
       setRememberOnDevice(true);
       setConfig((prev) => ({
         ...prev,
-        mode: saved.mode,
         apiKey: saved.apiKey,
         apiUrl: saved.apiUrl || DEFAULT_API_URL,
         model: saved.model || prev.model,
@@ -183,12 +177,11 @@ export default function AgentTestPage() {
   useEffect(() => {
     if (!rememberOnDevice) return;
     saveAgentFormToStorage({
-      mode: config.mode,
       apiKey: config.apiKey,
       apiUrl: config.apiUrl,
       model: config.model,
     });
-  }, [rememberOnDevice, config.mode, config.apiKey, config.apiUrl, config.model]);
+  }, [rememberOnDevice, config.apiKey, config.apiUrl, config.model]);
 
   useEffect(() => {
     let cancelled = false;
@@ -224,7 +217,6 @@ export default function AgentTestPage() {
   };
 
   const testLlmConnection = async () => {
-    if (config.mode !== "custom") return;
     if (!config.apiKey.trim() || !config.model.trim()) {
       setLlmHealth({
         status: "error",
@@ -288,17 +280,15 @@ export default function AgentTestPage() {
   };
 
   const startRun = async () => {
-    if (config.mode === "custom") {
-      if (!config.apiKey.trim()) {
-        setError("API key is required for custom mode.");
-        setShowSettings(true);
-        return;
-      }
-      if (!config.model.trim()) {
-        setError("Model is required for custom mode.");
-        setShowSettings(true);
-        return;
-      }
+    if (!config.apiKey.trim()) {
+      setError("API key is required.");
+      setShowSettings(true);
+      return;
+    }
+    if (!config.model.trim()) {
+      setError("Model is required.");
+      setShowSettings(true);
+      return;
     }
     setError(null);
     setEvents([]);
@@ -316,13 +306,14 @@ export default function AgentTestPage() {
     abortRef.current?.abort();
     abortRef.current = controller;
 
+    setActiveRunCaseId(selectedCase);
+
     try {
       const response = await fetch("/api/agent/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           caseId: selectedCase,
-          mode: config.mode,
           model: config.model,
           baseUrl: config.apiUrl,
           apiKey: config.apiKey,
@@ -422,9 +413,7 @@ export default function AgentTestPage() {
 
   const credsFilled =
     config.apiKey.trim().length > 0 && config.model.trim().length > 0;
-  const ready =
-    config.mode === "demo" ||
-    (credsFilled && llmHealth.status === "ok");
+  const ready = credsFilled && llmHealth.status === "ok";
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -484,52 +473,6 @@ export default function AgentTestPage() {
               </h2>
 
               <div className="space-y-6">
-                <div>
-                  <label className="text-sm text-zinc-400 mb-3 block">Agent Type</label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      onClick={() => updateConfig({ mode: "custom" })}
-                      className={`p-4 rounded-xl border text-left transition-all ${
-                        config.mode === "custom"
-                          ? "border-emerald-500 bg-emerald-500/10"
-                          : "border-white/10 hover:border-white/20"
-                      }`}
-                    >
-                      <Key
-                        size={24}
-                        className={
-                          config.mode === "custom" ? "text-emerald-400" : "text-zinc-500"
-                        }
-                      />
-                      <div className="mt-2 font-medium">Custom Agent</div>
-                      <div className="text-xs text-zinc-500">
-                        Bring your own API key (OpenAI-compatible)
-                      </div>
-                    </button>
-                    <button
-                      onClick={() => updateConfig({ mode: "demo" })}
-                      className={`p-4 rounded-xl border text-left transition-all ${
-                        config.mode === "demo"
-                          ? "border-emerald-500 bg-emerald-500/10"
-                          : "border-white/10 hover:border-white/20"
-                      }`}
-                    >
-                      <Robot
-                        size={24}
-                        className={
-                          config.mode === "demo" ? "text-emerald-400" : "text-zinc-500"
-                        }
-                      />
-                      <div className="mt-2 font-medium">Demo Agent</div>
-                      <div className="text-xs text-zinc-500">
-                        Pre-recorded trace, no key needed
-                      </div>
-                    </button>
-                  </div>
-                </div>
-
-                {config.mode === "custom" && (
-                  <>
                     <div>
                       <label className="text-sm text-zinc-400 mb-2 block">Model</label>
                       <div className="space-y-2">
@@ -634,7 +577,6 @@ export default function AgentTestPage() {
                             if (!on) clearAgentFormStorage();
                             else {
                               saveAgentFormToStorage({
-                                mode: config.mode,
                                 apiKey: config.apiKey,
                                 apiUrl: config.apiUrl,
                                 model: config.model,
@@ -656,8 +598,6 @@ export default function AgentTestPage() {
                       disabled={!credsFilled || llmHealth.status === "checking"}
                       onTest={testLlmConnection}
                     />
-                  </>
-                )}
 
                 <div>
                   <div className="flex items-center justify-between mb-3">
@@ -672,14 +612,14 @@ export default function AgentTestPage() {
                       <ArrowSquareOut size={10} />
                     </a>
                   </div>
-                  {config.mode === "custom" && llmHealth.status !== "ok" && (
+                  {llmHealth.status !== "ok" && (
                     <p className="text-[11px] text-amber-300/80 mb-2">
                       Test your LLM connection above before selecting a case.
                     </p>
                   )}
                   <div
                     className={`grid grid-cols-2 md:grid-cols-3 gap-2 max-h-[300px] overflow-y-auto pr-1 transition-opacity ${
-                      config.mode === "custom" && llmHealth.status !== "ok"
+                      llmHealth.status !== "ok"
                         ? "opacity-40 pointer-events-none"
                         : ""
                     }`}
@@ -729,19 +669,17 @@ export default function AgentTestPage() {
               <Play size={20} weight="fill" />
               Start Agent Run
             </button>
-            {backendStatus === "down" && config.mode === "custom" && (
+            {backendStatus === "down" && (
               <p className="text-xs text-amber-400 mt-3">
                 LedgerShield backend looks unreachable. Start it with{" "}
                 <code className="font-mono">python -m server.app</code>.
               </p>
             )}
-            {config.mode === "custom" &&
-              credsFilled &&
-              llmHealth.status !== "ok" && (
-                <p className="text-xs text-amber-400 mt-3">
-                  Test your LLM connection in settings before starting a run.
-                </p>
-              )}
+            {credsFilled && llmHealth.status !== "ok" && (
+              <p className="text-xs text-amber-400 mt-3">
+                Test your LLM connection in settings before starting a run.
+              </p>
+            )}
           </motion.div>
         ) : (
           <motion.div
@@ -753,21 +691,19 @@ export default function AgentTestPage() {
               <div className="min-w-0">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs font-mono text-zinc-500">{selectedCase}</span>
-                <span
-                  className={`text-xs px-2 py-0.5 rounded-full ${
-                    config.mode === "demo"
-                      ? "bg-blue-500/20 text-blue-400"
-                      : "bg-emerald-500/20 text-emerald-400"
-                  }`}
-                >
-                  {config.mode.toUpperCase()}
+                <span className="text-xs font-mono text-zinc-500">
+                  {String(
+                    (envObservation?.case_id as string | undefined) ||
+                      activeRunCaseId ||
+                      selectedCase,
+                  )}
                 </span>
-                {config.mode === "custom" && (
-                  <span className="text-[10px] font-mono text-zinc-500">
-                    · {config.model}
-                  </span>
-                )}
+                <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
+                  LLM
+                </span>
+                <span className="text-[10px] font-mono text-zinc-500">
+                  · {config.model}
+                </span>
                 {finalScore !== null && (
                   <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono">
                     score {finalScore.toFixed(3)}
@@ -794,6 +730,7 @@ export default function AgentTestPage() {
                       setTrustGraph(null);
                       setShowCertificateModal(false);
                       setStepMath(null);
+                      setActiveRunCaseId(null);
                     }}
                     className="text-xs px-3 py-1.5 rounded-lg border border-white/10 hover:bg-white/5 transition-colors"
                   >

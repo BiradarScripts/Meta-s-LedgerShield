@@ -191,10 +191,10 @@ function DecisionButton({
   disabled?: boolean;
 }) {
   const styles: Record<string, string> = {
-    PAY: "bg-emerald-500/20 border-emerald-500/30 hover:bg-emerald-500/30 text-emerald-400",
-    HOLD: "bg-yellow-500/20 border-yellow-500/30 hover:bg-yellow-500/30 text-yellow-400",
-    NEEDS_REVIEW: "bg-blue-500/20 border-blue-500/30 hover:bg-blue-500/30 text-blue-400",
-    ESCALATE_FRAUD: "bg-red-500/20 border-red-500/30 hover:bg-red-500/30 text-red-400",
+    PAY: "bg-emerald-400/80 border-emerald-200 hover:bg-emerald-300 text-white shadow-[0_0_24px_rgba(52,211,153,0.45)]",
+    HOLD: "bg-amber-300/80 border-amber-100 hover:bg-amber-200 text-white shadow-[0_0_24px_rgba(252,211,77,0.45)]",
+    NEEDS_REVIEW: "bg-sky-400/80 border-sky-100 hover:bg-sky-300 text-white shadow-[0_0_24px_rgba(56,189,248,0.45)]",
+    ESCALATE_FRAUD: "bg-rose-400/80 border-rose-100 hover:bg-rose-300 text-white shadow-[0_0_24px_rgba(251,113,133,0.45)]",
   };
 
   return (
