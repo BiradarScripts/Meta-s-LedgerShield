@@ -20,14 +20,27 @@ If you only remember one thing from this post, let it be this:
 ---
 
 ## Important links
+**Frontend App:** https://frontend-fawn-xi-18.vercel.app/
 
-- **Frontend App:** [https://frontend-fawn-xi-18.vercel.app/agent](https://frontend-fawn-xi-18.vercel.app/agent)
-- **Backend API:** [https://ledgershield-deploy.onrender.com](https://ledgershield-deploy.onrender.com)
-- **Hugging Face Space:** [https://huggingface.co/spaces/shreayas/ledgershield-controlbench](https://huggingface.co/spaces/shreayas/ledgershield-controlbench)
-- **Hosted Docs:** [https://aryaman.mintlify.app/benchmark/benchmark-card](https://aryaman.mintlify.app/benchmark/benchmark-card)
-- **Pitch Deck (PPT):** [https://canva.link/lsxxrdfbk2pxl8h](https://canva.link/lsxxrdfbk2pxl8h)
-- **Documentation hub:** [`DOCUMENTATION.md`](./DOCUMENTATION.md)
-- **OpenEnv alignment:** [`DOCUMENTATION.md` — OpenEnv alignment](./DOCUMENTATION.md#openenv-alignment-final-submission)
+**Backend API:** https://ledgershield-deploy.onrender.com
+
+**Hugging Face Space (repo):** https://huggingface.co/spaces/shreayas/ledgershield-controlbench
+
+**Live Space App:** https://shreayas-ledgershield-controlbench.hf.space
+
+**Hosted Docs:** https://aryaman.mintlify.app/benchmark/benchmark-card
+
+**Pitch Deck (PPT):** https://canva.link/lsxxrdfbk2pxl8h
+
+**Web App Demo Video:** https://www.youtube.com/watch?v=S_-hQv0hdws&feature=youtu.be
+
+**Pitch Video:** https://youtu.be/-Yv1LeFBvrQ
+
+**Primary documentation:** [`docs/DOCUMENTATION.md`](./docs/DOCUMENTATION.md)
+
+**HF mini-blog:** [`docs/HF_MINIBLOG_FINAL.md`](./docs/HF_MINIBLOG_FINAL.md)
+
+**Benchmark specification:** [`openenv.yaml`](./openenv.yaml)
 
 ---
 
