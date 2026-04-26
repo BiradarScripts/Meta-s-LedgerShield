@@ -44,6 +44,7 @@ FBI IC3 reports **$2.9B+ in BEC losses** across 21,489 complaints in 2023 alone.
 - **Problem:** Enterprise payment fraud is not a single classification task; it is a long-running control problem shaped by uncertainty, pressure, auditability, and adversaries that adapt.
 - **Environment:** LedgerShield is a partially observable AP control world with investigation tools, delayed artifacts, institutional memory, calibration-gated authority, decision certificates, and long-horizon ControlBench sequences.
 - **What agents must do:** Investigate cases, trigger controls, wait for missing evidence, make a final decision, and justify that decision with auditable proof.
+- **Final decision options:** `PAY`, `HOLD`, `NEEDS_REVIEW`, and `ESCALATE_FRAUD`.
 - **Why it is hard:** The benchmark measures unsafe release, incomplete control execution, weak certificates, poor calibration, and long-horizon institutional damage—not just final accuracy.
 - **Training evidence:** The repo shows a full training ladder from live-rollout SFT to self-play and GRPO, with reward curves, policy ladders, and before/after metrics.
 
@@ -55,6 +56,11 @@ FBI IC3 reports **$2.9B+ in BEC losses** across 21,489 complaints in 2023 alone.
 | **Storytelling** | Starts from a real enterprise fraud problem, explains the workflow clearly, and ties the benchmark design to trust, controls, and auditability |
 | **Showing Improvement in Rewards** | Shows original SFT evidence, additive Exquisite GRPO results, reward curves, policy ladders, and before/after metrics |
 | **Reward + Training Pipeline** | Explains the reward structure, live-rollout SFT baseline, self-play candidate generation, GRPO environment reward loop, and supporting artifacts |
+
+### Why the latest additions improve judge-readability
+
+- **Concrete behavioral evidence:** the docs now show not just curves and aggregate metrics, but also a same-case before/after story that makes the training improvement easier to see.
+- **Reward clarity:** the README now summarizes the reward logic in plain language, making it easier to map reward design to agent behavior and training outcomes.
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
@@ -198,6 +204,13 @@ GRPO also improves:
 
 - **certificate score** from `0.8478` to `0.9653`
 - **control-satisfied resolution** from `0.2222` to `0.6667`
+
+### Reward logic in one glance
+
+- **Reward good investigation:** the environment rewards evidence-gathering progress rather than shallow early submission.
+- **Reward control-complete decisions:** policies score better when they finish the required workflow before deciding.
+- **Reward auditable proof:** stronger certificates and grounded evidence maps improve outcomes.
+- **Penalize unsafe or unsupported shortcuts:** unsafe release, weak justification, and policy-incomplete resolutions are explicitly punished.
 
 ### Layer 2C / 2D — Scaling and distillation
 
