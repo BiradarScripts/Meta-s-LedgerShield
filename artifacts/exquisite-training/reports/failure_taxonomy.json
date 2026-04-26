@@ -1,16 +1,19 @@
 {
-  "generated_at": "2026-04-25T20:00:00.881511+00:00",
+  "generated_at": "2026-04-26T01:57:31.924400+00:00",
   "policy_result_class_counts": {
     "control_boundary_failed": 23,
-    "correct_but_policy_incomplete": 4,
+    "correct_but_policy_incomplete": 6,
     "false_positive_overcontrol": 3,
-    "falsifier_blocked": 2,
-    "incorrect_resolution": 4,
-    "valid_success": 9
+    "falsifier_blocked": 4,
+    "incorrect_resolution": 7,
+    "valid_success": 11
   },
   "selfplay_failure_reason_counts": {
-    "control_boundary_failed": 6,
-    "correct_but_policy_incomplete": 1,
-    "valid_success": 5
+    "control_boundary_failed": 3,
+    "correct_but_policy_incomplete": 5,
+    "false_positive_overcontrol": 7,
+    "incorrect_resolution": 10,
+    "partial_json_recovery": 31,
+    "valid_success": 16
   }
 }

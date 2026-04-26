@@ -1,16 +1,16 @@
 {
   "adapter_path": "artifacts/trl-openenv-hf-a10g-qwen-rich/final_model",
-  "candidate_count": 12,
-  "case_count": 3,
-  "generated_at": "2026-04-25T19:59:56.028807+00:00",
-  "mode": "smoke",
+  "candidate_count": 72,
+  "case_count": 9,
+  "generated_at": "2026-04-26T01:30:09.432941+00:00",
+  "mode": "model",
   "model": "Qwen/Qwen2.5-0.5B-Instruct",
-  "num_generations": 4,
+  "num_generations": 8,
   "outputs": {
     "falsifier_preferences": "artifacts/exquisite-training/selfplay-0.5b/falsifier_preferences.jsonl",
     "selfplay_candidates": "artifacts/exquisite-training/selfplay-0.5b/selfplay_candidates.jsonl"
   },
-  "preference_pair_count": 3,
+  "preference_pair_count": 9,
   "reward_weights": {
     "certificate_score": 0.15,
     "control_satisfied_resolution": 0.15,

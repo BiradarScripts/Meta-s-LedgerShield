@@ -1,6 +1,6 @@
 # Exquisite Training Artifact Inventory
 
-Generated at: `2026-04-25T20:00:00.885179+00:00`
+Generated at: `2026-04-26T01:57:31.927169+00:00`
 
 - `artifacts/exquisite-training/reports/exquisite_training_summary.json`
 - `artifacts/exquisite-training/reports/final_policy_matrix.csv`
@@ -11,6 +11,4 @@ Generated at: `2026-04-25T20:00:00.885179+00:00`
 - `artifacts/exquisite-training/reports/ablation_results.json`
 - `artifacts/exquisite-training/dpo-falsifier-distill/`
 - `artifacts/exquisite-training/grpo-0.5b/`
-- `artifacts/exquisite-training/grpo-1.5b/`
-- `artifacts/exquisite-training/grpo-3b-flagship/`
 - `artifacts/exquisite-training/sft-1.5b/`

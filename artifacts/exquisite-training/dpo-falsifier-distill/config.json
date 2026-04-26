@@ -1,0 +1,11 @@
+{
+  "adapter_path": "artifacts/trl-openenv-hf-a10g-qwen-rich/final_model",
+  "final_model_dir": "artifacts/exquisite-training/dpo-falsifier-distill/final_model",
+  "generated_at": "2026-04-26T01:10:45.928159+00:00",
+  "max_steps": 180,
+  "method": "DPO falsifier preference distillation",
+  "model": "Qwen/Qwen2.5-0.5B-Instruct",
+  "preference_file": "artifacts/exquisite-training/selfplay-0.5b/falsifier_preferences.jsonl",
+  "preference_pair_count": 9,
+  "status": "completed"
+}

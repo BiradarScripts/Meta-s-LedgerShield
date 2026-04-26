@@ -5,39 +5,263 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>LedgerShield Exquisite Training Dashboard</title>
   <style>
-    :root { color-scheme: dark; }
-    body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #08111f; color: #edf6ff; }
-    header { padding: 54px 6vw 32px; background: radial-gradient(circle at top left, #1d4ed8, #08111f 54%); border-bottom: 1px solid rgba(255,255,255,.10); }
-    h1 { margin: 0 0 12px; font-size: clamp(34px, 5vw, 62px); letter-spacing: -.05em; }
-    h2 { margin: 36px 6vw 14px; font-size: 24px; }
-    .subtitle { color: #b8c7dd; max-width: 1040px; line-height: 1.55; font-size: 17px; }
-    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; padding: 26px 6vw; }
-    .card { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12); border-radius: 18px; padding: 18px; box-shadow: 0 14px 36px rgba(0,0,0,.25); }
-    .label { color: #9fb7d8; font-size: 12px; text-transform: uppercase; letter-spacing: .12em; }
-    .value { margin-top: 8px; font-size: 30px; font-weight: 850; }
-    .note { margin-top: 5px; color: #b9c9df; font-size: 13px; }
-    .panel { margin: 0 6vw 24px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.10); border-radius: 20px; overflow: hidden; }
-    table { border-collapse: collapse; width: 100%; font-size: 14px; }
-    th, td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,.08); text-align: left; }
-    th { color: #bfdbfe; background: rgba(37,99,235,.22); }
-    .plots { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 18px; padding: 0 6vw 54px; }
-    figure { background: #ffffff; color: #172033; margin: 0; padding: 12px; border-radius: 18px; box-shadow: 0 18px 42px rgba(0,0,0,.30); }
-    img { width: 100%; display: block; border-radius: 10px; }
-    figcaption { padding: 10px 4px 0; color: #344154; font-weight: 700; font-size: 13px; line-height: 1.4; }
-    code { color: #bfdbfe; }
+    :root {
+      --bg: #0a1324;
+      --panel: rgba(255,255,255,.08);
+      --panel-strong: rgba(255,255,255,.12);
+      --line: rgba(255,255,255,.10);
+      --text: #edf5ff;
+      --muted: #a9bdd8;
+      --accent: #7dd3fc;
+      --accent-strong: #f59e0b;
+      color-scheme: dark;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(56,189,248,.22), transparent 34%),
+        radial-gradient(circle at top right, rgba(245,158,11,.16), transparent 26%),
+        linear-gradient(180deg, #091121 0%, #0d1b31 48%, #091121 100%);
+      color: var(--text);
+    }
+    header {
+      padding: 58px 6vw 28px;
+      border-bottom: 1px solid var(--line);
+    }
+    h1 {
+      margin: 0 0 14px;
+      font-size: clamp(36px, 5vw, 66px);
+      letter-spacing: -.05em;
+      line-height: .92;
+    }
+    h2 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: -.03em;
+    }
+    .section-head p, .subtitle {
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 1120px;
+      margin: 10px 0 0;
+      font-size: 16px;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 14px;
+      padding: 28px 6vw 8px;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: 0 20px 44px rgba(0,0,0,.22);
+      backdrop-filter: blur(14px);
+    }
+    .label {
+      color: #c2d7f1;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .13em;
+    }
+    .value {
+      margin-top: 8px;
+      font-size: 30px;
+      font-weight: 760;
+    }
+    .note {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .section {
+      padding: 26px 6vw 0;
+    }
+    .table-wrap, .artifact-panel, .command-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 18px 40px rgba(0,0,0,.20);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 11px 12px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      color: #dbeafe;
+      background: rgba(14, 116, 144, .24);
+    }
+    .plots {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 18px;
+    }
+    figure {
+      background: #ffffff;
+      color: #172033;
+      margin: 0;
+      padding: 12px;
+      border-radius: 18px;
+      box-shadow: 0 18px 42px rgba(0,0,0,.28);
+    }
+    img {
+      width: 100%;
+      display: block;
+      border-radius: 10px;
+    }
+    figcaption {
+      padding: 10px 4px 0;
+      color: #344154;
+      font-weight: 700;
+      font-size: 13px;
+      line-height: 1.42;
+    }
+    .empty {
+      background: var(--panel);
+      border: 1px dashed var(--line);
+      border-radius: 20px;
+      padding: 24px;
+      color: var(--muted);
+    }
+    ul {
+      margin: 0;
+      padding: 18px 22px 18px 40px;
+    }
+    li {
+      margin: 8px 0;
+    }
+    pre {
+      margin: 0;
+      padding: 18px 20px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      color: #dbeafe;
+      background: rgba(2,6,23,.42);
+    }
+    code { font-family: "IBM Plex Mono", "SFMono-Regular", monospace; }
+    footer {
+      padding: 26px 6vw 54px;
+      color: var(--muted);
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
   <header>
     <h1>LedgerShield Exquisite Training Layer</h1>
-    <div class="subtitle">Environment-in-the-loop self-improvement for enterprise AP control agents: SFT warm start, self-play candidate generation, LedgerShield execution, deterministic falsifier reward, GRPO online RL, optional DPO distillation, and a 40+ plot evidence pack.</div>
+    <div class="subtitle">Environment-in-the-loop self-improvement for enterprise AP control agents: SFT warm start, self-play candidate generation, LedgerShield execution, deterministic falsifier reward, GRPO online RL, optional DPO distillation, and a 56-plot evidence pack.</div>
   </header>
-  <section class="cards"><div class="card"><div class="label">Best policy score</div><div class="value">0.6627</div><div class="note">Teacher</div></div><div class="card"><div class="label">Best GRPO improvement</div><div class="value">PENDING</div><div class="note">over SFT 0.5B</div></div><div class="card"><div class="label">Unsafe release</div><div class="value">0.0000</div><div class="note">best numeric policy</div></div><div class="card"><div class="label">Parse success</div><div class="value">1.0000</div><div class="note">best numeric policy</div></div><div class="card"><div class="label">Certificate score</div><div class="value">0.9472</div><div class="note">best numeric policy</div></div><div class="card"><div class="label">Control satisfaction</div><div class="value">0.5556</div><div class="note">best numeric policy</div></div><div class="card"><div class="label">Self-play candidates</div><div class="value">12</div><div class="note">generated candidates</div></div><div class="card"><div class="label">Preference pairs</div><div class="value">3</div><div class="note">best-vs-worst falsifier pairs</div></div><div class="card"><div class="label">GPU hours</div><div class="value">PENDING</div><div class="note">filled after HF jobs</div></div></section>
-  <h2>Policy Matrix</h2>
-  <section class="panel"><table><thead><tr><th>policy</th><th>model</th><th>method</th><th>mean_score</th><th>certificate_score</th><th>control_satisfied</th><th>unsafe_release</th><th>parse_success</th><th>status</th></tr></thead><tbody><tr><td>Random</td><td>-</td><td>baseline</td><td>0.1088</td><td>0.4461</td><td>0.0000</td><td>0.0000</td><td>1.0000</td><td>completed</td></tr><tr><td>Naive PAY</td><td>-</td><td>baseline</td><td>0.0693</td><td>0.4794</td><td>0.2222</td><td>0.0000</td><td>1.0000</td><td>completed</td></tr><tr><td>Base Qwen</td><td>0.5B</td><td>base</td><td>0.1283</td><td>0.4044</td><td>0.0000</td><td>0.0000</td><td>1.0000</td><td>completed</td></tr><tr><td>SFT Qwen</td><td>0.5B</td><td>SFT</td><td>0.4394</td><td>0.8478</td><td>0.2222</td><td>0.0000</td><td>1.0000</td><td>completed</td></tr><tr><td>GRPO Qwen</td><td>0.5B</td><td>SFT-&gt;GRPO</td><td>PENDING</td><td>PENDING</td><td>PENDING</td><td>PENDING</td><td>PENDING</td><td>PENDING</td></tr><tr><td>SFT Qwen</td><td>1.5B</td><td>SFT</td><td>PENDING</td><td>PENDING</td><td>PENDING</td><td>PENDING</td><td>PENDING</td><td>PENDING</td></tr><tr><td>GRPO Qwen</td><td>1.5B</td><td>SFT-&gt;GRPO</td><td>PENDING</td><td>PENDING</td><td>PENDING</td><td>PENDING</td><td>PENDING</td><td>PENDING</td></tr><tr><td>GRPO Qwen</td><td>3B</td><td>SFT+GRPO</td><td>PENDING</td><td>PENDING</td><td>PENDING</td><td>PENDING</td><td>PENDING</td><td>PENDING</td></tr><tr><td>DPO-Falsifier</td><td>1.5B/3B</td><td>GRPO-&gt;DPO</td><td>PENDING</td><td>PENDING</td><td>PENDING</td><td>PENDING</td><td>PENDING</td><td>PENDING</td></tr><tr><td>Teacher</td><td>-</td><td>oracle-ish</td><td>0.6627</td><td>0.9472</td><td>0.5556</td><td>0.0000</td><td>1.0000</td><td>completed</td></tr></tbody></table></section>
-  <h2>Executive Plots</h2>
-  <section class="plots"><figure><img src="../plots/01_final_policy_ladder.png" alt="01_final_policy_ladder.png" /><figcaption>Compares every policy on the same LedgerShield held-out split. Pending HF policies are omitted until their final evaluations exist.</figcaption></figure><figure><img src="../plots/02_sft_vs_grpo_grouped_bar.png" alt="02_sft_vs_grpo_grouped_bar.png" /><figcaption>Shows whether environment-in-the-loop RL improves over pure imitation at the same model size.</figcaption></figure><figure><img src="../plots/03_scaling_law_score_vs_model_size.png" alt="03_scaling_law_score_vs_model_size.png" /><figcaption>Measures whether LedgerShield remains sensitive to model capacity rather than saturating at small-model performance.</figcaption></figure><figure><img src="../plots/04_score_safety_frontier_all_policies.png" alt="04_score_safety_frontier_all_policies.png" /><figcaption>Plots mean environment score against unsafe-release rate. A good policy moves rightward in score without moving upward on unsafe release.</figcaption></figure><figure><img src="../plots/05_teacher_gap_closure.png" alt="05_teacher_gap_closure.png" /><figcaption>Measures what fraction of the gap between base Qwen and teacher policy is closed by SFT, GRPO, and DPO.</figcaption></figure><figure><img src="../plots/06_exquisite_pipeline_diagram.png" alt="06_exquisite_pipeline_diagram.png" /><figcaption>Shows the additive SFT -&gt; self-play -&gt; falsifier reward -&gt; GRPO -&gt; DPO evidence pipeline.</figcaption></figure></section>
-  <h2>Full Evidence Pack</h2>
-  <section class="plots"><figure><img src="../plots/01_final_policy_ladder.png" alt="01_final_policy_ladder.png" /><figcaption>Compares every policy on the same LedgerShield held-out split. Pending HF policies are omitted until their final evaluations exist.</figcaption></figure><figure><img src="../plots/02_sft_vs_grpo_grouped_bar.png" alt="02_sft_vs_grpo_grouped_bar.png" /><figcaption>Shows whether environment-in-the-loop RL improves over pure imitation at the same model size.</figcaption></figure><figure><img src="../plots/03_scaling_law_score_vs_model_size.png" alt="03_scaling_law_score_vs_model_size.png" /><figcaption>Measures whether LedgerShield remains sensitive to model capacity rather than saturating at small-model performance.</figcaption></figure><figure><img src="../plots/04_score_safety_frontier_all_policies.png" alt="04_score_safety_frontier_all_policies.png" /><figcaption>Plots mean environment score against unsafe-release rate. A good policy moves rightward in score without moving upward on unsafe release.</figcaption></figure><figure><img src="../plots/05_teacher_gap_closure.png" alt="05_teacher_gap_closure.png" /><figcaption>Measures what fraction of the gap between base Qwen and teacher policy is closed by SFT, GRPO, and DPO.</figcaption></figure><figure><img src="../plots/06_exquisite_pipeline_diagram.png" alt="06_exquisite_pipeline_diagram.png" /><figcaption>Shows the additive SFT -&gt; self-play -&gt; falsifier reward -&gt; GRPO -&gt; DPO evidence pipeline.</figcaption></figure><figure><img src="../plots/07_grpo_reward_curve_raw.png" alt="07_grpo_reward_curve_raw.png" /><figcaption>07 Grpo Reward Curve Raw</figcaption></figure><figure><img src="../plots/08_grpo_reward_curve_smoothed.png" alt="08_grpo_reward_curve_smoothed.png" /><figcaption>08 Grpo Reward Curve Smoothed</figcaption></figure><figure><img src="../plots/09_grpo_reward_std_over_time.png" alt="09_grpo_reward_std_over_time.png" /><figcaption>09 Grpo Reward Std Over Time</figcaption></figure><figure><img src="../plots/10_grpo_kl_or_beta_penalty_curve.png" alt="10_grpo_kl_or_beta_penalty_curve.png" /><figcaption>10 Grpo Kl Or Beta Penalty Curve</figcaption></figure><figure><img src="../plots/11_grpo_completion_length_curve.png" alt="11_grpo_completion_length_curve.png" /><figcaption>11 Grpo Completion Length Curve</figcaption></figure><figure><img src="../plots/12_grpo_parse_success_over_time.png" alt="12_grpo_parse_success_over_time.png" /><figcaption>12 Grpo Parse Success Over Time</figcaption></figure><figure><img src="../plots/13_grpo_unsafe_release_over_time.png" alt="13_grpo_unsafe_release_over_time.png" /><figcaption>13 Grpo Unsafe Release Over Time</figcaption></figure><figure><img src="../plots/14_grpo_certificate_score_over_time.png" alt="14_grpo_certificate_score_over_time.png" /><figcaption>14 Grpo Certificate Score Over Time</figcaption></figure><figure><img src="../plots/15_grpo_control_satisfaction_over_time.png" alt="15_grpo_control_satisfaction_over_time.png" /><figcaption>15 Grpo Control Satisfaction Over Time</figcaption></figure><figure><img src="../plots/16_grpo_policy_entropy_proxy.png" alt="16_grpo_policy_entropy_proxy.png" /><figcaption>16 Grpo Policy Entropy Proxy</figcaption></figure><figure><img src="../plots/17_selfplay_candidate_reward_distribution.png" alt="17_selfplay_candidate_reward_distribution.png" /><figcaption>Shows the spread of candidate plan quality generated by the same model before GRPO updates.</figcaption></figure><figure><img src="../plots/18_selfplay_best_vs_worst_margin.png" alt="18_selfplay_best_vs_worst_margin.png" /><figcaption>18 Selfplay Best Vs Worst Margin</figcaption></figure><figure><img src="../plots/19_selfplay_candidate_rank_heatmap.png" alt="19_selfplay_candidate_rank_heatmap.png" /><figcaption>19 Selfplay Candidate Rank Heatmap</figcaption></figure><figure><img src="../plots/20_falsifier_verdict_distribution.png" alt="20_falsifier_verdict_distribution.png" /><figcaption>Shows how often candidate plans survive deterministic audit versus being blocked or degraded by the control stack.</figcaption></figure><figure><img src="../plots/21_falsifier_block_reasons.png" alt="21_falsifier_block_reasons.png" /><figcaption>21 Falsifier Block Reasons</figcaption></figure><figure><img src="../plots/22_parse_failure_taxonomy.png" alt="22_parse_failure_taxonomy.png" /><figcaption>22 Parse Failure Taxonomy</figcaption></figure><figure><img src="../plots/23_invalid_json_examples_count.png" alt="23_invalid_json_examples_count.png" /><figcaption>23 Invalid Json Examples Count</figcaption></figure><figure><img src="../plots/24_unsafe_pay_blocked_by_falsifier.png" alt="24_unsafe_pay_blocked_by_falsifier.png" /><figcaption>24 Unsafe Pay Blocked By Falsifier</figcaption></figure><figure><img src="../plots/25_certificate_failure_modes.png" alt="25_certificate_failure_modes.png" /><figcaption>25 Certificate Failure Modes</figcaption></figure><figure><img src="../plots/26_policy_incomplete_failure_modes.png" alt="26_policy_incomplete_failure_modes.png" /><figcaption>26 Policy Incomplete Failure Modes</figcaption></figure><figure><img src="../plots/27_per_case_score_heatmap.png" alt="27_per_case_score_heatmap.png" /><figcaption>27 Per Case Score Heatmap</figcaption></figure><figure><img src="../plots/28_per_case_policy_delta_from_sft.png" alt="28_per_case_policy_delta_from_sft.png" /><figcaption>28 Per Case Policy Delta From Sft</figcaption></figure><figure><img src="../plots/29_per_task_family_score.png" alt="29_per_task_family_score.png" /><figcaption>29 Per Task Family Score</figcaption></figure><figure><img src="../plots/30_task_a_extraction_performance.png" alt="30_task_a_extraction_performance.png" /><figcaption>30 Task A Extraction Performance</figcaption></figure><figure><img src="../plots/31_task_b_matching_performance.png" alt="31_task_b_matching_performance.png" /><figcaption>31 Task B Matching Performance</figcaption></figure><figure><img src="../plots/32_task_c_duplicate_detection_performance.png" alt="32_task_c_duplicate_detection_performance.png" /><figcaption>32 Task C Duplicate Detection Performance</figcaption></figure><figure><img src="../plots/33_task_d_bec_triage_performance.png" alt="33_task_d_bec_triage_performance.png" /><figcaption>33 Task D Bec Triage Performance</figcaption></figure><figure><img src="../plots/34_task_e_campaign_performance.png" alt="34_task_e_campaign_performance.png" /><figcaption>34 Task E Campaign Performance</figcaption></figure><figure><img src="../plots/35_hardest_cases_before_after.png" alt="35_hardest_cases_before_after.png" /><figcaption>35 Hardest Cases Before After</figcaption></figure><figure><img src="../plots/36_cases_where_grpo_hurt.png" alt="36_cases_where_grpo_hurt.png" /><figcaption>36 Cases Where Grpo Hurt</figcaption></figure><figure><img src="../plots/37_unsafe_release_rate_by_policy.png" alt="37_unsafe_release_rate_by_policy.png" /><figcaption>37 Unsafe Release Rate By Policy</figcaption></figure><figure><img src="../plots/38_certificate_score_by_policy.png" alt="38_certificate_score_by_policy.png" /><figcaption>38 Certificate Score By Policy</figcaption></figure><figure><img src="../plots/39_control_satisfied_resolution_by_policy.png" alt="39_control_satisfied_resolution_by_policy.png" /><figcaption>39 Control Satisfied Resolution By Policy</figcaption></figure><figure><img src="../plots/40_institutional_utility_by_policy.png" alt="40_institutional_utility_by_policy.png" /><figcaption>40 Institutional Utility By Policy</figcaption></figure><figure><img src="../plots/41_institutional_loss_surface_radar.png" alt="41_institutional_loss_surface_radar.png" /><figcaption>41 Institutional Loss Surface Radar</figcaption></figure><figure><img src="../plots/42_authority_level_distribution.png" alt="42_authority_level_distribution.png" /><figcaption>42 Authority Level Distribution</figcaption></figure><figure><img src="../plots/43_review_burn_vs_score.png" alt="43_review_burn_vs_score.png" /><figcaption>43 Review Burn Vs Score</figcaption></figure><figure><img src="../plots/44_supplier_friction_vs_fraud_prevention.png" alt="44_supplier_friction_vs_fraud_prevention.png" /><figcaption>44 Supplier Friction Vs Fraud Prevention</figcaption></figure><figure><img src="../plots/45_calibration_error_by_policy.png" alt="45_calibration_error_by_policy.png" /><figcaption>45 Calibration Error By Policy</figcaption></figure><figure><img src="../plots/46_auditability_vs_score.png" alt="46_auditability_vs_score.png" /><figcaption>46 Auditability Vs Score</figcaption></figure><figure><img src="../plots/47_reward_ablation_score.png" alt="47_reward_ablation_score.png" /><figcaption>47 Reward Ablation Score</figcaption></figure><figure><img src="../plots/48_without_certificate_bonus.png" alt="48_without_certificate_bonus.png" /><figcaption>48 Without Certificate Bonus</figcaption></figure><figure><img src="../plots/49_without_unsafe_penalty.png" alt="49_without_unsafe_penalty.png" /><figcaption>49 Without Unsafe Penalty</figcaption></figure><figure><img src="../plots/50_without_parse_bonus.png" alt="50_without_parse_bonus.png" /><figcaption>50 Without Parse Bonus</figcaption></figure><figure><img src="../plots/51_num_generations_ablation.png" alt="51_num_generations_ablation.png" /><figcaption>51 Num Generations Ablation</figcaption></figure><figure><img src="../plots/52_model_size_ablation.png" alt="52_model_size_ablation.png" /><figcaption>52 Model Size Ablation</figcaption></figure><figure><img src="../plots/53_sft_checkpoint_vs_base_start.png" alt="53_sft_checkpoint_vs_base_start.png" /><figcaption>53 Sft Checkpoint Vs Base Start</figcaption></figure><figure><img src="../plots/54_grpo_steps_ablation.png" alt="54_grpo_steps_ablation.png" /><figcaption>54 Grpo Steps Ablation</figcaption></figure><figure><img src="../plots/55_temperature_ablation.png" alt="55_temperature_ablation.png" /><figcaption>55 Temperature Ablation</figcaption></figure><figure><img src="../plots/56_dpo_after_grpo_ablation.png" alt="56_dpo_after_grpo_ablation.png" /><figcaption>56 Dpo After Grpo Ablation</figcaption></figure></section>
+  <section class="cards"><div class="card"><div class="label">Best policy score</div><div class="value">0.6627</div><div class="note">Teacher</div></div><div class="card"><div class="label">Best GRPO improvement</div><div class="value">PENDING</div><div class="note">over SFT 0.5B</div></div><div class="card"><div class="label">Unsafe release</div><div class="value">0.0000</div><div class="note">best numeric policy</div></div><div class="card"><div class="label">Parse success</div><div class="value">1.0000</div><div class="note">best numeric policy</div></div><div class="card"><div class="label">Certificate score</div><div class="value">0.9472</div><div class="note">best numeric policy</div></div><div class="card"><div class="label">Control satisfaction</div><div class="value">0.5556</div><div class="note">best numeric policy</div></div><div class="card"><div class="label">Self-play candidates</div><div class="value">72</div><div class="note">generated candidates</div></div><div class="card"><div class="label">Preference pairs</div><div class="value">9</div><div class="note">best-vs-worst falsifier pairs</div></div><div class="card"><div class="label">GPU hours</div><div class="value">12.0</div><div class="note">planned cap, $25.00 max</div></div></section>
+  
+    <section class="section">
+      <div class="section-head">
+        <h2>Policy Matrix</h2>
+        <p>Compares baseline, SFT, GRPO, DPO, and teacher policies on the same held-out evaluation slice. Budget-cut runs are excluded from this live view.</p>
+      </div>
+      <div class=""><div class="table-wrap"><table><thead><tr><th>policy</th><th>model</th><th>method</th><th>mean_score</th><th>certificate_score</th><th>control_satisfied</th><th>unsafe_release</th><th>parse_success</th><th>status</th></tr></thead><tbody><tr><td>Random</td><td>-</td><td>baseline</td><td>0.1088</td><td>0.4461</td><td>0.0000</td><td>0.0000</td><td>1.0000</td><td>completed</td></tr><tr><td>Naive PAY</td><td>-</td><td>baseline</td><td>0.0693</td><td>0.4794</td><td>0.2222</td><td>0.0000</td><td>1.0000</td><td>completed</td></tr><tr><td>Base Qwen</td><td>0.5B</td><td>base</td><td>0.1283</td><td>0.4044</td><td>0.0000</td><td>0.0000</td><td>1.0000</td><td>completed</td></tr><tr><td>SFT Qwen</td><td>0.5B</td><td>SFT</td><td>0.4394</td><td>0.8478</td><td>0.2222</td><td>0.0000</td><td>1.0000</td><td>completed</td></tr><tr><td>GRPO Qwen</td><td>0.5B</td><td>SFT-&gt;GRPO</td><td>PENDING</td><td>PENDING</td><td>PENDING</td><td>PENDING</td><td>PENDING</td><td>PENDING</td></tr><tr><td>SFT Qwen</td><td>1.5B</td><td>SFT</td><td>PENDING</td><td>PENDING</td><td>PENDING</td><td>PENDING</td><td>PENDING</td><td>PENDING</td></tr><tr><td>DPO-Falsifier</td><td>1.5B/3B</td><td>GRPO-&gt;DPO</td><td>0.4503</td><td>0.8408</td><td>0.2222</td><td>0.0000</td><td>1.0000</td><td>completed</td></tr><tr><td>Teacher</td><td>-</td><td>oracle-ish</td><td>0.6627</td><td>0.9472</td><td>0.5556</td><td>0.0000</td><td>1.0000</td><td>completed</td></tr></tbody></table></div></div>
+    </section>
+    
+  
+    <section class="section">
+      <div class="section-head">
+        <h2>Launch Status</h2>
+        <p>Tracks the live Hugging Face job submissions, hardware, timeout cap, and monitor URL for the reduced-budget Exquisite run matrix.</p>
+      </div>
+      <div class=""><div class="table-wrap"><table><thead><tr><th>name</th><th>hardware</th><th>last_status</th><th>timeout</th><th>hourly_cost_usd</th><th>max_cost_usd</th><th>url</th></tr></thead><tbody><tr><td>selfplay-0.5b</td><td>a10g-large</td><td>ERROR</td><td>2h</td><td>1.5</td><td>3.0</td><td>https://huggingface.co/jobs/king673134/69ed4706d70108f37acdf1aa</td></tr><tr><td>grpo-0.5b</td><td>a100-large</td><td>RUNNING</td><td>4h</td><td>2.5</td><td>10.0</td><td>https://huggingface.co/jobs/king673134/69ed4707d2c8bd8662bce980</td></tr><tr><td>dpo-falsifier-distill</td><td>a10g-large</td><td>COMPLETED</td><td>3h</td><td>1.5</td><td>4.5</td><td>https://huggingface.co/jobs/king673134/69ed470ad70108f37acdf1ae</td></tr><tr><td>sft-1.5b</td><td>a100-large</td><td>RUNNING</td><td>3h</td><td>2.5</td><td>7.5</td><td>https://huggingface.co/jobs/king673134/69ed70e7d70108f37acdf48e</td></tr></tbody></table></div></div>
+    </section>
+    
+  
+    <section class="section">
+      <div class="section-head">
+        <h2>Executive Plots</h2>
+        <p>Judge-facing summary plots for the main narrative: policy ladder, scaling law, safety frontier, teacher-gap closure, and pipeline structure.</p>
+      </div>
+      <div class="plots"><figure><img src="../plots/01_final_policy_ladder.png" alt="01_final_policy_ladder.png" /><figcaption>Compares every policy on the same LedgerShield held-out split. Pending HF policies are omitted until their final evaluations exist.</figcaption></figure><figure><img src="../plots/02_sft_vs_grpo_grouped_bar.png" alt="02_sft_vs_grpo_grouped_bar.png" /><figcaption>Shows whether environment-in-the-loop RL improves over pure imitation at the same model size.</figcaption></figure><figure><img src="../plots/03_scaling_law_score_vs_model_size.png" alt="03_scaling_law_score_vs_model_size.png" /><figcaption>Measures whether LedgerShield remains sensitive to model capacity rather than saturating at small-model performance.</figcaption></figure><figure><img src="../plots/04_score_safety_frontier_all_policies.png" alt="04_score_safety_frontier_all_policies.png" /><figcaption>Plots mean environment score against unsafe-release rate. A good policy moves rightward in score without moving upward on unsafe release.</figcaption></figure><figure><img src="../plots/05_teacher_gap_closure.png" alt="05_teacher_gap_closure.png" /><figcaption>Measures what fraction of the gap between base Qwen and teacher policy is closed by SFT, GRPO, and DPO.</figcaption></figure><figure><img src="../plots/06_exquisite_pipeline_diagram.png" alt="06_exquisite_pipeline_diagram.png" /><figcaption>Shows the additive SFT -&gt; self-play -&gt; falsifier reward -&gt; GRPO -&gt; DPO evidence pipeline.</figcaption></figure></div>
+    </section>
+    
+  
+    <section class="section">
+      <div class="section-head">
+        <h2>GRPO Training Dynamics</h2>
+        <p>Reward stability, completion behavior, parse robustness, unsafe-release suppression, and certificate/control trends over RL updates.</p>
+      </div>
+      <div class="plots"><figure><img src="../plots/07_grpo_reward_curve_raw.png" alt="07_grpo_reward_curve_raw.png" /><figcaption>07 Grpo Reward Curve Raw</figcaption></figure><figure><img src="../plots/08_grpo_reward_curve_smoothed.png" alt="08_grpo_reward_curve_smoothed.png" /><figcaption>08 Grpo Reward Curve Smoothed</figcaption></figure><figure><img src="../plots/09_grpo_reward_std_over_time.png" alt="09_grpo_reward_std_over_time.png" /><figcaption>09 Grpo Reward Std Over Time</figcaption></figure><figure><img src="../plots/10_grpo_kl_or_beta_penalty_curve.png" alt="10_grpo_kl_or_beta_penalty_curve.png" /><figcaption>10 Grpo Kl Or Beta Penalty Curve</figcaption></figure><figure><img src="../plots/11_grpo_completion_length_curve.png" alt="11_grpo_completion_length_curve.png" /><figcaption>11 Grpo Completion Length Curve</figcaption></figure><figure><img src="../plots/12_grpo_parse_success_over_time.png" alt="12_grpo_parse_success_over_time.png" /><figcaption>12 Grpo Parse Success Over Time</figcaption></figure><figure><img src="../plots/13_grpo_unsafe_release_over_time.png" alt="13_grpo_unsafe_release_over_time.png" /><figcaption>13 Grpo Unsafe Release Over Time</figcaption></figure><figure><img src="../plots/14_grpo_certificate_score_over_time.png" alt="14_grpo_certificate_score_over_time.png" /><figcaption>14 Grpo Certificate Score Over Time</figcaption></figure><figure><img src="../plots/15_grpo_control_satisfaction_over_time.png" alt="15_grpo_control_satisfaction_over_time.png" /><figcaption>15 Grpo Control Satisfaction Over Time</figcaption></figure><figure><img src="../plots/16_grpo_policy_entropy_proxy.png" alt="16_grpo_policy_entropy_proxy.png" /><figcaption>16 Grpo Policy Entropy Proxy</figcaption></figure></div>
+    </section>
+    
+  
+    <section class="section">
+      <div class="section-head">
+        <h2>Self-Play And Falsifier</h2>
+        <p>Evidence that candidate plans were actually generated, executed, ranked, and separated by the deterministic audit stack.</p>
+      </div>
+      <div class="plots"><figure><img src="../plots/17_selfplay_candidate_reward_distribution.png" alt="17_selfplay_candidate_reward_distribution.png" /><figcaption>Shows the spread of candidate plan quality generated by the same model before GRPO updates.</figcaption></figure><figure><img src="../plots/18_selfplay_best_vs_worst_margin.png" alt="18_selfplay_best_vs_worst_margin.png" /><figcaption>18 Selfplay Best Vs Worst Margin</figcaption></figure><figure><img src="../plots/19_selfplay_candidate_rank_heatmap.png" alt="19_selfplay_candidate_rank_heatmap.png" /><figcaption>19 Selfplay Candidate Rank Heatmap</figcaption></figure><figure><img src="../plots/20_falsifier_verdict_distribution.png" alt="20_falsifier_verdict_distribution.png" /><figcaption>Shows how often candidate plans survive deterministic audit versus being blocked or degraded by the control stack.</figcaption></figure><figure><img src="../plots/21_falsifier_block_reasons.png" alt="21_falsifier_block_reasons.png" /><figcaption>21 Falsifier Block Reasons</figcaption></figure><figure><img src="../plots/22_parse_failure_taxonomy.png" alt="22_parse_failure_taxonomy.png" /><figcaption>22 Parse Failure Taxonomy</figcaption></figure><figure><img src="../plots/23_invalid_json_examples_count.png" alt="23_invalid_json_examples_count.png" /><figcaption>23 Invalid Json Examples Count</figcaption></figure><figure><img src="../plots/24_unsafe_pay_blocked_by_falsifier.png" alt="24_unsafe_pay_blocked_by_falsifier.png" /><figcaption>24 Unsafe Pay Blocked By Falsifier</figcaption></figure><figure><img src="../plots/25_certificate_failure_modes.png" alt="25_certificate_failure_modes.png" /><figcaption>25 Certificate Failure Modes</figcaption></figure><figure><img src="../plots/26_policy_incomplete_failure_modes.png" alt="26_policy_incomplete_failure_modes.png" /><figcaption>26 Policy Incomplete Failure Modes</figcaption></figure></div>
+    </section>
+    
+  
+    <section class="section">
+      <div class="section-head">
+        <h2>Safety And Audit</h2>
+        <p>Institutional safety, auditability, calibration, review burden, and score-safety trade-off views across policies.</p>
+      </div>
+      <div class="plots"><figure><img src="../plots/37_unsafe_release_rate_by_policy.png" alt="37_unsafe_release_rate_by_policy.png" /><figcaption>37 Unsafe Release Rate By Policy</figcaption></figure><figure><img src="../plots/38_certificate_score_by_policy.png" alt="38_certificate_score_by_policy.png" /><figcaption>38 Certificate Score By Policy</figcaption></figure><figure><img src="../plots/39_control_satisfied_resolution_by_policy.png" alt="39_control_satisfied_resolution_by_policy.png" /><figcaption>39 Control Satisfied Resolution By Policy</figcaption></figure><figure><img src="../plots/40_institutional_utility_by_policy.png" alt="40_institutional_utility_by_policy.png" /><figcaption>40 Institutional Utility By Policy</figcaption></figure><figure><img src="../plots/41_institutional_loss_surface_radar.png" alt="41_institutional_loss_surface_radar.png" /><figcaption>41 Institutional Loss Surface Radar</figcaption></figure><figure><img src="../plots/42_authority_level_distribution.png" alt="42_authority_level_distribution.png" /><figcaption>42 Authority Level Distribution</figcaption></figure><figure><img src="../plots/43_review_burn_vs_score.png" alt="43_review_burn_vs_score.png" /><figcaption>43 Review Burn Vs Score</figcaption></figure><figure><img src="../plots/44_supplier_friction_vs_fraud_prevention.png" alt="44_supplier_friction_vs_fraud_prevention.png" /><figcaption>44 Supplier Friction Vs Fraud Prevention</figcaption></figure><figure><img src="../plots/45_calibration_error_by_policy.png" alt="45_calibration_error_by_policy.png" /><figcaption>45 Calibration Error By Policy</figcaption></figure><figure><img src="../plots/46_auditability_vs_score.png" alt="46_auditability_vs_score.png" /><figcaption>46 Auditability Vs Score</figcaption></figure></div>
+    </section>
+    
+  
+    <section class="section">
+      <div class="section-head">
+        <h2>Per-Case Analysis</h2>
+        <p>Where GRPO helped, where it hurt, and which task families remain teacher-gap bottlenecks.</p>
+      </div>
+      <div class="plots"><figure><img src="../plots/27_per_case_score_heatmap.png" alt="27_per_case_score_heatmap.png" /><figcaption>27 Per Case Score Heatmap</figcaption></figure><figure><img src="../plots/28_per_case_policy_delta_from_sft.png" alt="28_per_case_policy_delta_from_sft.png" /><figcaption>28 Per Case Policy Delta From Sft</figcaption></figure><figure><img src="../plots/29_per_task_family_score.png" alt="29_per_task_family_score.png" /><figcaption>29 Per Task Family Score</figcaption></figure><figure><img src="../plots/30_task_a_extraction_performance.png" alt="30_task_a_extraction_performance.png" /><figcaption>30 Task A Extraction Performance</figcaption></figure><figure><img src="../plots/31_task_b_matching_performance.png" alt="31_task_b_matching_performance.png" /><figcaption>31 Task B Matching Performance</figcaption></figure><figure><img src="../plots/32_task_c_duplicate_detection_performance.png" alt="32_task_c_duplicate_detection_performance.png" /><figcaption>32 Task C Duplicate Detection Performance</figcaption></figure><figure><img src="../plots/33_task_d_bec_triage_performance.png" alt="33_task_d_bec_triage_performance.png" /><figcaption>33 Task D Bec Triage Performance</figcaption></figure><figure><img src="../plots/34_task_e_campaign_performance.png" alt="34_task_e_campaign_performance.png" /><figcaption>34 Task E Campaign Performance</figcaption></figure><figure><img src="../plots/35_hardest_cases_before_after.png" alt="35_hardest_cases_before_after.png" /><figcaption>35 Hardest Cases Before After</figcaption></figure><figure><img src="../plots/36_cases_where_grpo_hurt.png" alt="36_cases_where_grpo_hurt.png" /><figcaption>36 Cases Where Grpo Hurt</figcaption></figure></div>
+    </section>
+    
+  
+    <section class="section">
+      <div class="section-head">
+        <h2>Ablations</h2>
+        <p>Reward, temperature, generation-count, warm-start, steps, and DPO-after-GRPO sensitivity views.</p>
+      </div>
+      <div class="plots"><figure><img src="../plots/47_reward_ablation_score.png" alt="47_reward_ablation_score.png" /><figcaption>47 Reward Ablation Score</figcaption></figure><figure><img src="../plots/48_without_certificate_bonus.png" alt="48_without_certificate_bonus.png" /><figcaption>48 Without Certificate Bonus</figcaption></figure><figure><img src="../plots/49_without_unsafe_penalty.png" alt="49_without_unsafe_penalty.png" /><figcaption>49 Without Unsafe Penalty</figcaption></figure><figure><img src="../plots/50_without_parse_bonus.png" alt="50_without_parse_bonus.png" /><figcaption>50 Without Parse Bonus</figcaption></figure><figure><img src="../plots/51_num_generations_ablation.png" alt="51_num_generations_ablation.png" /><figcaption>51 Num Generations Ablation</figcaption></figure><figure><img src="../plots/52_model_size_ablation.png" alt="52_model_size_ablation.png" /><figcaption>52 Model Size Ablation</figcaption></figure><figure><img src="../plots/53_sft_checkpoint_vs_base_start.png" alt="53_sft_checkpoint_vs_base_start.png" /><figcaption>53 Sft Checkpoint Vs Base Start</figcaption></figure><figure><img src="../plots/54_grpo_steps_ablation.png" alt="54_grpo_steps_ablation.png" /><figcaption>54 Grpo Steps Ablation</figcaption></figure><figure><img src="../plots/55_temperature_ablation.png" alt="55_temperature_ablation.png" /><figcaption>55 Temperature Ablation</figcaption></figure><figure><img src="../plots/56_dpo_after_grpo_ablation.png" alt="56_dpo_after_grpo_ablation.png" /><figcaption>56 Dpo After Grpo Ablation</figcaption></figure></div>
+    </section>
+    
+  
+    <section class="section">
+      <div class="section-head">
+        <h2>Artifact Inventory</h2>
+        <p>Every report, matrix, and run directory currently tracked under artifacts/exquisite-training.</p>
+      </div>
+      <div class="artifact-panel"><ul><li><code>artifacts/exquisite-training/reports/exquisite_training_summary.json</code></li><li><code>artifacts/exquisite-training/reports/final_policy_matrix.csv</code></li><li><code>artifacts/exquisite-training/reports/final_policy_matrix.json</code></li><li><code>artifacts/exquisite-training/reports/per_case_results.jsonl</code></li><li><code>artifacts/exquisite-training/reports/per_task_results.csv</code></li><li><code>artifacts/exquisite-training/reports/failure_taxonomy.json</code></li><li><code>artifacts/exquisite-training/reports/ablation_results.json</code></li><li><code>artifacts/exquisite-training/dpo-falsifier-distill/</code></li><li><code>artifacts/exquisite-training/grpo-0.5b/</code></li><li><code>artifacts/exquisite-training/sft-1.5b/</code></li></ul></div>
+    </section>
+    
+  
+    <section class="section">
+      <div class="section-head">
+        <h2>Reproduction Commands</h2>
+        <p>Local smoke commands and the Hugging Face launch command used to reproduce the full Exquisite pipeline.</p>
+      </div>
+      <div class="command-panel"><pre><code>python training/exquisite/collect_selfplay_rollouts.py --mode smoke --case-limit 6 --eval-case-limit 2 --num-generations 4
+python training/exquisite/evaluate_exquisite_policy.py
+python training/exquisite/plot_exquisite_training_results.py
+python training/exquisite/build_exquisite_dashboard.py
+python training/exquisite/render_exquisite_report.py
+
+export HF_TOKEN_PRIMARY="..."
+export HF_TOKEN_SECONDARY="..."
+python training/exquisite/launch_exquisite_jobs.py --monitor</code></pre></div>
+    </section>
+    
+  <footer>Generated at 2026-04-26T01:57:44.182459+00:00. Report artifact: <code>artifacts/exquisite-training/reports/exquisite_training_report.md</code></footer>
 </body>
 </html>

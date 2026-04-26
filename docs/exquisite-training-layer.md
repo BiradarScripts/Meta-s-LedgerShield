@@ -294,6 +294,8 @@ python training/exquisite/collect_selfplay_rollouts.py \
 python training/exquisite/evaluate_exquisite_policy.py
 python training/exquisite/plot_exquisite_training_results.py
 python training/exquisite/build_exquisite_dashboard.py
+python training/exquisite/render_exquisite_report.py
+python training/exquisite/monitor_exquisite_jobs.py
 ```
 
 HF launch path:
@@ -305,11 +307,16 @@ export HF_TOKEN_SECONDARY="your_second_account_token"
 python training/exquisite/launch_exquisite_jobs.py \
   --repo-id shreayas/ledgershield-controlbench \
   --namespace shreayas \
-  --timeout 8h \
   --monitor
 ```
 
-The launcher passes the selected token as an HF Job secret and does not write token values into the repository.
+The launcher passes the selected token as an HF Job secret, syncs the current local Exquisite source into the Hugging Face Space before job start, uses budget-aware per-run hardware and timeout caps by default, and does not write token values into the repository.
+
+To refresh job status, dashboard, and report without creating duplicate HF jobs:
+
+```bash
+python training/exquisite/monitor_exquisite_jobs.py --refresh-artifacts
+```
 
 ## 19. Limitations
 

@@ -319,14 +319,42 @@ def per_case_rows_from_existing_metrics(metrics: dict[str, Any]) -> list[dict[st
     return rows
 
 
-def pending_policy_rows() -> list[dict[str, Any]]:
-    return [
+def launch_status_path(report_dir: Path | None = None) -> Path:
+    base_dir = EXQUISITE_ROOT / "reports" if report_dir is None else report_dir
+    return base_dir / "hf_exquisite_launches.json"
+
+
+def launch_jobs(report_dir: Path | None = None) -> list[dict[str, Any]]:
+    payload = read_json(launch_status_path(report_dir), default={}) or {}
+    jobs = payload.get("jobs", []) if isinstance(payload, dict) else []
+    return [row for row in jobs if isinstance(row, dict)]
+
+
+def live_launch_jobs(report_dir: Path | None = None) -> list[dict[str, Any]]:
+    return [row for row in launch_jobs(report_dir) if not row.get("exclude_from_live_reports")]
+
+
+def excluded_run_names(report_dir: Path | None = None) -> set[str]:
+    jobs = launch_jobs(report_dir)
+    names = {str(row.get("name") or "") for row in jobs}
+    excluded: set[str] = set()
+    for name in names:
+        matching = [row for row in jobs if str(row.get("name") or "") == name]
+        if matching and all(row.get("exclude_from_live_reports") for row in matching):
+            excluded.add(name)
+    return excluded
+
+
+def pending_policy_rows(excluded_policy_keys: set[str] | None = None) -> list[dict[str, Any]]:
+    rows = [
         {"policy_key": "grpo_0_5b", "policy": "GRPO Qwen", "model": "0.5B", "method": "SFT->GRPO"},
         {"policy_key": "sft_1_5b", "policy": "SFT Qwen", "model": "1.5B", "method": "SFT"},
         {"policy_key": "grpo_1_5b", "policy": "GRPO Qwen", "model": "1.5B", "method": "SFT->GRPO"},
         {"policy_key": "grpo_3b", "policy": "GRPO Qwen", "model": "3B", "method": "SFT+GRPO"},
         {"policy_key": "dpo_falsifier", "policy": "DPO-Falsifier", "model": "1.5B/3B", "method": "GRPO->DPO"},
     ]
+    excluded = excluded_policy_keys or set()
+    return [row for row in rows if str(row.get("policy_key") or "") not in excluded]
 
 
 def fill_pending(row: dict[str, Any]) -> dict[str, Any]:

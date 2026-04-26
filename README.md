@@ -582,6 +582,8 @@ The new Exquisite Training Layer adds a second post-training stage:
 
 This turns LedgerShield from a static benchmark into a self-improving enterprise-control training environment.
 
+The Hugging Face launcher now also syncs the current local `training/`, `server/`, `docs/`, and top-level runtime files into the Space repo before starting jobs, and it uses budget-aware per-run hardware and timeout caps by default, so the cloud runs execute the same Exquisite code and docs that exist in this workspace rather than an older Space snapshot.
+
 See:
 
 - [`docs/exquisite-training-layer.md`](./docs/exquisite-training-layer.md)
@@ -590,6 +592,12 @@ See:
 - [`artifacts/exquisite-training/reports/exquisite_training_report.md`](./artifacts/exquisite-training/reports/exquisite_training_report.md)
 - [`artifacts/exquisite-training/plots/`](./artifacts/exquisite-training/plots/)
 - [`artifacts/exquisite-training/dashboard/index.html`](./artifacts/exquisite-training/dashboard/index.html)
+
+Operationally, the Exquisite layer now has separate scripts for:
+
+- launching the HF run matrix: `training/exquisite/launch_exquisite_jobs.py`
+- monitoring existing HF jobs without relaunching: `training/exquisite/monitor_exquisite_jobs.py`
+- rebuilding the judge-facing markdown report from current artifacts: `training/exquisite/render_exquisite_report.py`
 
 ## Documentation
 

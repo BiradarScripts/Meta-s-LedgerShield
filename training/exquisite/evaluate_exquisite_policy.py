@@ -12,6 +12,7 @@ try:  # pragma: no cover
     from .common import (
         EXQUISITE_ROOT,
         PENDING,
+        excluded_run_names,
         fill_pending,
         failure_reason,
         load_existing_training_metrics,
@@ -32,6 +33,7 @@ except ImportError:  # pragma: no cover
     from common import (  # type: ignore
         EXQUISITE_ROOT,
         PENDING,
+        excluded_run_names,
         fill_pending,
         failure_reason,
         load_existing_training_metrics,
@@ -143,9 +145,14 @@ def row_from_run_dir(path: Path) -> tuple[dict[str, Any] | None, list[dict[str, 
     return summary_to_row(policy_key, policy, model, method, summary, eval_path), per_case
 
 
-def merge_policy_rows(existing: list[dict[str, Any]], discovered: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def merge_policy_rows(
+    existing: list[dict[str, Any]],
+    discovered: list[dict[str, Any]],
+    excluded_policy_keys: set[str] | None = None,
+) -> list[dict[str, Any]]:
+    excluded = excluded_policy_keys or set()
     rows_by_key = {row["policy_key"]: fill_pending(row) for row in existing}
-    for row in pending_policy_rows():
+    for row in pending_policy_rows(excluded):
         rows_by_key.setdefault(row["policy_key"], fill_pending(row))
     for row in discovered:
         rows_by_key[row["policy_key"]] = fill_pending(row)
@@ -161,8 +168,9 @@ def merge_policy_rows(existing: list[dict[str, Any]], discovered: list[dict[str,
         "dpo_falsifier",
         "teacher_policy",
     ]
+    order = [key for key in order if key not in excluded]
     ordered = [rows_by_key[key] for key in order if key in rows_by_key]
-    ordered.extend(row for key, row in sorted(rows_by_key.items()) if key not in order)
+    ordered.extend(row for key, row in sorted(rows_by_key.items()) if key not in order and key not in excluded)
     return ordered
 
 
@@ -222,7 +230,7 @@ def default_ablation_results() -> dict[str, Any]:
     }
 
 
-def artifact_inventory(root: Path, report_dir: Path) -> str:
+def artifact_inventory(root: Path, report_dir: Path, run_names: list[str]) -> str:
     paths = [
         report_dir / "exquisite_training_summary.json",
         report_dir / "final_policy_matrix.csv",
@@ -234,7 +242,7 @@ def artifact_inventory(root: Path, report_dir: Path) -> str:
     ]
     rows = ["# Exquisite Training Artifact Inventory", "", f"Generated at: `{utc_now()}`", ""]
     rows.extend(f"- `{rel_path(path)}`" for path in paths)
-    for name in sorted(RUN_HINTS):
+    for name in sorted(run_names):
         rows.append(f"- `{rel_path(root / name)}/`")
     text = "\n".join(rows) + "\n"
     (report_dir / "artifact_inventory.md").write_text(text, encoding="utf-8")
@@ -244,16 +252,19 @@ def artifact_inventory(root: Path, report_dir: Path) -> str:
 def main() -> None:
     args = parse_args()
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    excluded_runs = excluded_run_names(args.output_dir)
+    excluded_policy_keys = {RUN_HINTS[name][0] for name in excluded_runs if name in RUN_HINTS}
+    active_run_hints = {name: hint for name, hint in RUN_HINTS.items() if name not in excluded_runs}
     existing_metrics = load_existing_training_metrics()
     existing_rows = policy_rows_from_existing_metrics(existing_metrics)
     per_case = per_case_rows_from_existing_metrics(existing_metrics)
     discovered_rows: list[dict[str, Any]] = []
-    for run_name in RUN_HINTS:
+    for run_name in active_run_hints:
         row, run_per_case = row_from_run_dir(args.artifact_root / run_name)
         if row:
             discovered_rows.append(row)
         per_case.extend(run_per_case)
-    matrix = merge_policy_rows(existing_rows, discovered_rows)
+    matrix = merge_policy_rows(existing_rows, discovered_rows, excluded_policy_keys)
     per_task = build_per_task_rows(per_case)
     selfplay_rows: list[dict[str, Any]] = []
     for path in [args.artifact_root / "selfplay-0.5b" / "selfplay_candidates.jsonl"]:
@@ -270,7 +281,14 @@ def main() -> None:
         "per_case_row_count": len(per_case),
         "selfplay_candidate_count": len(selfplay_rows),
         "matrix_path": rel_path(args.output_dir / "final_policy_matrix.csv"),
-        "note": "New GRPO/DPO rows remain PENDING until Hugging Face jobs upload final_policy_eval.json artifacts.",
+        "excluded_runs": sorted(excluded_runs),
+        "note": (
+            "New GRPO/DPO rows remain PENDING until Hugging Face jobs upload final_policy_eval.json artifacts."
+            if not excluded_runs
+            else "Live report excludes budget-cut runs: "
+            + ", ".join(sorted(excluded_runs))
+            + ". Remaining GRPO/DPO rows stay PENDING until Hugging Face jobs upload final_policy_eval.json artifacts."
+        ),
     }
     write_csv(args.output_dir / "final_policy_matrix.csv", matrix, MATRIX_COLUMNS)
     write_json(args.output_dir / "final_policy_matrix.json", matrix)
@@ -279,7 +297,7 @@ def main() -> None:
     write_json(args.output_dir / "failure_taxonomy.json", failure_taxonomy)
     write_json(args.output_dir / "ablation_results.json", ablations)
     write_json(args.output_dir / "exquisite_training_summary.json", summary)
-    artifact_inventory(args.artifact_root, args.output_dir)
+    artifact_inventory(args.artifact_root, args.output_dir, list(active_run_hints))
     print(json.dumps(to_jsonable(summary), indent=2, sort_keys=True))
 
 

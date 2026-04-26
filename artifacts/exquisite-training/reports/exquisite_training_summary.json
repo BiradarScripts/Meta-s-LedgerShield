@@ -1,11 +1,15 @@
 {
-  "completed_policy_count": 5,
-  "generated_at": "2026-04-25T20:00:00.882093+00:00",
+  "completed_policy_count": 6,
+  "excluded_runs": [
+    "grpo-1.5b",
+    "grpo-3b-flagship"
+  ],
+  "generated_at": "2026-04-26T01:57:31.924689+00:00",
   "matrix_path": "artifacts/exquisite-training/reports/final_policy_matrix.csv",
-  "note": "New GRPO/DPO rows remain PENDING until Hugging Face jobs upload final_policy_eval.json artifacts.",
-  "pending_policy_count": 5,
-  "per_case_row_count": 45,
-  "policy_count": 10,
-  "selfplay_candidate_count": 12,
+  "note": "Live report excludes budget-cut runs: grpo-1.5b, grpo-3b-flagship. Remaining GRPO/DPO rows stay PENDING until Hugging Face jobs upload final_policy_eval.json artifacts.",
+  "pending_policy_count": 2,
+  "per_case_row_count": 54,
+  "policy_count": 8,
+  "selfplay_candidate_count": 72,
   "status": "completed_with_pending_new_runs"
 }

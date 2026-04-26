@@ -36,3 +36,18 @@ The safety plots track unsafe release, certificate quality, control satisfaction
 ## Ablations
 
 The ablation plots are generated immediately, but numeric bars remain pending until the corresponding HF ablation runs complete.
+
+## Dashboard
+
+`training/exquisite/build_exquisite_dashboard.py` now renders a multi-section HTML dashboard with:
+
+- executive metric cards,
+- the full policy matrix,
+- live Hugging Face launch status,
+- GRPO dynamics,
+- self-play and falsifier evidence,
+- safety and audit plots,
+- per-case analysis,
+- ablations,
+- artifact inventory,
+- reproduction commands.
