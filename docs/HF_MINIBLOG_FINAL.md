@@ -37,11 +37,11 @@ If you only remember one thing from this post, let it be this:
 
 **Pitch Video:** https://youtu.be/-Yv1LeFBvrQ
 
-**Primary Documentation:** [`docs/DOCUMENTATION.md`](./docs/DOCUMENTATION.md)
+**Primary Documentation:** [`docs/DOCUMENTATION.md`](./DOCUMENTATION.md)
 
-**HF Mini-Blog:** [`docs/HF_MINIBLOG_FINAL.md`](./docs/HF_MINIBLOG_FINAL.md)
+**HF Mini-Blog:** [`docs/HF_MINIBLOG_FINAL.md`](./HF_MINIBLOG_FINAL.md)
 
-**Benchmark Specification:** [`openenv.yaml`](./openenv.yaml)
+**Benchmark Specification:** [`openenv.yaml`](../openenv.yaml)
 
 **Original SFT Training Notebook:** https://huggingface.co/spaces/shreayas/ledgershield-controlbench/blob/main/training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb  
 Shows the initial supervised fine-tuning pipeline built on the OpenEnv environment.
