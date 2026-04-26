@@ -17,6 +17,8 @@ tags:
 
 # LedgerShield ControlBench 🛡️
 
+**LedgerShield is a deployment-grade trust-and-governance benchmark for autonomous enterprise AI agents. Unlike standard RL environments that test isolated task classification, LedgerShield measures whether an AI agent deserves operational authority. It challenges agents to investigate Accounts Payable (AP) fraud, enforce SOX compliance, and maintain calibrated trust against patient adversaries over extended enterprise workflows.**
+
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
 [![CI](https://img.shields.io/badge/ci-github_actions-success.svg)](./.github/workflows/ci.yml)
