@@ -113,6 +113,58 @@ LedgerShield now shows two distinct training stories:
 
 *Safety is preserved while rewards improve: the best additive policy moves right on score without moving upward on unsafe release.*
 
+## Training Ladder: from live rollouts to environment reward
+
+For judges who want the training story in one minute, LedgerShield now exposes a simple progression:
+
+### Phase 0 — Build the world first
+
+Before post-training, the team built the **LedgerShield world** itself: a partially observable enterprise AP environment with hidden evidence, institutional memory, delayed artifacts, and evolving authority state. This matters because the model is not trained on a static table of labels; it is trained against an environment that behaves like a control workflow.
+
+### Layer 1 — Original SFT loop
+
+The original supervised fine-tuning path starts from **Base Qwen 0.5B** at a `0.1283` mean score. A **teacher** policy then performs **45 live OpenEnv rollouts**, and those trajectories are written as JSONL SFT examples. Training on those live investigations lifts the model to **SFT Qwen 0.5B = `0.4394`**, a gain of **`+0.3111`** on the reported evaluation slice.
+
+### Layer 2A — Self-play candidate generation
+
+The additive Exquisite layer begins from the SFT model and asks it to generate new candidate action plans. In the current artifact stack this produces **72 self-play candidates**, which LedgerShield then checks for:
+
+- JSON validity
+- action safety
+- evidence sufficiency
+- certificate strength
+- control-objective success
+
+This stage writes artifacts such as `selfplay_candidates.jsonl` and `falsifier_preferences.jsonl`.
+
+### Layer 2B — GRPO with environment reward
+
+The main improvement comes from **environment-in-the-loop GRPO**. Instead of only copying teacher behavior, the model samples multiple plans, LedgerShield executes and scores them, and the policy is updated using relative reward inside the group. This is the core shift from **imitation** to **environment-driven improvement**.
+
+On the reported policy matrix:
+
+- **SFT Qwen 0.5B**: `0.4394`
+- **GRPO Qwen 0.5B**: `0.6606`
+- **Teacher**: `0.6627`
+
+GRPO also improves:
+
+- **certificate score** from `0.8478` to `0.9653`
+- **control-satisfied resolution** from `0.2222` to `0.6667`
+
+### Layer 2C / 2D — Scaling and distillation
+
+The repo also includes:
+
+- a **1.5B SFT scaling run** at `0.4798`
+- a **DPO falsifier-distillation run** at `0.4503`
+
+The practical takeaway from the current artifact stack is that **reward-driven GRPO helped much more than simple scaling**, while **DPO/falsifier distillation was useful but did not beat GRPO** in this run.
+
+### Safety takeaway
+
+Across the reported evaluation tables, the learned policies maintain **`0.0000` unsafe release** on the included eval slices, while the best additive policy reaches near-teacher performance.
+
 ## The Problem: A $2.9 Billion Capability Gap
 
 In 2019, a finance employee wired **$4.2 million** to a fraudster who had impersonated their CEO. The attacker had watched the company for six months — learning vendor patterns, bank-change schedules, and approval windows. This wasn't a suspicious invoice; it was a **long-con operation** that bypassed every checklist.
