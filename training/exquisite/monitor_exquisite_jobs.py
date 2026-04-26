@@ -11,12 +11,12 @@ from pathlib import Path
 from typing import Any
 
 try:  # pragma: no cover
-    from .common import EXQUISITE_ROOT, read_json, rel_path, safe_float, utc_now, write_json
+    from .common import EXQUISITE_ROOT, artifact_complete_for_job, read_json, rel_path, safe_float, utc_now, write_json
 except ImportError:  # pragma: no cover
-    from common import EXQUISITE_ROOT, read_json, rel_path, safe_float, utc_now, write_json  # type: ignore
+    from common import EXQUISITE_ROOT, artifact_complete_for_job, read_json, rel_path, safe_float, utc_now, write_json  # type: ignore
 
 
-TERMINAL_STAGES = {"COMPLETED", "CANCELED", "ERROR", "DELETED"}
+TERMINAL_STAGES = {"COMPLETE", "COMPLETED", "CANCELED", "ERROR", "DELETED"}
 
 
 def parse_args() -> argparse.Namespace:
@@ -52,6 +52,10 @@ def refresh_status(data: dict[str, Any], tail_lines: int) -> dict[str, Any]:
             stage = getattr(getattr(info, "status", None), "stage", None)
             row["last_status"] = getattr(stage, "value", str(stage))
             row["last_message"] = str(getattr(getattr(info, "status", None), "message", "") or "")
+            if artifact_complete_for_job(row):
+                row["last_status"] = "COMPLETE"
+                row["last_message"] = "artifact-complete"
+                continue
             if str(row.get("last_status")) == "RUNNING":
                 lines: list[str] = []
                 for index, line in enumerate(
@@ -127,7 +131,7 @@ def summarize(data: dict[str, Any]) -> dict[str, Any]:
         "job_count": len(jobs),
         "running": sum(1 for row in jobs if str(row.get("last_status")) == "RUNNING"),
         "scheduling": sum(1 for row in jobs if str(row.get("last_status")) == "SCHEDULING"),
-        "completed": sum(1 for row in jobs if str(row.get("last_status")) == "COMPLETED"),
+        "completed": sum(1 for row in jobs if str(row.get("last_status")) in {"COMPLETE", "COMPLETED"}),
         "terminal": sum(1 for row in jobs if str(row.get("last_status")) in TERMINAL_STAGES),
         "artifact_status_file": rel_path(EXQUISITE_ROOT / "reports" / "hf_exquisite_launches.json"),
         "jobs": [

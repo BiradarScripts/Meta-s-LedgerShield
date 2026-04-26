@@ -40,7 +40,15 @@ tags:
 
 **Exquisite training layer:** [`docs/exquisite-training-layer.md`](./docs/exquisite-training-layer.md)
 
+**Exquisite results deep dive:** [`docs/exquisite-visual-analysis.md`](./docs/exquisite-visual-analysis.md)
+
+**Exquisite dashboard:** [`artifacts/exquisite-training/dashboard/index.html`](./artifacts/exquisite-training/dashboard/index.html)
+
 **Short mini-blog source:** [`docs/HF_MINIBLOG_FINAL.md`](./docs/HF_MINIBLOG_FINAL.md)
+
+> **Additive training note:** The original OpenEnv SFT benchmark remains unchanged under [`training/ledgershield_trl_training.py`](./training/ledgershield_trl_training.py), [`docs/training-report.md`](./docs/training-report.md), and [`artifacts/trl-openenv-hf-a10g-qwen-rich/`](./artifacts/trl-openenv-hf-a10g-qwen-rich/). The new environment-in-the-loop work lives separately under [`training/exquisite/`](./training/exquisite/), [`artifacts/exquisite-training/`](./artifacts/exquisite-training/), [`docs/exquisite-training-layer.md`](./docs/exquisite-training-layer.md), and [`docs/exquisite-visual-analysis.md`](./docs/exquisite-visual-analysis.md).
+>
+> **Current additive result:** `GRPO Qwen 0.5B` reaches `0.6606` mean score, `0.9653` certificate score, `0.6667` control-satisfied resolution, `0.0000` unsafe release, and `1.0000` parse success against a `0.6627` teacher reference.
 
 > **LedgerShield is a deployment-grade trust-and-governance benchmark for autonomous enterprise AI agents — the first RL environment that measures not just whether an AI can solve a task, but whether it *deserves operational authority*.**
 

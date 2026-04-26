@@ -272,23 +272,35 @@ def main() -> None:
     failure_taxonomy = build_failure_taxonomy(per_case, selfplay_rows)
     ablations_path = args.output_dir / "ablation_results.json"
     ablations = read_json(ablations_path, default=None) or default_ablation_results()
+    completed_count = sum(1 for row in matrix if row.get("status") == "completed")
+    pending_count = sum(1 for row in matrix if row.get("status") != "completed")
+    if excluded_runs:
+        if pending_count:
+            note = (
+                "Current Exquisite report scope focuses on the additive runs that are still collecting final artifacts."
+            )
+            summary_status = "completed_with_pending_new_runs"
+        else:
+            note = "Current Exquisite report scope covers the completed additive run set and preserves the original SFT benchmark unchanged."
+            summary_status = "completed"
+    else:
+        if pending_count:
+            note = "New GRPO/DPO rows remain PENDING until Hugging Face jobs upload final_policy_eval.json artifacts."
+            summary_status = "completed_with_pending_new_runs"
+        else:
+            note = "All live-scope policy rows are complete."
+            summary_status = "completed"
     summary = {
         "generated_at": utc_now(),
-        "status": "completed_with_pending_new_runs",
+        "status": summary_status,
         "policy_count": len(matrix),
-        "completed_policy_count": sum(1 for row in matrix if row.get("status") == "completed"),
-        "pending_policy_count": sum(1 for row in matrix if row.get("status") != "completed"),
+        "completed_policy_count": completed_count,
+        "pending_policy_count": pending_count,
         "per_case_row_count": len(per_case),
         "selfplay_candidate_count": len(selfplay_rows),
         "matrix_path": rel_path(args.output_dir / "final_policy_matrix.csv"),
         "excluded_runs": sorted(excluded_runs),
-        "note": (
-            "New GRPO/DPO rows remain PENDING until Hugging Face jobs upload final_policy_eval.json artifacts."
-            if not excluded_runs
-            else "Live report excludes budget-cut runs: "
-            + ", ".join(sorted(excluded_runs))
-            + ". Remaining GRPO/DPO rows stay PENDING until Hugging Face jobs upload final_policy_eval.json artifacts."
-        ),
+        "note": note,
     }
     write_csv(args.output_dir / "final_policy_matrix.csv", matrix, MATRIX_COLUMNS)
     write_json(args.output_dir / "final_policy_matrix.json", matrix)

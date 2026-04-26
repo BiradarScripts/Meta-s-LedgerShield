@@ -56,18 +56,18 @@
     "unsafe_release": "0.0000"
   },
   {
-    "certificate_score": "PENDING",
-    "control_satisfied": "PENDING",
-    "mean_score": "PENDING",
-    "mean_total_reward": "PENDING",
+    "certificate_score": "0.9653",
+    "control_satisfied": "0.6667",
+    "mean_score": "0.6606",
+    "mean_total_reward": "-2.9266",
     "method": "SFT->GRPO",
     "model": "0.5B",
-    "parse_success": "PENDING",
+    "parse_success": "1.0000",
     "policy": "GRPO Qwen",
     "policy_key": "grpo_0_5b",
-    "source": "PENDING",
-    "status": "PENDING",
-    "unsafe_release": "PENDING"
+    "source": "artifacts/exquisite-training/grpo-0.5b/final_policy_eval.json",
+    "status": "completed",
+    "unsafe_release": "0.0000"
   },
   {
     "certificate_score": "0.7992",

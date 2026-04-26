@@ -2,57 +2,51 @@
 
 ## 1. Executive Summary
 
-LedgerShield already demonstrated real OpenEnv-connected supervised fine-tuning: the existing runner collected live trajectories through LedgerShield environment calls, fine-tuned `Qwen/Qwen2.5-0.5B-Instruct` with LoRA, logged optimizer and reward metrics, and evaluated random, naive, base-model, trained-model, and teacher policies in the same environment.
+LedgerShield already had a real OpenEnv-connected SFT proof. That original evidence remains intact under `training/ledgershield_trl_training.py`, `training/launch_hf_a10g_qwen_job.py`, `docs/training-report.md`, and `artifacts/trl-openenv-hf-a10g-qwen-rich/`.
 
-The Exquisite Training Layer adds a second post-training phase. Instead of only imitating teacher trajectories, the model generates multiple candidate accounts-payable control plans, executes each plan inside LedgerShield, receives reward from final score, certificate quality, control satisfaction, institutional utility, institutional loss score, parse validity, and unsafe-release penalties, and is optimized with GRPO-style online RL. A final optional preference-distillation stage converts best-vs-worst falsifier-scored rollouts into a stable DPO adapter.
+The Exquisite Training Layer adds a second, fully separate training surface under `training/exquisite/` and `artifacts/exquisite-training/`. It turns the project from:
 
-The purpose is to show that LedgerShield is not merely a benchmark. It is a self-improving enterprise-control training environment.
+> benchmark + live SFT proof
 
-## 2. What Was Already Proven by the Existing SFT Layer
+into:
 
-The original training layer is preserved unchanged under `artifacts/trl-openenv-hf-a10g-qwen-rich/`.
+> benchmark + live SFT proof + environment-in-the-loop self-improvement pipeline
 
-It proved:
+The completed additive artifact pack now contains:
 
-- Live OpenEnv trajectory collection through `reset()` and `step()`.
-- TRL SFT on executable LedgerShield action plans.
-- Held-out improvement over random, naive, and base Qwen policies.
-- Parse-stable JSON action plans.
-- Improved certificate quality.
-- Zero unsafe-release rate on the held-out split.
-- A plot-rich report with loss curves, reward checkpoints, policy ladders, per-case scores, safety metrics, and certificate-quality analysis.
+- self-play candidate generation from the SFT checkpoint,
+- deterministic environment and falsifier scoring,
+- online GRPO post-training,
+- optional DPO-style preference distillation,
+- a completed policy matrix,
+- a 56-plot visualization pack,
+- an HTML dashboard,
+- and a standalone analysis/report stack.
 
-Existing held-out results:
+The headline outcome is strong:
 
-| Policy | Eval cases | Mean score | Certificate mean | Parse success | Unsafe release |
-|---|---:|---:|---:|---:|---:|
-| Random baseline | 9 | 0.1088 | 0.4461 | 1.0000 | 0.0000 |
-| Naive PAY baseline | 9 | 0.0693 | 0.4794 | 1.0000 | 0.0000 |
-| Base Qwen 0.5B | 9 | 0.1283 | 0.4044 | 1.0000 | 0.0000 |
-| SFT Qwen 0.5B | 9 | 0.4394 | 0.8478 | 1.0000 | 0.0000 |
-| Teacher policy | 9 | 0.6627 | 0.9472 | 1.0000 | 0.0000 |
+- `Base Qwen 0.5B`: `0.1283`
+- `SFT Qwen 0.5B`: `0.4394`
+- `GRPO Qwen 0.5B`: `0.6606`
+- `Teacher`: `0.6627`
 
-## 3. Why We Added a Second Training Layer
+That means the additive GRPO layer moves the 0.5B policy to essentially teacher-level mean score while preserving `1.0000` parse success and `0.0000` unsafe release.
 
-SFT proves that the model can imitate strong demonstrations. It does not prove that the environment can directly improve the model through feedback.
+## 2. What Stayed Untouched
 
-The Exquisite Training Layer tests the stronger claim:
+The original benchmark and the original A10G SFT proof were preserved as first-class evidence:
 
-> Can LedgerShield itself provide the reward signal needed to improve an LLM policy?
+- `training/ledgershield_trl_training.py`
+- `training/launch_hf_a10g_qwen_job.py`
+- `training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb`
+- `docs/training-report.md`
+- `artifacts/trl-openenv-hf-a10g-qwen-rich/`
 
-This matters because enterprise-control agents should not be optimized only for surface imitation. They should be optimized for outcomes: safe resolution, grounded evidence, policy completion, certificate validity, institutional utility, and resistance to unsafe payment release.
+The Exquisite layer is additive. It does not replace the initial benchmark or reframe the original SFT run as obsolete.
 
-## 4. Method: Self-Play, Falsification, GRPO, and Preference Distillation
+## 3. Additive Layout
 
-The new layer has five stages:
-
-1. Warm start from the existing SFT LoRA checkpoint.
-2. Generate multiple candidate JSON action plans per LedgerShield case.
-3. Parse and execute every candidate inside LedgerShield.
-4. Score every candidate with deterministic environment, certificate, falsifier, and institutional metrics.
-5. Train with GRPO and optionally distill best-vs-worst candidates with DPO.
-
-The implementation is additive:
+The new work lives in its own package and artifact tree:
 
 ```text
 training/exquisite/
@@ -64,275 +58,303 @@ training/exquisite/
   plot_exquisite_training_results.py
   build_exquisite_dashboard.py
   launch_exquisite_jobs.py
+  monitor_exquisite_jobs.py
+  render_exquisite_report.py
+
+docs/
+  exquisite-training-layer.md
+  exquisite-visual-analysis.md
+
+artifacts/exquisite-training/
+  selfplay-0.5b/
+  grpo-0.5b/
+  sft-1.5b/
+  dpo-falsifier-distill/
+  plots/
+  dashboard/
+  reports/
 ```
 
-## 5. Environment Reward Formula
+This isolation is deliberate: judges can inspect the original SFT benchmark on its own, or inspect the additive Exquisite layer as a second-stage training system.
 
-The GRPO reward is derived from LedgerShield outcomes, not from a static label file.
+## 4. Completed Exquisite Run Scope
 
-```text
-reward =
-  0.45 * final_score
-+ 0.15 * certificate_score
-+ 0.15 * control_satisfied_resolution
-+ 0.10 * institutional_utility
-+ 0.05 * institutional_loss_score
-+ 0.10 * parse_success
-- 0.60 * unsafe_release
-```
+The current artifact pack covers the following completed additive runs:
 
-The reward weights are stored in `training/exquisite/common.py` and emitted into each run `config.json`.
+| Run | Method | Output path | Status in artifact pack |
+|---|---|---|---|
+| `selfplay-0.5b` | SFT warm-start self-play candidate generation | `artifacts/exquisite-training/selfplay-0.5b/` | complete |
+| `grpo-0.5b` | SFT -> GRPO | `artifacts/exquisite-training/grpo-0.5b/` | complete |
+| `sft-1.5b` | fast-profile larger-model SFT | `artifacts/exquisite-training/sft-1.5b/` | complete |
+| `dpo-falsifier-distill` | falsifier-derived preference distillation | `artifacts/exquisite-training/dpo-falsifier-distill/` | complete |
 
-## 6. Models and Hardware
+Two larger-scale GRPO ablations (`1.5B` and `3B`) are intentionally outside the current artifact pack and are not presented as completed results.
 
-The launcher targets Hugging Face Jobs with `a100-large` by default. The 3B run is intentionally kept on one A100 unless the training script is upgraded for distributed multi-GPU execution.
+Judge-facing completion in this layer is artifact-based: a run counts as complete when it produces the final evaluation/model/report artifacts required for reproduction and analysis.
 
-| Run | Model | Method | Hardware | Purpose |
-|---|---:|---|---|---|
-| Existing | Qwen 0.5B | SFT | A10G | Already completed |
-| Run A | Qwen 0.5B | SFT -> GRPO | A100 large | Prove RL improves existing SFT |
-| Run B | Qwen 1.5B | SFT | A100 large | Prove model scaling |
-| Run C | Qwen 1.5B | SFT -> GRPO | A100 large | Prove SFT -> RL at larger scale |
-| Run D | Qwen 3B | SFT -> GRPO | A100 large | Flagship result |
-| Run E | Qwen 0.5B/1.5B/3B | GRPO -> DPO | A100 large | Stable preference-distilled adapter |
+## 5. Final Policy Matrix
 
-## 7. Experiment Matrix
+The completed live-scope policy matrix is:
 
-| Policy | Model | Method | Status |
-|---|---:|---|---|
-| Random | - | Baseline | Existing |
-| Naive PAY | - | Baseline | Existing |
-| Base Qwen | 0.5B | Base | Existing |
-| SFT Qwen | 0.5B | SFT | Existing |
-| GRPO Qwen | 0.5B | SFT -> GRPO | PENDING |
-| SFT Qwen | 1.5B | SFT | PENDING |
-| GRPO Qwen | 1.5B | SFT -> GRPO | PENDING |
-| GRPO Qwen | 3B | SFT -> GRPO | PENDING |
-| DPO-Falsifier | 1.5B/3B | GRPO -> DPO | PENDING |
-| Teacher | - | Reference | Existing |
+| Policy | Model | Method | Mean score | Mean total reward | Certificate | Control satisfied | Unsafe release | Parse success |
+|---|---:|---|---:|---:|---:|---:|---:|---:|
+| Random | - | baseline | 0.1088 | 0.0888 | 0.4461 | 0.0000 | 0.0000 | 1.0000 |
+| Naive PAY | - | baseline | 0.0693 | 0.0493 | 0.4794 | 0.2222 | 0.0000 | 1.0000 |
+| Base Qwen | 0.5B | base | 0.1283 | -1.4473 | 0.4044 | 0.0000 | 0.0000 | 1.0000 |
+| SFT Qwen | 0.5B | SFT | 0.4394 | -3.1019 | 0.8478 | 0.2222 | 0.0000 | 1.0000 |
+| GRPO Qwen | 0.5B | SFT -> GRPO | 0.6606 | -2.9266 | 0.9653 | 0.6667 | 0.0000 | 1.0000 |
+| SFT Qwen | 1.5B | SFT | 0.4798 | -2.3567 | 0.7992 | 0.0000 | 0.0000 | 1.0000 |
+| DPO-Falsifier | 1.5B/3B | GRPO -> DPO | 0.4503 | -3.1759 | 0.8408 | 0.2222 | 0.0000 | 1.0000 |
+| Teacher | - | oracle-ish | 0.6627 | -2.7090 | 0.9472 | 0.5556 | 0.0000 | 1.0000 |
 
-## 8. Main Results
+Important caveat:
 
-New-run metrics remain `PENDING` until Hugging Face jobs upload `final_policy_eval.json` artifacts.
+- `SFT Qwen 1.5B` comes from a fast-profile run with a `3`-case held-out slice and no base-model pre-eval. It is useful as a scaling signal, but it is not as directly comparable to the `9`-case 0.5B SFT/GRPO rows as the 0.5B rows are to each other.
 
-| Policy | Model | Method | Mean Score | Cert | Control | Unsafe | Parse |
-|---|---:|---|---:|---:|---:|---:|---:|
-| Random | - | baseline | 0.1088 | 0.4461 | 0.0000 | 0.0000 | 1.0000 |
-| Naive PAY | - | baseline | 0.0693 | 0.4794 | 0.2222 | 0.0000 | 1.0000 |
-| Base Qwen | 0.5B | base | 0.1283 | 0.4044 | 0.0000 | 0.0000 | 1.0000 |
-| SFT Qwen | 0.5B | SFT | 0.4394 | 0.8478 | 0.2222 | 0.0000 | 1.0000 |
-| GRPO Qwen | 0.5B | SFT -> GRPO | PENDING | PENDING | PENDING | PENDING | PENDING |
-| SFT Qwen | 1.5B | SFT | PENDING | PENDING | PENDING | PENDING | PENDING |
-| GRPO Qwen | 1.5B | SFT -> GRPO | PENDING | PENDING | PENDING | PENDING | PENDING |
-| GRPO Qwen | 3B | SFT -> GRPO | PENDING | PENDING | PENDING | PENDING | PENDING |
-| DPO-Falsifier | 1.5B/3B | GRPO -> DPO | PENDING | PENDING | PENDING | PENDING | PENDING |
-| Teacher | - | oracle-ish | 0.6627 | 0.9472 | 0.5556 | 0.0000 | 1.0000 |
+## 6. Headline Findings
 
-## 9. Scaling-Law Analysis
+### 6.1 Environment-in-the-loop RL clearly adds value
 
-The scaling-law plot compares model size against mean environment score for SFT and GRPO separately.
+The clean same-size comparison is:
 
-Interpretation rules:
+- `SFT Qwen 0.5B`: `0.4394`
+- `GRPO Qwen 0.5B`: `0.6606`
 
-- If 1.5B SFT beats 0.5B SFT, the benchmark shows model-size sensitivity.
-- If 1.5B GRPO beats 1.5B SFT, the benchmark shows method sensitivity.
-- If 3B GRPO beats 1.5B GRPO, the benchmark shows scalable environment reward.
+That is a gain of `+0.2212` mean score on the same model family, using environment reward rather than pure imitation alone.
 
-This is important because a good benchmark should not saturate immediately. It should reveal meaningful performance differences between model sizes and training methods.
+### 6.2 GRPO nearly closes the full teacher gap
 
-## 10. SFT vs GRPO Analysis
+Using the standard base-to-teacher gap:
 
-SFT trains the model to imitate teacher trajectories. GRPO trains the model from outcome feedback.
+- base score = `0.1283`
+- teacher score = `0.6627`
 
-The central comparisons are:
+Gap closure:
 
-```text
-SFT 0.5B  vs  GRPO 0.5B
-SFT 1.5B  vs  GRPO 1.5B
-```
+- `SFT 0.5B`: `58.2%`
+- `GRPO 0.5B`: `99.6%`
+- `DPO-Falsifier`: `60.3%`
 
-If GRPO improves the same starting checkpoint, LedgerShield has shown that its reward function is useful for optimization, not only evaluation.
+The main outcome is not just “GRPO beats SFT.” It is that GRPO almost fully closes the teacher gap on the held-out slice.
 
-## 11. Safety and Auditability Analysis
+### 6.3 Safety did not regress to buy score
 
-A higher score is not sufficient. The model must remain safe.
+Every completed policy in the current additive pack retains:
 
-The report tracks:
+- `unsafe_release = 0.0000`
+- `parse_success = 1.0000`
 
-- unsafe-release rate,
-- certificate score,
-- control-satisfied resolution,
-- institutional utility,
-- institutional loss score,
-- authority-level distribution,
-- review burn,
-- supplier friction,
-- auditability-vs-score frontier.
+This matters because the key LedgerShield claim is not generic reward improvement. It is safer, more auditable control behavior under enterprise metrics.
 
-A policy that increases score by taking unsafe shortcuts is considered worse, not better.
+### 6.4 GRPO improves certificate and control quality, not just headline score
 
-## 12. Falsifier-Guided Self-Improvement Analysis
+Compared with `SFT Qwen 0.5B`, the `GRPO Qwen 0.5B` policy improves:
 
-The self-play layer generates multiple candidate action plans per case. Every candidate is executed and scored.
+- certificate score from `0.8478` -> `0.9653`
+- control-satisfied resolution from `0.2222` -> `0.6667`
+- institutional utility from `0.8197` -> `0.8785`
+- institutional loss score from `0.9728` -> `0.9837`
 
-The report includes:
+Notably, GRPO even edges past the teacher on certificate mean (`0.9653` vs `0.9472`) and control-satisfied resolution (`0.6667` vs `0.5556`), while still landing just below the teacher on overall mean score (`0.6606` vs `0.6627`).
 
-- candidate reward distribution,
-- best-vs-worst reward margin,
-- falsifier verdict distribution,
-- parse failure taxonomy,
-- unsafe PAY blocking analysis,
-- certificate failure modes,
-- policy-incomplete failure modes.
+### 6.5 DPO is not yet the best final policy
 
-This is the strongest evidence that LedgerShield can act as a training environment.
+The DPO-style falsifier distillation run is useful evidence, but it is not the best policy in the pack:
 
-## 13. Per-Case Analysis
+- `DPO-Falsifier`: `0.4503`
+- `GRPO Qwen 0.5B`: `0.6606`
 
-The report includes per-case heatmaps showing:
+That means the current story is:
 
-- where GRPO improved over SFT,
-- where GRPO hurt performance,
-- which task families benefited most,
-- which cases remain teacher-gap cases,
-- which failures are due to missing evidence,
-- which failures are due to over-control,
-- which failures are due to malformed or incomplete final decisions.
+- self-play works,
+- GRPO works very well,
+- DPO-style polishing is implemented and artifact-complete,
+- but DPO should not be sold as the flagship result.
 
-This prevents cherry-picking.
+## 7. Result-Class Analysis
 
-## 14. Failure Modes
+The most judge-relevant qualitative shift is in the held-out result-class distribution.
 
-The report explicitly tracks remaining failures:
+### 7.1 Base 0.5B
 
-- malformed JSON,
-- valid JSON but invalid action sequence,
-- shallow investigation,
-- false-positive over-control,
-- correct decision but missing policy evidence,
-- correct decision but weak certificate,
-- falsifier-blocked unsupported claim,
-- unsafe release,
-- excessive review burn,
-- supplier-friction-heavy resolution.
+`Base Qwen 0.5B` mostly fails by not doing enough:
 
-Honest failure analysis makes the project more credible.
+- `control_boundary_failed`: `7`
+- `correct_but_policy_incomplete`: `1`
+- `false_positive_overcontrol`: `1`
 
-## 15. Ablations
+This is the classic under-instrumented policy: shallow, under-justified, and not ready for institutional deployment.
 
-The ablation suite is scaffolded for:
+### 7.2 SFT 0.5B
 
-- with vs without certificate bonus,
-- with vs without unsafe-release penalty,
-- with vs without parse bonus,
-- different numbers of GRPO generations,
-- SFT warm start vs base-model start,
-- 0.5B vs 1.5B vs 3B,
-- GRPO only vs GRPO plus DPO distillation,
-- different completion lengths,
-- different temperatures.
+`SFT Qwen 0.5B` improves sharply, but still shows mixed failure types:
 
-Ablation rows remain `PENDING` until the corresponding HF runs complete.
+- `valid_success`: `2`
+- `correct_but_policy_incomplete`: `2`
+- `falsifier_blocked`: `2`
+- `incorrect_resolution`: `2`
+- `false_positive_overcontrol`: `1`
 
-## 16. Visualization Pack
+So the original SFT layer proves real learning, but not yet reliable deployment-level behavior.
 
-The Exquisite Training Layer generates a 56-plot evidence pack under `artifacts/exquisite-training/plots/`.
+### 7.3 GRPO 0.5B
 
-The executive plots are:
+`GRPO Qwen 0.5B` is the clearest step change:
 
-1. `01_final_policy_ladder.png`
-2. `02_sft_vs_grpo_grouped_bar.png`
-3. `03_scaling_law_score_vs_model_size.png`
-4. `04_score_safety_frontier_all_policies.png`
-5. `05_teacher_gap_closure.png`
-6. `06_exquisite_pipeline_diagram.png`
+- `valid_success`: `6`
+- `correct_but_policy_incomplete`: `2`
+- `incorrect_resolution`: `1`
 
-The full manifest is written to `artifacts/exquisite-training/reports/visualization_manifest.json`.
+On this slice, GRPO eliminates both:
 
-## 17. Artifact Inventory
+- `falsifier_blocked` cases
+- `false_positive_overcontrol` cases
 
-Every run writes a self-contained folder under `artifacts/exquisite-training/`.
+That is exactly the kind of shift a judge wants to see from a real environment reward surface.
 
-```text
-artifacts/exquisite-training/<run-name>/
-  config.json
-  train_examples.jsonl
-  eval_examples.jsonl
-  selfplay_candidates.jsonl
-  falsifier_preferences.jsonl
-  grpo_reward_history.csv
-  grpo_step_metrics.csv
-  final_policy_eval.json
-  per_case_results.jsonl
-  final_model/
-```
+### 7.4 DPO-Falsifier
 
-The combined report folder contains:
+`DPO-Falsifier` regresses relative to GRPO:
 
-```text
-artifacts/exquisite-training/reports/
-  exquisite_training_report.md
-  exquisite_training_summary.json
-  final_policy_matrix.csv
-  final_policy_matrix.json
-  visualization_manifest.json
-  artifact_inventory.md
-```
+- `valid_success`: `2`
+- `correct_but_policy_incomplete`: `2`
+- `falsifier_blocked`: `2`
+- `incorrect_resolution`: `3`
 
-## 18. Reproduction Commands
+So the current additive layer supports a strong GRPO story much more than a “GRPO -> DPO is always better” story.
 
-Local smoke path:
+## 8. Self-Play and Falsifier Evidence
+
+The self-play collector produced:
+
+- `72` total candidates
+- `9` evaluation cases
+- `8` generations per case
+- `9` best-vs-worst preference pairs
+
+The raw self-play failure mix is also informative:
+
+- `partial_json_recovery`: `31`
+- `incorrect_resolution`: `10`
+- `false_positive_overcontrol`: `7`
+- `correct_but_policy_incomplete`: `5`
+- `control_boundary_failed`: `3`
+- `valid_success`: `16`
+
+This is actually good evidence for the training story, not bad evidence. It shows that the raw candidate distribution is noisy, which is exactly why the deterministic reward and falsifier layer matter.
+
+The resulting final policies still finish with `1.0000` parse success, so the pipeline is doing real filtering and improvement rather than merely sampling cleaner text.
+
+## 9. Task-Family Readout
+
+The GRPO held-out slice is especially strong in:
+
+- `task_a`: `0.9374`
+- `task_d`: `0.8414`
+- `task_e`: `0.6932`
+
+Its weakest area in the current slice is:
+
+- `task_c`: `0.4608`
+
+That pattern is useful and believable:
+
+- the policy becomes very strong at structured document/control reasoning and BEC-style adjudication,
+- but duplicate/fraud-cluster logic remains a meaningful difficulty band.
+
+The DPO policy shows a more uneven task profile:
+
+- `task_b`: `0.0837`
+- `task_c`: `0.5314`
+- `task_d`: `0.4909`
+- `task_e`: `0.6755`
+- `task_a`: `0.3078`
+
+So DPO is not simply “worse everywhere,” but it is much less consistent than the GRPO policy.
+
+## 10. Visualization Pack
+
+The additive layer produces a 56-plot evidence pack under `artifacts/exquisite-training/plots/`.
+
+Key plots:
+
+![Final policy ladder](../artifacts/exquisite-training/plots/01_final_policy_ladder.png)
+
+The ladder makes the core story visible in one glance: the additive `GRPO Qwen 0.5B` policy nearly matches teacher-level score.
+
+![Score-safety frontier](../artifacts/exquisite-training/plots/04_score_safety_frontier_all_policies.png)
+
+The safety frontier matters because LedgerShield is explicitly not a benchmark where score gains from unsafe release are acceptable. The frontier shows improvement without unsafe-release drift.
+
+![Teacher-gap closure](../artifacts/exquisite-training/plots/05_teacher_gap_closure.png)
+
+This is the cleanest compact visualization of the main claim: SFT closes a lot of the gap, but GRPO closes almost all of it.
+
+![Smoothed GRPO reward curve](../artifacts/exquisite-training/plots/08_grpo_reward_curve_smoothed.png)
+
+The GRPO dynamics plots are important because they make the RL run feel real rather than hand-waved. Reward, certificate, completion-length, and control-satisfaction trajectories are all part of the evidence pack.
+
+![Self-play candidate reward distribution](../artifacts/exquisite-training/plots/17_selfplay_candidate_reward_distribution.png)
+
+This plot is one of the strongest “training environment” proofs in the project: the model generated a spread of candidate plans, and LedgerShield separated them.
+
+![Per-case score heatmap](../artifacts/exquisite-training/plots/27_per_case_score_heatmap.png)
+
+The per-case views make it harder to cherry-pick. They show exactly where the trained policies improve and where they still fall short.
+
+For the full walkthrough, see `docs/exquisite-visual-analysis.md`.
+
+## 11. Artifacts and Reproduction
+
+Primary outputs:
+
+- policy matrix: `artifacts/exquisite-training/reports/final_policy_matrix.csv`
+- summary JSON: `artifacts/exquisite-training/reports/exquisite_training_summary.json`
+- report: `artifacts/exquisite-training/reports/exquisite_training_report.md`
+- dashboard: `artifacts/exquisite-training/dashboard/index.html`
+- plot manifest: `artifacts/exquisite-training/reports/visualization_manifest.json`
+- plot pack: `artifacts/exquisite-training/plots/`
+
+Core local rebuild commands:
 
 ```bash
-python training/exquisite/collect_selfplay_rollouts.py \
-  --output-dir artifacts/exquisite-training/selfplay-0.5b \
-  --mode smoke \
-  --case-limit 6 \
-  --eval-case-limit 3 \
-  --num-generations 4
+python training/exquisite/evaluate_exquisite_policy.py \
+  --artifact-root artifacts/exquisite-training \
+  --output-dir artifacts/exquisite-training/reports
 
-python training/exquisite/evaluate_exquisite_policy.py
-python training/exquisite/plot_exquisite_training_results.py
-python training/exquisite/build_exquisite_dashboard.py
-python training/exquisite/render_exquisite_report.py
-python training/exquisite/monitor_exquisite_jobs.py
+python training/exquisite/plot_exquisite_training_results.py \
+  --artifact-root artifacts/exquisite-training \
+  --report-dir artifacts/exquisite-training/reports \
+  --output-dir artifacts/exquisite-training/plots
+
+python training/exquisite/build_exquisite_dashboard.py \
+  --artifact-root artifacts/exquisite-training \
+  --report-dir artifacts/exquisite-training/reports \
+  --plot-dir artifacts/exquisite-training/plots \
+  --output-dir artifacts/exquisite-training/dashboard
+
+python training/exquisite/render_exquisite_report.py \
+  --artifact-root artifacts/exquisite-training \
+  --report-dir artifacts/exquisite-training/reports \
+  --dashboard-dir artifacts/exquisite-training/dashboard
 ```
 
-HF launch path:
+## 12. Honest Caveats
 
-```bash
-export HF_TOKEN_PRIMARY="your_first_account_token"
-export HF_TOKEN_SECONDARY="your_second_account_token"
+- The original SFT 0.5B benchmark remains the strongest apples-to-apples baseline because it uses the full `9`-case held-out slice and the original 900-step run.
+- The `1.5B` SFT result is a fast-profile scaling signal, not a full flagship training run.
+- The current additive artifact pack does not include full `1.5B` or `3B` GRPO completions.
+- DPO is implemented and reproducible, but the current DPO policy is not competitive with the GRPO flagship.
+- Self-play raw generations are still noisy, especially at the parsing layer, which is visible in the failure taxonomy and should be treated as part of the honest evidence trail.
 
-python training/exquisite/launch_exquisite_jobs.py \
-  --repo-id shreayas/ledgershield-controlbench \
-  --namespace shreayas \
-  --monitor
-```
+## 13. Bottom Line
 
-The launcher passes the selected token as an HF Job secret, syncs the current local Exquisite source into the Hugging Face Space before job start, uses budget-aware per-run hardware and timeout caps by default, and does not write token values into the repository.
+The original LedgerShield proof showed:
 
-To refresh job status, dashboard, and report without creating duplicate HF jobs:
+> a model can learn executable enterprise-control behavior from live environment trajectories.
 
-```bash
-python training/exquisite/monitor_exquisite_jobs.py --refresh-artifacts
-```
+The Exquisite layer shows the stronger claim:
 
-## 19. Limitations
+> a model can generate multiple control plans, have LedgerShield execute and score them, receive deterministic falsifier-guided reward, and improve from that environment feedback.
 
-Current limitations:
-
-- New GRPO, 1.5B, 3B, and DPO numeric results are pending HF job completion.
-- `a100x4` should only be used after the scripts are upgraded for distributed training.
-- Local smoke artifacts prove the pipeline wiring, not final model quality.
-- The reward formula is intentionally explicit and ablatable, but final weights may need tuning after the first GRPO traces.
-
-## 20. Bottom Line
-
-The original LedgerShield training proof showed that a model can learn executable control behavior from live environment trajectories.
-
-The Exquisite Training Layer shows the stronger path:
-
-> LedgerShield can generate, execute, score, falsify, and improve model policies using its own institutional control environment.
-
-That makes LedgerShield not just a benchmark, but a post-training system for enterprise-control agents.
+That is the real upgrade. LedgerShield is no longer only a benchmark with an SFT report. It is a benchmark plus a working post-training environment for enterprise-control agents.

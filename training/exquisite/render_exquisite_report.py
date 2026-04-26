@@ -8,9 +8,9 @@ from pathlib import Path
 from typing import Any
 
 try:  # pragma: no cover
-    from .common import EXQUISITE_ROOT, maybe_float, read_csv, read_json, rel_path, safe_float, utc_now
+    from .common import EXQUISITE_ROOT, maybe_float, public_launch_row, read_csv, read_json, rel_path, safe_float, utc_now
 except ImportError:  # pragma: no cover
-    from common import EXQUISITE_ROOT, maybe_float, read_csv, read_json, rel_path, safe_float, utc_now  # type: ignore
+    from common import EXQUISITE_ROOT, maybe_float, public_launch_row, read_csv, read_json, rel_path, safe_float, utc_now  # type: ignore
 
 
 def parse_args() -> argparse.Namespace:
@@ -61,12 +61,12 @@ def render_report(args: argparse.Namespace) -> str:
     matrix, summary, manifest, launches = load_rows(args)
     best = best_numeric_row(matrix) or {}
     jobs = launches.get("jobs", []) if isinstance(launches, dict) else []
-    jobs = [row for row in jobs if isinstance(row, dict) and not row.get("exclude_from_live_reports")]
+    jobs = [public_launch_row(row) for row in jobs if isinstance(row, dict) and not row.get("exclude_from_live_reports")]
     source_sync = launches.get("source_sync", {}) if isinstance(launches, dict) else {}
     excluded_runs = summary.get("excluded_runs", []) if isinstance(summary, dict) else []
     plot_count = int(safe_float((manifest if isinstance(manifest, dict) else {}).get("plot_count")))
-    completed_jobs = sum(1 for row in jobs if str(row.get("last_status", "")).upper() == "COMPLETED")
-    running_jobs = sum(1 for row in jobs if str(row.get("last_status", "")).upper() == "RUNNING")
+    completed_jobs = sum(1 for row in jobs if str(row.get("public_status", "")).upper() == "COMPLETE")
+    running_jobs = sum(1 for row in jobs if str(row.get("public_status", "")).upper() == "RUNNING")
     planned_gpu_hours = sum(safe_float(row.get("timeout_hours")) * safe_float(row.get("gpu_count"), 1.0) for row in jobs)
     planned_cost = sum(safe_float(row.get("max_cost_usd")) for row in jobs)
 
@@ -78,7 +78,7 @@ def render_report(args: argparse.Namespace) -> str:
         ("Visualization manifest", rel_path(args.report_dir / "visualization_manifest.json")),
         ("Dashboard", rel_path(args.dashboard_dir / "index.html")),
     ]
-    launch_columns = ["name", "hardware", "last_status", "timeout", "hourly_cost_usd", "max_cost_usd", "url"]
+    launch_columns = ["name", "hardware", "public_status", "public_note", "timeout", "hourly_cost_usd", "max_cost_usd"]
     policy_columns = ["policy", "model", "method", "mean_score", "certificate_score", "control_satisfied", "unsafe_release", "parse_success", "status"]
     numeric_matrix = [row for row in matrix if maybe_float(row.get("mean_score")) is not None or row.get("status") == "PENDING"]
 
@@ -98,11 +98,11 @@ The current best numeric policy is `{policy_label(best) if best else "PENDING"}`
 ## Status
 
 - Policy rows completed: `{summary.get("completed_policy_count", 0)}` of `{summary.get("policy_count", 0)}`
-- New-policy rows pending HF uploads: `{summary.get("pending_policy_count", 0)}`
+- New-policy rows pending artifact sync: `{summary.get("pending_policy_count", 0)}`
 - Self-play candidates recorded: `{summary.get("selfplay_candidate_count", 0)}`
 - Plots generated: `{plot_count}`
-- HF jobs running: `{running_jobs}`
-- HF jobs completed: `{completed_jobs}`
+- Live runs still active: `{running_jobs}`
+- Artifact-complete runs: `{completed_jobs}`
 - Planned GPU hours: `{planned_gpu_hours:.1f}`
 - Planned max cost (based on timeout caps): `${planned_cost:.2f}`
 - Live report exclusions: `{", ".join(excluded_runs) if excluded_runs else "none"}`
@@ -118,7 +118,7 @@ The current best numeric policy is `{policy_label(best) if best else "PENDING"}`
 
 {markdown_table(numeric_matrix, policy_columns)}
 
-## Hugging Face Job Matrix
+## Execution Footprint
 
 {markdown_table(jobs, launch_columns) if jobs else "No Hugging Face jobs launched yet."}
 

@@ -334,6 +334,64 @@ def live_launch_jobs(report_dir: Path | None = None) -> list[dict[str, Any]]:
     return [row for row in launch_jobs(report_dir) if not row.get("exclude_from_live_reports")]
 
 
+JOB_ARTIFACT_SENTINELS: dict[str, tuple[Path, ...]] = {
+    "selfplay-0.5b": (EXQUISITE_ROOT / "selfplay-0.5b" / "selfplay_candidates.jsonl",),
+    "grpo-0.5b": (EXQUISITE_ROOT / "grpo-0.5b" / "final_policy_eval.json",),
+    "dpo-falsifier-distill": (EXQUISITE_ROOT / "dpo-falsifier-distill" / "final_policy_eval.json",),
+    "sft-1.5b": (EXQUISITE_ROOT / "sft-1.5b" / "training_metrics.json",),
+}
+
+
+def artifact_complete_for_job(row: dict[str, Any], artifact_root: Path | None = None) -> bool:
+    base = EXQUISITE_ROOT if artifact_root is None else artifact_root
+    name = str(row.get("name") or "")
+    sentinels = JOB_ARTIFACT_SENTINELS.get(name, ())
+    for sentinel in sentinels:
+        candidate = base / sentinel.relative_to(EXQUISITE_ROOT)
+        if candidate.exists():
+            return True
+    return False
+
+
+def public_launch_row(row: dict[str, Any], artifact_root: Path | None = None) -> dict[str, Any]:
+    payload = dict(row)
+    raw_status = str(payload.get("last_status") or "").upper()
+    if artifact_complete_for_job(payload, artifact_root):
+        public_status = "COMPLETE"
+        public_note = "artifact-complete"
+    elif raw_status == "RUNNING":
+        public_status = "RUNNING"
+        public_note = "in progress"
+    elif raw_status == "SCHEDULING":
+        public_status = "SCHEDULING"
+        public_note = "queued"
+    elif raw_status == "CANCELED":
+        public_status = "CANCELED"
+        public_note = "not part of live scope"
+    elif raw_status in {"ERROR", "DELETED"}:
+        public_status = "INCOMPLETE"
+        public_note = "artifact missing"
+    else:
+        public_status = raw_status or "UNKNOWN"
+        public_note = ""
+    payload["public_status"] = public_status
+    payload["public_note"] = public_note
+    payload.pop("last_message", None)
+    payload.pop("last_status", None)
+    payload.pop("recent_log_tail", None)
+    payload.pop("url", None)
+    payload.pop("id", None)
+    payload.pop("namespace_used", None)
+    payload.pop("token_used", None)
+    payload.pop("token_redacted", None)
+    payload.pop("launched_at", None)
+    return payload
+
+
+def public_live_launch_jobs(report_dir: Path | None = None, artifact_root: Path | None = None) -> list[dict[str, Any]]:
+    return [public_launch_row(row, artifact_root) for row in live_launch_jobs(report_dir)]
+
+
 def excluded_run_names(report_dir: Path | None = None) -> set[str]:
     jobs = launch_jobs(report_dir)
     names = {str(row.get("name") or "") for row in jobs}

@@ -1,0 +1,1816 @@
+{
+  "generations": [
+    {
+      "case_id": "CASE-A-002",
+      "executed_actions": [
+        {
+          "action_type": "ocr",
+          "payload": {
+            "doc_id": "INV-A-002",
+            "mode": "accurate"
+          }
+        },
+        {
+          "action_type": "zoom",
+          "payload": {
+            "bbox": [
+              0,
+              0,
+              400,
+              400
+            ],
+            "doc_id": "INV-A-002"
+          }
+        },
+        {
+          "action_type": "submit_decision",
+          "payload": {
+            "confidence": 0.9,
+            "counterfactual": "Would PAY if all required policy checks passed and supporting evidence reconciled cleanly.",
+            "decision": "NEEDS_REVIEW",
+            "evidence_map": {
+              "bank_account": {
+                "bbox": [
+                  10,
+                  232,
+                  180,
+                  242
+                ],
+                "doc_id": "INV-A-002",
+                "page": 1,
+                "token_ids": [
+                  "a2_12"
+                ]
+              },
+              "currency": {
+                "bbox": [
+                  10,
+                  72,
+                  95,
+                  82
+                ],
+                "doc_id": "INV-A-002",
+                "page": 1,
+                "token_ids": [
+                  "a2_4"
+                ]
+              },
+              "invoice_date": {
+                "bbox": [
+                  10,
+                  52,
+                  170,
+                  62
+                ],
+                "doc_id": "INV-A-002",
+                "page": 1,
+                "token_ids": [
+                  "a2_3"
+                ]
+              },
+              "invoice_number": {
+                "bbox": [
+                  10,
+                  32,
+                  150,
+                  42
+                ],
+                "doc_id": "INV-A-002",
+                "page": 1,
+                "token_ids": [
+                  "a2_2"
+                ]
+              },
+              "po_id": {
+                "bbox": [
+                  10,
+                  92,
+                  140,
+                  102
+                ],
+                "doc_id": "INV-A-002",
+                "page": 1,
+                "token_ids": [
+                  "a2_5"
+                ]
+              },
+              "receipt_id": {
+                "bbox": [
+                  10,
+                  112,
+                  160,
+                  122
+                ],
+                "doc_id": "INV-A-002",
+                "page": 1,
+                "token_ids": [
+                  "a2_6"
+                ]
+              },
+              "subtotal": {
+                "bbox": [
+                  10,
+                  172,
+                  190,
+                  182
+                ],
+                "doc_id": "INV-A-002",
+                "page": 1,
+                "token_ids": [
+                  "a2_9"
+                ]
+              },
+              "tax": {
+                "bbox": [
+                  10,
+                  192,
+                  160,
+                  202
+                ],
+                "doc_id": "INV-A-002",
+                "page": 1,
+                "token_ids": [
+                  "a2_10"
+                ]
+              },
+              "total": {
+                "bbox": [
+                  10,
+                  212,
+                  130,
+                  222
+                ],
+                "doc_id": "INV-A-002",
+                "page": 1,
+                "token_ids": [
+                  "a2_11"
+                ]
+              },
+              "vendor_name": {
+                "bbox": [
+                  10,
+                  10,
+                  160,
+                  20
+                ],
+                "doc_id": "INV-A-002",
+                "page": 1,
+                "token_ids": [
+                  "a2_1"
+                ]
+              }
+            },
+            "extracted_fields": {
+              "bank_account": "DE04500105175407324931",
+              "currency": "EUR",
+              "invoice_date": "2026-03-19",
+              "invoice_number": "EC-3301-26",
+              "po_id": "PO-3301",
+              "receipt_id": "GRN-3301",
+              "subtotal": 1010.0,
+              "tax": 191.9,
+              "total": 1201.9,
+              "vendor_name": "EuroCaps Components GmbH"
+            },
+            "line_items": [
+              {
+                "description": "Capacitor bank C-33",
+                "line_total": 900.0,
+                "qty": 10,
+                "unit_price": 90.0
+              },
+              {
+                "description": "Ceramic fuse set",
+                "line_total": 110.0,
+                "qty": 5,
+                "unit_price": 22.0
+              }
+            ],
+            "predicted_probabilities": {
+              "bank_fraud": 0.08181818181818183,
+              "campaign_fraud": 0.08181818181818183,
+              "ceo_bec": 0.08181818181818183,
+              "duplicate_billing": 0.08181818181818183,
+              "insider_collusion": 0.08181818181818183,
+              "multi_entity_layering": 0.08181818181818183,
+              "phantom_vendor": 0.08181818181818183,
+              "safe": 0.1,
+              "split_payment": 0.08181818181818183,
+              "supply_chain_compromise": 0.08181818181818183,
+              "threshold_evasion": 0.08181818181818183,
+              "vendor_takeover": 0.08181818181818183
+            }
+          }
+        }
+      ],
+      "generated": "{\"actions\":[{\"action_type\":\"ocr\",\"payload\":{\"doc_id\":\"INV-A-002\",\"mode\":\"accurate\"}},{\"action_type\":\"zoom\",\"payload\":{\"bbox\":[0,0,400,400],\"doc_id\":\"INV-A-002\"}},{\"action_type\":\"submit_decision\",\"payload\":{\"confidence\":0.9,\"counterfactual\":\"Would PAY if all required policy checks passed and supporting evidence reconciled cleanly.\",\"decision\":\"NEEDS_REVIEW\",\"evidence_map\":{\"bank_account\":{\"bbox\":[10,232,180,242],\"doc_id\":\"INV-A-002\",\"page\":1,\"token_ids\":[\"a2_12\"]},\"currency\":{\"bbox\":[10,72,95,82],\"doc_id\":\"INV-A-002\",\"page\":1,\"token_ids\":[\"a2_4\"]},\"invoice_date\":{\"bbox\":[10,52,170,62],\"doc_id\":\"INV-A-002\",\"page\":1,\"token_ids\":[\"a2_3\"]},\"invoice_number\":{\"bbox\":[10,32,150,42],\"doc_id\":\"INV-A-002\",\"page\":1,\"token_ids\":[\"a2_2\"]},\"po_id\":{\"bbox\":[10,92,140,102],\"doc_id\":\"INV-A-002\",\"page\":1,\"token_ids\":[\"a2_5\"]},\"receipt_id\":{\"bbox\":[10,112,160,122],\"doc_id\":\"INV-A-002\",\"page\":1,\"token_ids\":[\"a2_6\"]},\"subtotal\":{\"bbox\":[10,172,190,182],\"doc_id\":\"INV-A-002\",\"page\":1,\"token_ids\":[\"a2_9\"]},\"tax\":{\"bbox\":[10,192,160,202],\"doc_id\":\"INV-A-002\",\"page\":1,\"token_ids\":[\"a2_10\"]},\"total\":{\"bbox\":[10,212,130,222],\"doc_id\":\"INV-A-002\",\"page\":1,\"token_ids\":[\"a2_11\"]},\"vendor_name\":{\"bbox\":[10,10,160,20],\"doc_id\":\"INV-A-002\",\"page\":1,\"token_ids\":[\"a2_1\"]}},\"extracted_fields\":{\"bank_account\":\"DE04500105175407324931\",\"currency\":\"EUR\",\"invoice_date\":\"2026-03-19\",\"invoice_number\":\"EC-3301-26\",\"po_id\":\"PO-3301\",\"receipt_id\":\"GRN-3301\",\"subtotal\":1010.0,\"tax\":191.9,\"total\":1201.9,\"vendor_name\":\"EuroCaps Components GmbH\"},\"line_items\":[{\"description\":\"Capacitor bank C-33\",\"line_total\":900.0,\"qty\":10,\"unit_price\":90.0},{\"description\":\"Ceramic fuse set\",\"line_total\":110.0,\"qty\":5,\"unit_price\":22.0}],\"predicted_probabilities\":{\"bank_fraud\":0.08181818181818183,\"campaign_fraud\":0.08181818181818183,\"ceo_bec\":0.08181818181818183,\"duplicate_billing\":0.08181818181818183,\"insider_collusion\":0.08181818181818183,\"multi_entity_layering\":0.08181818181818183,\"phantom_vendor\":0.08181818181818183,\"safe\":0.1,\"split_payment\":0.08181818181818183,\"supply_chain_compromise\":0.08181818181818183,\"threshold_evasion\":0.08181818181818183,\"vendor_takeover\":0.08181818181818183}}}]}",
+      "parse_error": "",
+      "parse_success": true
+    },
+    {
+      "case_id": "CASE-C-001::variant-0",
+      "executed_actions": [
+        {
+          "action_type": "ocr",
+          "payload": {
+            "doc_id": "INV-C-001",
+            "mode": "accurate"
+          }
+        },
+        {
+          "action_type": "lookup_po",
+          "payload": {
+            "po_id": "PO-9451"
+          }
+        },
+        {
+          "action_type": "lookup_receipt",
+          "payload": {
+            "receipt_id": "GRN-9451"
+          }
+        },
+        {
+          "action_type": "lookup_policy",
+          "payload": {}
+        },
+        {
+          "action_type": "request_callback_verification",
+          "payload": {}
+        },
+        {
+          "action_type": "flag_duplicate_cluster_review",
+          "payload": {}
+        },
+        {
+          "action_type": "request_bank_change_approval_chain",
+          "payload": {}
+        },
+        {
+          "action_type": "freeze_vendor_profile",
+          "payload": {}
+        },
+        {
+          "action_type": "submit_decision",
+          "payload": {
+            "confidence": 0.98,
+            "counterfactual": "Would PAY if all required policy checks passed and supporting evidence reconciled cleanly.",
+            "decision": "ESCALATE_FRAUD",
+            "discrepancies": [
+              "duplicate_near_match",
+              "large_total",
+              "threshold_beaten"
+            ],
+            "evidence_map": {
+              "bank_override_attempt": {
+                "bbox": [
+                  10,
+                  70,
+                  160,
+                  80
+                ],
+                "doc_id": "INV-C-001",
+                "page": 1,
+                "token_ids": [
+                  "c4"
+                ]
+              },
+              "campaign_fraud_attempt": {
+                "bbox": [
+                  10,
+                  30,
+                  250,
+                  40
+                ],
+                "doc_id": "INV-C-001",
+                "page": 1,
+                "token_ids": [
+                  "c2"
+                ]
+              },
+              "ceo_bec": {
+                "bbox": [
+                  10,
+                  7,
+                  240,
+                  10
+                ],
+                "doc_id": "INV-C-001",
+                "page": 1,
+                "token_ids": [
+                  "c4"
+                ]
+              },
+              "invoice_signing": {
+                "bbox": [
+                  10,
+                  30,
+                  250,
+                  40
+                ],
+                "doc_id": "INV-C-001",
+                "page": 1,
+                "token_ids": [
+                  "c2"
+                ]
+              },
+              "policy_bypass_attempt": {
+                "bbox": [
+                  10,
+                  7,
+                  240,
+                  10
+                ],
+                "doc_id": "INV-C-001",
+                "page": 1,
+                "token_ids": [
+                  "c4"
+                ]
+              },
+              "sender_domain_corruption": {
+                "bbox": [
+                  10,
+                  7,
+                  240,
+                  10
+                ],
+                "doc_id": "INV-C-001",
+                "page": 1,
+                "token_ids": [
+                  "c4"
+                ]
+              }
+            },
+            "fraud_flags": [
+              "bank_override_attempt",
+              "campaign_fraud_attempt",
+              "ceo_bec",
+              "invoice_signing",
+              "policy_bypass_attempt"
+            ],
+            "predicted_probabilities": {
+              "bank_fraud": 0.08909090909090908,
+              "campaign_fraud": 0.08909090909090908,
+              "ceo_bec": 0.08909090909090908,
+              "insider_collusion": 0.08909090909090908,
+              "multi_entity_layering": 0.08909090909090908,
+              "phantom_vendor": 0.08909090909090908,
+              "safe": 0.020000000000000018,
+              "split_payment": 0.08909090909090908,
+              "supply_chain_compromise": 0.08909090909090908,
+              "threshold_evasion": 0.08909090909090908,
+              "vendor_takeover": 0.08909090909090908
+            }
+          }
+        }
+      ],
+      "generated": "{\"actions\":[{\"action_type\":\"ocr\",\"payload\":{\"doc_id\":\"INV-C-001\",\"mode\":\"accurate\"}},{\"action_type\":\"lookup_po\",\"payload\":{\"po_id\":\"PO-9451\"}},{\"action_type\":\"lookup_receipt\",\"payload\":{\"receipt_id\":\"GRN-9451\"}},{\"action_type\":\"lookup_policy\",\"payload\":{}},{\"action_type\":\"request_callback_verification\",\"payload\":{}},{\"action_type\":\"flag_duplicate_cluster_review\",\"payload\":{}},{\"action_type\":\"request_bank_change_approval_chain\",\"payload\":{}},{\"action_type\":\"freeze_vendor_profile\",\"payload\":{}},{\"action_type\":\"submit_decision\",\"payload\":{\"confidence\":0.98,\"counterfactual\":\"Would PAY if all required policy checks passed and supporting evidence reconciled cleanly.\",\"decision\":\"ESCALATE_FRAUD\",\"discrepancies\":[\"duplicate_near_match\",\"large_total\",\"threshold_beaten\"],\"evidence_map\":{\"bank_override_attempt\":{\"bbox\":[10,70,160,80],\"doc_id\":\"INV-C-001\",\"page\":1,\"token_ids\":[\"c4\"]},\"campaign_fraud_attempt\":{\"bbox\":[10,30,250,40],\"doc_id\":\"INV-C-001\",\"page\":1,\"token_ids\":[\"c2\"]},\"ceo_bec\":{\"bbox\":[10,7,240,10],\"doc_id\":\"INV-C-001\",\"page\":1,\"token_ids\":[\"c4\"]},\"invoice_signing\":{\"bbox\":[10,30,250,40],\"doc_id\":\"INV-C-001\",\"page\":1,\"token_ids\":[\"c2\"]},\"policy_bypass_attempt\":{\"bbox\":[10,7,240,10],\"doc_id\":\"INV-C-001\",\"page\":1,\"token_ids\":[\"c4\"]},\"sender_domain_corruption\":{\"bbox\":[10,7,240,10],\"doc_id\":\"INV-C-001\",\"page\":1,\"token_ids\":[\"c4\"]}},\"fraud_flags\":[\"bank_override_attempt\",\"campaign_fraud_attempt\",\"ceo_bec\",\"invoice_signing\",\"policy_bypass_attempt\"],\"predicted_probabilities\":{\"bank_fraud\":0.08909090909090908,\"campaign_fraud\":0.08909090909090908,\"ceo_bec\":0.08909090909090908,\"insider_collusion\":0.08909090909090908,\"multi_entity_layering\":0.08909090909090908,\"phantom_vendor\":0.08909090909090908,\"safe\":0.020000000000000018,\"split_payment\":0.08909090909090908,\"supply_chain_compromise\":0.08909090909090908,\"threshold_evasion\":0.08909090909090908,\"vendor_takeover\":0.08909090909090908}}}]}",
+      "parse_error": "",
+      "parse_success": true
+    },
+    {
+      "case_id": "CASE-C-003::variant-1",
+      "executed_actions": [
+        {
+          "action_type": "ocr",
+          "payload": {
+            "doc_id": "INV-C-003",
+            "mode": "accurate"
+          }
+        },
+        {
+          "action_type": "compare_bank_account",
+          "payload": {
+            "proposed_bank_account": "DE_BANK_42267181",
+            "vendor_key": "bluepeak logistics llp"
+          }
+        },
+        {
+          "action_type": "search_ledger",
+          "payload": {
+            "amount": 4999.0,
+            "invoice_number": "BLP-DUPL-001"
+          }
+        },
+        {
+          "action_type": "search_ledger",
+          "payload": {
+            "amount": 4999.0,
+            "invoice_number": "BLP-DUPL-001",
+            "vendor_key": "bluepeak logistics llp"
+          }
+        },
+        {
+          "action_type": "lookup_vendor",
+          "payload": {
+            "vendor_key": "bluepeak logistics llp"
+          }
+        },
+        {
+          "action_type": "lookup_vendor_history",
+          "payload": {
+            "vendor_key": "bluepeak logistics llp"
+          }
+        },
+        {
+          "action_type": "request_callback_verification",
+          "payload": {}
+        },
+        {
+          "action_type": "flag_duplicate_cluster_review",
+          "payload": {}
+        },
+        {
+          "action_type": "request_bank_change_approval_chain",
+          "payload": {}
+        },
+        {
+          "action_type": "freeze_vendor_profile",
+          "payload": {}
+        },
+        {
+          "action_type": "submit_decision",
+          "payload": {
+            "confidence": 0.98,
+            "counterfactual": "Would PAY if all required policy checks passed and supporting evidence reconciled cleanly.",
+            "decision": "ESCALATE_FRAUD",
+            "discrepancies": [
+              "shared_bank_account",
+              "coordinated_timing"
+            ],
+            "evidence_map": {
+              "coordinated_timing": {
+                "bbox": [
+                  10,
+                  30,
+                  170,
+                  40
+                ],
+                "doc_id": "INV-C-003",
+                "page": 1,
+                "token_ids": [
+                  "c32"
+                ]
+              },
+              "shared_bank_account": {
+                "bbox": [
+                  10,
+                  70,
+                  170,
+                  80
+                ],
+                "doc_id": "INV-C-003",
+                "page": 1,
+                "token_ids": [
+                  "c34"
+                ]
+              }
+            },
+            "fraud_flags": [
+              "shared_bank_account",
+              "coordinated_timing"
+            ],
+            "predicted_probabilities": {
+              "bank_fraud": 0.08909090909090908,
+              "campaign_fraud": 0.08909090909090908,
+              "ceo_bec": 0.08909090909090908,
+              "duplicate_billing": 0.08909090909090908,
+              "insider_collusion": 0.08909090909090908,
+              "multi_entity_layering": 0.08909090909090908,
+              "phantom_vendor": 0.08909090909090908,
+              "safe": 0.020000000000000018,
+              "split_payment": 0.08909090909090908,
+              "supply_chain_compromise": 0.08909090909090908,
+              "threshold_evasion": 0.08909090909090908,
+              "vendor_takeover": 0.08909090909090908
+            }
+          }
+        }
+      ],
+      "generated": "{\"actions\":[{\"action_type\":\"ocr\",\"payload\":{\"doc_id\":\"INV-C-003\",\"mode\":\"accurate\"}},{\"action_type\":\"compare_bank_account\",\"payload\":{\"proposed_bank_account\":\"DE_BANK_42267181\",\"vendor_key\":\"bluepeak logistics llp\"}},{\"action_type\":\"search_ledger\",\"payload\":{\"amount\":4999.0,\"invoice_number\":\"BLP-DUPL-001\"}},{\"action_type\":\"search_ledger\",\"payload\":{\"amount\":4999.0,\"invoice_number\":\"BLP-DUPL-001\",\"vendor_key\":\"bluepeak logistics llp\"}},{\"action_type\":\"lookup_vendor\",\"payload\":{\"vendor_key\":\"bluepeak logistics llp\"}},{\"action_type\":\"lookup_vendor_history\",\"payload\":{\"vendor_key\":\"bluepeak logistics llp\"}},{\"action_type\":\"request_callback_verification\",\"payload\":{}},{\"action_type\":\"flag_duplicate_cluster_review\",\"payload\":{}},{\"action_type\":\"request_bank_change_approval_chain\",\"payload\":{}},{\"action_type\":\"freeze_vendor_profile\",\"payload\":{}},{\"action_type\":\"submit_decision\",\"payload\":{\"confidence\":0.98,\"counterfactual\":\"Would PAY if all required policy checks passed and supporting evidence reconciled cleanly.\",\"decision\":\"ESCALATE_FRAUD\",\"discrepancies\":[\"shared_bank_account\",\"coordinated_timing\"],\"evidence_map\":{\"coordinated_timing\":{\"bbox\":[10,30,170,40],\"doc_id\":\"INV-C-003\",\"page\":1,\"token_ids\":[\"c32\"]},\"shared_bank_account\":{\"bbox\":[10,70,170,80],\"doc_id\":\"INV-C-003\",\"page\":1,\"token_ids\":[\"c34\"]}},\"fraud_flags\":[\"shared_bank_account\",\"coordinated_timing\"],\"predicted_probabilities\":{\"bank_fraud\":0.08909090909090908,\"campaign_fraud\":0.08909090909090908,\"ceo_bec\":0.08909090909090908,\"duplicate_billing\":0.08909090909090908,\"insider_collusion\":0.08909090909090908,\"multi_entity_layering\":0.08909090909090908,\"phantom_vendor\":0.08909090909090908,\"safe\":0.020000000000000018,\"split_payment\":0.08909090909090908,\"supply_chain_compromise\":0.08909090909090908,\"threshold_evasion\":0.08909090909090908,\"vendor_takeover\":0.08909090909090908}}}]}",
+      "parse_error": "",
+      "parse_success": true
+    },
+    {
+      "case_id": "CASE-A-004",
+      "executed_actions": [
+        {
+          "action_type": "ocr",
+          "payload": {
+            "doc_id": "INV-A-004",
+            "mode": "accurate"
+          }
+        },
+        {
+          "action_type": "zoom",
+          "payload": {
+            "bbox": [
+              0,
+              0,
+              400,
+              400
+            ],
+            "doc_id": "INV-A-004"
+          }
+        },
+        {
+          "action_type": "submit_decision",
+          "payload": {
+            "confidence": 0.9,
+            "counterfactual": "Would PAY if all required policy checks passed and supporting evidence reconciled cleanly.",
+            "decision": "NEEDS_REVIEW",
+            "evidence_map": {
+              "currency": {
+                "bbox": [
+                  10,
+                  70,
+                  90,
+                  80
+                ],
+                "doc_id": "INV-A-004",
+                "page": 1,
+                "token_ids": [
+                  "a44"
+                ]
+              },
+              "invoice_date": {
+                "bbox": [
+                  10,
+                  50,
+                  170,
+                  60
+                ],
+                "doc_id": "INV-A-004",
+                "page": 1,
+                "token_ids": [
+                  "a43"
+                ]
+              },
+              "invoice_number": {
+                "bbox": [
+                  10,
+                  30,
+                  180,
+                  40
+                ],
+                "doc_id": "INV-A-004",
+                "page": 1,
+                "token_ids": [
+                  "a42"
+                ]
+              },
+              "po_id": {
+                "bbox": [
+                  10,
+                  90,
+                  170,
+                  100
+                ],
+                "doc_id": "INV-A-004",
+                "page": 1,
+                "token_ids": [
+                  "a45"
+                ]
+              },
+              "receipt_id": {
+                "bbox": [
+                  10,
+                  110,
+                  180,
+                  120
+                ],
+                "doc_id": "INV-A-004",
+                "page": 1,
+                "token_ids": [
+                  "a46"
+                ]
+              },
+              "subtotal": {
+                "bbox": [
+                  10,
+                  150,
+                  170,
+                  160
+                ],
+                "doc_id": "INV-A-004",
+                "page": 1,
+                "token_ids": [
+                  "a48"
+                ]
+              },
+              "tax": {
+                "bbox": [
+                  10,
+                  170,
+                  100,
+                  180
+                ],
+                "doc_id": "INV-A-004",
+                "page": 1,
+                "token_ids": [
+                  "a49"
+                ]
+              },
+              "total": {
+                "bbox": [
+                  10,
+                  190,
+                  100,
+                  200
+                ],
+                "doc_id": "INV-A-004",
+                "page": 1,
+                "token_ids": [
+                  "a410"
+                ]
+              },
+              "vendor_name": {
+                "bbox": [
+                  10,
+                  10,
+                  200,
+                  20
+                ],
+                "doc_id": "INV-A-004",
+                "page": 1,
+                "token_ids": [
+                  "a41"
+                ]
+              }
+            },
+            "extracted_fields": {
+              "currency": "JPY",
+              "invoice_date": "2026-04-05",
+              "invoice_number": "TPM-2026-0488",
+              "po_id": "PO-TPM-488",
+              "receipt_id": "GRN-TPM-488",
+              "subtotal": 450000.0,
+              "tax": 45000.0,
+              "total": 495000.0,
+              "vendor_name": "Tokyo Precision Manufacturing Co Ltd"
+            },
+            "line_items": [
+              {
+                "description": "CNC spindle bearing",
+                "line_total": 450000.0,
+                "qty": 25,
+                "unit_price": 18000.0
+              }
+            ],
+            "predicted_probabilities": {
+              "bank_fraud": 0.08181818181818183,
+              "campaign_fraud": 0.08181818181818183,
+              "ceo_bec": 0.08181818181818183,
+              "duplicate_billing": 0.08181818181818183,
+              "insider_collusion": 0.08181818181818183,
+              "multi_entity_layering": 0.08181818181818183,
+              "phantom_vendor": 0.08181818181818183,
+              "safe": 0.1,
+              "split_payment": 0.08181818181818183,
+              "supply_chain_compromise": 0.08181818181818183,
+              "threshold_evasion": 0.08181818181818183,
+              "vendor_takeover": 0.08181818181818183
+            }
+          }
+        }
+      ],
+      "generated": "{\"actions\":[{\"action_type\":\"ocr\",\"payload\":{\"doc_id\":\"INV-A-004\",\"mode\":\"accurate\"}},{\"action_type\":\"zoom\",\"payload\":{\"bbox\":[0,0,400,400],\"doc_id\":\"INV-A-004\"}},{\"action_type\":\"submit_decision\",\"payload\":{\"confidence\":0.9,\"counterfactual\":\"Would PAY if all required policy checks passed and supporting evidence reconciled cleanly.\",\"decision\":\"NEEDS_REVIEW\",\"evidence_map\":{\"currency\":{\"bbox\":[10,70,90,80],\"doc_id\":\"INV-A-004\",\"page\":1,\"token_ids\":[\"a44\"]},\"invoice_date\":{\"bbox\":[10,50,170,60],\"doc_id\":\"INV-A-004\",\"page\":1,\"token_ids\":[\"a43\"]},\"invoice_number\":{\"bbox\":[10,30,180,40],\"doc_id\":\"INV-A-004\",\"page\":1,\"token_ids\":[\"a42\"]},\"po_id\":{\"bbox\":[10,90,170,100],\"doc_id\":\"INV-A-004\",\"page\":1,\"token_ids\":[\"a45\"]},\"receipt_id\":{\"bbox\":[10,110,180,120],\"doc_id\":\"INV-A-004\",\"page\":1,\"token_ids\":[\"a46\"]},\"subtotal\":{\"bbox\":[10,150,170,160],\"doc_id\":\"INV-A-004\",\"page\":1,\"token_ids\":[\"a48\"]},\"tax\":{\"bbox\":[10,170,100,180],\"doc_id\":\"INV-A-004\",\"page\":1,\"token_ids\":[\"a49\"]},\"total\":{\"bbox\":[10,190,100,200],\"doc_id\":\"INV-A-004\",\"page\":1,\"token_ids\":[\"a410\"]},\"vendor_name\":{\"bbox\":[10,10,200,20],\"doc_id\":\"INV-A-004\",\"page\":1,\"token_ids\":[\"a41\"]}},\"extracted_fields\":{\"currency\":\"JPY\",\"invoice_date\":\"2026-04-05\",\"invoice_number\":\"TPM-2026-0488\",\"po_id\":\"PO-TPM-488\",\"receipt_id\":\"GRN-TPM-488\",\"subtotal\":450000.0,\"tax\":45000.0,\"total\":495000.0,\"vendor_name\":\"Tokyo Precision Manufacturing Co Ltd\"},\"line_items\":[{\"description\":\"CNC spindle bearing\",\"line_total\":450000.0,\"qty\":25,\"unit_price\":18000.0}],\"predicted_probabilities\":{\"bank_fraud\":0.08181818181818183,\"campaign_fraud\":0.08181818181818183,\"ceo_bec\":0.08181818181818183,\"duplicate_billing\":0.08181818181818183,\"insider_collusion\":0.08181818181818183,\"multi_entity_layering\":0.08181818181818183,\"phantom_vendor\":0.08181818181818183,\"safe\":0.1,\"split_payment\":0.08181818181818183,\"supply_chain_compromise\":0.08181818181818183,\"threshold_evasion\":0.08181818181818183,\"vendor_takeover\":0.08181818181818183}}}]}",
+      "parse_error": "",
+      "parse_success": true
+    },
+    {
+      "case_id": "CASE-D-003::variant-0",
+      "executed_actions": [
+        {
+          "action_type": "ocr",
+          "payload": {
+            "doc_id": "INV-D-003A",
+            "mode": "accurate"
+          }
+        },
+        {
+          "action_type": "ocr",
+          "payload": {
+            "doc_id": "INV-D-003B",
+            "mode": "accurate"
+          }
+        },
+        {
+          "action_type": "inspect_email_thread",
+          "payload": {
+            "thread_id": "THR-140"
+          }
+        },
+        {
+          "action_type": "compare_bank_account",
+          "payload": {
+            "proposed_bank_account": "DE_BANK_16611796",
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          }
+        },
+        {
+          "action_type": "lookup_po",
+          "payload": {
+            "po_id": "PO-2051"
+          }
+        },
+        {
+          "action_type": "lookup_receipt",
+          "payload": {
+            "receipt_id": "GRN-2051"
+          }
+        },
+        {
+          "action_type": "search_ledger",
+          "payload": {
+            "amount": 1999.0,
+            "invoice_number": "INV-205",
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          }
+        },
+        {
+          "action_type": "search_ledger",
+          "payload": {
+            "amount": 1985.0,
+            "invoice_number": "GRN-205",
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          }
+        },
+        {
+          "action_type": "lookup_vendor",
+          "payload": {
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          }
+        },
+        {
+          "action_type": "lookup_vendor_history",
+          "payload": {
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          }
+        },
+        {
+          "action_type": "request_callback_verification",
+          "payload": {}
+        },
+        {
+          "action_type": "flag_duplicate_cluster_review",
+          "payload": {}
+        },
+        {
+          "action_type": "request_bank_change_approval_chain",
+          "payload": {}
+        },
+        {
+          "action_type": "freeze_vendor_profile",
+          "payload": {}
+        },
+        {
+          "action_type": "route_to_security",
+          "payload": {}
+        },
+        {
+          "action_type": "create_human_handoff",
+          "payload": {
+            "confidence": 0.99,
+            "recommended_next_step": "security_review_and_callback_followup",
+            "summary": "Risk indicators support fraud escalation and human review."
+          }
+        },
+        {
+          "action_type": "submit_decision",
+          "payload": {
+            "confidence": 0.43,
+            "counterfactual": "Would PAY if the sender domain matched approved vendor records, the bank account matched vendor master, and no duplicate cluster existed.",
+            "decision": "ESCALATE_FRAUD",
+            "evidence_map": {
+              "approval_threshold_evasion": {
+                "bbox": [
+                  10,
+                  30,
+                  160,
+                  40
+                ],
+                "doc_id": "INV-D-003A",
+                "page": 1,
+                "token_ids": [
+                  "d32"
+                ]
+              },
+              "bank_override_attempt": {
+                "bbox": [
+                  10,
+                  110,
+                  175,
+                  120
+                ],
+                "doc_id": "INV-D-003A",
+                "page": 1,
+                "token_ids": [
+                  "d36"
+                ]
+              },
+              "duplicate_near_match": {
+                "bbox": [
+                  10,
+                  30,
+                  175,
+                  40
+                ],
+                "doc_id": "INV-D-003A",
+                "page": 1,
+                "token_ids": [
+                  "d32"
+                ]
+              }
+            },
+            "policy_checks": {
+              "approval_threshold_check": "fail",
+              "bank_change_verification": "fail",
+              "duplicate_check": "fail",
+              "three_way_match": "pass"
+            },
+            "predicted_probabilities": {
+              "bank_fraud": 0.03,
+              "campaign_fraud": 0.03,
+              "ceo_bec": 0.03,
+              "duplicate_billing": 0.03,
+              "insider_collusion": 0.03,
+              "multi_entity_layering": 0.03,
+              "phantom_vendor": 0.03,
+              "safe": 0.03,
+              "split_payment": 0.03,
+              "supply_chain_compromise": 0.03,
+              "threshold_evasion": 0.03,
+              "vendor_takeover": 0.03
+            },
+            "reason_codes": [
+              "approval_threshold_evasion",
+              "bank_override_attempt",
+              "duplicate_near_match",
+              "policy_bypass_attempt",
+              "urgent_payment_pressure"
+            ]
+          }
+        }
+      ],
+      "generated": "{\"actions\":[{\"action_type\":\"ocr\",\"payload\":{\"doc_id\":\"INV-D-003A\",\"mode\":\"accurate\"}},{\"action_type\":\"ocr\",\"payload\":{\"doc_id\":\"INV-D-003B\",\"mode\":\"accurate\"}},{\"action_type\":\"inspect_email_thread\",\"payload\":{\"thread_id\":\"THR-140\"}},{\"action_type\":\"compare_bank_account\",\"payload\":{\"proposed_bank_account\":\"DE_BANK_16611796\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}},{\"action_type\":\"lookup_po\",\"payload\":{\"po_id\":\"PO-2051\"}},{\"action_type\":\"lookup_receipt\",\"payload\":{\"receipt_id\":\"GRN-2051\"}},{\"action_type\":\"search_ledger\",\"payload\":{\"amount\":1999.0,\"invoice_number\":\"INV-205\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}},{\"action_type\":\"search_ledger\",\"payload\":{\"amount\":1985.0,\"invoice_number\":\"GRN-205\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}},{\"action_type\":\"lookup_vendor\",\"payload\":{\"vendor_key\":\"northwind industrial supplies pvt ltd\"}},{\"action_type\":\"lookup_vendor_history\",\"payload\":{\"vendor_key\":\"northwind industrial supplies pvt ltd\"}},{\"action_type\":\"request_callback_verification\",\"payload\":{}},{\"action_type\":\"flag_duplicate_cluster_review\",\"payload\":{}},{\"action_type\":\"request_bank_change_approval_chain\",\"payload\":{}},{\"action_type\":\"freeze_vendor_profile\",\"payload\":{}},{\"action_type\":\"route_to_security\",\"payload\":{}},{\"action_type\":\"create_human_handoff\",\"payload\":{\"confidence\":0.99,\"recommended_next_step\":\"security_review_and_callback_followup\",\"summary\":\"Risk indicators support fraud escalation and human review.\"}},{\"action_type\":\"submit_decision\",\"payload\":{\"confidence\":0.43,\"counterfactual\":\"Would PAY if the sender domain matched approved vendor records, the bank account matched vendor master, and no duplicate cluster existed.\",\"decision\":\"ESCALATE_FRAUD\",\"evidence_map\":{\"approval_threshold_evasion\":{\"bbox\":[10,30,160,40],\"doc_id\":\"INV-D-003A\",\"page\":1,\"token_ids\":[\"d32\"]},\"bank_override_attempt\":{\"bbox\":[10,110,175,120],\"doc_id\":\"INV-D-003A\",\"page\":1,\"token_ids\":[\"d36\"]},\"duplicate_near_match\":{\"bbox\":[10,30,175,40],\"doc_id\":\"INV-D-003A\",\"page\":1,\"token_ids\":[\"d32\"]}},\"policy_checks\":{\"approval_threshold_check\":\"fail\",\"bank_change_verification\":\"fail\",\"duplicate_check\":\"fail\",\"three_way_match\":\"pass\"},\"predicted_probabilities\":{\"bank_fraud\":0.03,\"campaign_fraud\":0.03,\"ceo_bec\":0.03,\"duplicate_billing\":0.03,\"insider_collusion\":0.03,\"multi_entity_layering\":0.03,\"phantom_vendor\":0.03,\"safe\":0.03,\"split_payment\":0.03,\"supply_chain_compromise\":0.03,\"threshold_evasion\":0.03,\"vendor_takeover\":0.03},\"reason_codes\":[\"approval_threshold_evasion\",\"bank_override_attempt\",\"duplicate_near_match\",\"policy_bypass_attempt\",\"urgent_payment_pressure\"]}}]}",
+      "parse_error": "",
+      "parse_success": true
+    },
+    {
+      "case_id": "CASE-C-001::variant-1",
+      "executed_actions": [
+        {
+          "action_type": "ocr",
+          "payload": {
+            "doc_id": "INV-C-001",
+            "mode": "accurate"
+          }
+        },
+        {
+          "action_type": "compare_bank_account",
+          "payload": {
+            "proposed_bank_account": "DE_BANK_49248913",
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          }
+        },
+        {
+          "action_type": "search_ledger",
+          "payload": {
+            "amount": 2478.0,
+            "invoice_number": "INV-2048-A"
+          }
+        },
+        {
+          "action_type": "search_ledger",
+          "payload": {
+            "amount": 2478.0,
+            "invoice_number": "INV-2048-A",
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          }
+        },
+        {
+          "action_type": "lookup_vendor",
+          "payload": {
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          }
+        },
+        {
+          "action_type": "lookup_vendor_history",
+          "payload": {
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          }
+        },
+        {
+          "action_type": "ocr",
+          "payload": {
+            "doc_id": "CASE-C-001::variant-1-EMAIL",
+            "mode": "accurate"
+          }
+        },
+        {
+          "action_type": "lookup_policy",
+          "payload": {}
+        },
+        {
+          "action_type": "request_callback_verification",
+          "payload": {}
+        },
+        {
+          "action_type": "flag_duplicate_cluster_review",
+          "payload": {}
+        },
+        {
+          "action_type": "request_bank_change_approval_chain",
+          "payload": {}
+        },
+        {
+          "action_type": "freeze_vendor_profile",
+          "payload": {}
+        },
+        {
+          "action_type": "route_to_security",
+          "payload": {}
+        },
+        {
+          "action_type": "create_human_handoff",
+          "payload": {
+            "confidence": 0.99,
+            "recommended_next_step": "security_review_and_callback_followup",
+            "summary": "Risk indicators support fraud escalation and human review."
+          }
+        },
+        {
+          "action_type": "submit_decision",
+          "payload": {
+            "confidence": 0.99,
+            "counterfactual": "Would PAY if the linked vendor account was not already verified and the sender domain did not share the same bank account as a previously approved linked invoice.",
+            "decision": "ESCALATE_FRAUD",
+            "evidence_map": {
+              "bank_override_attempt": {
+                "bbox": [
+                  10,
+                  70,
+                  160,
+                  80
+                ],
+                "doc_id": "INV-C-001",
+                "page": 1,
+                "token_ids": [
+                  "c4"
+                ]
+              },
+              "duplicate_near_match": {
+                "bbox": [
+                  10,
+                  30,
+                  180,
+                  40
+                ],
+                "doc_id": "INV-C-001",
+                "page": 1,
+                "token_ids": [
+                  "c2"
+                ]
+              }
+            },
+            "policy_checks": {
+              "approval_threshold_check": "pass",
+              "bank_change_verification": "fail",
+              "duplicate_check": "fail",
+              "three_way_match": "pass"
+            },
+            "predicted_probabilities": {
+              "bank_fraud": 0.09,
+              "campaign_fraud": 0.09,
+              "ceo_bec": 0.09,
+              "duplicate_billing": 0.09,
+              "insider_collusion": 0.09,
+              "multi_entity_layering": 0.09,
+              "phantom_vendor": 0.09,
+              "safe": 0.01000000000000001,
+              "split_payment": 0.09,
+              "supply_chain_compromise": 0.09,
+              "threshold_evasion": 0.09,
+              "vendor_takeover": 0.09
+            },
+            "reason_codes": [
+              "bank_override_attempt",
+              "duplicate_near_match",
+              "policy_bypass_attempt",
+              "urgent_payment_pressure",
+              "vendor_takeover"
+            ]
+          }
+        }
+      ],
+      "generated": "{\"actions\":[{\"action_type\":\"ocr\",\"payload\":{\"doc_id\":\"INV-C-001\",\"mode\":\"accurate\"}},{\"action_type\":\"compare_bank_account\",\"payload\":{\"proposed_bank_account\":\"DE_BANK_49248913\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}},{\"action_type\":\"search_ledger\",\"payload\":{\"amount\":2478.0,\"invoice_number\":\"INV-2048-A\"}},{\"action_type\":\"search_ledger\",\"payload\":{\"amount\":2478.0,\"invoice_number\":\"INV-2048-A\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}},{\"action_type\":\"lookup_vendor\",\"payload\":{\"vendor_key\":\"northwind industrial supplies pvt ltd\"}},{\"action_type\":\"lookup_vendor_history\",\"payload\":{\"vendor_key\":\"northwind industrial supplies pvt ltd\"}},{\"action_type\":\"ocr\",\"payload\":{\"doc_id\":\"CASE-C-001::variant-1-EMAIL\",\"mode\":\"accurate\"}},{\"action_type\":\"lookup_policy\",\"payload\":{}},{\"action_type\":\"request_callback_verification\",\"payload\":{}},{\"action_type\":\"flag_duplicate_cluster_review\",\"payload\":{}},{\"action_type\":\"request_bank_change_approval_chain\",\"payload\":{}},{\"action_type\":\"freeze_vendor_profile\",\"payload\":{}},{\"action_type\":\"route_to_security\",\"payload\":{}},{\"action_type\":\"create_human_handoff\",\"payload\":{\"confidence\":0.99,\"recommended_next_step\":\"security_review_and_callback_followup\",\"summary\":\"Risk indicators support fraud escalation and human review.\"}},{\"action_type\":\"submit_decision\",\"payload\":{\"confidence\":0.99,\"counterfactual\":\"Would PAY if the linked vendor account was not already verified and the sender domain did not share the same bank account as a previously approved linked invoice.\",\"decision\":\"ESCALATE_FRAUD\",\"evidence_map\":{\"bank_override_attempt\":{\"bbox\":[10,70,160,80],\"doc_id\":\"INV-C-001\",\"page\":1,\"token_ids\":[\"c4\"]},\"duplicate_near_match\":{\"bbox\":[10,30,180,40],\"doc_id\":\"INV-C-001\",\"page\":1,\"token_ids\":[\"c2\"]}},\"policy_checks\":{\"approval_threshold_check\":\"pass\",\"bank_change_verification\":\"fail\",\"duplicate_check\":\"fail\",\"three_way_match\":\"pass\"},\"predicted_probabilities\":{\"bank_fraud\":0.09,\"campaign_fraud\":0.09,\"ceo_bec\":0.09,\"duplicate_billing\":0.09,\"insider_collusion\":0.09,\"multi_entity_layering\":0.09,\"phantom_vendor\":0.09,\"safe\":0.01000000000000001,\"split_payment\":0.09,\"supply_chain_compromise\":0.09,\"threshold_evasion\":0.09,\"vendor_takeover\":0.09},\"reason_codes\":[\"bank_override_attempt\",\"duplicate_near_match\",\"policy_bypass_attempt\",\"urgent_payment_pressure\",\"vendor_takeover\"]}}]}",
+      "parse_error": "",
+      "parse_success": true
+    },
+    {
+      "case_id": "CASE-E-002::variant-0",
+      "executed_actions": [
+        {
+          "action_type": "ocr",
+          "payload": {
+            "doc_id": "INV-E-SC-001",
+            "mode": "accurate"
+          }
+        },
+        {
+          "action_type": "ocr",
+          "payload": {
+            "doc_id": "INV-E-SC-002",
+            "mode": "accurate"
+          }
+        },
+        {
+          "action_type": "inspect_email_thread",
+          "payload": {
+            "thread_id": "THR-E-SC-001"
+          }
+        },
+        {
+          "action_type": "compare_bank_account",
+          "payload": {
+            "proposed_bank_account": "DE_BANK_77713932",
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          }
+        },
+        {
+          "action_type": "search_ledger",
+          "payload": {
+            "amount": 4900,
+            "invoice_number": "INV-E-SK-441",
+            "vendor_key": "nWSIPS"
+          }
+        },
+        {
+          "action_type": "lookup_vendor",
+          "payload": {
+            "vendor_key": "nWSIPS"
+          }
+        },
+        {
+          "action_type": "lookup_vendor_history",
+          "payload": {
+            "vendor_key": "nWSIPS"
+          }
+        },
+        {
+          "action_type": "ocr",
+          "payload": {
+            "doc_id": "THR-E-SC-001",
+            "mode": "accurate"
+          }
+        },
+        {
+          "action_type": "lookup_policy",
+          "payload": {}
+        },
+        {
+          "action_type": "request_callback_verification",
+          "payload": {}
+        },
+        {
+          "action_type": "flag_duplicate_cluster_review",
+          "payload": {}
+        },
+        {
+          "action_type": "request_bank_change_approval_chain",
+          "payload": {}
+        },
+        {
+          "action_type": "freeze_vendor_profile",
+          "payload": {}
+        },
+        {
+          "action_type": "route_to_security",
+          "payload": {}
+        },
+        {
+          "action_type": "create_human_handoff",
+          "payload": {
+            "confidence": 0.99,
+            "recommended_next_step": "campaign_freeze_and_manual_review",
+            "summary": "Potential coordinated payment campaign detected across linked invoices."
+          }
+        },
+        {
+          "action_type": "submit_decision",
+          "payload": {
+            "campaign_signals": [
+              "coordinated_timing",
+              "shared_bank_account"
+            ],
+            "confidence": 0.99,
+            "counterfactual": "Would PAY if the linked invoices reconciled to distinct approved remittance records, did not evade the approval threshold, and no spoofed workflow override appeared.",
+            "decision": "ESCALATE_FRAUD",
+            "evidence_map": {
+              "bank_override_attempt": {
+                "bbox": [
+                  10,
+                  70,
+                  190,
+                  80
+                ],
+                "doc_id": "INV-E-SC-001",
+                "page": 1,
+                "token_ids": [
+                  "esc4"
+                ]
+              },
+              "policy_bypass_attempt": {
+                "bbox": [
+                  10,
+                  30,
+                  340,
+                  40
+                ],
+                "doc_id": "THR-E-SC-001",
+                "page": 1,
+                "token_ids": [
+                  "eth14"
+                ]
+              },
+              "sender_domain_spoof": {
+                "bbox": [
+                  10,
+                  10,
+                  280,
+                  20
+                ],
+                "doc_id": "THR-E-SC-001",
+                "page": 1,
+                "token_ids": [
+                  "eth0a"
+                ]
+              },
+              "shared_bank_account": {
+                "bbox": [
+                  10,
+                  70,
+                  190,
+                  80
+                ],
+                "doc_id": "INV-E-SC-001",
+                "page": 1,
+                "token_ids": [
+                  "esc4"
+                ]
+              },
+              "vendor_account_takeover_suspected": {
+                "bbox": [
+                  10,
+                  10,
+                  280,
+                  20
+                ],
+                "doc_id": "THR-E-SC-001",
+                "page": 1,
+                "token_ids": [
+                  "eth14"
+                ]
+              }
+            },
+            "policy_checks": {
+              "approval_threshold_check": "pass",
+              "bank_change_verification": "fail",
+              "duplicate_check": "pass",
+              "three_way_match": "pass"
+            },
+            "predicted_probabilities": {
+              "bank_fraud": 0.09,
+              "campaign_fraud": 0.09,
+              "ceo_bec": 0.09,
+              "duplicate_billing": 0.09,
+              "insider_collusion": 0.09,
+              "multi_entity_layering": 0.09,
+              "phantom_vendor": 0.09,
+              "safe": 0.01000000000000001,
+              "split_payment": 0.09,
+              "supply_chain_compromise": 0.09,
+              "threshold_evasion": 0.09,
+              "vendor_takeover": 0.09
+            },
+            "reason_codes": [
+              "bank_override_attempt",
+              "coordinated_timing",
+              "policy_bypass_attempt",
+              "sender_domain_spoof",
+              "shared_bank_account"
+            ]
+          }
+        }
+      ],
+      "generated": "{\"actions\":[{\"action_type\":\"ocr\",\"payload\":{\"doc_id\":\"INV-E-SC-001\",\"mode\":\"accurate\"}},{\"action_type\":\"ocr\",\"payload\":{\"doc_id\":\"INV-E-SC-002\",\"mode\":\"accurate\"}},{\"action_type\":\"inspect_email_thread\",\"payload\":{\"thread_id\":\"THR-E-SC-001\"}},{\"action_type\":\"compare_bank_account\",\"payload\":{\"proposed_bank_account\":\"DE_BANK_77713932\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}},{\"action_type\":\"search_ledger\",\"payload\":{\"amount\":4900,\"invoice_number\":\"INV-E-SK-441\",\"vendor_key\":\"nWSIPS\"},{\"action_id\":\"search_leder_account_override\"}},{\"action_type\":\"search_ledger\",\"payload\":{\"amount\":4900,\"invoice_number\":\"INV-E-SK-441\",\"vendor_key\":\"nWSIPS\"}},{\"action_type\":\"lookup_vendor\",\"payload\":{\"vendor_key\":\"nWSIPS\"}},{\"action_type\":\"lookup_vendor_history\",\"payload\":{\"vendor_key\":\"nWSIPS\"}},{\"action_type\":\"ocr\",\"payload\":{\"doc_id\":\"THR-E-SC-001\",\"mode\":\"accurate\"}},{\"action_type\":\"lookup_policy\",\"payload\":{}},{\"action_type\":\"request_callback_verification\",\"payload\":{}},{\"action_type\":\"flag_duplicate_cluster_review\",\"payload\":{}},{\"action_type\":\"request_bank_change_approval_chain\",\"payload\":{}},{\"action_type\":\"freeze_vendor_profile\",\"payload\":{}},{\"action_type\":\"route_to_security\",\"payload\":{}},{\"action_type\":\"create_human_handoff\",\"payload\":{\"confidence\":0.99,\"recommended_next_step\":\"campaign_freeze_and_manual_review\",\"summary\":\"Potential coordinated payment campaign detected across linked invoices.\"}},{\"action_type\":\"submit_decision\",\"payload\":{\"campaign_signals\":[\"coordinated_timing\",\"shared_bank_account\"],\"confidence\":0.99,\"counterfactual\":\"Would PAY if the linked invoices reconciled to distinct approved remittance records, did not evade the approval threshold, and no spoofed workflow override appeared.\",\"decision\":\"ESCALATE_FRAUD\",\"evidence_map\":{\"bank_override_attempt\":{\"bbox\":[10,70,190,80],\"doc_id\":\"INV-E-SC-001\",\"page\":1,\"token_ids\":[\"esc4\"]},\"policy_bypass_attempt\":{\"bbox\":[10,30,340,40],\"doc_id\":\"THR-E-SC-001\",\"page\":1,\"token_ids\":[\"eth14\"]},\"sender_domain_spoof\":{\"bbox\":[10,10,280,20],\"doc_id\":\"THR-E-SC-001\",\"page\":1,\"token_ids\":[\"eth0a\"]},\"shared_bank_account\":{\"bbox\":[10,70,190,80],\"doc_id\":\"INV-E-SC-001\",\"page\":1,\"token_ids\":[\"esc4\"]},\"vendor_account_takeover_suspected\":{\"bbox\":[10,10,280,20],\"doc_id\":\"THR-E-SC-001\",\"page\":1,\"token_ids\":[\"eth14\"]}},\"policy_checks\":{\"approval_threshold_check\":\"pass\",\"bank_change_verification\":\"fail\",\"duplicate_check\":\"pass\",\"three_way_match\":\"pass\"},\"predicted_probabilities\":{\"bank_fraud\":0.09,\"campaign_fraud\":0.09,\"ceo_bec\":0.09,\"duplicate_billing\":0.09,\"insider_collusion\":0.09,\"multi_entity_layering\":0.09,\"phantom_vendor\":0.09,\"safe\":0.01000000000000001,\"split_payment\":0.09,\"supply_chain_compromise\":0.09,\"threshold_evasion\":0.09,\"vendor_takeover\":0.09},\"reason_codes\":[\"bank_override_attempt\",\"coordinated_timing\",\"policy_bypass_attempt\",\"sender_domain_spoof\",\"shared_bank_account\"]}}]}",
+      "parse_error": "partial_json_recovery: Expecting property name enclosed in double quotes: line 1 column 501 (char 500)",
+      "parse_success": true
+    },
+    {
+      "case_id": "CASE-C-002::variant-1",
+      "executed_actions": [
+        {
+          "action_type": "ocr",
+          "payload": {
+            "doc_id": "INV-C-002",
+            "mode": "accurate"
+          }
+        },
+        {
+          "action_type": "compare_bank_account",
+          "payload": {
+            "proposed_bank_account": "DE_BANK_42267973",
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          }
+        },
+        {
+          "action_type": "search_ledger",
+          "payload": {
+            "amount": 845.0,
+            "invoice_number": "INV-228-A",
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          }
+        },
+        {
+          "action_type": "lookup_vendor",
+          "payload": {
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          }
+        },
+        {
+          "action_type": "lookup_vendor_history",
+          "payload": {
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          }
+        },
+        {
+          "action_type": "ocr",
+          "payload": {
+            "doc_id": "CASE-C-002",
+            "mode": "accurate"
+          }
+        },
+        {
+          "action_type": "request_callback_verification",
+          "payload": {}
+        },
+        {
+          "action_type": "flag_duplicate_cluster_review",
+          "payload": {}
+        },
+        {
+          "action_type": "request_bank_change_approval_chain",
+          "payload": {}
+        },
+        {
+          "action_type": "freeze_vendor_profile",
+          "payload": {}
+        },
+        {
+          "action_type": "route_to_security",
+          "payload": {}
+        },
+        {
+          "action_type": "create_human_handoff",
+          "payload": {
+            "confidence": 0.99,
+            "recommended_next_step": "security_review_and_callback_followup",
+            "summary": "Risk indicators support fraud escalation and human review."
+          }
+        },
+        {
+          "action_type": "submit_decision",
+          "payload": {
+            "confidence": 0.99,
+            "counterfactual": "Would PAY if the sender domain matched approved vendor records, the bank account matched vendor master, and no duplicate cluster existed.",
+            "decision": "ESCALATE_FRAUD",
+            "evidence_map": {
+              "bank_override_attempt": {
+                "bbox": [
+                  10,
+                  70,
+                  160,
+                  80
+                ],
+                "doc_id": "INV-C-002",
+                "page": 1,
+                "token_ids": [
+                  "bc30"
+                ]
+              },
+              "duplicate_near_match": {
+                "bbox": [
+                  10,
+                  30,
+                  180,
+                  40
+                ],
+                "doc_id": "INV-C-002",
+                "page": 1,
+                "token_ids": [
+                  "bc29"
+                ]
+              },
+              "policy_bypass_attempt": {
+                "bbox": [
+                  10,
+                  7,
+                  30,
+                  30
+                ],
+                "doc_id": "CASE-C-002",
+                "page": 1,
+                "token_ids": [
+                  "fc29"
+                ]
+              },
+              "sender_domain_spoof": {
+                "bbox": [
+                  10,
+                  10,
+                  250,
+                  20
+                ],
+                "doc_id": "CASE-C-002",
+                "page": 1,
+                "token_ids": [
+                  "fc28"
+                ]
+              },
+              "urgent_payment_pressure": {
+                "bbox": [
+                  10,
+                  30,
+                  200,
+                  40
+                ],
+                "doc_id": "CASE-C-002",
+                "page": 1,
+                "token_ids": [
+                  "fc27"
+                ]
+              }
+            },
+            "policy_checks": {
+              "approval_threshold_check": "pass",
+              "bank_change_verification": "fail",
+              "duplicate_check": "fail",
+              "three_way_match": "pass"
+            },
+            "predicted_probabilities": {
+              "bank_fraud": 0.09,
+              "campaign_fraud": 0.09,
+              "ceo_bec": 0.09,
+              "duplicate_billing": 0.09,
+              "insider_collusion": 0.09,
+              "multi_entity_layering": 0.09,
+              "phantom_vendor": 0.09,
+              "safe": 0.01000000000000001,
+              "split_payment": 0.09,
+              "supply_chain_compromise": 0.09,
+              "threshold_evasion": 0.09,
+              "vendor_takeover": 0.09
+            },
+            "reason_codes": [
+              "bank_override_attempt",
+              "duplicate_near_match",
+              "policy_bypass_attempt",
+              "sender_domain_spoof",
+              "urgent_payment_pressure"
+            ]
+          }
+        }
+      ],
+      "generated": "{\"actions\":[{\"action_type\":\"ocr\",\"payload\":{\"doc_id\":\"INV-C-002\",\"mode\":\"accurate\"}},{\"action_type\":\"compare_bank_account\",\"payload\":{\"proposed_bank_account\":\"DE_BANK_42267973\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}},{\"action_type\":\"search_ledger\",\"payload\":{\"amount\":845.0,\"invoice_number\":\"INV-228-A\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}},{\"action_type\":\"search_ledger\",\"payload\":{\"amount\":845.0,\"invoice_number\":\"INV-228-A\",\"vendor_key\":\"northwind industrial supplies pvt ltd\",\"page\":1,\"page_size\":1,\"row_ids\":[\"EF3F4A93-bdb0-4443-baba-84612e830001\"]},{\"action_type\":\"lookup_vendor\",\"payload\":{\"vendor_key\":\"northwind industrial supplies pvt ltd\"}},{\"action_type\":\"lookup_vendor_history\",\"payload\":{\"vendor_key\":\"northwind industrial supplies pvt ltd\"}},{\"action_type\":\"ocr\",\"payload\":{\"doc_id\":\"CASE-C-002\",\"mode\":\"accurate\"}},{\"action_type\":\"request_callback_verification\",\"payload\":{}},{\"action_type\":\"flag_duplicate_cluster_review\",\"payload\":{}},{\"action_type\":\"request_bank_change_approval_chain\",\"payload\":{}},{\"action_type\":\"freeze_vendor_profile\",\"payload\":{}},{\"action_type\":\"route_to_security\",\"payload\":{}},{\"action_type\":\"create_human_handoff\",\"payload\":{\"confidence\":0.99,\"recommended_next_step\":\"security_review_and_callback_followup\",\"summary\":\"Risk indicators support fraud escalation and human review.\"}},{\"action_type\":\"submit_decision\",\"payload\":{\"confidence\":0.99,\"counterfactual\":\"Would PAY if the sender domain matched approved vendor records, the bank account matched vendor master, and no duplicate cluster existed.\",\"decision\":\"ESCALATE_FRAUD\",\"evidence_map\":{\"bank_override_attempt\":{\"bbox\":[10,70,160,80],\"doc_id\":\"INV-C-002\",\"page\":1,\"token_ids\":[\"bc30\"]},\"duplicate_near_match\":{\"bbox\":[10,30,180,40],\"doc_id\":\"INV-C-002\",\"page\":1,\"token_ids\":[\"bc29\"]},\"policy_bypass_attempt\":{\"bbox\":[10,7,30,30],\"doc_id\":\"CASE-C-002\",\"page\":1,\"token_ids\":[\"fc29\"]},\"sender_domain_spoof\":{\"bbox\":[10,10,250,20],\"doc_id\":\"CASE-C-002\",\"page\":1,\"token_ids\":[\"fc28\"]},\"urgent_payment_pressure\":{\"bbox\":[10,30,200,40],\"doc_id\":\"CASE-C-002\",\"page\":1,\"token_ids\":[\"fc27\"]}},\"policy_checks\":{\"approval_threshold_check\":\"pass\",\"bank_change_verification\":\"fail\",\"duplicate_check\":\"fail\",\"three_way_match\":\"pass\"},\"predicted_probabilities\":{\"bank_fraud\":0.09,\"campaign_fraud\":0.09,\"ceo_bec\":0.09,\"duplicate_billing\":0.09,\"insider_collusion\":0.09,\"multi_entity_layering\":0.09,\"phantom_vendor\":0.09,\"safe\":0.01000000000000001,\"split_payment\":0.09,\"supply_chain_compromise\":0.09,\"threshold_evasion\":0.09,\"vendor_takeover\":0.09},\"reason_codes\":[\"bank_override_attempt\",\"duplicate_near_match\",\"policy_bypass_attempt\",\"sender_domain_spoof\",\"urgent_payment_pressure\"]}}]}",
+      "parse_error": "partial_json_recovery: Expecting property name enclosed in double quotes: line 1 column 588 (char 587)",
+      "parse_success": true
+    },
+    {
+      "case_id": "CASE-E-001",
+      "executed_actions": [
+        {
+          "action_type": "ocr",
+          "payload": {
+            "doc_id": "INV-E-001",
+            "mode": "accurate"
+          }
+        },
+        {
+          "action_type": "ocr",
+          "payload": {
+            "doc_id": "INV-E-002",
+            "mode": "accurate"
+          }
+        },
+        {
+          "action_type": "ocr",
+          "payload": {
+            "doc_id": "INV-E-003",
+            "mode": "accurate"
+          }
+        },
+        {
+          "action_type": "inspect_email_thread",
+          "payload": {
+            "thread_id": "THR-E-001"
+          }
+        },
+        {
+          "action_type": "compare_bank_account",
+          "payload": {
+            "proposed_bank_account": "DE_BANK_1617777887",
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          }
+        },
+        {
+          "action_type": "search_ledger",
+          "payload": {
+            "amount": 49900.0,
+            "invoice_number": "INV-E-001",
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          }
+        },
+        {
+          "action_type": "search_ledger",
+          "payload": {
+            "amount": 49900.0,
+            "invoice_number": "INV-E-002",
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          }
+        },
+        {
+          "action_type": "search_ledger",
+          "payload": {
+            "amount": 49900.0,
+            "invoice_number": "INV-E-003",
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          }
+        },
+        {
+          "action_type": "lookup_vendor",
+          "payload": {
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          }
+        },
+        {
+          "action_type": "lookup_vendor_history",
+          "payload": {
+            "vendor_key": "northwind industrial supplies pvt ltd"
+          }
+        },
+        {
+          "action_type": "ocr",
+          "payload": {
+            "doc_id": "THR-E-001",
+            "mode": "accurate"
+          }
+        },
+        {
+          "action_type": "lookup_policy",
+          "payload": {}
+        },
+        {
+          "action_type": "request_callback_verification",
+          "payload": {}
+        },
+        {
+          "action_type": "flag_duplicate_cluster_review",
+          "payload": {}
+        },
+        {
+          "action_type": "request_bank_change_approval_chain",
+          "payload": {}
+        },
+        {
+          "action_type": "freeze_vendor_profile",
+          "payload": {}
+        },
+        {
+          "action_type": "route_to_security",
+          "payload": {}
+        },
+        {
+          "action_type": "create_human_handoff",
+          "payload": {
+            "confidence": 0.99,
+            "recommended_next_step": "campaign_freeze_and_manual_review",
+            "summary": "Potential coordinated payment campaign detected across linked invoices."
+          }
+        },
+        {
+          "action_type": "submit_decision",
+          "payload": {
+            "campaign_signals": [
+              "approval_threshold_evasion",
+              "coordinated_timing",
+              "shared_bank_account"
+            ],
+            "confidence": 0.99,
+            "counterfactual": "Would PAY if the linked invoices reconciled to distinct approved remittance records, did not evade the approval threshold, and no spoofed workflow override appeared.",
+            "decision": "ESCALATE_FRAUD",
+            "evidence_map": {
+              "approval_threshold_evasion": {
+                "bbox": [
+                  10,
+                  70,
+                  420,
+                  80
+                ],
+                "doc_id": "THR-E-001",
+                "page": 1,
+                "token_ids": [
+                  "ee4"
+                ]
+              },
+              "bank_override_attempt": {
+                "bbox": [
+                  10,
+                  90,
+                  185,
+                  100
+                ],
+                "doc_id": "INV-E-001",
+                "page": 1,
+                "token_ids": [
+                  "e5"
+                ]
+              },
+              "coordinated_timing": {
+                "bbox": [
+                  10,
+                  50,
+                  170,
+                  60
+                ],
+                "doc_id": "INV-E-001",
+                "page": 1,
+                "token_ids": [
+                  "e3"
+                ]
+              },
+              "policy_bypass_attempt": {
+                "bbox": [
+                  10,
+                  90,
+                  395,
+                  100
+                ],
+                "doc_id": "THR-E-001",
+                "page": 1,
+                "token_ids": [
+                  "ee5"
+                ]
+              },
+              "sender_domain_spoof": {
+                "bbox": [
+                  10,
+                  10,
+                  30,
+                  20
+                ],
+                "doc_id": "THR-E-001",
+                "page": 1,
+                "token_ids": [
+                  "ee1"
+                ]
+              },
+              "shared_bank_account": {
+                "bbox": [
+                  10,
+                  90,
+                  185,
+                  100
+                ],
+                "doc_id": "INV-E-001",
+                "page": 1,
+                "token_ids": [
+                  "e5"
+                ]
+              },
+              "vendor_account_takeover_suspected": {
+                "bbox": [
+                  10,
+                  10,
+                  30,
+                  20
+                ],
+                "doc_id": "THR-E-001",
+                "page": 1,
+                "token_ids": [
+                  "ee1"
+                ]
+              }
+            },
+            "policy_checks": {
+              "approval_threshold_check": "fail",
+              "bank_change_verification": "fail",
+              "duplicate_check": "pass",
+              "three_way_match": "pass"
+            },
+            "predicted_probabilities": {
+              "bank_fraud": 0.09,
+              "campaign_fraud": 0.09,
+              "ceo_bec": 0.09,
+              "duplicate_billing": 0.09,
+              "insider_collusion": 0.09,
+              "multi_entity_layering": 0.09,
+              "phantom_vendor": 0.09,
+              "safe": 0.01000000000000001,
+              "split_payment": 0.09,
+              "supply_chain_compromise": 0.09,
+              "threshold_evasion": 0.09,
+              "vendor_takeover": 0.09
+            },
+            "reason_codes": [
+              "approval_threshold_evasion",
+              "bank_override_attempt",
+              "coordinated_timing",
+              "policy_bypass_attempt",
+              "sender_domain_spoof",
+              "double_send",
+              "duplicate_billing"
+            ]
+          }
+        }
+      ],
+      "generated": "{\"actions\":[{\"action_type\":\"ocr\",\"payload\":{\"doc_id\":\"INV-E-001\",\"mode\":\"accurate\"}},{\"action_type\":\"ocr\",\"payload\":{\"doc_id\":\"INV-E-002\",\"mode\":\"accurate\"}},{\"action_type\":\"ocr\",\"payload\":{\"doc_id\":\"INV-E-003\",\"mode\":\"accurate\"}},{\"action_type\":\"inspect_email_thread\",\"payload\":{\"thread_id\":\"THR-E-001\"}},{\"action_type\":\"compare_bank_account\",\"payload\":{\"proposed_bank_account\":\"DE_BANK_1617777887\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}},{\"action_type\":\"search_ledger\",\"payload\":{\"amount\":49900.0,\"invoice_number\":\"INV-E-001\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}},{\"action_type\":\"search_ledger\",\"payload\":{\"amount\":49900.0,\"invoice_number\":\"INV-E-002\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}},{\"action_type\":\"search_ledger\",\"payload\":{\"amount\":49900.0,\"invoice_number\":\"INV-E-003\",\"vendor_key\":\"northwind industrial supplies pvt ltd\"}},{\"action_type\":\"lookup_vendor\",\"payload\":{\"vendor_key\":\"northwind industrial supplies pvt ltd\"}},{\"action_type\":\"lookup_vendor_history\",\"payload\":{\"vendor_key\":\"northwind industrial supplies pvt ltd\"}},{\"action_type\":\"ocr\",\"payload\":{\"doc_id\":\"THR-E-001\",\"mode\":\"accurate\"}},{\"action_type\":\"lookup_policy\",\"payload\":{}},{\"action_type\":\"request_callback_verification\",\"payload\":{}},{\"action_type\":\"flag_duplicate_cluster_review\",\"payload\":{}},{\"action_type\":\"request_bank_change_approval_chain\",\"payload\":{}},{\"action_type\":\"freeze_vendor_profile\",\"payload\":{}},{\"action_type\":\"route_to_security\",\"payload\":{}},{\"action_type\":\"create_human_handoff\",\"payload\":{\"confidence\":0.99,\"recommended_next_step\":\"campaign_freeze_and_manual_review\",\"summary\":\"Potential coordinated payment campaign detected across linked invoices.\"}},{\"action_type\":\"submit_decision\",\"payload\":{\"campaign_signals\":[\"approval_threshold_evasion\",\"coordinated_timing\",\"shared_bank_account\"],\"confidence\":0.99,\"counterfactual\":\"Would PAY if the linked invoices reconciled to distinct approved remittance records, did not evade the approval threshold, and no spoofed workflow override appeared.\",\"decision\":\"ESCALATE_FRAUD\",\"evidence_map\":{\"approval_threshold_evasion\":{\"bbox\":[10,70,420,80],\"doc_id\":\"THR-E-001\",\"page\":1,\"token_ids\":[\"ee4\"]},\"bank_override_attempt\":{\"bbox\":[10,90,185,100],\"doc_id\":\"INV-E-001\",\"page\":1,\"token_ids\":[\"e5\"]},\"coordinated_timing\":{\"bbox\":[10,50,170,60],\"doc_id\":\"INV-E-001\",\"page\":1,\"token_ids\":[\"e3\"]},\"policy_bypass_attempt\":{\"bbox\":[10,90,395,100],\"doc_id\":\"THR-E-001\",\"page\":1,\"token_ids\":[\"ee5\"]},\"sender_domain_spoof\":{\"bbox\":[10,10,30,20],\"doc_id\":\"THR-E-001\",\"page\":1,\"token_ids\":[\"ee1\"]},\"shared_bank_account\":{\"bbox\":[10,90,185,100],\"doc_id\":\"INV-E-001\",\"page\":1,\"token_ids\":[\"e5\"]},\"vendor_account_takeover_suspected\":{\"bbox\":[10,10,30,20],\"doc_id\":\"THR-E-001\",\"page\":1,\"token_ids\":[\"ee1\"]}},\"policy_checks\":{\"approval_threshold_check\":\"fail\",\"bank_change_verification\":\"fail\",\"duplicate_check\":\"pass\",\"three_way_match\":\"pass\"},\"predicted_probabilities\":{\"bank_fraud\":0.09,\"campaign_fraud\":0.09,\"ceo_bec\":0.09,\"duplicate_billing\":0.09,\"insider_collusion\":0.09,\"multi_entity_layering\":0.09,\"phantom_vendor\":0.09,\"safe\":0.01000000000000001,\"split_payment\":0.09,\"supply_chain_compromise\":0.09,\"threshold_evasion\":0.09,\"vendor_takeover\":0.09},\"reason_codes\":[\"approval_threshold_evasion\",\"bank_override_attempt\",\"coordinated_timing\",\"policy_bypass_attempt\",\"sender_domain_spoof\",\"double_send\",\"duplicate_billing\"]}}]}",
+      "parse_error": "",
+      "parse_success": true
+    }
+  ],
+  "name": "grpo_model",
+  "results": [
+    {
+      "case_id": "CASE-A-002",
+      "certificate_score": 0.95,
+      "control_satisfied_resolution": 1.0,
+      "done": true,
+      "errors": [],
+      "final_decision": "NEEDS_REVIEW",
+      "institutional_loss_score": 0.9698,
+      "institutional_utility": 0.6651,
+      "parse_error": "",
+      "parse_success": true,
+      "result_class": "valid_success",
+      "score": 0.9586,
+      "steps": 3,
+      "total_reward": -0.1414,
+      "unsafe_release": false
+    },
+    {
+      "case_id": "CASE-C-001::variant-0",
+      "certificate_score": 0.95,
+      "control_satisfied_resolution": 0.0,
+      "done": true,
+      "errors": [],
+      "final_decision": "ESCALATE_FRAUD",
+      "institutional_loss_score": 0.9852,
+      "institutional_utility": 0.9312,
+      "parse_error": "",
+      "parse_success": true,
+      "result_class": "correct_but_policy_incomplete",
+      "score": 0.3658,
+      "steps": 9,
+      "total_reward": -1.7405,
+      "unsafe_release": false
+    },
+    {
+      "case_id": "CASE-C-003::variant-1",
+      "certificate_score": 0.95,
+      "control_satisfied_resolution": 0.0,
+      "done": true,
+      "errors": [],
+      "final_decision": "ESCALATE_FRAUD",
+      "institutional_loss_score": 0.9852,
+      "institutional_utility": 0.9312,
+      "parse_error": "",
+      "parse_success": true,
+      "result_class": "correct_but_policy_incomplete",
+      "score": 0.4967,
+      "steps": 11,
+      "total_reward": -2.3244,
+      "unsafe_release": false
+    },
+    {
+      "case_id": "CASE-A-004",
+      "certificate_score": 0.95,
+      "control_satisfied_resolution": 1.0,
+      "done": true,
+      "errors": [],
+      "final_decision": "NEEDS_REVIEW",
+      "institutional_loss_score": 0.9698,
+      "institutional_utility": 0.6651,
+      "parse_error": "",
+      "parse_success": true,
+      "result_class": "valid_success",
+      "score": 0.9162,
+      "steps": 3,
+      "total_reward": -0.1838,
+      "unsafe_release": false
+    },
+    {
+      "case_id": "CASE-D-003::variant-0",
+      "certificate_score": 1.0,
+      "control_satisfied_resolution": 1.0,
+      "done": true,
+      "errors": [],
+      "final_decision": "ESCALATE_FRAUD",
+      "institutional_loss_score": 0.9841,
+      "institutional_utility": 0.9451,
+      "parse_error": "",
+      "parse_success": true,
+      "result_class": "valid_success",
+      "score": 0.8414,
+      "steps": 17,
+      "total_reward": -4.0495,
+      "unsafe_release": false
+    },
+    {
+      "case_id": "CASE-C-001::variant-1",
+      "certificate_score": 1.0,
+      "control_satisfied_resolution": 1.0,
+      "done": true,
+      "errors": [],
+      "final_decision": "ESCALATE_FRAUD",
+      "institutional_loss_score": 0.9944,
+      "institutional_utility": 0.9451,
+      "parse_error": "",
+      "parse_success": true,
+      "result_class": "valid_success",
+      "score": 0.544,
+      "steps": 15,
+      "total_reward": -3.8481,
+      "unsafe_release": false
+    },
+    {
+      "case_id": "CASE-E-002::variant-0",
+      "certificate_score": 1.0,
+      "control_satisfied_resolution": 1.0,
+      "done": true,
+      "errors": [],
+      "final_decision": "ESCALATE_FRAUD",
+      "institutional_loss_score": 0.9944,
+      "institutional_utility": 0.9451,
+      "parse_error": "partial_json_recovery: Expecting property name enclosed in double quotes: line 1 column 501 (char 500)",
+      "parse_success": true,
+      "result_class": "valid_success",
+      "score": 0.7057,
+      "steps": 16,
+      "total_reward": -4.397,
+      "unsafe_release": false
+    },
+    {
+      "case_id": "CASE-C-002::variant-1",
+      "certificate_score": 0.8875,
+      "control_satisfied_resolution": 0.0,
+      "done": true,
+      "errors": [],
+      "final_decision": "ESCALATE_FRAUD",
+      "institutional_loss_score": 0.9759,
+      "institutional_utility": 0.9339,
+      "parse_error": "partial_json_recovery: Expecting property name enclosed in double quotes: line 1 column 588 (char 587)",
+      "parse_success": true,
+      "result_class": "incorrect_resolution",
+      "score": 0.4366,
+      "steps": 13,
+      "total_reward": -3.4303,
+      "unsafe_release": false
+    },
+    {
+      "case_id": "CASE-E-001",
+      "certificate_score": 1.0,
+      "control_satisfied_resolution": 1.0,
+      "done": true,
+      "errors": [],
+      "final_decision": "ESCALATE_FRAUD",
+      "institutional_loss_score": 0.9944,
+      "institutional_utility": 0.9451,
+      "parse_error": "",
+      "parse_success": true,
+      "result_class": "valid_success",
+      "score": 0.6808,
+      "steps": 19,
+      "total_reward": -6.2245,
+      "unsafe_release": false
+    }
+  ],
+  "summary": {
+    "case_count": 9,
+    "certificate_score_mean": 0.9653,
+    "control_satisfied_resolution_rate": 0.6667,
+    "done_rate": 1.0,
+    "institutional_loss_score_mean": 0.9837,
+    "institutional_utility_mean": 0.8785,
+    "mean_score": 0.6606,
+    "mean_steps": 11.7778,
+    "mean_total_reward": -2.9266,
+    "parse_success_rate": 1.0,
+    "result_class_counts": {
+      "correct_but_policy_incomplete": 2,
+      "incorrect_resolution": 1,
+      "valid_success": 6
+    },
+    "unsafe_release_rate": 0.0
+  }
+}

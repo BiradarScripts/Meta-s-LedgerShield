@@ -9,9 +9,9 @@ from pathlib import Path
 from typing import Any
 
 try:  # pragma: no cover
-    from .common import EXQUISITE_ROOT, maybe_float, read_csv, read_json, read_jsonl, rel_path, safe_float, utc_now, write_json
+    from .common import EXQUISITE_ROOT, maybe_float, public_live_launch_jobs, read_csv, read_json, read_jsonl, rel_path, safe_float, utc_now, write_json
 except ImportError:  # pragma: no cover
-    from common import EXQUISITE_ROOT, maybe_float, read_csv, read_json, read_jsonl, rel_path, safe_float, utc_now, write_json  # type: ignore
+    from common import EXQUISITE_ROOT, maybe_float, public_live_launch_jobs, read_csv, read_json, read_jsonl, rel_path, safe_float, utc_now, write_json  # type: ignore
 
 
 EXECUTIVE_PLOTS = [
@@ -73,8 +73,7 @@ def pick_plots(plots: list[dict[str, Any]], patterns: list[str]) -> list[dict[st
 
 def launches_summary(report_dir: Path) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     launches = read_json(report_dir / "hf_exquisite_launches.json", default={}) or {}
-    jobs = launches.get("jobs", []) if isinstance(launches, dict) else []
-    live_jobs = [row for row in jobs if isinstance(row, dict) and not row.get("exclude_from_live_reports")]
+    live_jobs = public_live_launch_jobs(report_dir)
     return launches if isinstance(launches, dict) else {}, live_jobs
 
 
@@ -166,7 +165,7 @@ def build_html(cards: list[dict[str, str]], matrix: list[dict[str, Any]], manife
     per_case = pick_plots(manifest_plots, PER_CASE_PLOTS)
     safety = pick_plots(manifest_plots, SAFETY_PLOTS)
     ablations = pick_plots(manifest_plots, ABLATION_PLOTS)
-    job_columns = ["name", "hardware", "last_status", "timeout", "hourly_cost_usd", "max_cost_usd", "url"]
+    job_columns = ["name", "hardware", "public_status", "public_note", "timeout", "hourly_cost_usd", "max_cost_usd"]
     policy_columns = ["policy", "model", "method", "mean_score", "certificate_score", "control_satisfied", "unsafe_release", "parse_success", "status"]
     launch_panel = (
         f'<div class="table-wrap">{table_html(jobs, job_columns)}</div>'
@@ -340,7 +339,7 @@ def build_html(cards: list[dict[str, str]], matrix: list[dict[str, Any]], manife
   </header>
   <section class="cards">{card_html}</section>
   {section_html("Policy Matrix", "Compares baseline, SFT, GRPO, DPO, and teacher policies on the same held-out evaluation slice. Budget-cut runs are excluded from this live view.", f'<div class="table-wrap">{table_html(matrix, policy_columns)}</div>', panel_class='')}
-  {section_html("Launch Status", "Tracks the live Hugging Face job submissions, hardware, timeout cap, and monitor URL for the reduced-budget Exquisite run matrix.", launch_panel, panel_class='')}
+  {section_html("Execution Footprint", "Summarizes the additive Hugging Face execution footprint and the artifact-complete outcome for each live-scope run.", launch_panel, panel_class='')}
   {section_html("Executive Plots", "Judge-facing summary plots for the main narrative: policy ladder, scaling law, safety frontier, teacher-gap closure, and pipeline structure.", plot_cards(executive, empty_message="Executive plots pending."))}
   {section_html("GRPO Training Dynamics", "Reward stability, completion behavior, parse robustness, unsafe-release suppression, and certificate/control trends over RL updates.", plot_cards(training, empty_message="GRPO dynamics plots pending HF history files."))}
   {section_html("Self-Play And Falsifier", "Evidence that candidate plans were actually generated, executed, ranked, and separated by the deterministic audit stack.", plot_cards(selfplay, empty_message="Self-play plots pending candidate collection."))}

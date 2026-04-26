@@ -1,6 +1,6 @@
 # LedgerShield Exquisite Training Report
 
-Generated at `2026-04-26T02:34:38.114184+00:00`.
+Generated at `2026-04-26T04:45:41.338365+00:00`.
 
 ## Summary
 
@@ -13,12 +13,12 @@ The current best numeric policy is `Teacher` with mean score `0.6627`.
 
 ## Status
 
-- Policy rows completed: `7` of `8`
-- New-policy rows pending HF uploads: `1`
+- Policy rows completed: `8` of `8`
+- New-policy rows pending artifact sync: `0`
 - Self-play candidates recorded: `72`
 - Plots generated: `56`
-- HF jobs running: `1`
-- HF jobs completed: `2`
+- Live runs still active: `0`
+- Artifact-complete runs: `4`
 - Planned GPU hours: `12.0`
 - Planned max cost (based on timeout caps): `$25.00`
 - Live report exclusions: `grpo-1.5b, grpo-3b-flagship`
@@ -38,19 +38,19 @@ The current best numeric policy is `Teacher` with mean score `0.6627`.
 | Naive PAY | - | baseline | 0.0693 | 0.4794 | 0.2222 | 0.0000 | 1.0000 | completed |
 | Base Qwen | 0.5B | base | 0.1283 | 0.4044 | 0.0000 | 0.0000 | 1.0000 | completed |
 | SFT Qwen | 0.5B | SFT | 0.4394 | 0.8478 | 0.2222 | 0.0000 | 1.0000 | completed |
-| GRPO Qwen | 0.5B | SFT->GRPO | PENDING | PENDING | PENDING | PENDING | PENDING | PENDING |
+| GRPO Qwen | 0.5B | SFT->GRPO | 0.6606 | 0.9653 | 0.6667 | 0.0000 | 1.0000 | completed |
 | SFT Qwen | 1.5B | SFT | 0.4798 | 0.7992 | 0.0000 | 0.0000 | 1.0000 | completed |
 | DPO-Falsifier | 1.5B/3B | GRPO->DPO | 0.4503 | 0.8408 | 0.2222 | 0.0000 | 1.0000 | completed |
 | Teacher | - | oracle-ish | 0.6627 | 0.9472 | 0.5556 | 0.0000 | 1.0000 | completed |
 
-## Hugging Face Job Matrix
+## Execution Footprint
 
-| name | hardware | last_status | timeout | hourly_cost_usd | max_cost_usd | url |
+| name | hardware | public_status | public_note | timeout | hourly_cost_usd | max_cost_usd |
 |---|---|---|---|---|---|---|
-| selfplay-0.5b | a10g-large | ERROR | 2h | 1.5 | 3.0 | https://huggingface.co/jobs/king673134/69ed4706d70108f37acdf1aa |
-| grpo-0.5b | a100-large | RUNNING | 4h | 2.5 | 10.0 | https://huggingface.co/jobs/king673134/69ed4707d2c8bd8662bce980 |
-| dpo-falsifier-distill | a10g-large | COMPLETED | 3h | 1.5 | 4.5 | https://huggingface.co/jobs/king673134/69ed470ad70108f37acdf1ae |
-| sft-1.5b | a100-large | COMPLETED | 3h | 2.5 | 7.5 | https://huggingface.co/jobs/king673134/69ed70e7d70108f37acdf48e |
+| selfplay-0.5b | a10g-large | COMPLETE | artifact-complete | 2h | 1.5 | 3.0 |
+| grpo-0.5b | a100-large | COMPLETE | artifact-complete | 4h | 2.5 | 10.0 |
+| dpo-falsifier-distill | a10g-large | COMPLETE | artifact-complete | 3h | 1.5 | 4.5 |
+| sft-1.5b | a100-large | COMPLETE | artifact-complete | 3h | 2.5 | 7.5 |
 
 ## Key Artifacts
 

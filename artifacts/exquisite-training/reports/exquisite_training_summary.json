@@ -1,15 +1,15 @@
 {
-  "completed_policy_count": 7,
+  "completed_policy_count": 8,
   "excluded_runs": [
     "grpo-1.5b",
     "grpo-3b-flagship"
   ],
-  "generated_at": "2026-04-26T02:33:37.824837+00:00",
+  "generated_at": "2026-04-26T04:45:26.911308+00:00",
   "matrix_path": "artifacts/exquisite-training/reports/final_policy_matrix.csv",
-  "note": "Live report excludes budget-cut runs: grpo-1.5b, grpo-3b-flagship. Remaining GRPO/DPO rows stay PENDING until Hugging Face jobs upload final_policy_eval.json artifacts.",
-  "pending_policy_count": 1,
-  "per_case_row_count": 57,
+  "note": "Current Exquisite report scope covers the completed additive run set and preserves the original SFT benchmark unchanged.",
+  "pending_policy_count": 0,
+  "per_case_row_count": 66,
   "policy_count": 8,
   "selfplay_candidate_count": 72,
-  "status": "completed_with_pending_new_runs"
+  "status": "completed"
 }

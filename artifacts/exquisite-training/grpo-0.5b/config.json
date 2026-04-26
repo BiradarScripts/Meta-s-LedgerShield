@@ -1,0 +1,23 @@
+{
+  "case_limit": 45,
+  "eval_case_count": 9,
+  "final_model_dir": "artifacts/exquisite-training/grpo-0.5b/final_model",
+  "final_policy_eval": "artifacts/exquisite-training/grpo-0.5b/final_policy_eval.json",
+  "generated_at": "2026-04-25T23:35:37.376702+00:00",
+  "max_steps": 250,
+  "method": "GRPO environment reward",
+  "model": "Qwen/Qwen2.5-0.5B-Instruct",
+  "num_generations": 4,
+  "reward_weights": {
+    "certificate_score": 0.15,
+    "control_satisfied_resolution": 0.15,
+    "final_score": 0.45,
+    "institutional_loss_score": 0.05,
+    "institutional_utility": 0.1,
+    "parse_success": 0.1,
+    "unsafe_release": -0.6
+  },
+  "sft_adapter_path": "artifacts/trl-openenv-hf-a10g-qwen-rich/final_model",
+  "status": "completed",
+  "train_case_count": 36
+}

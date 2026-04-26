@@ -5,6 +5,7 @@ Base Qwen 0.5B,task_c,4,0.1854,0.3881,0.0,1.0
 Base Qwen 0.5B,task_d,1,0.3151,0.4475,0.0,1.0
 Base Qwen 0.5B,task_e,2,0.01,0.36,0.0,1.0
 DPO-Falsifier 1.5B/3B,unknown,9,0.4503,0.8408,0.0,1.0
+GRPO Qwen 0.5B,unknown,9,0.6606,0.9653,0.0,1.0
 Naive PAY,task_a,1,0.0255,0.61,0.0,1.0
 Naive PAY,task_b,1,0.01,0.41,0.0,1.0
 Naive PAY,task_c,4,0.01,0.4662,0.0,1.0
