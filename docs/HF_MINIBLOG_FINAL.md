@@ -2,7 +2,8 @@
 
 **Subtitle:** Most benchmarks ask, “Can the model spot the fraud?” LedgerShield asks a harder question: “Can an AI agent run a defensible enterprise payment-control process under uncertainty, pressure, and audit requirements?”
 
-![From Fraud Detection to Institutional Control](./assets/01_problem_shift.svg)
+<img width="1190" height="826" alt="image" src="https://github.com/user-attachments/assets/3959e362-e7c7-46d5-a89d-8abd4fbee22d" />
+
 
 ## 1. The simple idea
 
@@ -47,7 +48,9 @@ That is the core design choice behind LedgerShield.
 
 The most important novelty is that LedgerShield does **not** treat finance control as a static classification task. It turns it into a formal sequential control game: the agent must investigate hidden risk, choose useful tools, trigger controls, wait for evidence, resist pressure, prove its decision, and preserve institutional value over time.
 
-![LedgerShield Novelty Stack](./assets/11_novelty_stack.svg)
+
+<img width="1280" height="791" alt="image" src="https://github.com/user-attachments/assets/c7c7b82a-b112-4a13-9383-cfe12024083a" />
+
 
 ---
 
@@ -55,7 +58,9 @@ The most important novelty is that LedgerShield does **not** treat finance contr
 
 The agent starts with a case: maybe an invoice, maybe an email thread, maybe a vendor update, maybe a suspected duplicate payment. It can use investigation tools and control actions.
 
-![The Agent Journey](./assets/02_agent_lifecycle.svg)
+
+<img width="1280" height="492" alt="image" src="https://github.com/user-attachments/assets/5f4e2bc1-7ce4-4a03-a4c9-37be0817c9ef" />
+
 
 A typical episode looks like this:
 
@@ -75,7 +80,9 @@ The important point: **the agent is evaluated on behavior, not just wording.** A
 
 LedgerShield includes five main task families. They move from simple extraction to expert-level campaign reasoning.
 
-![Five Task Families](./assets/04_task_ladder.svg)
+
+<img width="1280" height="1188" alt="image" src="https://github.com/user-attachments/assets/5d7b6db3-8e72-42ae-a3d4-f65526f4a5a4" />
+
 
 | Task | Plain-English meaning | What it tests |
 |---|---|---|
@@ -103,7 +110,9 @@ The key design is that safe cases exist too. A benchmark that escalates everythi
 
 LedgerShield is not only a small set of public examples. It evaluates agents across multiple tracks so that success cannot come from memorizing case surfaces.
 
-![Nine Evaluation Tracks](./assets/05_tracks_matrix.svg)
+<img width="1280" height="893" alt="image" src="https://github.com/user-attachments/assets/1613a754-0d1d-4886-bcf8-12c812cf969e" />
+
+
 
 | Track | What it measures | Why it matters |
 |---|---|---|
@@ -127,7 +136,8 @@ A single average score can hide the worst failure in a finance system: paying mo
 
 LedgerShield reports safety-critical outcomes separately.
 
-![Metrics Dashboard](./assets/06_metrics_dashboard.svg)
+<img width="1280" height="709" alt="image" src="https://github.com/user-attachments/assets/5d85aed3-d476-49d7-8674-0558413edb02" />
+
 
 Important metrics include:
 
@@ -155,7 +165,9 @@ A company does not process one invoice and disappear. It processes thousands of 
 
 ControlBench models that long-horizon pressure.
 
-![ControlBench Memory](./assets/07_controlbench_memory.svg)
+
+<img width="1280" height="596" alt="image" src="https://github.com/user-attachments/assets/bcb58973-9d69-4964-9177-e35f208ccb6d" />
+
 
 The environment keeps institutional memory across episodes:
 
@@ -206,7 +218,9 @@ In LedgerShield, a decision can include a **Decision Certificate Graph**.
 
 This is a structured proof object. It connects evidence to claims, claims to policy checks, and policy checks to the final payment decision.
 
-![Decision Certificate](./assets/09_decision_certificate.svg)
+
+<img width="1280" height="435" alt="image" src="https://github.com/user-attachments/assets/a02edfaf-85fd-4a81-8fbe-44b66c80a0e4" />
+
 
 The verifier checks whether the certificate has:
 
@@ -269,7 +283,8 @@ This matters because the final answer is not trusted blindly. It is stress-teste
 
 At a high level, LedgerShield has an agent, an API, an environment loop, tools, hidden world state, grading, memory, and reporting.
 
-![LedgerShield Architecture](./assets/03_architecture.svg)
+<img width="1280" height="589" alt="image" src="https://github.com/user-attachments/assets/be76c6e5-a7e6-4e15-b85f-0cd3ecae46aa" />
+
 
 The main layers are:
 
@@ -293,7 +308,8 @@ The main layers are:
 
 LedgerShield exposes an OpenEnv-compatible HTTP API. The agent interacts with the environment through reset and step calls.
 
-![OpenEnv API Surface](./assets/10_api_endpoints.svg)
+<img width="1280" height="573" alt="image" src="https://github.com/user-attachments/assets/91005dfe-4086-42c2-aa29-e36ea690e113" />
+
 
 Important endpoints:
 
@@ -413,7 +429,9 @@ The name sounds heavy, but the intuition is simple:
 
 > The agent is investigating a hidden truth. Every tool gives partial evidence. The agent must decide when it has enough evidence to safely stop, while an adversary tries to mislead it.
 
-![ASHTG Loop](./assets/12_ashtg_loop.svg)
+
+<img width="1280" height="838" alt="image" src="https://github.com/user-attachments/assets/ad5b4cc5-2330-4ad9-a37f-b0b56bb34671" />
+
 
 Here is the non-technical version of the novelty:
 
@@ -448,7 +466,9 @@ Plain-English takeaway: the benchmark tests whether the agent can spend investig
 
 A model can be accidentally right for the wrong reason. For example, it might flag an invoice because the email sounds urgent, while the actual control failure is a bank-account mismatch. LedgerShield’s causal layer rewards the agent for uncovering the mechanism that actually explains the risk.
 
-![Causal Counterfactual Grading](./assets/15_causal_counterfactual.svg)
+
+<img width="1600" height="923" alt="image" src="https://github.com/user-attachments/assets/08e1c1e3-799c-43f3-9800-747f877b3cfa" />
+
 
 Plain-English takeaway: LedgerShield cares whether the agent found the control failure, not just whether it used scary words.
 
@@ -456,7 +476,8 @@ Plain-English takeaway: LedgerShield cares whether the agent found the control f
 
 In finance, a model that is 99% confident and wrong is much more dangerous than a model that says, “I am uncertain; route this for review.” Proper scoring rewards calibrated probability estimates and punishes overconfident wrong decisions.
 
-![Proper Scoring and Calibration](./assets/16_proper_scoring.svg)
+<img width="1600" height="1147" alt="image" src="https://github.com/user-attachments/assets/a42e1f2f-2f4d-405f-a830-664d4bfd01f0" />
+
 
 Plain-English takeaway: LedgerShield does not only ask “what did you decide?” It also asks “were you honest about uncertainty?”
 
@@ -464,7 +485,8 @@ Plain-English takeaway: LedgerShield does not only ask “what did you decide?�
 
 LedgerShield can model an analyst-style agent and a watchdog/control layer. The attacker tries to exploit weaknesses. The analyst investigates. The watchdog can warn, veto, escalate, or approve.
 
-![Security Game Watchdog](./assets/17_stackelberg_watchdog.svg)
+<img width="1600" height="1044" alt="image" src="https://github.com/user-attachments/assets/a73bc2e4-556e-44ca-89e1-f2a2d45a1868" />
+
 
 Plain-English takeaway: the benchmark is closer to enterprise governance than a simple chatbot task.
 
@@ -594,7 +616,8 @@ Important runtime flags include:
 
 The recommended live demo case is `CASE-D-001`.
 
-![Three-Minute Demo Flow](./assets/08_demo_flow.svg)
+<img width="1280" height="423" alt="image" src="https://github.com/user-attachments/assets/24ac9229-2580-43f2-9b52-f4285ce9bb09" />
+
 
 Suggested flow:
 
@@ -656,43 +679,15 @@ And that is why the benchmark is useful for evaluating whether AI agents are rea
 
 ## Appendix A — Visual summary
 
-```mermaid
-flowchart LR
-    A[Invoice / Email / Vendor Context] --> B[Investigate]
-    B --> C[Verify Policy + Bank + Ledger]
-    C --> D[Trigger Controls]
-    D --> E[Wait for Artifacts]
-    E --> F[Submit Decision]
-    F --> G[Certificate + TrustGraph]
-    G --> H[Institutional Memory]
-```
 
-```mermaid
-flowchart TB
-    Agent[Agent] --> API[OpenEnv API]
-    API --> Env[LedgerShield Environment]
-    Env --> Tools[Investigation Tools]
-    Env --> World[Hidden World State]
-    Env --> Grader[Task + Trajectory Grader]
-    Env --> Cert[Certificate Verifier]
-    Env --> Falsifier[Decision Falsifier]
-    Env --> Memory[Institutional Memory]
-    Memory --> Gate[Calibration Gate / Authority Level]
-    Grader --> Report[Benchmark Report + Leaderboard]
-```
+<img width="1280" height="1233" alt="image" src="https://github.com/user-attachments/assets/1ace1afc-a341-426e-ab3c-3e4948d178f2" />
 
-```mermaid
-flowchart TB
-    Tracks[Nine Tracks] --> Case[Case]
-    Tracks --> Portfolio[Portfolio]
-    Tracks --> Adv[Adversarial Data]
-    Tracks --> Holdout[Generated Holdout]
-    Tracks --> CB[ControlBench]
-    Tracks --> Sleeper[Sleeper Vigilance]
-    Tracks --> Blind[Blind Control]
-    Tracks --> CertReq[Certificate Required]
-    Tracks --> Human[Human Baseline]
-```
+
+<img width="1280" height="870" alt="image" src="https://github.com/user-attachments/assets/1171759b-85bc-44d6-9664-7e44dc239a96" />
+
+
+
+<img width="1280" height="1066" alt="image" src="https://github.com/user-attachments/assets/dcf8fc31-8bd1-44b0-ba40-0b04418a6974" />
 
 ---
 
