@@ -880,7 +880,7 @@ If we compress the training story into one sequence, it looks like this:
 6. **update the policy from reward**
 7. **compare scaling and distillation as follow-ups**
 
-![Exquisite pipeline diagram](../artifacts/exquisite-training/plots/06_exquisite_pipeline_diagram.png)
+<img width="1377" height="496" alt="image" src="https://github.com/user-attachments/assets/a5e8ec3d-2062-4489-a853-c35a4113709d" />
 
 *This pipeline graphic is the simplest visual summary of the additive training stack: self-play expands candidate behavior, the environment scores it, and GRPO/DPO convert that signal into a stronger policy.*
 
