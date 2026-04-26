@@ -1030,6 +1030,52 @@ The planned ablation suite still covers the right questions:
 - training-stage choices: `num_generations`, model size, SFT-vs-base warm start, GRPO step count, temperature
 - post-GRPO follow-up: DPO-after-GRPO
 
+![Ablation suite status](../artifacts/exquisite-training/plots/47_reward_ablation_score.png)
+
+*Ablation-suite status card. This render is intentionally a pending-state graphic, not a numeric result plot. It shows which ablation slots are defined and waiting on dedicated HF reruns.*
+
+### Reward-shaping ablation slots
+
+![Without certificate bonus status](../artifacts/exquisite-training/plots/48_without_certificate_bonus.png)
+
+*Pending status card for the certificate-bonus ablation slot.*
+
+![Without unsafe penalty status](../artifacts/exquisite-training/plots/49_without_unsafe_penalty.png)
+
+*Pending status card for the unsafe-penalty ablation slot.*
+
+![Without parse bonus status](../artifacts/exquisite-training/plots/50_without_parse_bonus.png)
+
+*Pending status card for the parse-bonus ablation slot.*
+
+### Training-stage ablation slots
+
+![num_generations status](../artifacts/exquisite-training/plots/51_num_generations_ablation.png)
+
+*Pending status card for the `num_generations` sweep.*
+
+![Model size status](../artifacts/exquisite-training/plots/52_model_size_ablation.png)
+
+*Pending status card for the model-size comparison slot.*
+
+![SFT warm-start vs base start status](../artifacts/exquisite-training/plots/53_sft_checkpoint_vs_base_start.png)
+
+*Pending status card for the SFT-vs-base GRPO warm-start comparison.*
+
+![GRPO steps status](../artifacts/exquisite-training/plots/54_grpo_steps_ablation.png)
+
+*Pending status card for the GRPO step-count sweep.*
+
+![Temperature status](../artifacts/exquisite-training/plots/55_temperature_ablation.png)
+
+*Pending status card for the sampling-temperature sweep.*
+
+### Post-GRPO follow-up slot
+
+![DPO after GRPO status](../artifacts/exquisite-training/plots/56_dpo_after_grpo_ablation.png)
+
+*Pending status card for the DPO-after-GRPO rerun.*
+
 Once those HF runs report numbers, the same plotting pipeline will replace the placeholders with real charts on the shared evaluation slice. Until then, the strongest committed training evidence in this repo remains the live SFT / GRPO / DPO runs, their loss and reward curves, the final policy matrix, and the per-case behavioral artifacts discussed elsewhere in this post.
 
 ---
