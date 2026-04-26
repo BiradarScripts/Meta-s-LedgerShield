@@ -13,3 +13,7 @@ This directory contains the executable pieces referenced by that report:
 | [`requirements-training.txt`](./requirements-training.txt) | Training-only dependency pins |
 
 Primary evidence run: [`../artifacts/trl-openenv-hf-a10g-qwen-rich/`](../artifacts/trl-openenv-hf-a10g-qwen-rich/)
+
+Additive Exquisite layer: [`./exquisite/README.md`](./exquisite/README.md)
+
+Additive Exquisite Colab notebook: [`./exquisite/LedgerShield_Exquisite_Training_Colab.ipynb`](./exquisite/LedgerShield_Exquisite_Training_Colab.ipynb)

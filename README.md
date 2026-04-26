@@ -48,6 +48,8 @@ tags:
 
 **Short mini-blog source:** [`docs/HF_MINIBLOG_FINAL.md`](./docs/HF_MINIBLOG_FINAL.md)
 
+**Hackathon alignment checklist:** [`docs/openenv-hackathon-alignment.md`](./docs/openenv-hackathon-alignment.md)
+
 > **Additive training note:** The original OpenEnv SFT benchmark remains unchanged under [`training/ledgershield_trl_training.py`](./training/ledgershield_trl_training.py), [`docs/training-report.md`](./docs/training-report.md), and [`artifacts/trl-openenv-hf-a10g-qwen-rich/`](./artifacts/trl-openenv-hf-a10g-qwen-rich/). The new environment-in-the-loop work lives separately under [`training/exquisite/`](./training/exquisite/), [`artifacts/exquisite-training/`](./artifacts/exquisite-training/), [`docs/exquisite-training-layer.md`](./docs/exquisite-training-layer.md), and [`docs/exquisite-visual-analysis.md`](./docs/exquisite-visual-analysis.md).
 >
 > **Current additive result:** `GRPO Qwen 0.5B` reaches `0.6606` mean score, `0.9653` certificate score, `0.6667` control-satisfied resolution, `0.0000` unsafe release, and `1.0000` parse success against a `0.6627` teacher reference.
@@ -55,6 +57,59 @@ tags:
 > **LedgerShield is a deployment-grade trust-and-governance benchmark for autonomous enterprise AI agents — the first RL environment that measures not just whether an AI can solve a task, but whether it *deserves operational authority*.**
 
 ---
+
+## OpenEnv Submission Materials
+
+| Asset | Link | Why a judge would open it |
+|---|---|---|
+| Runnable environment | [Hugging Face Space](https://huggingface.co/spaces/shreayas/ledgershield-controlbench) | Pull and run the actual environment |
+| OpenEnv manifest | [`openenv.yaml`](./openenv.yaml) | Confirms the benchmark contract and metadata |
+| Public benchmark overview | [`docs/DOCUMENTATION.md`](./docs/DOCUMENTATION.md) | Deep environment, API, and architecture reference |
+| Original SFT training proof | [`docs/training-report.md`](./docs/training-report.md) | Real A10G TRL run with plots, baselines, and artifacts |
+| Original SFT rerun notebook | [`training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb`](./training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb) | Judge-friendly Colab rerun entrypoint |
+| Additive Exquisite layer | [`docs/exquisite-training-layer.md`](./docs/exquisite-training-layer.md) | End-to-end self-play -> GRPO -> DPO pipeline writeup |
+| Additive Exquisite rerun notebook | [`training/exquisite/LedgerShield_Exquisite_Training_Colab.ipynb`](./training/exquisite/LedgerShield_Exquisite_Training_Colab.ipynb) | Separate Colab entrypoint for the modified training process |
+| Exquisite visual deep dive | [`docs/exquisite-visual-analysis.md`](./docs/exquisite-visual-analysis.md) | Interprets the 56-plot evidence pack |
+| Exquisite script map | [`training/exquisite/README.md`](./training/exquisite/README.md) | End-to-end file map for the modified training path |
+| Judge-facing dashboard | [`artifacts/exquisite-training/dashboard/index.html`](./artifacts/exquisite-training/dashboard/index.html) | Fast scan of final metrics and plots |
+| Pitch / presentation | [Pitch Deck (Canva)](https://canva.link/lsxxrdfbk2pxl8h) | Storytelling asset for a sub-2-minute review |
+| Hackathon alignment audit | [`docs/openenv-hackathon-alignment.md`](./docs/openenv-hackathon-alignment.md) | Maps the repo directly to the OpenEnv judging rubric |
+
+### Judge Quick Read
+
+1. Start with [`docs/openenv-hackathon-alignment.md`](./docs/openenv-hackathon-alignment.md).
+2. Skim the environment narrative in this README and the benchmark API/design details in [`docs/DOCUMENTATION.md`](./docs/DOCUMENTATION.md).
+3. Check the original TRL proof in [`docs/training-report.md`](./docs/training-report.md).
+4. Then inspect the additive GRPO result stack in [`docs/exquisite-training-layer.md`](./docs/exquisite-training-layer.md) and [`artifacts/exquisite-training/dashboard/index.html`](./artifacts/exquisite-training/dashboard/index.html).
+
+## Training Evidence At A Glance
+
+LedgerShield now shows two distinct training stories:
+
+| Track | What it proves | Primary evidence |
+|---|---|---|
+| Original SFT benchmark | A live OpenEnv-connected TRL SFT loop improves a 0.5B model on held-out LedgerShield cases | [`docs/training-report.md`](./docs/training-report.md), [`training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb`](./training/LedgerShield_OpenEnv_TRL_Training_Colab.ipynb), [`artifacts/trl-openenv-hf-a10g-qwen-rich/`](./artifacts/trl-openenv-hf-a10g-qwen-rich/) |
+| Additive Exquisite layer | Self-play + deterministic environment reward + GRPO pushes the same 0.5B family to near-teacher performance | [`docs/exquisite-training-layer.md`](./docs/exquisite-training-layer.md), [`docs/exquisite-visual-analysis.md`](./docs/exquisite-visual-analysis.md), [`training/exquisite/LedgerShield_Exquisite_Training_Colab.ipynb`](./training/exquisite/LedgerShield_Exquisite_Training_Colab.ipynb), [`artifacts/exquisite-training/`](./artifacts/exquisite-training/) |
+
+### Original SFT Proof
+
+![Original SFT reward improvement ladder](./artifacts/trl-openenv-hf-a10g-qwen-rich/plots/reward_improvement_ladder.png)
+
+*Original TRL SFT proof: the trained 0.5B policy clearly separates from random, naive, and base-model baselines on the held-out LedgerShield slice.*
+
+### Additive Exquisite Improvement
+
+![Exquisite final policy ladder](./artifacts/exquisite-training/plots/01_final_policy_ladder.png)
+
+*Additive Exquisite layer: GRPO Qwen 0.5B reaches `0.6606` mean score, essentially matching the `0.6627` teacher reference.*
+
+![Exquisite GRPO reward curve](./artifacts/exquisite-training/plots/08_grpo_reward_curve_smoothed.png)
+
+*Observable reward improvement: the smoothed GRPO curve shows real training progress rather than a static evaluation-only story.*
+
+![Score safety frontier](./artifacts/exquisite-training/plots/04_score_safety_frontier_all_policies.png)
+
+*Safety is preserved while rewards improve: the best additive policy moves right on score without moving upward on unsafe release.*
 
 ## The Problem: A $2.9 Billion Capability Gap
 

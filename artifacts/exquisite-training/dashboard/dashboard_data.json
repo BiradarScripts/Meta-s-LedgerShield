@@ -46,7 +46,7 @@
       "value": "12.0"
     }
   ],
-  "generated_at": "2026-04-26T04:45:39.864651+00:00",
+  "generated_at": "2026-04-26T05:25:04.601508+00:00",
   "jobs": [
     {
       "description": "Collect SFT-warm-start self-play candidates and falsifier preferences.",
@@ -503,7 +503,7 @@
       "grpo-1.5b",
       "grpo-3b-flagship"
     ],
-    "generated_at": "2026-04-26T04:45:26.911308+00:00",
+    "generated_at": "2026-04-26T05:24:52.257527+00:00",
     "matrix_path": "artifacts/exquisite-training/reports/final_policy_matrix.csv",
     "note": "Current Exquisite report scope covers the completed additive run set and preserves the original SFT benchmark unchanged.",
     "pending_policy_count": 0,

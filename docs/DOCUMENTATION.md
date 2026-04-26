@@ -11,6 +11,9 @@ This single document consolidates the full documentation set for LedgerShield Co
 - [Benchmark Card](#benchmark-card)
 - [Tasks](#tasks)
 - [Training Evidence Report](./training-report.md)
+- [Exquisite Training Layer](./exquisite-training-layer.md)
+- [Exquisite Visual Analysis](./exquisite-visual-analysis.md)
+- [OpenEnv Hackathon Alignment](./openenv-hackathon-alignment.md)
 - [API Reference](#api-reference)
 - [Architecture](#architecture)
 - [ASHTG Theory](#ashtg-theory)
@@ -58,8 +61,11 @@ This document contains the long-form documentation for LedgerShield ControlBench
 
 1. [`README.md`](../README.md) — project overview, benchmark at a glance, upgrade snapshot
 2. [`training-report.md`](./training-report.md) — real A10G training evidence, reward curves, baseline comparison, and artifact map
-3. [`index.md`](#documentation-index) — why LedgerShield exists, core concepts, scoring philosophy
-4. [`architecture.md`](#architecture) — system layers, hidden state, reward flow, grading pipeline
+3. [`exquisite-training-layer.md`](./exquisite-training-layer.md) — additive environment-in-the-loop post-training pipeline
+4. [`exquisite-visual-analysis.md`](./exquisite-visual-analysis.md) — judge-facing interpretation of the 56-plot pack
+5. [`openenv-hackathon-alignment.md`](./openenv-hackathon-alignment.md) — rubric-to-evidence mapping
+6. [`index.md`](#documentation-index) — why LedgerShield exists, core concepts, scoring philosophy
+7. [`architecture.md`](#architecture) — system layers, hidden state, reward flow, grading pipeline
 
 #### Building an agent
 
@@ -89,6 +95,9 @@ This document contains the long-form documentation for LedgerShield ControlBench
 |---|---|---|
 | [`index.md`](#documentation-index) | first-time readers | motivation, benchmark scope, core concepts, quick start, and evaluation framing |
 | [`training-report.md`](./training-report.md) | judges and reviewers | real OpenEnv-connected TRL training evidence, plots, reward checkpoints, and grading alignment |
+| [`exquisite-training-layer.md`](./exquisite-training-layer.md) | judges and reviewers | additive self-play -> GRPO -> DPO pipeline, completed policy matrix, and reproduction commands |
+| [`exquisite-visual-analysis.md`](./exquisite-visual-analysis.md) | judges and reviewers | deep interpretation of the additive reward curves, policy ladders, safety frontiers, and ablations |
+| [`openenv-hackathon-alignment.md`](./openenv-hackathon-alignment.md) | judges and reviewers | direct mapping from OpenEnv rubric requirements to repo evidence |
 | [`tasks.md`](#tasks) | agent builders and benchmark users | task families A–E, case catalog, output contracts by task, scoring weights, and penalties |
 | [`api-reference.md`](#api-reference) | integrators and agent builders | REST endpoints (`/reset`, `/step`, `/state`, `/leaderboard`, `/benchmark-report`, `/controlbench-summary`, `/human-baseline-summary`, `/institutional-memory`, `/institutional-reset`), request/response envelopes, action taxonomy, reward model |
 | [`architecture.md`](#architecture) | researchers and maintainers | system layers, hidden-state mechanics, reward design, grading pipeline, case generation, realism modules |

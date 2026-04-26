@@ -60,6 +60,7 @@ training/exquisite/
   launch_exquisite_jobs.py
   monitor_exquisite_jobs.py
   render_exquisite_report.py
+  LedgerShield_Exquisite_Training_Colab.ipynb
 
 docs/
   exquisite-training-layer.md
@@ -76,6 +77,10 @@ artifacts/exquisite-training/
 ```
 
 This isolation is deliberate: judges can inspect the original SFT benchmark on its own, or inspect the additive Exquisite layer as a second-stage training system.
+
+There is now also a dedicated Colab rerun entrypoint for this additive path:
+
+- `training/exquisite/LedgerShield_Exquisite_Training_Colab.ipynb`
 
 ## 4. Completed Exquisite Run Scope
 
@@ -314,6 +319,7 @@ Primary outputs:
 - dashboard: `artifacts/exquisite-training/dashboard/index.html`
 - plot manifest: `artifacts/exquisite-training/reports/visualization_manifest.json`
 - plot pack: `artifacts/exquisite-training/plots/`
+- Colab rerun notebook: `training/exquisite/LedgerShield_Exquisite_Training_Colab.ipynb`
 
 Core local rebuild commands:
 
