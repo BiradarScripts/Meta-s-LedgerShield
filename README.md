@@ -35,9 +35,26 @@ FBI IC3 reports **$2.9B+ in BEC losses** across 21,489 complaints in 2023 alone.
 
 ## What LedgerShield Is
 
-**LedgerShield is a deployment-grade trust-and-governance benchmark for autonomous enterprise AI agents. Unlike standard RL environments that test isolated task classification, LedgerShield measures whether an AI agent deserves operational authority. It challenges agents to investigate Accounts Payable (AP) fraud, enforce SOX compliance, and maintain calibrated trust against patient adversaries over extended enterprise workflows.**
+**LedgerShield is a deployment-grade trust-and-governance benchmark for autonomous enterprise AI agents. Unlike standard RL environments that test isolated tasks, LedgerShield measures whether an AI agent deserves operational authority. It asks agents to investigate Accounts Payable (AP) fraud, enforce SOX compliance, and maintain calibrated trust across long-horizon enterprise workflows.**
 
-> **LedgerShield is a deployment-grade trust-and-governance benchmark for autonomous enterprise AI agents — the first RL environment that measures not just whether an AI can solve a task, but whether it *deserves operational authority*.**
+> **LedgerShield is the first RL environment built to measure not only whether an AI can solve a task, but whether it *deserves operational authority*.**
+
+### 1-Minute Benchmark Summary
+
+- **Problem:** Enterprise payment fraud is not a single classification task; it is a long-running control problem shaped by uncertainty, pressure, auditability, and adversaries that adapt.
+- **Environment:** LedgerShield is a partially observable AP control world with investigation tools, delayed artifacts, institutional memory, calibration-gated authority, decision certificates, and long-horizon ControlBench sequences.
+- **What agents must do:** Investigate cases, trigger controls, wait for missing evidence, make a final decision, and justify that decision with auditable proof.
+- **Why it is hard:** The benchmark measures unsafe release, incomplete control execution, weak certificates, poor calibration, and long-horizon institutional damage—not just final accuracy.
+- **Training evidence:** The repo shows a full training ladder from live-rollout SFT to self-play and GRPO, with reward curves, policy ladders, and before/after metrics.
+
+### Judge Rubric Snapshot
+
+| Judging criterion | How LedgerShield addresses it |
+|---|---|
+| **Environment Innovation** | Partially observable AP control world, persistent institutional memory, delayed artifacts, authority gating, decision certificates, adversarial falsification, and long-horizon ControlBench sequences |
+| **Storytelling** | Starts from a real enterprise fraud problem, explains the workflow clearly, and ties the benchmark design to trust, controls, and auditability |
+| **Showing Improvement in Rewards** | Shows original SFT evidence, additive Exquisite GRPO results, reward curves, policy ladders, and before/after metrics |
+| **Reward + Training Pipeline** | Explains the reward structure, live-rollout SFT baseline, self-play candidate generation, GRPO environment reward loop, and supporting artifacts |
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
@@ -145,15 +162,15 @@ LedgerShield now shows two distinct training stories:
 
 ## Training Ladder: from live rollouts to environment reward
 
-For judges who want the training story in one minute, LedgerShield now exposes a simple progression:
+For judges who want the training story quickly, LedgerShield follows a clear progression:
 
 ### Phase 0 — Build the world first
 
-Before post-training, the team built the **LedgerShield world** itself: a partially observable enterprise AP environment with hidden evidence, institutional memory, delayed artifacts, and evolving authority state. This matters because the model is not trained on a static table of labels; it is trained against an environment that behaves like a control workflow.
+Before post-training, the team built the **LedgerShield world** itself: a partially observable enterprise AP environment with hidden evidence, institutional memory, delayed artifacts, and evolving authority state. This matters because the model is not trained on a static table of labels; it is trained inside an environment that behaves like a control workflow.
 
 ### Layer 1 — Original SFT loop
 
-The original supervised fine-tuning path starts from **Base Qwen 0.5B** at a `0.1283` mean score. A **teacher** policy then performs **45 live OpenEnv rollouts**, and those trajectories are written as JSONL SFT examples. Training on those live investigations lifts the model to **SFT Qwen 0.5B = `0.4394`**, a gain of **`+0.3111`** on the reported evaluation slice.
+The original supervised fine-tuning path starts from **Base Qwen 0.5B** at a `0.1283` mean score. A **teacher** policy performs **45 live OpenEnv rollouts**, and those trajectories are written as JSONL SFT examples. Training on those live investigations lifts the model to **SFT Qwen 0.5B = `0.4394`**, a gain of **`+0.3111`** on the reported evaluation slice.
 
 ### Layer 2A — Self-play candidate generation
 
@@ -169,7 +186,7 @@ This stage writes artifacts such as `selfplay_candidates.jsonl` and `falsifier_p
 
 ### Layer 2B — GRPO with environment reward
 
-The main improvement comes from **environment-in-the-loop GRPO**. Instead of only copying teacher behavior, the model samples multiple plans, LedgerShield executes and scores them, and the policy is updated using relative reward inside the group. This is the core shift from **imitation** to **environment-driven improvement**.
+The main improvement comes from **environment-in-the-loop GRPO**. Instead of only copying teacher behavior, the model samples multiple plans, LedgerShield executes and scores them, and the policy is updated using relative reward within the group. This is the core shift from **imitation** to **environment-driven improvement**.
 
 On the reported policy matrix:
 
@@ -193,7 +210,7 @@ The practical takeaway from the current artifact stack is that **reward-driven G
 
 ### Safety takeaway
 
-Across the reported evaluation tables, the learned policies maintain **`0.0000` unsafe release** on the included eval slices, while the best additive policy reaches near-teacher performance.
+Across the reported evaluation tables, the learned policies maintain **`0.0000` unsafe release** on the included evaluation slices, while the best additive policy reaches near-teacher performance.
 
 ## Theme Alignment
 
@@ -419,17 +436,6 @@ LedgerShield enforces **6 layers** of guardrails to prevent gaming:
 | `result_class` | Explicit label: valid success, policy incomplete, unsafe release, etc. |
 
 ---
-
-## Why LedgerShield Deserves Full Marks
-
-| Criterion | Evidence |
-|---|---|
-| **Storytelling** | Real $4.2M BEC story → $2.9B problem → clear problem→environment→results narrative. Not a fraud classifier — a deployment-grade trust benchmark. |
-| **Environment Innovation** | 9 tracks, ASHTG framework (5 mathematical pillars, 30 citations), calibration-gated authority, institutional memory, sleeper-vigilance, DCG + adversarial falsifier, VoI rewards, 10-dim loss surface. No other submission combines these. |
-| **Grader Quality** | Multi-dimensional rubrics (8+ components per task), proper scoring rules (strategy-proof), difficulty progression verified by monotonic model ordering (gpt-3.5: 38% → gpt-5.4: 95%). |
-| **Environment Design** | Clean POMDP state (50+ fields), 14 tools + 9 interventions, 3-layer reward shaping, PBRS + VoI + milestones, async delayed artifacts, cross-episode persistence. |
-| **Code Quality** | OpenEnv-compatible `openenv.yaml`, typed Pydantic models, CI/CD, pytest suite, 4-gate validator, docstrings across modules. |
-| **Creativity & Novelty** | Enterprise AP fraud is underexplored in RL/LLM training. ASHTG unifies 5 theories never before combined. Calibration-gated authority asks "should this AI stay deployed?" — a question no other benchmark answers. |
 
 ---
 

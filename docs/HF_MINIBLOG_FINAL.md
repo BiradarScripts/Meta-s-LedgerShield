@@ -1,6 +1,6 @@
 # LedgerShield ControlBench: What It Really Takes to Trust an AI Agent With Real Money
 
-**Subtitle:** Most benchmarks ask, “Can the model spot the fraud?” We wanted to ask a harder, more useful question: **Can an AI agent run a defensible enterprise payment-control process under uncertainty, pressure, and audit requirements?**
+**Subtitle:** Most benchmarks ask, “Can the model spot the fraud?” We ask a harder and more useful question: **Can an AI agent run a defensible enterprise payment-control process under uncertainty, pressure, and audit requirements?**
 
 <img width="1190" height="826" alt="image" src="https://github.com/user-attachments/assets/3959e362-e7c7-46d5-a89d-8abd4fbee22d" />
 
@@ -8,14 +8,25 @@ When we started building LedgerShield, we kept coming back to one simple idea:
 
 > In the real world, nobody cares whether an AI can produce a clever fraud label if it still sends money to the wrong bank account.
 
-That gap — between looking smart and behaving safely — is what LedgerShield is built to test.
+That gap — between looking smart and behaving safely — is exactly what LedgerShield is built to test.
 
-This project is our attempt to turn enterprise payment control into a serious environment for evaluating and training agents. Not a toy fraud dataset. Not a one-shot classification benchmark. A real workflow simulator where the agent has to investigate, gather evidence, trigger controls, wait for delayed artifacts, justify its decision, and survive audit.
+LedgerShield turns enterprise payment control into a serious environment for evaluating and training agents. It is not a toy fraud dataset or a one-shot classification benchmark. It is a workflow simulator where the agent has to investigate, gather evidence, trigger controls, wait for delayed artifacts, justify its decision, and survive audit.
 
 If you only remember one thing from this post, let it be this:
 
 > **LedgerShield ControlBench is a benchmark for institutional control intelligence.**  
 > It measures whether an AI agent deserves operational authority, not just whether it can guess the right label.
+
+---
+
+## Judge takeaway in 30 seconds
+
+If you only scan one section before opening the repo, this is the summary:
+
+- **Environment innovation:** LedgerShield is a long-horizon enterprise AP control environment with partial observability, delayed artifacts, institutional memory, authority gating, proof-carrying decisions, and adversarial falsification.
+- **Storytelling:** The benchmark starts from a real enterprise risk problem — not “can the model classify fraud?” but “can the agent operate a defensible payment-control workflow safely over time?”
+- **Observable improvement:** The training stack shows clear gains from Base → SFT → GRPO, including reward curves, policy ladders, stronger certificate quality, and better control completion.
+- **Reward and pipeline coherence:** The reward is tied to investigation quality, safe control completion, and auditable outcomes, while the training pipeline moves from live rollouts to self-play to environment-in-the-loop GRPO.
 
 ---
 
@@ -728,9 +739,13 @@ That is the foundation.
 
 The first training pathway is the original SFT loop.
 
-A stronger **Teacher** policy interacts with the environment. Those trajectories get recorded as JSONL training data. Then a smaller model learns by imitating those expert-ish demonstrations.
+A stronger **Teacher** policy interacts with the environment. Those trajectories are recorded as JSONL training data, and a smaller model then learns by imitating those demonstrations.
 
-This part of the repo is backed by the original SFT artifact stack.
+This stage is backed by the original SFT artifact stack.
+
+![Original SFT reward improvement ladder](../artifacts/trl-openenv-hf-a10g-qwen-rich/plots/reward_improvement_ladder.png)
+
+*This plot shows the original supervised fine-tuning win clearly: the trained 0.5B policy separates from the base model and simple baselines on held-out LedgerShield cases.*
 
 The key reported numbers are:
 
@@ -739,11 +754,24 @@ The key reported numbers are:
 - **SFT Qwen 0.5B** mean score: **0.4394**
 - score lift: **+0.3111**
 
-That is a real improvement, and it matters.
+That improvement is real, and it matters.
 
 But it is still imitation.
 
-At this stage, the model mostly learns how good agents behave. It does not yet explore alternatives on its own.
+At this stage, the model mainly learns what stronger behavior looks like; it does not yet explore better alternatives on its own.
+
+### Why the reward is coherent
+
+The reward setup matters because it does not simply reward “looking correct” at the end.
+
+It pushes the policy toward the behavior the environment actually needs:
+
+- make real investigative progress,
+- complete the right controls before deciding,
+- produce auditable, evidence-grounded outputs,
+- and avoid unsafe or unsupported shortcuts.
+
+In other words, the reward is aligned to the operating workflow, not just the final answer.
 
 ---
 
@@ -751,7 +779,7 @@ At this stage, the model mostly learns how good agents behave. It does not yet e
 
 To go beyond imitation, the model has to propose new behaviors.
 
-So in the Exquisite layer, we start from the SFT model and ask it to generate many alternative plans.
+In the Exquisite layer, we start from the SFT model and ask it to generate many alternative plans.
 
 In the current artifact stack, that stage records **72 self-play candidates**.
 
@@ -768,7 +796,11 @@ This stage produces artifacts like:
 - `selfplay_candidates.jsonl`
 - `falsifier_preferences.jsonl`
 
-And conceptually, it does something important: it expands the training distribution.
+![Self-play candidate reward distribution](../artifacts/exquisite-training/plots/17_selfplay_candidate_reward_distribution.png)
+
+*This self-play distribution is useful because it shows that candidate quality is meaningfully spread out, which is exactly what makes preference building and relative-reward training informative.*
+
+Conceptually, this stage does something important: it expands the training distribution.
 
 The model is no longer limited to copying what it saw in the teacher rollouts.
 
@@ -776,9 +808,9 @@ The model is no longer limited to copying what it saw in the teacher rollouts.
 
 ## Layer 2B: GRPO — the core breakthrough
 
-This is the part of the training story we’re most excited about.
+This is the core transition in the training story.
 
-Instead of asking, “How similar is the output to the teacher?”, GRPO asks something closer to:
+Instead of asking, “How similar is the output to the teacher?”, GRPO asks a more useful question:
 
 > “Among these sampled plans, which ones actually perform better in the environment?”
 
@@ -795,6 +827,10 @@ The rough workflow is:
 
 That is the move from **imitation** to **environment-driven improvement**.
 
+![Exquisite GRPO reward curve](../artifacts/exquisite-training/plots/08_grpo_reward_curve_smoothed.png)
+
+*The smoothed GRPO reward curve makes the learning signal visible over time, showing that the policy is improving inside the environment rather than just being evaluated after the fact.*
+
 And this is where the biggest jump happens:
 
 - **SFT Qwen 0.5B** mean score: **0.4394**
@@ -806,7 +842,7 @@ It also improves:
 - **certificate score** from **0.8478** to **0.9653**
 - **control satisfied** from **0.2222** to **0.6667**
 
-That’s the clearest signal in the training stack: the environment reward is teaching something the imitation layer alone did not fully capture.
+That is the clearest signal in the training stack: the environment reward is teaching something the imitation layer alone did not fully capture.
 
 ---
 
@@ -824,7 +860,7 @@ That is better than the smaller SFT model, but still well below the GRPO-trained
 
 So the practical takeaway is:
 
-> in this stack, reward-driven training helped much more than simply making the model larger.
+> In this stack, reward-driven training helped much more than simply making the model larger.
 
 ### Layer 2D: DPO from falsifier preferences
 
@@ -854,9 +890,13 @@ If we compress the training story into one sequence, it looks like this:
 6. **update the policy from reward**
 7. **compare scaling and distillation as follow-ups**
 
-That’s the core training philosophy of LedgerShield.
+![Exquisite pipeline diagram](../artifacts/exquisite-training/plots/06_exquisite_pipeline_diagram.png)
 
-We don’t just want models that can copy good answers. We want models that can improve by surviving evidence, policy, and audit pressure inside a realistic environment.
+*This pipeline graphic is the simplest visual summary of the additive training stack: self-play expands candidate behavior, the environment scores it, and GRPO/DPO convert that signal into a stronger policy.*
+
+That is the core training philosophy of LedgerShield.
+
+We do not just want models that can copy good answers. We want models that can improve by surviving evidence, policy, and audit pressure inside a realistic environment.
 
 ---
 
@@ -872,15 +912,33 @@ Here is the most useful summary table from the current artifact stack:
 | SFT Qwen 1.5B | 0.4798 | 0.7992 | 0.0000 |
 | Teacher | 0.6627 | 0.9472 | 0.5556 |
 
+![Final policy ladder](../artifacts/exquisite-training/plots/01_final_policy_ladder.png)
+
+*The final policy ladder is the clearest single result in the artifact stack: GRPO on Qwen 0.5B closes almost the entire gap to the teacher while preserving the benchmark’s safety profile.*
+
 The headline conclusion is not “RL always beats SFT.”
 
-It is more specific, and more interesting:
+It is narrower and more useful:
 
 > In LedgerShield, **environment-in-the-loop GRPO** is what moves a small model from basic imitation toward near-teacher enterprise control behavior.
 
 Another important detail: across the reported evaluation tables, the headline learned policies maintain **0.0000 unsafe release** on the included eval slices.
 
 That combination — better score, better control completion, and maintained safety — is exactly the kind of behavior we hoped this environment would surface.
+
+## Before vs. after behavior: what improved in practice
+
+The most important training result is not just that the score went up. It is that the policy behaves more like a safe operator inside the workflow.
+
+A simplified before/after pattern looks like this:
+
+| Stage | Typical behavior |
+|---|---|
+| **Base / weak policy** | Notices some risk signals, but often under-investigates, skips controls, or submits a weakly justified decision |
+| **SFT policy** | Follows the teacher more reliably, uses tools more sensibly, and produces better structured decisions, but still leaves performance on the table |
+| **GRPO policy** | More consistently completes control-critical steps, produces stronger certificates, and reaches near-teacher quality without increasing unsafe release |
+
+So the improvement is behavioral as well as numerical: the trained policy is better at investigating, better at satisfying controls, and better at justifying its decisions.
 
 ---
 
@@ -905,7 +963,6 @@ If you want to go from story to code, these are the files worth opening first:
 | `server/case_factory.py` | Holdouts, twins, ControlBench, sequences |
 | `server/attack_library.py` | Attack inventory |
 | `benchmark_report.py` | Benchmark reports and summaries |
-| `compare_models_live.py` | Live model comparison |
 | `training/exquisite/` | Self-play, GRPO, DPO training layer |
 
 The practical dev flow is:
@@ -953,44 +1010,6 @@ Useful runtime flags include:
 - `LEDGERSHIELD_TRACK_MODE=blind|instrumented`
 - `LEDGERSHIELD_INCLUDE_CONTROLBENCH=true`
 - `LEDGERSHIELD_CONTROLBENCH_SLEEPER_WARMUPS`
-
----
-
-## Live model comparison
-
-One thing we were happy to see is that the environment can detect meaningful capability differences across model tiers.
-
-The current comparison table reports a clean monotonic ordering:
-
-| Model | Tier | Capability | Average Score | Success Rate |
-|---|---|---:|---:|---:|
-| `gpt-3.5-turbo` | standard | 3.2 | 0.6965 | 38.1% |
-| `gpt-4o` | strong | 4.6 | 0.8947 | 90.5% |
-| `gpt-5.4` | elite | 5.4 | 0.9177 | 95.2% |
-
-That kind of monotonic ordering is useful because it suggests the benchmark is not just noisy theatre. It can separate weaker and stronger agent behavior in a meaningful way.
-
----
-
-## The demo story we recommend
-
-If you only had a few minutes to show LedgerShield live, we would recommend `CASE-D-001`.
-
-<img width="1280" height="423" alt="image" src="https://github.com/user-attachments/assets/24ac9229-2580-43f2-9b52-f4285ce9bb09" />
-
-A good demo flow is:
-
-1. introduce the benchmark identity,
-2. reset into a blind-mode case,
-3. inspect the email thread,
-4. compare the bank account,
-5. request callback verification,
-6. submit a final decision,
-7. then show the metric split and institutional consequences.
-
-The most important thing to point out in the demo is that delayed artifacts change what the agent can justify. That makes timing and control choice matter.
-
-That’s what makes it feel like a workflow and not a static benchmark row.
 
 ---
 
