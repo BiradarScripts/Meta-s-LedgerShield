@@ -22,15 +22,24 @@ tags:
 [![CI](https://img.shields.io/badge/ci-github_actions-success.svg)](./.github/workflows/ci.yml)
 [![OpenEnv](https://img.shields.io/badge/OpenEnv-compatible-green.svg)](./openenv.yaml)
 
-**Frontend App:** https://frontend-fawn-xi-18.vercel.app/agent
-**Backend API:** https://ledgershield-deploy.onrender.com
-**Hugging Face Space:** https://huggingface.co/spaces/shreayas/ledgershield-controlbench
+**Frontend App:** https://frontend-fawn-xi-18.vercel.app/agent 
+
+**Backend API:** https://ledgershield-deploy.onrender.com 
+
+**Hugging Face Space:** https://huggingface.co/spaces/shreayas/ledgershield-controlbench 
+
 **Hosted Docs:** https://aryaman.mintlify.app/benchmark/benchmark-card
+
 **Pitch Deck (PPT):** https://canva.link/lsxxrdfbk2pxl8h
 
-**For more details, see:** [`docs/DOCUMENTATION.md`](./docs/DOCUMENTATION.md)
+**For more details, see:**
+
+[`docs/DOCUMENTATION.md`](./docs/DOCUMENTATION.md)
+
 **Training evidence report:** [`docs/training-report.md`](./docs/training-report.md)
+
 **Exquisite training layer:** [`docs/exquisite-training-layer.md`](./docs/exquisite-training-layer.md)
+
 **Short mini-blog source:** [`docs/HF_MINIBLOG_FINAL.md`](./docs/HF_MINIBLOG_FINAL.md)
 
 > **LedgerShield is a deployment-grade trust-and-governance benchmark for autonomous enterprise AI agents — the first RL environment that measures not just whether an AI can solve a task, but whether it *deserves operational authority*.**
