@@ -109,9 +109,11 @@ LedgerShield now shows two distinct training stories:
 
 *Observable reward improvement: the smoothed GRPO curve shows real training progress rather than a static evaluation-only story.*
 
-![Score safety frontier](./artifacts/exquisite-training/plots/04_score_safety_frontier_all_policies.png)
+![Per-case score heatmap](./artifacts/exquisite-training/plots/27_per_case_score_heatmap.png)
 
-*Safety is preserved while rewards improve: the best additive policy moves right on score without moving upward on unsafe release.*
+
+*Per-case score heatmap: performance is uneven across cases, showing exactly where each policy is strong, where it struggles, and which fraud scenarios remain hardest.*
+  
 
 ## Training Ladder: from live rollouts to environment reward
 
