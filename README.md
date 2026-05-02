@@ -106,7 +106,8 @@ Most benchmarks ask whether a model can label a suspicious invoice. LedgerShield
 
 The environment is implemented in [`server/environment.py`](./server/environment.py) and exposed through a FastAPI/OpenEnv-compatible app in [`server/app.py`](./server/app.py).
 
-![LedgerShield episode flow](./docs/assets/08_demo_flow.svg)
+<img width="1061" height="330" alt="image" src="https://github.com/user-attachments/assets/4c8e25e1-59e3-4493-a89e-1f63bac22fc5" />
+
 
 *The agent sees partial evidence, uses tools, triggers controls, and submits a certificate-backed final decision.*
 
@@ -149,7 +150,7 @@ Final decisions are explicit: `PAY`, `HOLD`, `NEEDS_REVIEW`, and `ESCALATE_FRAUD
 
 A shortcut model can guess the right label and still fail because it skipped controls, made unsupported claims, or acted with unjustified authority.
 
-![ControlBench state diagram](./docs/assets/07_controlbench_memory.svg)
+<img width="1280" height="596" alt="image" src="https://github.com/user-attachments/assets/bcb58973-9d69-4964-9177-e35f208ccb6d" />
 
 *Long-horizon state persists across cases: queue pressure, authority, vendor trust, callback capacity, and sleeper-vendor memory.*
 
@@ -171,7 +172,7 @@ Every final decision must be backed by a typed evidence graph. The agent cannot 
 
 Certificate node types include evidence/artifacts, hypotheses, policies, interventions, counterfactuals, and decisions. Certificate verification lives in [`server/decision_certificate.py`](./server/decision_certificate.py).
 
-![Decision Certificate Graph](./docs/assets/09_decision_certificate.svg)
+<img width="1280" height="435" alt="image" src="https://github.com/user-attachments/assets/a02edfaf-85fd-4a81-8fbe-44b66c80a0e4" />
 
 *The final decision must be backed by a proof graph, not just a natural-language explanation.*
 
@@ -366,7 +367,7 @@ submit_decision(ESCALATE_FRAUD)
 
 LedgerShield implements a complete environment-training stack, not a single static fine-tune.
 
-![Training stack pipeline](./artifacts/exquisite-training/plots/06_exquisite_pipeline_diagram.png)
+<img width="1377" height="496" alt="image" src="https://github.com/user-attachments/assets/a5e8ec3d-2062-4489-a853-c35a4113709d" />
 
 *Self-play expands behavior; the environment scores candidates; GRPO/DPO convert the signal into a stronger policy.*
 
@@ -628,6 +629,9 @@ We include these limitations because the goal is not to report only the best num
 LedgerShield formalizes AP fraud investigation as a sequential hypothesis-testing game: the agent must gather evidence, decide when enough evidence exists, and justify every final action with a typed proof graph.
 
 ## ASHTG — Approximate Sequential Hypothesis Testing Game
+
+<img width="1280" height="838" alt="image" src="https://github.com/user-attachments/assets/ad5b4cc5-2330-4ad9-a37f-b0b56bb34671" />
+
 
 LedgerShield models AP investigation as an Approximate Sequential Hypothesis Testing Game.
 
