@@ -56,10 +56,12 @@ That is why LedgerShield measures authority, certificate quality, control satisf
 | Training report | [`docs/training-report.md`](./docs/training-report.md) |
 | Exquisite training report | [`docs/exquisite-training-layer.md`](./docs/exquisite-training-layer.md) |
 | Live frontend | [Frontend app](https://frontend-fawn-xi-18.vercel.app/) |
+| Live Backend | [Backend app](https://ledgershield-deploy.onrender.com/) |
 | Backend API docs | [Render API docs](https://ledgershield-deploy.onrender.com/docs) |
 | Live HF app | [LedgerShield ControlBench](https://shreayas-ledgershield-controlbench.hf.space) |
 | HF Space repo | [shreayas/ledgershield-controlbench](https://huggingface.co/spaces/shreayas/ledgershield-controlbench) |
 | Hosted docs | [Mintlify docs](https://aryaman.mintlify.app/benchmark/benchmark-card) |
+| PITCH Deck | [PPT](https://canva.link/lsxxrdfbk2pxl8h) |
 | Mini-blog | [`docs/HF_MINIBLOG_FINAL.md`](./docs/HF_MINIBLOG_FINAL.md) |
 | Technical docs | [`docs/DOCUMENTATION.md`](./docs/DOCUMENTATION.md) |
 | Pitch video | [YouTube](https://youtu.be/-Yv1LeFBvrQ) |
