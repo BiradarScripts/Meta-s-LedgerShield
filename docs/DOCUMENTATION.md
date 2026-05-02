@@ -2968,7 +2968,7 @@ The completed live-scope policy matrix is:
 | SFT Qwen | 0.5B | SFT | 0.4394 | -3.1019 | 0.8478 | 0.2222 | 0.0000 | 1.0000 |
 | GRPO Qwen | 0.5B | SFT -> GRPO | 0.6606 | -2.9266 | 0.9653 | 0.6667 | 0.0000 | 1.0000 |
 | SFT Qwen | 1.5B | SFT | 0.4798 | -2.3567 | 0.7992 | 0.0000 | 0.0000 | 1.0000 |
-| DPO-Falsifier | 1.5B/3B | GRPO -> DPO | 0.4503 | -3.1759 | 0.8408 | 0.2222 | 0.0000 | 1.0000 |
+| DPO-Falsifier | 0.5B | GRPO -> DPO | 0.4503 | -3.1759 | 0.8408 | 0.2222 | 0.0000 | 1.0000 |
 | Teacher | - | oracle-ish | 0.6627 | -2.7090 | 0.9472 | 0.5556 | 0.0000 | 1.0000 |
 
 Important caveat:

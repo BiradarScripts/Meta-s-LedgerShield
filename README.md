@@ -37,6 +37,8 @@ Control-satisfied resolution: **0.2222 → 0.6667**
 
 **Why this is hard:** the teacher reference scores `0.6627`. GRPO Qwen 0.5B reaches `0.6606`, closing nearly the entire SFT-to-teacher gap while preserving zero unsafe releases.
 
+**Shock result:** a 0.5B model trained with environment-in-the-loop GRPO beats a 3× larger 1.5B SFT model and nearly matches the engineered teacher policy, while unsafe release remains `0.0000`.
+
 ## Why this matters
 
 Accounts-payable fraud is not a toy classification problem. In a real institution, the dangerous failure is not only a wrong label — it is an AI agent approving money movement without enough evidence, skipping controls, or acting with unjustified confidence.
@@ -188,31 +190,71 @@ The deterministic falsifier lives in [`server/decision_falsifier.py`](./server/d
 
 A classifier outputs a label. LedgerShield evaluates an investigation policy: what the agent checks, when it stops, whether it preserves authority, and whether its final certificate survives audit.
 
+## What makes LedgerShield different
+
+| Design choice | Why it matters |
+|---|---|
+| Calibration-gated authority | A confidently wrong agent can lose decision rights |
+| Decision Certificate Graphs | Final decisions require machine-checkable evidence support |
+| Deterministic falsifier | Weak certificates and unsafe release paths are attacked before scoring |
+| Institutional memory | Vendor trust, authority state, queue pressure, and sleeper-vendor risk can persist across cases |
+| Multi-algorithm training stack | SFT, self-play, GRPO, DPO/distillation, scaling probes, and ablation harness are exposed |
+| Honest negative results | DPO and scaling probes are shown even though they do not beat GRPO |
+
 # Act 2 — What the Agent Learned
 
 ## Evaluation protocol
 
 | Item | Protocol |
 |---|---|
-| Compared policies | Random, Naive PAY, Base Qwen 0.5B, SFT Qwen 0.5B, GRPO Qwen 0.5B, Teacher reference |
+| Compared policies | Random, Naive PAY, Base Qwen 0.5B, SFT Qwen 0.5B, SFT Qwen 1.5B, DPO-Falsifier, GRPO Qwen 0.5B, Teacher reference |
 | Main metrics | Mean score, certificate score, control-satisfied resolution, unsafe release, parse success |
 | Main artifact | [`artifacts/exquisite-training/reports/final_policy_matrix.csv`](./artifacts/exquisite-training/reports/final_policy_matrix.csv) |
 | Per-case artifact | [`artifacts/exquisite-training/reports/per_case_results.jsonl`](./artifacts/exquisite-training/reports/per_case_results.jsonl) |
 | Safety metric | Unsafe release must remain `0.0000` |
 | Behavioral check | Same-case trace: `CASE-E-002::variant-0` |
 
-## Training ladder
+## Training evidence: 8-policy comparison
 
-| Stage | Purpose | Result |
-|---|---|---:|
-| Random baseline | Sanity baseline | 0.1088 |
-| Naive PAY baseline | Unsafe/simple baseline | 0.0693 |
-| Base Qwen 0.5B | Untrained policy | 0.1283 |
-| SFT Qwen 0.5B | Learns task format and basic investigation | 0.4394 |
-| GRPO Qwen 0.5B | Environment RL | 0.6606 |
-| Teacher reference | Upper comparison policy | 0.6627 |
+LedgerShield was not evaluated with one cherry-picked policy. We ran deterministic baselines, pretrained models, SFT, scaling, DPO/preference distillation, GRPO, and a teacher reference through the same evaluation matrix.
+
+| Policy | Model | Method | Score | Certificate | Control Sat | Unsafe | Parse |
+|---|:---:|---|---:|---:|---:|---:|---:|
+| Random baseline | — | random | 0.1088 | 0.4461 | 0.0000 | 0.0000 | 1.0000 |
+| Naive PAY | — | heuristic | 0.0693 | 0.4794 | 0.2222 | 0.0000 | 1.0000 |
+| Base Qwen | 0.5B | pretrained | 0.1283 | 0.4044 | 0.0000 | 0.0000 | 1.0000 |
+| SFT Qwen | 0.5B | SFT | 0.4394 | 0.8478 | 0.2222 | 0.0000 | 1.0000 |
+| SFT Qwen | 1.5B | SFT scaling probe | 0.4798 | 0.7992 | 0.0000 | 0.0000 | 1.0000 |
+| DPO-Falsifier | 0.5B | preference distillation | 0.4503 | 0.8408 | 0.2222 | 0.0000 | 1.0000 |
+| **GRPO Qwen** | **0.5B** | **environment RL** | **0.6606** | **0.9653** | **0.6667** | **0.0000** | **1.0000** |
+| Teacher reference | — | expert policy | 0.6627 | 0.9472 | 0.5556 | 0.0000 | 1.0000 |
 
 Source: [`artifacts/exquisite-training/reports/final_policy_matrix.csv`](./artifacts/exquisite-training/reports/final_policy_matrix.csv)
+
+**Key findings:**
+
+- Naive PAY scores worse than random: `0.0693` vs `0.1088`.
+- GRPO at 0.5B nearly matches the teacher: `0.6606` vs `0.6627`.
+- GRPO beats 0.5B SFT by `+0.2212` and triples control-satisfied resolution: `0.2222 → 0.6667`.
+- 1.5B SFT improves over 0.5B SFT, but still trails 0.5B GRPO.
+- DPO/preference distillation is real, but does not beat GRPO.
+- All evaluated policies report `0.0000` unsafe release in this matrix, while GRPO is the only learned 0.5B policy that combines high score, high certificate quality, and high control satisfaction.
+
+## The training trial: what failed, what worked, and why
+
+The strongest result in LedgerShield is not only that GRPO won. It is that every weaker training method failed in a different, interpretable way.
+
+| Stage | What it learned | What it missed |
+|---|---|---|
+| SFT | Tool-call format, certificate schema, basic investigation style | It often stopped early and did not reliably complete institutional controls |
+| Self-play | Broader candidate trajectories and alternative plans | Many candidates still failed structurally or procedurally before becoming reliable policies |
+| DPO / preference distillation | Offline good-vs-bad trajectory preferences | It did not receive live step-level environment feedback, so it barely improved over SFT |
+| 1.5B SFT scaling probe | Larger model improved raw score slightly | More parameters did not solve control-satisfied investigation |
+| GRPO | Environment-rewarded sequential investigation | It changed the investigation policy and reached near-teacher behavior |
+
+Failure taxonomy artifact: [`artifacts/exquisite-training/reports/failure_taxonomy.json`](./artifacts/exquisite-training/reports/failure_taxonomy.json)
+
+**Central finding:** offline methods learned how LedgerShield outputs should look. GRPO learned how LedgerShield investigations should unfold.
 
 ## Main policy result
 
@@ -231,9 +273,31 @@ The teacher reference is the engineered expert policy. GRPO Qwen 0.5B reaches **
 
 ## What GRPO actually taught
 
-The most operationally important change is not only mean score. GRPO tripled control-satisfied resolution from **0.2222 → 0.6667** while keeping unsafe release at **0.0000**.
+The trained agent learned to complete more required compliance/control steps before making a final decision, instead of simply guessing the right label.
 
-That means the trained agent learned to complete more required compliance/control steps before making a final decision, instead of simply guessing the right label.
+## Environment-in-the-loop training beat offline preference learning
+
+| Method | Environment feedback during training? | Score | Control satisfied |
+|---|:---:|---:|---:|
+| SFT | ❌ | 0.4394 | 0.2222 |
+| DPO / preference distillation | ❌ | 0.4503 | 0.2222 |
+| **GRPO** | **✅** | **0.6606** | **0.6667** |
+
+SFT and DPO learned the format of investigation. GRPO learned the structure of investigation: gather evidence, satisfy controls, produce a certificate, and escalate safely when needed.
+
+**The gap was not just model capacity. It was the training loop.**
+
+## Scaling probe: model size alone was not enough
+
+| Model | Method | Score | Control satisfied |
+|---|---|---:|---:|
+| Qwen 0.5B | SFT | 0.4394 | 0.2222 |
+| Qwen 1.5B | SFT | 0.4798 | 0.0000 |
+| Qwen 0.5B | SFT → GRPO | 0.6606 | 0.6667 |
+
+The 1.5B SFT scaling probe improves over 0.5B SFT, but still trails 0.5B GRPO. This supports the main result: in this run, environment reward mattered more than parameter count.
+
+> **Model size was not the answer:** the smaller 0.5B GRPO policy beats the 3× larger SFT policy because the environment reward teaches sequential control behavior that supervised learning does not.
 
 ## Final policy ladder
 
@@ -401,6 +465,8 @@ Artifacts:
 
 The training stack generates multiple candidate investigation trajectories. LedgerShield then scores them using environment rewards, control satisfaction, certificate validity, and falsifier pressure.
 
+In this artifact pack, self-play generated 72 candidate trajectories across 9 cases, producing environment-scored candidates for downstream preference and RL stages.
+
 Artifacts:
 
 - [`training/exquisite/collect_selfplay_rollouts.py`](./training/exquisite/collect_selfplay_rollouts.py)
@@ -444,14 +510,6 @@ Artifacts:
 - [`artifacts/exquisite-training/dpo-falsifier-distill/dpo_pairs.jsonl`](./artifacts/exquisite-training/dpo-falsifier-distill/dpo_pairs.jsonl)
 - [`artifacts/exquisite-training/dpo-falsifier-distill/dpo_step_metrics.csv`](./artifacts/exquisite-training/dpo-falsifier-distill/dpo_step_metrics.csv)
 - [`artifacts/exquisite-training/dpo-falsifier-distill/final_policy_eval.json`](./artifacts/exquisite-training/dpo-falsifier-distill/final_policy_eval.json)
-
-### Scaling probe
-
-Larger-model or longer-run experiments are treated as supporting evidence, not the main headline. The central comparable result is the 0.5B Base → SFT → GRPO ladder.
-
-The 1.5B SFT scaling probe reports **0.4798** mean score: better than 0.5B SFT, but still below 0.5B GRPO. This suggests reward-driven training mattered more than model size in this stack.
-
-Supporting artifact: [`artifacts/exquisite-training/sft-1.5b/training_metrics.json`](./artifacts/exquisite-training/sft-1.5b/training_metrics.json)
 
 ### Ablations
 

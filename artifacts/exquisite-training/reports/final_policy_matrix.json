@@ -95,7 +95,7 @@
     "mean_score": "0.4503",
     "mean_total_reward": "-3.1759",
     "method": "GRPO->DPO",
-    "model": "1.5B/3B",
+    "model": "0.5B",
     "parse_success": "1.0000",
     "policy": "DPO-Falsifier",
     "policy_key": "dpo_falsifier",

@@ -430,7 +430,7 @@ def pending_policy_rows(excluded_policy_keys: set[str] | None = None) -> list[di
         {"policy_key": "sft_1_5b", "policy": "SFT Qwen", "model": "1.5B", "method": "SFT"},
         {"policy_key": "grpo_1_5b", "policy": "GRPO Qwen", "model": "1.5B", "method": "SFT->GRPO"},
         {"policy_key": "grpo_3b", "policy": "GRPO Qwen", "model": "3B", "method": "SFT+GRPO"},
-        {"policy_key": "dpo_falsifier", "policy": "DPO-Falsifier", "model": "1.5B/3B", "method": "GRPO->DPO"},
+        {"policy_key": "dpo_falsifier", "policy": "DPO-Falsifier", "model": "0.5B", "method": "GRPO->DPO"},
     ]
     excluded = excluded_policy_keys or set()
     return [apply_policy_run_profile(row) for row in rows if str(row.get("policy_key") or "") not in excluded]

@@ -42,7 +42,7 @@ The current best numeric policy is `Teacher` with mean score `0.6627`.
 | SFT Qwen | 0.5B | SFT | original SFT benchmark | 0.4394 | 0.8478 | 0.2222 | 0.0000 | 1.0000 | completed |
 | GRPO Qwen | 0.5B | SFT->GRPO | flagship additive run | 0.6606 | 0.9653 | 0.6667 | 0.0000 | 1.0000 | completed |
 | SFT Qwen | 1.5B | SFT | fast-profile scaling run | 0.4798 | 0.7992 | 0.0000 | 0.0000 | 1.0000 | completed |
-| DPO-Falsifier | 1.5B/3B | GRPO->DPO | artifact-complete distillation | 0.4503 | 0.8408 | 0.2222 | 0.0000 | 1.0000 | completed |
+| DPO-Falsifier | 0.5B | GRPO->DPO | artifact-complete distillation | 0.4503 | 0.8408 | 0.2222 | 0.0000 | 1.0000 | completed |
 | Teacher | - | oracle-ish | reference ceiling | 0.6627 | 0.9472 | 0.5556 | 0.0000 | 1.0000 | completed |
 
 ## Execution Footprint

@@ -59,7 +59,7 @@ RUN_HINTS = {
     "sft-1.5b": ("sft_1_5b", "SFT Qwen", "1.5B", "SFT"),
     "grpo-1.5b": ("grpo_1_5b", "GRPO Qwen", "1.5B", "SFT->GRPO"),
     "grpo-3b-flagship": ("grpo_3b", "GRPO Qwen", "3B", "SFT+GRPO"),
-    "dpo-falsifier-distill": ("dpo_falsifier", "DPO-Falsifier", "1.5B/3B", "GRPO->DPO"),
+    "dpo-falsifier-distill": ("dpo_falsifier", "DPO-Falsifier", "0.5B", "GRPO->DPO"),
 }
 
 MATRIX_COLUMNS = [
